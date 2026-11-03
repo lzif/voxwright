@@ -12,8 +12,9 @@ export interface AssetSource {
   /** Parsed JSON, or `null` when missing or unreadable. */
   readJson(path: string): unknown;
   /**
-   * A texture by id such as `block/stone`, or `null` when missing. Animated
-   * textures are already cropped to their first frame.
+   * A texture by id such as `block/stone`, or `null` when missing. By default
+   * an animated texture is cropped to its first frame, which is what model UVs
+   * address; pass `{ firstFrameOnly: false }` for the whole strip.
    */
-  texture(id: string): RasterImage | null;
+  texture(id: string, options?: { firstFrameOnly?: boolean }): RasterImage | null;
 }

@@ -22,6 +22,16 @@ export {
 export { BuildError, GridBoundsError, McbuilderError } from "./errors.ts";
 export { type Cell, Geometry, type Point } from "./geometry.ts";
 export {
+  buildGuide,
+  type Guide,
+  type GuideLayer,
+  itemCounts,
+  mostCommon,
+  shortName,
+  stacks,
+  titleCase,
+} from "./guide.ts";
+export {
   cleanProperties,
   constName,
   type ImportCall,

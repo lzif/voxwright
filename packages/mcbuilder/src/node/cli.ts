@@ -5,7 +5,7 @@
 //   mcbuild init [path] [--force]
 //   mcbuild check <script> [--config file]
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
-//                [--preview] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
+//                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
 //   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
 //   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
 //   mcbuild assets fetch --version V [--cache-dir dir] [--force]
@@ -34,6 +34,7 @@ import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts"
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
 import { DiffError, formatDiff } from "../diff.ts";
 import { McbuilderError } from "../errors.ts";
+import { buildGuide, titleCase } from "../guide.ts";
 import { cleanProperties, structureFromVolume, summary, toScript } from "../importer.ts";
 import { Registry, RegistryError } from "../registry.ts";
 import { buildReport, reportToJson, viewEntry } from "../report.ts";
@@ -317,7 +318,6 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
     }
     throw new CliError(`--tier must be faithful, fast, trusted or all, got '${values.tier}'`);
   }
-  if (values.guide) throw new CliError("--guide is not ported yet");
   const air = values.air as AirMode;
   if (!["none", "explicit", "all"].includes(air))
     throw new CliError("--air must be none, explicit or all");
@@ -397,6 +397,30 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
     }
   }
 
+  // Build guide: one plan per layer plus a material list, only for a clean build.
+  if (values.guide && ctx.errors.length === 0) {
+    const root = join(
+      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+      ctx.cfg.mcVersion,
+      "client",
+      "assets",
+      "minecraft",
+    );
+    const haveAssets = await exists(join(root, "blockstates"));
+    const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
+    const iso = join(runDir, "previews_faithful", "iso.png");
+    const guide = buildGuide(grid.toDense(), haveAssets ? directoryAssets(root) : null, {
+      title: titleCase(stem.replaceAll("_", " ")),
+      cover: (await exists(iso)) ? "../previews_faithful/iso.png" : null,
+    });
+    const dir = join(runDir, "guide");
+    await mkdir(dir, { recursive: true });
+    for (const layer of guide.layers)
+      await writeFile(join(dir, layer.name), encodePng(layer.image));
+    await writeFile(join(dir, "guide.md"), guide.markdown, "utf8");
+    artifacts.push({ file: "guide/guide.md", format: "guide" });
+  }
+
   const placed = ctx.build.grid.volume.placedBounds();
   const report = buildReport({
     errors: ctx.errors,
@@ -420,8 +444,10 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
   if (viewEntries.length > 0) {
     io.out(`  faithful previews: ${viewEntries.length} in previews_faithful/`);
   }
-  for (const a of artifacts)
-    io.out(`  artifact: ${a.file} (${a.format}, DataVersion ${a.data_version})`);
+  for (const a of artifacts) {
+    if (a.format === "guide") io.out(`  guide: ${a.file}`);
+    else io.out(`  artifact: ${a.file} (${a.format}, DataVersion ${a.data_version})`);
+  }
   for (const e of ctx.errors) io.out(`  error: ${fmtIssue(e)}`);
   for (const w of warnings) io.out(`  warning: ${fmtIssue(w)}`);
   return ctx.errors.length > 0 ? 1 : 0;
@@ -632,7 +658,7 @@ const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
   mcbuild init [path] [--force]
   mcbuild check <script> [--config file]
-  mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]\n                [--preview] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
+  mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]\n                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw]
   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
   mcbuild assets fetch --version V [--cache-dir dir] [--force]

@@ -19,8 +19,10 @@ export function directoryAssets(root: string): AssetSource {
         return null;
       }
     },
-    texture(id) {
-      if (textures.has(id)) return textures.get(id) as RasterImage | null;
+    texture(id, options) {
+      const firstFrameOnly = options?.firstFrameOnly ?? true;
+      const cacheKey = firstFrameOnly ? id : `${id}#strip`;
+      if (textures.has(cacheKey)) return textures.get(cacheKey) as RasterImage | null;
       let img: RasterImage | null = null;
       try {
         const png = PNG.sync.read(readFileSync(join(root, "textures", `${id}.png`)));
@@ -28,7 +30,7 @@ export function directoryAssets(root: string): AssetSource {
         // Animated textures: keep the first frame. Model UVs map onto a single
         // frame, not the whole vertically stacked strip.
         const meta = join(root, "textures", `${id}.png.mcmeta`);
-        if (existsSync(meta)) {
+        if (firstFrameOnly && existsSync(meta)) {
           try {
             const m = JSON.parse(readFileSync(meta, "utf8")) as { animation?: unknown };
             if (
@@ -44,7 +46,7 @@ export function directoryAssets(root: string): AssetSource {
       } catch {
         img = null;
       }
-      textures.set(id, img);
+      textures.set(cacheKey, img);
       return img;
     },
   };

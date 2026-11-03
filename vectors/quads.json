@@ -268,7 +268,58 @@
       "sha256": "fe51905ea492949cf6d2a9cdab6d6625506a0579463ee1c8986c1d9f6ea4b330"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "dc0b95ebdf19ae7eede64c67e2895f65bce0a333e8d538182c66027930b8ef68"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_log[axis=y]": {
    "fallback_color": [
@@ -537,7 +588,58 @@
       "sha256": "85711746e342f1f3b77d3304e4812c761390be41f8977d2772770848167f3791"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_log[axis=x]": {
    "fallback_color": [
@@ -806,7 +908,58 @@
       "sha256": "36f0b74938b8ed16d00dba506e6f22954b31e44fc28afed6d74b3768667e1da9"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_log[axis=z]": {
    "fallback_color": [
@@ -1075,7 +1228,58 @@
       "sha256": "85711746e342f1f3b77d3304e4812c761390be41f8977d2772770848167f3791"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1430bda77f6a4ce8a44349dd50ad3eee1a60594d074fa16335f93cf094fb2046"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "37c82d68b4a7329fffa38441f7147112909c8be0704f77e3ad1ac63998bc1b3e"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_planks": {
    "fallback_color": [
@@ -1344,7 +1548,58 @@
       "sha256": "6b8740946b14087f9c635f7f249aad0908bb2ad72537d2603f7dd234318e6627"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:glass": {
    "fallback_color": [
@@ -1613,7 +1868,58 @@
       "sha256": "cc120f5d7efff15c2f02b5aa2b7a4d4d07b9612e34d3feec07e03069f5ce6aff"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:bookshelf": {
    "fallback_color": [
@@ -1882,7 +2188,58 @@
       "sha256": "1620c00171b9d4d4f2b3ef4b0a1cf230b5b02e0e117b53c47f07aeec9e2524b0"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "59d92ee356d703aa3c8dc07c6ee38d2184727a978b568e858e8b4747363c0503"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "59d92ee356d703aa3c8dc07c6ee38d2184727a978b568e858e8b4747363c0503"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "59d92ee356d703aa3c8dc07c6ee38d2184727a978b568e858e8b4747363c0503"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "59d92ee356d703aa3c8dc07c6ee38d2184727a978b568e858e8b4747363c0503"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:barrel[facing=up,open=false]": {
    "fallback_color": [
@@ -2151,7 +2508,58 @@
       "sha256": "2767d27f1632fcd43e32e406c5f2691a5b5c907654e061a4fceeea0ea890c465"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "d30305e532a875c852aa11b95686fba4a6dee3e77777bf56b28df6516f9990d0"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3e9817be1f878faaa1e1a51b96b5570647a50ad8747eed2fe42acbed603aee87"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:barrel[facing=east,open=true]": {
    "fallback_color": [
@@ -2420,7 +2828,58 @@
       "sha256": "2b36ea1159ff1961fe120434d630f8e44506ed665cc2916622fcd58b03cc66f1"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "1415295aee61d27b69818b28aa5125926473eedc245d44d2f8a076b2cf44135f"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3e9817be1f878faaa1e1a51b96b5570647a50ad8747eed2fe42acbed603aee87"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "0ded1f95f1c5a776d158be3169edc372c960b8dd11e0aaee6e982d28bd847120"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]": {
    "fallback_color": [
@@ -2896,7 +3355,58 @@
       "sha256": "35257114240a10357e5398a5fda83f2663a1fb18912cfbd46e46c6993416dda7"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs[facing=east,half=bottom,shape=straight]": {
    "fallback_color": [
@@ -3372,7 +3882,58 @@
       "sha256": "f4f6177cc417af06a520b3d8112a5f0f6410687c417f06bbec2fd6683494db7e"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs[facing=south,half=top,shape=straight]": {
    "fallback_color": [
@@ -3848,7 +4409,58 @@
       "sha256": "35257114240a10357e5398a5fda83f2663a1fb18912cfbd46e46c6993416dda7"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs[facing=west,half=top,shape=inner_left]": {
    "fallback_color": [
@@ -4492,7 +5104,58 @@
       "sha256": "a8028367ba251cf8752271eae564f841f0aa0d43dc04764c0017ca00d2395470"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs[facing=north,half=bottom,shape=outer_right]": {
    "fallback_color": [
@@ -4964,7 +5627,58 @@
       "sha256": "7760156e8dac01c947586d39b332b01df39b14c266d18a4d75598aa28d6cdf60"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_stairs": {
    "fallback_color": [
@@ -5440,7 +6154,58 @@
       "sha256": "35257114240a10357e5398a5fda83f2663a1fb18912cfbd46e46c6993416dda7"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:stone_brick_stairs[facing=south,half=top,shape=inner_right]": {
    "fallback_color": [
@@ -6084,7 +6849,58 @@
       "sha256": "ee2f3ff83c8471f0715cb0e1971c58deae1269d798149442f2b8dd9cf791b6ed"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "28f9f5e1da7858838905194c7aa3a25c7c5bb4c348c97113b6372000f385b209"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_slab[type=bottom]": {
    "fallback_color": [
@@ -6349,7 +7165,58 @@
       "sha256": "e0a1a04bef7ac677010434ae99dc3c0d378bd4c9d1affc31f362192f96a64ff4"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_slab[type=top]": {
    "fallback_color": [
@@ -6614,7 +7481,58 @@
       "sha256": "f4f6177cc417af06a520b3d8112a5f0f6410687c417f06bbec2fd6683494db7e"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_slab[type=double]": {
    "fallback_color": [
@@ -6883,7 +7801,58 @@
       "sha256": "6b8740946b14087f9c635f7f249aad0908bb2ad72537d2603f7dd234318e6627"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:glass_pane[east=true,north=true,south=false,west=false]": {
    "fallback_color": [
@@ -7448,7 +8417,58 @@
       "sha256": "810fb44256eddec26c9d848b0d5f5f0925107c374426d15a6b7fb16923851e11"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:glass_pane": {
    "fallback_color": [
@@ -7537,7 +8557,58 @@
       "sha256": "5915b6f5c455f94cb3f6a84d255b2c77cda0ae328bbdd072f5f1cf16e0cf0398"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "1a887f8f1ec788c7ad4b796e37da862440c57568a2dca643b10dafa09779178a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_fence[east=true,north=false,south=true,west=false]": {
    "fallback_color": [
@@ -8586,7 +9657,58 @@
       "sha256": "14966266ffb4172ab9e684b4503af8fcfd81ca2b6ab482f958792144ca7bc05f"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_fence_gate[facing=north,open=false,in_wall=false]": {
    "fallback_color": [
@@ -10165,7 +11287,58 @@
       "sha256": "7805e12f4680d02dbe4df8cb206d89f31aa736566b1927bf1e94b7d026539927"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_fence_gate[facing=east,open=true,in_wall=true]": {
    "fallback_color": [
@@ -11744,7 +12917,58 @@
       "sha256": "8306ea0dab0076fbc827a67e27151d3a288154cc165aa988365cd5ce86268026"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]": {
    "fallback_color": [
@@ -12610,7 +13834,58 @@
       "sha256": "6d41965efbb637a3e0115accdd4c1ce6c7b71f3271f7582422714891c37c55f3"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:cobblestone_wall[east=false,north=false,south=false,up=true,west=false]": {
    "fallback_color": [
@@ -12863,7 +14138,58 @@
       "sha256": "6d41965efbb637a3e0115accdd4c1ce6c7b71f3271f7582422714891c37c55f3"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "64c1c375cd7b1e131d39bdc9dd3bdd63ccd324acc4637335522c92cb32006eed"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:lantern[hanging=true]": {
    "fallback_color": [
@@ -13498,7 +14824,58 @@
       "sha256": "66988444bfcd310dd9e3ee10e0712fce7f6cbf118648468430aca1f309a28250"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "down": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "north": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "south": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "east": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "west": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:lantern": {
    "fallback_color": [
@@ -14098,7 +15475,58 @@
       "sha256": "0ef1f4f1724f0fb0c44deb33e41f412f4b2d04f8947bd8f51cd9c1a458ebee8a"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "down": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "north": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "south": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "east": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    },
+    "west": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "61ce9f894827bbb60c33964e73e897504dd6ab518d5fd5e4f59b3a628f24c2d6"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:soul_lantern[hanging=false]": {
    "fallback_color": [
@@ -14698,7 +16126,58 @@
       "sha256": "0ef1f4f1724f0fb0c44deb33e41f412f4b2d04f8947bd8f51cd9c1a458ebee8a"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    },
+    "down": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    },
+    "north": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    },
+    "south": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    },
+    "east": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    },
+    "west": {
+     "size": [
+      16,
+      48
+     ],
+     "mode": "RGBA",
+     "sha256": "0d73b77ed23390f371c19ca5f584b5633c7f43ee25ad3bbc3de4e1ebc19b78aa"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:iron_chain[axis=y]": {
    "fallback_color": [
@@ -14865,7 +16344,58 @@
       "sha256": "4792f1ff4cc41c9e4bc56d6688da1e393d41f17c1081fdfaa56c3314df50c249"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:iron_chain[axis=x]": {
    "fallback_color": [
@@ -15032,7 +16562,58 @@
       "sha256": "4792f1ff4cc41c9e4bc56d6688da1e393d41f17c1081fdfaa56c3314df50c249"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0fabd96f1aef7579f4d3791617d79ae8cd3b4dbbcfb1cb715cf75b0ddc460453"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_door[facing=north,half=lower,hinge=left,open=false]": {
    "fallback_color": [
@@ -15254,7 +16835,58 @@
       "sha256": "163efe54162fb47bc07c8f40d193676043f0eccf32f7b8013fa2af23ae55ab80"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "066a95d65b982c2a5f19fa8b094c159338a75ee7be5237abd424f4e369b60302"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_door[facing=east,half=upper,hinge=right,open=true]": {
    "fallback_color": [
@@ -15476,7 +17108,58 @@
       "sha256": "3a7d1319b533a7d579f82968c2ef2132a170b62262df9a982b8e5cb769697a81"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "066a95d65b982c2a5f19fa8b094c159338a75ee7be5237abd424f4e369b60302"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "bb8008c931b91ab0d5c9d00628b9d65c3ad7d18310c52528da6d3f7997d44943"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_trapdoor[facing=north,half=bottom,open=false]": {
    "fallback_color": [
@@ -15741,7 +17424,58 @@
       "sha256": "d0cd2f30cc19c478ab72dbfce4bb3f6e81448c45d92d4ac06b1f31c3908a3c89"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_trapdoor[facing=south,half=top,open=true]": {
    "fallback_color": [
@@ -16006,7 +17740,58 @@
       "sha256": "4b92cebe2392aece4837f6e9960c4db1d28fbe1f62f07b9a89eac8b636df65d4"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "d34730d19b1b0b488a291f667ef55bfa7aa04a57202b613b8b3f683171752891"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:grass_block[snowy=false]": {
    "fallback_color": [
@@ -16447,7 +18232,58 @@
       "sha256": "2ff317c104a92cf2da5c90deff1791884fcb4cccea226373891aafb1ed165657"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "d4ef69be6c01c0acbacf854a0e18cc22bfd609492f7f03ff209bab90bb37ec4b"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8f299c3789d7e3f40aebdbf85dba36d8c815b01b104894bf231c3bc368acaa98"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8f299c3789d7e3f40aebdbf85dba36d8c815b01b104894bf231c3bc368acaa98"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8f299c3789d7e3f40aebdbf85dba36d8c815b01b104894bf231c3bc368acaa98"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8f299c3789d7e3f40aebdbf85dba36d8c815b01b104894bf231c3bc368acaa98"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_leaves[distance=1,persistent=true]": {
    "fallback_color": [
@@ -16716,7 +18552,58 @@
       "sha256": "1aef1ceff7989420a5d4a00e494d781f99e8e201e14ff2b9fedf69d43a6f8bd0"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a2e8a5870121c3c597c96ed5bc9664e734379c6c1263e5abdd3150ef0a705b73"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:short_grass": {
    "fallback_color": [
@@ -16883,7 +18770,58 @@
       "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "0b5123ffc12669a74fc736bdd0a2f7d0968c96f561aba0ee325105213b2e6e98"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:fern": {
    "fallback_color": [
@@ -17050,7 +18988,58 @@
       "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "4900b546bf2eb2f9cd82082c768107bd4400d622dfcfb4b933094469ecfee8b5"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:torch": {
    "fallback_color": [
@@ -17299,7 +19288,58 @@
       "sha256": "0d6401a3a83fc1c63defc8ff187ee1d73d5882d1ebd59e90afdd8b8578b08be6"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:wall_torch[facing=east]": {
    "fallback_color": [
@@ -17544,7 +19584,58 @@
       "sha256": "0d6401a3a83fc1c63defc8ff187ee1d73d5882d1ebd59e90afdd8b8578b08be6"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "ba6d6ec36b1cf75e8261706f2ba8c7e6f627f43d299e8b10b52081685b70998a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:lever[face=wall,facing=east,powered=true]": {
    "fallback_color": [
@@ -17988,7 +20079,58 @@
       "sha256": "8553317b4848a2143f74b188b748aa1153a6efd336da9c0fbb1a392ea80c38ae"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "9c47b914fa00b9212934104da9f76a9515d7e51c2b56bd80bc8ea20ad8f84e26"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_button[face=floor,facing=north,powered=false]": {
    "fallback_color": [
@@ -18237,7 +20379,58 @@
       "sha256": "c631d4b4696e4b2675189aab1523719cd5e983c98bf80e155e99988563de6eaa"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:ladder[facing=west]": {
    "fallback_color": [
@@ -18326,7 +20519,58 @@
       "sha256": "4c62a5cd8f7116171309a57489f389f2b0f1a74dbcdc275d3b4155ecf979e529"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "dab18ee1dbc20abb203be330be47f0bc19c34e0a1195cf770d1b1f552e582f55"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:vine[east=true,north=false,south=false,up=true,west=false]": {
    "fallback_color": [
@@ -18493,7 +20737,58 @@
       "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f51460c61da8c64791c83ccab965843f9c56fa612629b277bef505623cdedff5"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:white_carpet": {
    "fallback_color": [
@@ -18758,7 +21053,58 @@
       "sha256": "9080cf2b0f779f2c34f85e053763a9f88214d03bc41462deb4234a11b36ab97e"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "fc5331f28dd969dc48513bb331fcd58034090c63d4243dc4a9bbc4cf0fde2585"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:cauldron": {
    "fallback_color": [
@@ -21159,7 +23505,58 @@
       "sha256": "a4c672d00cf96761268f641a06a7d34b401d4460e50182f95aea333ec09eeb07"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a97d9eb07a77f04b82bd2c2cc54987097c990e3a0df87e9908be12f3e5750962"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "a4c672d00cf96761268f641a06a7d34b401d4460e50182f95aea333ec09eeb07"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "905b6700813779c34d96fee596e4e4a4bb89276fde8fa3496133f049cdb8e013"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "905b6700813779c34d96fee596e4e4a4bb89276fde8fa3496133f049cdb8e013"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "905b6700813779c34d96fee596e4e4a4bb89276fde8fa3496133f049cdb8e013"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "905b6700813779c34d96fee596e4e4a4bb89276fde8fa3496133f049cdb8e013"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:hopper[facing=down]": {
    "fallback_color": [
@@ -22506,7 +24903,58 @@
       "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "e690bc786bcb40adcd8a0fff1990f9b9693a74d029cd6637af1a1fdf7458ad39"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "cd7f826318e0b31d02d05a66fdfc4c09b2246afde9ee4a6a7dbb8096470f3770"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:end_rod[facing=up]": {
    "fallback_color": [
@@ -22954,7 +25402,58 @@
       "sha256": "369bba08e562eb59f6d0e457c9b93330644a0c6cec2f14e1b6c253ad6406a484"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4f261d0be022a66ccac2aac0bc6808b28ae36d747a722e2af01caea5bbbce66"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:lightning_rod[facing=south]": {
    "fallback_color": [
@@ -23394,7 +25893,58 @@
       "sha256": "5aed9014cf635a8acc2022f20b3dde7a8f5f0f1423fdcd66dfe235f96fff7cea"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "48a6b87062fb363086236c6e85e26f9015df7c8ded144056b22103c0557d082e"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:campfire[facing=north,lit=true]": {
    "fallback_color": [
@@ -24705,7 +27255,58 @@
       "sha256": "7d9c8122a1648dfdde283564e17402a9d3bed87a61ac4584d89f83dcabc75f61"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "f4ca6db266dd097d02e972997bb29e8d9b230b5e451528d88652d69112afc5f5"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_sign[rotation=4]": {
    "fallback_color": [
@@ -25149,7 +27750,58 @@
       "sha256": "3a5f49a2a448cdd08c536ec2fc402062292eae6c42a2aa037e5465207496d3c1"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    },
+    "down": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    },
+    "north": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    },
+    "south": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    },
+    "east": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    },
+    "west": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGBA",
+     "sha256": "a9caf8a14295dafefb86f49f39285edca774e3f7fc1d4c48b576d9faef5b41fd"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:oak_pressure_plate": {
    "fallback_color": [
@@ -25398,7 +28050,58 @@
       "sha256": "ae8223193ed4f66468debabcf0717182e9c25698c5f948eca7e5a57b75912986"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "8ca57a45e1f36d9e9aeb1a6f585125b28e751017dc6d385f927af8de1e04ae7a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:flower_pot": {
    "fallback_color": [
@@ -26287,7 +28990,58 @@
       "sha256": "4e258fb79852293d897817b7e985559c4c0e0a747c400bf8d3610f59b5c5c987"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "990590ab7ee36d16c06a893bda31b6d5e3f49285756e791b6827415174aaf6c6"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:amethyst_cluster[facing=up]": {
    "fallback_color": [
@@ -26454,7 +29208,58 @@
       "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGBA",
+     "sha256": "62ff406200a4b28fe6261a0c0b1e9f93c47598d84712ff45018f5b1086b08d40"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:sea_lantern": {
    "fallback_color": [
@@ -26723,7 +29528,58 @@
       "sha256": "bfe2a18cccd9b3f9a572892cae8d0e196481a9a940ddf4ac2d90e3303b48b5ae"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    },
+    "down": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    },
+    "north": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    },
+    "south": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    },
+    "east": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    },
+    "west": {
+     "size": [
+      16,
+      80
+     ],
+     "mode": "RGB",
+     "sha256": "fc07d24f0c070e80018f2c8eed40f100f292b68874e3b5ea5c2012001961bab9"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:dark_prismarine_slab[type=bottom]": {
    "fallback_color": [
@@ -26988,7 +29844,58 @@
       "sha256": "dfa2a2861b5797ac952aebae137910b19734120d94482b3013c7f8d4207a4aff"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a004a0b4c6c280d4172b65303a0f8f71d468fb6d3c7d64d5548c75a37328a6fb"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:bed": {
    "fallback_color": [
@@ -27257,6 +30164,59 @@
       "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
      }
     }
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2579650980c61ede5f067623e27357ec3073e2a0753d3d78d8d1ce571840f98f"
+    }
+   },
+   "face_fallback": [
+    "minecraft:bed"
    ]
   },
   "minecraft:chest[facing=west]": {
@@ -27970,7 +30930,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:not_a_real_block": {
    "fallback_color": [
@@ -28239,6 +31250,59 @@
       "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
      }
     }
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4510fda5b586f83ba5bacb1db5400bf8220feac8c0e4bafc11de09e5d16f0e76"
+    }
+   },
+   "face_fallback": [
+    "minecraft:not_a_real_block"
    ]
   },
   "minecraft:spruce_shelf[facing=south]": {
@@ -28879,7 +31943,58 @@
       "sha256": "260a77c20861d437c599e6fd58fa3f8fe1d34d53cb70f43d65681f5505ed1608"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    },
+    "down": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    },
+    "north": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    },
+    "south": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    },
+    "east": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    },
+    "west": {
+     "size": [
+      32,
+      32
+     ],
+     "mode": "RGB",
+     "sha256": "c6ac48baf2fe580d8b999bf90b3706a833c05f170fccf3bf445396ca345c2308"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:water": {
    "fallback_color": [
@@ -29148,7 +32263,58 @@
       "sha256": "4ce042f52a174724cac597d35ab6891f7de05851fa46da7233321fc41db4a397"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "6376d150f3ed2a0d83dd51a6ce287c6f49c94107cad1a645fb0014ea8e2ce248"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:lava": {
    "fallback_color": [
@@ -29417,7 +32583,58 @@
       "sha256": "e146277b9c04ad24656c8e5de05021e8583e31d44a81732174102450823c6644"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "792bbcf038cd2dad510d094e8572e9bd6ebc874e90449db290d8b1efeaf499ea"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:chest[facing=north]": {
    "fallback_color": [
@@ -30130,7 +33347,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:chest[facing=east,type=left]": {
    "fallback_color": [
@@ -30843,7 +34111,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:chest[facing=south]": {
    "fallback_color": [
@@ -31556,7 +34875,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "84fed6260e6250c01015558bc652b80586c8c420d9fb1d3a3bee6ab8b14e496a"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:trapped_chest[facing=west]": {
    "fallback_color": [
@@ -32269,7 +35639,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4653c841c2b49f36c7dafad52425192a5729fd6427e24f74329baeeef705d526"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:ender_chest[facing=north]": {
    "fallback_color": [
@@ -32982,7 +36403,58 @@
       "sha256": "2f0d5fb6758167de6f500788e2ab1b5f69323517dd65d46783711d08b08ef66d"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "7809ddd73571c206cf4d0ef0cd6ca7c760086c18189c5d72402966e730fc315e"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:copper_chest[facing=south]": {
    "fallback_color": [
@@ -33695,7 +37167,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:waxed_oxidized_copper_chest[facing=east]": {
    "fallback_color": [
@@ -34408,7 +37931,58 @@
       "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "4dcfc141f124b8709be0de84d9f4cbf0d3233b11427eb7530308915733e127ec"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:red_banner[rotation=0]": {
    "fallback_color": [
@@ -35082,7 +38656,58 @@
       "sha256": "b815bb9ea2307bec58c1769fd85859ab6c96494976a499ec7d4b8e13689c4f70"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "40792aa23f272ff50dc017c5fa26faa2e08c34ed3d6854c9a37c8154d9f56dc9"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:blue_banner[rotation=5]": {
    "fallback_color": [
@@ -35756,7 +39381,58 @@
       "sha256": "a6148e4306df2e7026308ca728f8543f8b09fb3e8023c96866585de1688b1ff8"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "b47189a986fb2618e031212f511b00f72d50975380a23dacd6b1a8b916ed9e54"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:white_banner[rotation=15]": {
    "fallback_color": [
@@ -36430,7 +40106,58 @@
       "sha256": "991723994557bf49be297413a6c2e2217dec1237979c7dd2dc20b9dc4c1a9c67"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "2307982f0314165f69782b3e552651ea3c9e0b59e56c8e896fdbe55e3fe13bea"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:black_wall_banner[facing=east]": {
    "fallback_color": [
@@ -36909,7 +40636,58 @@
       "sha256": "d3b4b9ed27e8abacd582031dd89d9cbe9384d644d4f2c98fe2c9d04d946f84e1"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "a0f1c3431852b122ca72b3e2c7f9b9f719532a50dda4fde1b21aa81e494b2bff"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:light_blue_wall_banner[facing=north]": {
    "fallback_color": [
@@ -37388,7 +41166,58 @@
       "sha256": "b993ecf2e10fee8fcc5b8ea42fffacebc8ec252f12b299d364eb425328f55a71"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "da0c4191b714451cc521bb02564a9d95f9217690233fae110dec8ff982e902b3"
+    }
+   },
+   "face_fallback": []
   },
   "minecraft:unknown_banner[rotation=0]": {
    "fallback_color": [
@@ -37657,6 +41486,59 @@
       "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
      }
     }
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "3dfe7c282fc8cdc204b6d421f85b8e748bd0d5bb644c45519a55e51627eff858"
+    }
+   },
+   "face_fallback": [
+    "minecraft:unknown_banner"
    ]
   },
   "minecraft:pale_moss_carpet[bottom=true,east=none,north=none,south=none,west=none]": {
@@ -37922,7 +41804,58 @@
       "sha256": "a0e2ef27ac2939aac3833e54cdd729daf16431eb429f861a6301b17b79139464"
      }
     }
-   ]
+   ],
+   "face_textures": {
+    "up": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    },
+    "down": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    },
+    "north": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    },
+    "south": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    },
+    "east": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    },
+    "west": {
+     "size": [
+      16,
+      16
+     ],
+     "mode": "RGB",
+     "sha256": "f08fa7ec55d073e24afce3d1b395d77f09c00936ccd54f148d0dc39e1e6b4551"
+    }
+   },
+   "face_fallback": []
   }
  }
 }

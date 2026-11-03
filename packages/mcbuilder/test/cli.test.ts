@@ -228,7 +228,6 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
       [["--preview", "--focus", "50,50,50:60,60,60"], "no blocks inside that box"],
       [["--tier", "fast"], "not ported yet"],
       [["--tier", "nope"], "--tier must be"],
-      [["--guide"], "--guide is not ported yet"],
     ] as const) {
       const e = capture();
       expect(
@@ -237,6 +236,46 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
       ).toBe(1);
       expect(e.err.join("\n"), args.join(" ")).toContain(message);
     }
+  });
+
+  it("writes a build guide with --guide, and covers it with the iso preview when there is one", async () => {
+    const script = join(root, "tiny.ts");
+    const c = capture();
+    expect(await runCli(["run", script, "--out", join(root, "dist-guide"), "--guide"], c.io)).toBe(
+      0,
+    );
+    const dir = join(root, "dist-guide/run-001");
+    expect(c.out.join("\n")).toContain("guide: guide/guide.md");
+    const md = await readFile(join(dir, "guide/guide.md"), "utf8");
+    expect(md).toContain("# Tiny");
+    expect(md).toContain("Size: **2 × 2 × 2**");
+    expect(md).toContain("| stone | 8 | 8 |");
+    expect(md).not.toContain("![Tiny]");
+    expect(
+      decodePng(new Uint8Array(await readFile(join(dir, "guide/layer-01.png")))).width,
+    ).toBeGreaterThanOrEqual(720);
+    const report = JSON.parse(await readFile(join(dir, "report.json"), "utf8"));
+    expect(report.artifacts.map((a: { format: string }) => a.format)).toEqual(["nbt", "guide"]);
+
+    const withIso = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-guide2"),
+          "--preview",
+          "--views",
+          "iso",
+          "--guide",
+        ],
+        withIso.io,
+      ),
+    ).toBe(0);
+    expect(await readFile(join(root, "dist-guide2/run-001/guide/guide.md"), "utf8")).toContain(
+      "![Tiny](../previews_faithful/iso.png)",
+    );
   });
 
   it("reads mcbuild.toml next to the script", async () => {

@@ -12,6 +12,19 @@ export {
   tryEntityQuads,
 } from "./blocks.ts";
 export { DEFAULT_PROPS, type Rgb, TINT_TABLE } from "./constants.ts";
+export {
+  blendToward,
+  createCanvas,
+  drawEllipse,
+  drawLine,
+  drawPolygon,
+  drawRect,
+  pasteRgb,
+  type Rgb3,
+  resizeNearest,
+} from "./draw.ts";
+export { buildFaceTextures } from "./fast.ts";
+export { drawText, textScale, textWidth } from "./font.ts";
 export type { RasterImage } from "./image.ts";
 export {
   type ModelApplication,

@@ -85,6 +85,9 @@ for (const [dye, rgb] of Object.entries(DYE_RGB)) {
   FLAT_COLORS[`minecraft:${dye}_wall_banner`] = rgb;
 }
 
+/** Blocks with an intentional flat colour (fluids, chests, banners): not missing-asset warnings. */
+export const hasFlatColor = (name: string): boolean => Object.hasOwn(FLAT_COLORS, name);
+
 /** Deterministic flat colour per block name (MD5, not a language hash). */
 export function fallbackColor(blockName: string): Rgb {
   const flat = Object.hasOwn(FLAT_COLORS, blockName) ? FLAT_COLORS[blockName] : undefined;

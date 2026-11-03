@@ -109,6 +109,13 @@ def main() -> None:
                 }
                 for pts, normal, img, cull, flat in quads
             ]
+        fb2: set = set()
+        faces = _fast._build_face_textures(canonical, root, fb2)
+        entry["face_textures"] = {
+            face: {"size": list(img.size), "mode": img.mode, "sha256": hashlib.sha256(img.tobytes()).hexdigest()}
+            for face, img in faces.items()
+        }
+        entry["face_fallback"] = sorted(fb2)
         out["blocks"][canonical] = entry
     (OUT / "quads.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
     n = sum(len(e["quads"] or []) for e in out["blocks"].values())

@@ -5,7 +5,14 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { blockQuads, fallbackColor, type Quad, type Rgb, splitBlockstate } from "../src/index.ts";
+import {
+  blockQuads,
+  buildFaceTextures,
+  fallbackColor,
+  type Quad,
+  type Rgb,
+  splitBlockstate,
+} from "../src/index.ts";
 import { directoryAssets } from "../src/node/index.ts";
 
 interface QuadWant {
@@ -20,7 +27,14 @@ const vectors = JSON.parse(
 ) as {
   blocks: Record<
     string,
-    { fallback_color: Rgb; fallback_blocks: string[]; is_fallback: boolean; quads: QuadWant[] }
+    {
+      fallback_color: Rgb;
+      fallback_blocks: string[];
+      is_fallback: boolean;
+      quads: QuadWant[];
+      face_textures: Record<string, { size: [number, number]; mode: string; sha256: string }>;
+      face_fallback: string[];
+    }
   >;
 };
 
@@ -40,6 +54,25 @@ describe.skipIf(!have)("model quads against the Python renderer (vanilla assets)
   const assets = directoryAssets(root);
 
   for (const [canonical, want] of Object.entries(vectors.blocks)) {
+    // For these, the original picks "any usable texture" from a set, in hash order, so which
+    // of several textures it picks cannot be reproduced. The port takes the first in model order.
+    const hashOrderDependent = ["glass_pane", "lever", "flower_pot"].some((n) =>
+      canonical.includes(`minecraft:${n}`),
+    );
+    it.skipIf(hashOrderDependent)(`${canonical} as a textured cube`, () => {
+      const fb = new Set<string>();
+      const faces = buildFaceTextures(canonical, assets, fb);
+      expect([...fb].sort()).toEqual(want.face_fallback);
+      for (const [face, w] of Object.entries(want.face_textures)) {
+        const img = faces[face as keyof typeof faces];
+        expect([img.width, img.height], `${face} size`).toEqual(w.size);
+        expect(img.channels === 3 ? "RGB" : "RGBA").toBe(w.mode);
+        expect(createHash("sha256").update(img.data).digest("hex"), `${face} pixels`).toBe(
+          w.sha256,
+        );
+      }
+    });
+
     it(canonical, () => {
       const [name] = splitBlockstate(canonical);
       const fallback = new Set<string>();
