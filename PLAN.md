@@ -106,7 +106,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 
 1. **M0, core skeleton:** monorepo, `core`, `.nbt` and `.schem` codecs, golden vectors.
 2. **M1, viewer:** SvelteKit shell, asset fetch script, quads in `core`, the renderer spike and its go/no-go, orbit, fly and slicer.
-3. **M2, remaining formats:** `.litematic` and `.mcstructure`, loss report, converter page.
+3. **M2, remaining formats:** `.litematic` and `.mcstructure`, loss report, converter page. (Codecs and the loss report are done in `core` and `scripts/convert.ts`; the converter page is not.)
 4. **M3, editor:** tools, undo and redo, block-state panel, export.
 5. **M4, release:** autosave, accessibility, docs, self-hosting guide, 0.1.0.
 6. **M5, mcbuilder port:** the table above, then archive the Python repository with a pointer.

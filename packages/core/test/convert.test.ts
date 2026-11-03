@@ -20,6 +20,7 @@ describe("scripts/convert.ts", () => {
     const out = join(dir, "out.nbt");
     const log = run(join(root, "fixtures/synthetic/v3-small.schem"), out);
     expect(log).toContain("24 blocks");
+    expect(log).toContain("1 loss report entry");
     const original = await readSchem(
       new Uint8Array(readFileSync(join(root, "fixtures/synthetic/v3-small.schem"))),
     );
@@ -35,6 +36,25 @@ describe("scripts/convert.ts", () => {
       const { meta } = await readSchem(new Uint8Array(readFileSync(out)));
       expect(meta.version).toBe(Number(version));
     }
+  });
+
+  it("converts the real build between all four formats without losing a block", async () => {
+    const real = join(root, "fixtures/real/rafeals-house/Rafeals_house");
+    for (const [from, to] of [
+      [".nbt", ".litematic"],
+      [".litematic", ".mcstructure"],
+      [".mcstructure", ".schem"],
+      [".schem", ".nbt"],
+    ]) {
+      const src =
+        from === ".nbt" || from === ".litematic" || from === ".mcstructure"
+          ? `${real}${from}`
+          : join(dir, `chain${from}`);
+      const out = join(dir, `chain${to}`);
+      expect(run(src, out)).toContain("762 blocks");
+    }
+    const final = await readStructureNbt(new Uint8Array(readFileSync(join(dir, "chain.nbt"))));
+    expect(final.volume.size).toBe(762);
   });
 
   it("fails clearly on bad input", () => {

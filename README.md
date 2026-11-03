@@ -37,12 +37,16 @@ Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm depcheck`.
 
 ```sh
 node scripts/convert.ts in.schem out.nbt
-node scripts/convert.ts in.nbt out.schem --version 2
+node scripts/convert.ts in.nbt out.litematic
+node scripts/convert.ts in.litematic out.schem --version 2
+node scripts/convert.ts in.mcstructure out.nbt
 ```
 
-Reads Sponge `.schem` (v2 and v3) and structure-block `.nbt`, and writes
-either. Block entities and entities are not carried over; the script reports
-how many it dropped. It runs `.ts` files directly, which needs a Node release
+Reads and writes Sponge `.schem` (v2 and v3), structure-block `.nbt`,
+Litematica `.litematic` and Bedrock `.mcstructure`, chosen by extension. It
+prints a loss report: block entities and entities are not carried over, and
+Bedrock block states are translated by rule, so anything the rules do not
+cover is dropped and listed rather than guessed. It runs `.ts` files directly, which needs a Node release
 with type stripping (22.18 or later).
 
 ## Status
@@ -54,11 +58,13 @@ Milestone M0 (core skeleton), as built so far:
 - CI workflow (not yet run on GitHub: there is no remote).
 - Golden vectors for block strings, rotation and structure NBT.
 - `core`: NBT reader and writer (big and little endian, gzip), block strings,
-  rotation, sectioned volume, `.nbt` and `.schem` codecs, all tested.
-- `convert` script.
+  rotation, sectioned volume, and codecs for `.nbt`, `.schem`, `.litematic` and
+  `.mcstructure`, all tested. A real build saved in three of those formats
+  decodes to the same blocks in each.
+- `convert` script between all four formats.
 
-Not done yet: files saved by real tools as fixtures, registry-validation
-vectors, and everything from M1 on.
+Not done yet: `.schem` files saved by a real tool, registry-validation vectors,
+the viewer, the editor, the converter page and the mcbuilder port.
 
 ## License
 
