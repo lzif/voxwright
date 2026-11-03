@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+
+import { PerspectiveCamera, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { camera } from "../src/index.ts";
-import { FlyController, lookDirection, OrbitController } from "../src/webgl/controls.ts";
+import { FlyController, lookDirection, OrbitController, pickRay } from "../src/webgl/controls.ts";
 
 const near = (a: readonly number[], b: readonly number[], eps = 1e-9): void => {
   for (const [i, v] of a.entries()) expect(Math.abs(v - (b[i] as number))).toBeLessThan(eps);
@@ -110,5 +112,41 @@ describe("camera controllers", () => {
     expect(f.azimuth).toBeGreaterThanOrEqual(0);
     expect(f.azimuth).toBeLessThan(360);
     expect(f.elevation).toBe(-89);
+  });
+});
+
+describe("pickRay", () => {
+  it("goes through the middle of the screen along the look direction", () => {
+    const o = new OrbitController();
+    o.azimuth = 120;
+    o.elevation = 25;
+    const ray = pickRay(o.pose(), 60, 1.6, 0, 0);
+    near(ray.direction, lookDirection(120, 25));
+    near(ray.origin, o.position());
+  });
+
+  it("matches the ray three.js builds for the same camera, at the corners and off centre", () => {
+    const o = new OrbitController();
+    o.target = [10, 5, -3];
+    o.distance = 30;
+    o.azimuth = 215;
+    o.elevation = -20;
+    const pose = o.pose();
+    const cam = new PerspectiveCamera(60, 1.6, 0.1, 4000);
+    cam.position.set(...pose.position);
+    const look = lookDirection(pose.azimuth, pose.elevation);
+    cam.lookAt(pose.position[0] + look[0], pose.position[1] + look[1], pose.position[2] + look[2]);
+    cam.updateMatrixWorld();
+    cam.updateProjectionMatrix();
+    for (const [x, y] of [
+      [-1, -1],
+      [1, 1],
+      [0.5, -0.25],
+      [-0.9, 0.7],
+    ] as const) {
+      const far = new Vector3(x, y, 0.5).unproject(cam);
+      const expected = far.sub(cam.position).normalize();
+      near(pickRay(pose, 60, 1.6, x, y).direction, [expected.x, expected.y, expected.z], 1e-6);
+    }
   });
 });

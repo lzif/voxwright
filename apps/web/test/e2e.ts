@@ -20,6 +20,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import puppeteer, { type ElementHandle, type Page } from "puppeteer-core";
+import { editorSuite } from "./editor-suite.ts";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
 import type { Pose, Vox } from "./vox.ts";
 
@@ -146,6 +147,21 @@ async function suite(webgl: boolean): Promise<void> {
       );
       console.log(`  gpu: ${s.gpu}`);
     }
+    if (webgl) {
+      ok(
+        (await page.$('[data-testid="toolbar"]')) !== null &&
+          (await page.$('[data-testid="palette"]')) !== null,
+        t("the GPU page shows the editor"),
+      );
+    } else {
+      ok(
+        (await page.$('[data-testid="toolbar"]')) === null &&
+          (await page.$eval('[data-testid="edit-note"]', (e) => e.textContent ?? "")).includes(
+            "WebGL2",
+          ),
+        t("the software renderer stays a viewer and says why"),
+      );
+    }
     if (values.shots) await page.screenshot({ path: join(values.shots, `viewer-${label}.png`) });
 
     // 2. Orbit by dragging the picture.
@@ -257,6 +273,9 @@ async function suite(webgl: boolean): Promise<void> {
       );
 
       // Outlines for a selection show on top of the build.
+      // (The editor outlines the block under the pointer; start from a frame with no outlines.)
+      await page.evaluate(() => (window.__voxwright as Vox).renderer.highlight([]));
+      await settle();
       const plain = (await picture()).hash;
       await page.evaluate(() => {
         const r = (window.__voxwright as Vox).renderer;
@@ -302,7 +321,8 @@ async function suite(webgl: boolean): Promise<void> {
       await page.select('[data-testid="format"]', id);
       await page.click('[data-testid="convert"]');
       await page.waitForFunction(() => true, { timeout: 1000 });
-      const want = `Rafeals_house${ext}`;
+      // The GPU page edited the build above (a glowstone block), so its exports say so in the name.
+      const want = `Rafeals_house${webgl ? "-edited" : ""}${ext}`;
       const deadline = Date.now() + 20000;
       while (!readdirSync(downloads).includes(want) && Date.now() < deadline)
         await new Promise((r) => setTimeout(r, 200));
@@ -345,6 +365,13 @@ async function assertStillAlive(page: Page, t: (s: string) => string): Promise<v
 try {
   await suite(true);
   await suite(false);
+  await editorSuite({
+    url,
+    chromium,
+    shots: values.shots,
+    fixture: join(fixtures, "Rafeals_house.litematic"),
+    ok,
+  });
 } finally {
   server.close();
 }

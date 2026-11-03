@@ -1,12 +1,17 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
 import type { Volume } from "@voxwright/core";
-import { sectionKeysAround } from "@voxwright/render";
 import type { RendererStats, WebglRenderer } from "@voxwright/render/webgl";
 import { onMount } from "svelte";
 import { decodePack, fetchPack } from "../lib/assets.ts";
+import BlockPalette from "../lib/components/BlockPalette.svelte";
+import BlockStatePanel from "../lib/components/BlockStatePanel.svelte";
+import EditToolbar from "../lib/components/EditToolbar.svelte";
+import SelectionPanel from "../lib/components/SelectionPanel.svelte";
 import { describeVolume } from "../lib/describe.ts";
-import { FORMATS, type FormatId, openFile } from "../lib/formats.ts";
+import { packBlockIds } from "../lib/editing.ts";
+import { EditSession } from "../lib/editor-session.svelte.ts";
+import { FORMATS, type FormatId, openFile, saveAs } from "../lib/formats.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import Worker from "../lib/render.worker.ts?worker";
 
@@ -18,8 +23,14 @@ let canvas: HTMLCanvasElement;
 let worker: Worker;
 let renderer: WebglRenderer | null = null;
 let volume: Volume | null = null;
-let fileBytes: Uint8Array | null = null;
-let workerHolds = false;
+let dataVersion: number | null = null;
+let packBlocks: string[] = [];
+// Editing needs the GPU renderer (it supplies the picking ray) and a mouse and keyboard. A device whose
+// only pointer is a touch screen, or a browser without WebGL2, keeps the page a viewer. (Headless and
+// older browsers report no pointer at all, which counts as a desktop.)
+let canEdit = $state(false);
+let session = $state.raw<EditSession | null>(null);
+let stopSession: (() => void) | null = null;
 let kind = $state<Kind>("starting");
 let camMode = $state<"orbit" | "fly">("orbit");
 let timings = $state({ parseMs: 0, describeMs: 0, firstFrameMs: 0 });
@@ -89,6 +100,7 @@ const nextPaint = (): Promise<void> => new Promise((r) => setTimeout(r, 30));
 
 /** Read a file on this thread (the renderer needs the volume here) and hand it to the GPU renderer. */
 async function loadForGpu(file: File): Promise<void> {
+  if (!confirmDiscard()) return;
   error = "";
   conversionNotes = [];
   busy = true;
@@ -103,18 +115,19 @@ async function loadForGpu(file: File): Promise<void> {
     const t2 = performance.now();
     if (described.blocks === 0) throw new Error("nothing to draw: the file has no blocks");
     volume = opened.volume;
-    fileBytes = bytes;
-    workerHolds = false;
+    dataVersion = opened.dataVersion;
     info = described;
     yMin = 0;
     yMax = described.size[1] - 1;
     timings = { parseMs: t1 - t0, describeMs: t2 - t1, firstFrameMs: 0 };
     status = `${described.name}: ${described.size.join(" × ")}, ${described.blocks} blocks`;
     const r = renderer as WebglRenderer;
+    endSession();
     r.setVolume(volume);
     r.setSlice(null);
     r.setCamera("orbit");
     camMode = "orbit";
+    if (canEdit) startSession(r, opened.volume, opened.dataVersion);
     await r.whenIdle();
     const s = r.stats();
     timings.firstFrameMs = s.firstFullFrameMs ?? 0;
@@ -128,6 +141,40 @@ async function loadForGpu(file: File): Promise<void> {
   }
 }
 
+function startSession(r: WebglRenderer, v: Volume, dv: number | null): void {
+  const s = new EditSession({ renderer: r, canvas, volume: v, dataVersion: dv, packBlocks });
+  stopSession = s.attach();
+  session = s;
+}
+
+function endSession(): void {
+  stopSession?.();
+  stopSession = null;
+  session?.dispose();
+  session = null;
+}
+
+/** Opening another file drops the edits made to this one, so ask first. */
+function confirmDiscard(): boolean {
+  if (!session?.unsaved) return true;
+  return window.confirm(
+    "You have edits that are not exported yet. Opening another file discards them. Continue?",
+  );
+}
+
+// The block counts follow the edits, a moment after the last one.
+$effect(() => {
+  const s = session;
+  if (s === null) return;
+  void s.revision;
+  const timer = window.setTimeout(() => {
+    if (info === null) return;
+    const d = describeVolume(info.name, s.volume, s.dataVersion, info.loss);
+    info = { ...info, counts: d.counts, blocks: d.blocks };
+  }, 250);
+  return () => window.clearTimeout(timer);
+});
+
 function refreshStats(): void {
   if (renderer) stats = renderer.stats();
 }
@@ -135,12 +182,15 @@ function refreshStats(): void {
 function applySlice(): void {
   if (!renderer || !info) return;
   const full = yMin === 0 && yMax === info.size[1] - 1;
-  renderer.setSlice(full ? null : { y0: info.origin[1] + yMin, y1: info.origin[1] + yMax });
+  const range = full ? null : { y0: info.origin[1] + yMin, y1: info.origin[1] + yMax };
+  renderer.setSlice(range);
+  session?.setSlice(range);
 }
 
 function setCamMode(mode: "orbit" | "fly"): void {
   camMode = mode;
   renderer?.setCamera(mode);
+  session?.setCameraMode(mode);
   if (mode === "fly") canvas.focus();
 }
 
@@ -169,17 +219,32 @@ async function load(file: File): Promise<void> {
   await draw(request(false));
 }
 
+function download(bytes: Uint8Array | ArrayBuffer, name: string): void {
+  const url = URL.createObjectURL(new Blob([bytes as BlobPart]));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Write the open volume, edits included, to a new file. The file that was opened is never touched. */
 async function convert(): Promise<void> {
   error = "";
-  if (kind === "webgl" && !workerHolds && fileBytes && info) {
-    // The converter lives in the worker, which has not seen this file yet.
-    const copy = fileBytes.slice().buffer;
-    const opened = await call({ type: "open", bytes: copy, name: info.name }, [copy]);
-    if (opened.type === "error") {
-      error = opened.message;
-      return;
+  const ext = FORMATS.find((f) => f.id === format)?.ext ?? "";
+  const base = (info?.name ?? "structure").replace(/\.[^.]+$/, "");
+  if (kind === "webgl") {
+    if (!volume) return;
+    try {
+      const { bytes, warnings } = await saveAs(volume, format, dataVersion);
+      conversionNotes = warnings;
+      const edited = session !== null && session.undoCount > 0;
+      download(bytes, `${base}${edited ? "-edited" : ""}${ext}`);
+      session?.markSaved();
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
     }
-    workerHolds = true;
+    return;
   }
   const m = await call({ type: "convert", format });
   if (m.type === "error") {
@@ -188,14 +253,7 @@ async function convert(): Promise<void> {
   }
   if (m.type !== "converted") return;
   conversionNotes = m.warnings;
-  const ext = FORMATS.find((f) => f.id === format)?.ext ?? "";
-  const base = (info?.name ?? "structure").replace(/\.[^.]+$/, "");
-  const url = URL.createObjectURL(new Blob([m.bytes]));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${base}${ext}`;
-  a.click();
-  URL.revokeObjectURL(url);
+  download(m.bytes, `${base}${ext}`);
 }
 
 function pointerDown(e: PointerEvent): void {
@@ -213,6 +271,12 @@ function pointerUp(): void {
   if (kind !== "cpu" || !dragging) return;
   dragging = false;
   void draw(request(false));
+}
+
+function onBeforeUnload(e: BeforeUnloadEvent): void {
+  if (!session?.unsaved) return;
+  e.preventDefault();
+  e.returnValue = "";
 }
 
 function onDrop(e: DragEvent): void {
@@ -237,6 +301,7 @@ async function startGpu(): Promise<boolean> {
       fetchPack(new URL("pack/pack.json", document.baseURI).href),
     ]);
     const decoded = pack ? await decodePack(pack) : null;
+    packBlocks = pack ? packBlockIds(pack.json) : [];
     const r = createWebglRenderer({ pack: decoded });
     r.onCamera = (p) => {
       azimuth = p.azimuth;
@@ -255,6 +320,15 @@ async function startGpu(): Promise<boolean> {
 }
 
 onMount(() => {
+  const coarse = window.matchMedia("(any-pointer: coarse)");
+  const fine = window.matchMedia("(any-pointer: fine)");
+  const syncPointer = (): void => {
+    canEdit = fine.matches || !coarse.matches;
+  };
+  syncPointer();
+  coarse.addEventListener("change", syncPointer);
+  fine.addEventListener("change", syncPointer);
+  window.addEventListener("beforeunload", onBeforeUnload);
   worker = new Worker();
   worker.onerror = (e) => {
     error = `the viewer's worker failed to start: ${e.message || "see the browser console"}`;
@@ -279,17 +353,17 @@ onMount(() => {
         renderer,
         timings: () => $state.snapshot(timings),
         volume: () => volume,
-        /** Change one block; report ms until its mesh is swapped in and until a frame shows it. */
+        session: () => session,
+        /** Change one block through the editor; report ms until its mesh is swapped in and until a frame shows it. */
         async edit(
           x: number,
           y: number,
           z: number,
           block: string,
         ): Promise<{ appliedMs: number; visibleMs: number }> {
-          if (!volume || !renderer) throw new Error("open a file first");
+          if (!volume || !renderer || !session) throw new Error("open a file first");
           const t = performance.now();
-          volume.set(x, y, z, block);
-          renderer.markDirty(sectionKeysAround(x, y, z));
+          if (!session.placeAt([x, y, z], block)) throw new Error(session.error || "no change");
           await renderer.whenMeshed();
           const appliedMs = performance.now() - t;
           await renderer.whenIdle();
@@ -315,6 +389,10 @@ onMount(() => {
   })();
   return () => {
     window.clearInterval(statsTimer);
+    window.removeEventListener("beforeunload", onBeforeUnload);
+    coarse.removeEventListener("change", syncPointer);
+    fine.removeEventListener("change", syncPointer);
+    endSession();
     renderer?.dispose();
     worker.terminate();
   };
@@ -331,24 +409,44 @@ onMount(() => {
   <section class="open">
     <label class="button">
       Open a schematic
-      <input type="file" accept=".nbt,.schem,.litematic,.mcstructure" data-testid="file" onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) void load(f); }} />
+      <input type="file" accept=".nbt,.schem,.litematic,.mcstructure" data-testid="file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) void load(f); }} />
     </label>
     <span>or drop a <code>.nbt</code>, <code>.schem</code>, <code>.litematic</code> or <code>.mcstructure</code> file here. Nothing is uploaded: the file is read in your browser.</span>
   </section>
 
   {#if error}<p class="error" data-testid="error">{error}</p>{/if}
 
-  <div class="stage">
-    <canvas
-      bind:this={canvas}
-      data-testid="canvas"
-      class:ready={info !== null}
-      class:gl={kind === "webgl"}
-      onpointerdown={pointerDown}
-      onpointermove={pointerMove}
-      onpointerup={pointerUp}
-      onpointercancel={pointerUp}
-    ></canvas>
+  <div class="stage" class:editable={session !== null}>
+    {#if session}
+      <div class="tools" data-testid="editor-side">
+        <BlockPalette {session} />
+        <BlockStatePanel {session} />
+        <SelectionPanel {session} />
+      </div>
+    {/if}
+    <div class="center">
+      {#if session}<EditToolbar {session} />{/if}
+      <canvas
+        bind:this={canvas}
+        data-testid="canvas"
+        class:ready={info !== null}
+        class:gl={kind === "webgl"}
+        class:editing={session?.interactive}
+        onpointerdown={pointerDown}
+        onpointermove={pointerMove}
+        onpointerup={pointerUp}
+        onpointercancel={pointerUp}
+      ></canvas>
+      {#if session}
+        <p class="hint" data-testid="edit-help">
+          With a tool selected: click to use it, hold Alt and drag to turn the view, hold Shift (or use the right button) and drag to move sideways, scroll to zoom. Choose View to look around without editing. Tools work in the Orbit camera. Shortcuts are in each button's tooltip; Esc cancels. Edits stay in this page until you export: the file you opened is never changed.
+        </p>
+      {:else if info && kind === "webgl"}
+        <p class="hint" data-testid="edit-note">Editing needs a mouse and keyboard; on this device the page is a viewer.</p>
+      {:else if info && kind === "cpu"}
+        <p class="hint" data-testid="edit-note">Editing needs WebGL2; the software renderer is a viewer.</p>
+      {/if}
+    </div>
 
     {#if info}
       <aside>
@@ -368,11 +466,12 @@ onMount(() => {
         <label>From <input type="range" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="ymin" /> <output>{yMin}</output></label>
         <label>To <input type="range" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="ymax" /> <output>{yMax}</output></label>
 
-        <h2>Convert</h2>
+        <h2>{session ? "Export" : "Convert"}</h2>
         <select bind:value={format} data-testid="format">
           {#each FORMATS as f}<option value={f.id}>{f.label}</option>{/each}
         </select>
-        <button onclick={convert} data-testid="convert">Convert and download</button>
+        <button onclick={convert} data-testid="convert">{session ? "Export and download" : "Convert and download"}</button>
+        {#if session}<p class="hint" data-testid="export-note">{session.undoCount} edit{session.undoCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
         {#if info.loss.length || conversionNotes.length}
           <h3>Loss report</h3>
           <ul data-testid="loss">
@@ -403,7 +502,7 @@ onMount(() => {
 
 <style>
   :global(body) { margin: 0; font: 15px/1.45 system-ui, sans-serif; color: #2b2925; background: #f4f1eb; }
-  main { max-width: 1180px; margin: 0 auto; padding: 1.2rem; }
+  main { max-width: 1500px; margin: 0 auto; padding: 1.2rem; }
   header { display: flex; align-items: baseline; gap: 1.2rem; }
   h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.02em; }
   h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #6b655b; }
@@ -423,11 +522,15 @@ onMount(() => {
   .seg button { background: #e2dccf; color: #2b2925; }
   .seg button.on { background: #2b2925; color: #f4f1eb; }
   .engine { margin: 0 0 0 auto; font-size: 0.8rem; color: #8a8378; }
+  .stage.editable { grid-template-columns: 280px minmax(0, 1fr) 280px; }
+  .center { min-width: 0; }
+  .tools { background: #fffdf8; border: 1px solid #e2dccf; border-radius: 8px; padding: 0.9rem 1rem 1rem; max-height: 86vh; overflow: auto; }
+  canvas.editing { cursor: crosshair; }
   canvas.gl { height: min(72vh, 760px); max-height: none; outline: none; }
   .hint { color: #8a8378; font-size: 0.85rem; margin: 0.3rem 0 0; }
   .error { background: #fbe3e0; color: #7a1f16; padding: 0.6rem 0.8rem; border-radius: 6px; }
   .counts { padding-left: 1.2rem; margin: 0; } .counts span { display: inline-block; min-width: 2.6rem; text-align: right; color: #6b655b; }
   ul { margin: 0; padding-left: 1.2rem; font-size: 0.88rem; }
   .busy { position: fixed; right: 1rem; bottom: 1rem; background: #2b2925; color: #f4f1eb; padding: 0.4rem 0.8rem; border-radius: 6px; }
-  @media (max-width: 800px) { .stage { grid-template-columns: 1fr; } }
+  @media (max-width: 1000px) { .stage, .stage.editable { grid-template-columns: 1fr; } }
 </style>

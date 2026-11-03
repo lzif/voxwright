@@ -23,6 +23,12 @@ export interface RayHit {
 export interface RaycastOptions {
   /** Give up past this distance. Default 256. */
   maxDistance?: number;
+  /**
+   * Cells for which this returns false are passed through as if empty, so a
+   * view that hides part of the volume (a layer slice) can keep the ray from
+   * hitting what is not shown.
+   */
+  accept?: (x: number, y: number, z: number) => boolean;
 }
 
 /**
@@ -63,7 +69,9 @@ export function raycast(
   let tMaxZ =
     dz === 0 ? Number.POSITIVE_INFINITY : (dz > 0 ? z + 1 - origin[2] : origin[2] - z) * tDeltaZ;
 
+  const accept = options.accept;
   const solid = (cx: number, cy: number, cz: number): string | null => {
+    if (accept !== undefined && !accept(cx, cy, cz)) return null;
     const block = volume.get(cx, cy, cz);
     return block === undefined || AIR_BLOCKS.has(block) ? null : block;
   };

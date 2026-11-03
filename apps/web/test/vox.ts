@@ -10,8 +10,34 @@ export interface Pose {
   mode: "orbit" | "fly";
 }
 
+export interface PickedBlock {
+  position: [number, number, number];
+  adjacent: [number, number, number];
+  normal: [number, number, number];
+  block: string;
+}
+
+/** The editor session as the browser tests read it (see `EditSession`). */
+export interface SessionView {
+  tool: string;
+  block: string;
+  hover: PickedBlock | null;
+  inspected: [number, number, number] | null;
+  selection: { min: [number, number, number]; max: [number, number, number] } | null;
+  undoCount: number;
+  canUndo: boolean;
+  canRedo: boolean;
+  unsaved: boolean;
+  clipboardCells: number;
+  message: string;
+  error: string;
+  pick(x: number, y: number): PickedBlock | null;
+}
+
 export interface Vox {
+  session(): SessionView | null;
   renderer: {
+    clientFromWorld(x: number, y: number, z: number): { x: number; y: number } | null;
     capture(): { width: number; height: number; rgba: Uint8ClampedArray } | null;
     getPose(): Pose;
     getMode(): "orbit" | "fly";
@@ -49,6 +75,7 @@ export interface Vox {
   timings(): { parseMs: number; describeMs: number; firstFrameMs: number };
   volume(): {
     bounds(): [number[], number[]] | null;
+    placedBounds(): [number[], number[]] | null;
     get(x: number, y: number, z: number): string | undefined;
   };
   edit(

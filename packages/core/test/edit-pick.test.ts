@@ -142,4 +142,18 @@ describe("raycast", () => {
     expect(() => raycast(world(), [0, 0, 0], [0, 0, 0])).toThrow(EditError);
     expect(() => raycast(world(), [Number.NaN, 0, 0], [1, 0, 0])).toThrow(EditError);
   });
+
+  it("passes through cells the accept callback refuses, such as those outside a slice", () => {
+    const v = new Volume();
+    v.set(0, 0, 0, "minecraft:stone");
+    v.set(0, 5, 0, "minecraft:dirt");
+    const down = raycast(v, [0.5, 10.5, 0.5], [0, -1, 0]);
+    expect(down?.position).toEqual([0, 5, 0]);
+    const sliced = raycast(v, [0.5, 10.5, 0.5], [0, -1, 0], { accept: (_x, y) => y <= 2 });
+    expect(sliced?.position).toEqual([0, 0, 0]);
+    expect(sliced?.adjacent).toEqual([0, 1, 0]);
+    expect(raycast(v, [0.5, 10.5, 0.5], [0, -1, 0], { accept: () => false })).toBeNull();
+    // A ray that starts inside a refused cell does not hit it either.
+    expect(raycast(v, [0.5, 5.5, 0.5], [1, 0, 0], { accept: (_x, y) => y < 5 })).toBeNull();
+  });
 });

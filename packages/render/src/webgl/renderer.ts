@@ -46,7 +46,7 @@ import {
   parseSectionKey,
   type SectionMesh,
 } from "../mesh/section.ts";
-import { FlyController, lookDirection, OrbitController, type Pose } from "./controls.ts";
+import { FlyController, lookDirection, OrbitController, type Pose, pickRay } from "./controls.ts";
 import type { Box, CameraMode, Renderer, SliceRange } from "./types.ts";
 
 export interface WebglRendererOptions {
@@ -343,6 +343,7 @@ export class WebglRenderer implements Renderer {
       edges.renderOrder = 11;
       this.marks.add(fill, edges);
     }
+    this.needsRender = true;
     this.requestFrame();
   }
 
@@ -388,6 +389,36 @@ export class WebglRenderer implements Renderer {
   flyLook(dxPx: number, dyPx: number): void {
     this.fly.look(dxPx, dyPx);
     this.requestFrame();
+  }
+
+  /**
+   * The world-space ray under a point of the page (`clientX`, `clientY` as in a mouse event), for
+   * picking blocks with core's `raycast`. `null` before the renderer is mounted or when the point
+   * is outside the canvas.
+   */
+  rayFromClient(
+    clientX: number,
+    clientY: number,
+  ): { origin: [number, number, number]; direction: [number, number, number] } | null {
+    const c = this.canvas;
+    if (c === null) return null;
+    const r = c.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return null;
+    const u = (clientX - r.left) / r.width;
+    const v = (clientY - r.top) / r.height;
+    if (u < 0 || u > 1 || v < 0 || v > 1) return null;
+    return pickRay(this.getPose(), this.camera.fov, r.width / r.height, u * 2 - 1, 1 - v * 2);
+  }
+
+  /** Where a world point appears on the page (client coordinates), for tests; `null` behind the camera or unmounted. */
+  clientFromWorld(x: number, y: number, z: number): { x: number; y: number } | null {
+    const c = this.canvas;
+    if (c === null) return null;
+    this.updateCamera();
+    const p = new Vector3(x, y, z).project(this.camera);
+    if (p.z > 1) return null;
+    const r = c.getBoundingClientRect();
+    return { x: r.left + ((p.x + 1) / 2) * r.width, y: r.top + ((1 - p.y) / 2) * r.height };
   }
 
   getMode(): CameraMode {

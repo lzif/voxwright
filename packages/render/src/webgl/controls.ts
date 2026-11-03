@@ -21,6 +21,38 @@ export const lookDirection = (azimuth: number, elevation: number): Vec3 => [
 const wrap = (deg: number): number => ((deg % 360) + 360) % 360;
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
+/**
+ * The world-space ray through a point of the screen, for picking. `ndcX` and `ndcY` run from -1 to 1
+ * (left to right, bottom to top); `fovDeg` is the vertical field of view and `aspect` is width over
+ * height. The direction is unit length. This is the camera three.js builds from the same pose.
+ */
+export function pickRay(
+  pose: Pose,
+  fovDeg: number,
+  aspect: number,
+  ndcX: number,
+  ndcY: number,
+): { origin: Vec3; direction: Vec3 } {
+  const d = lookDirection(pose.azimuth, pose.elevation);
+  const rl = Math.hypot(d[0], d[2]) || 1;
+  const right: Vec3 = [-d[2] / rl, 0, d[0] / rl];
+  const up: Vec3 = [
+    right[1] * d[2] - right[2] * d[1],
+    right[2] * d[0] - right[0] * d[2],
+    right[0] * d[1] - right[1] * d[0],
+  ];
+  const tanH = Math.tan((fovDeg * RAD) / 2);
+  const sx = ndcX * tanH * aspect;
+  const sy = ndcY * tanH;
+  const v: Vec3 = [
+    d[0] + right[0] * sx + up[0] * sy,
+    d[1] + right[1] * sx + up[1] * sy,
+    d[2] + right[2] * sx + up[2] * sy,
+  ];
+  const len = Math.hypot(v[0], v[1], v[2]);
+  return { origin: [...pose.position], direction: [v[0] / len, v[1] / len, v[2] / len] };
+}
+
 /** Camera pose that a controller maintains. */
 export interface Pose {
   position: Vec3;
