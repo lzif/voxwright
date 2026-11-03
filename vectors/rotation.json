@@ -1,0 +1,3615 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-only",
+  "rotations": ["NONE", "CLOCKWISE_90", "CLOCKWISE_180", "COUNTERCLOCKWISE_90"],
+  "positions": [
+    {
+      "x": 0,
+      "z": 0,
+      "size": 1,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 1,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 1,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 1,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 2,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 1]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 2,
+      "rotation": "NONE",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 2,
+      "rotation": "NONE",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 2,
+      "rotation": "NONE",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 2]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [2, 0]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 3,
+      "rotation": "NONE",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 3,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 3,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 3]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 2]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 1]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [0, 3]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 0]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 3]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 2]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [1, 3]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 0]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [2, 0]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 3]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 1]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [2, 3]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 0]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [3, 0]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 3]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 2]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [3, 2]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 1]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 4,
+      "rotation": "NONE",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 4,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 4,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 4]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 4]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 3]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 4]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 4]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [0, 3]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 1]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 4]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [0, 4]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 0]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 4]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 4]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 3]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [1, 3]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 1]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [1, 4]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 0]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 3]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [2, 0]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 4]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 3]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [2, 3]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [2, 4]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 0]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 2]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [3, 0]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 3]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 4]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [3, 2]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 2]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 1]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [3, 4]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 0]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 1]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [4, 0]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 4]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 4]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [4, 1]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 4]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 3]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [4, 2]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 4]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 2]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [4, 3]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 4]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 1]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 5,
+      "rotation": "NONE",
+      "result": [4, 4]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 4]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 5,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 5,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 5]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 5]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 1]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 0]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 4]
+    },
+    {
+      "x": 0,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 5]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 3]
+    },
+    {
+      "x": 0,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 5]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 3]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 2]
+    },
+    {
+      "x": 0,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 5]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 4]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 1]
+    },
+    {
+      "x": 0,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 5]
+    },
+    {
+      "x": 0,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [0, 5]
+    },
+    {
+      "x": 0,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [5, 0]
+    },
+    {
+      "x": 0,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 5]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 0]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 1]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 5]
+    },
+    {
+      "x": 1,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 4]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 1]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 4]
+    },
+    {
+      "x": 1,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 4]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 2]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 3]
+    },
+    {
+      "x": 1,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 4]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 3]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 2]
+    },
+    {
+      "x": 1,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 4]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 4]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 1]
+    },
+    {
+      "x": 1,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 4]
+    },
+    {
+      "x": 1,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [1, 5]
+    },
+    {
+      "x": 1,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 1,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, 0]
+    },
+    {
+      "x": 1,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 4]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 0]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 2]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 5]
+    },
+    {
+      "x": 2,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 1]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 2]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 4]
+    },
+    {
+      "x": 2,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 3]
+    },
+    {
+      "x": 2,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 3]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 2]
+    },
+    {
+      "x": 2,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 4]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 1]
+    },
+    {
+      "x": 2,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 3]
+    },
+    {
+      "x": 2,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [2, 5]
+    },
+    {
+      "x": 2,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 2,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [3, 0]
+    },
+    {
+      "x": 2,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 3]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 0]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 3]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 5]
+    },
+    {
+      "x": 3,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 4]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 2]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 2]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 3]
+    },
+    {
+      "x": 3,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 2]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 3]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 2]
+    },
+    {
+      "x": 3,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 2]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 4]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 1]
+    },
+    {
+      "x": 3,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 2]
+    },
+    {
+      "x": 3,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [3, 5]
+    },
+    {
+      "x": 3,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 3]
+    },
+    {
+      "x": 3,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 0]
+    },
+    {
+      "x": 3,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 2]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 0]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 4]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 5]
+    },
+    {
+      "x": 4,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 1]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 1]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 4]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 4]
+    },
+    {
+      "x": 4,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 1]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 2]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 4]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 3]
+    },
+    {
+      "x": 4,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 1]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 3]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 4]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 2]
+    },
+    {
+      "x": 4,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 1]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 4]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 4]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 1]
+    },
+    {
+      "x": 4,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 1]
+    },
+    {
+      "x": 4,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [4, 5]
+    },
+    {
+      "x": 4,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 4]
+    },
+    {
+      "x": 4,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [1, 0]
+    },
+    {
+      "x": 4,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 1]
+    },
+    {
+      "x": 5,
+      "z": 0,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 0]
+    },
+    {
+      "x": 5,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [5, 5]
+    },
+    {
+      "x": 5,
+      "z": 0,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 5]
+    },
+    {
+      "x": 5,
+      "z": 0,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 5,
+      "z": 1,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 1]
+    },
+    {
+      "x": 5,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [4, 5]
+    },
+    {
+      "x": 5,
+      "z": 1,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 4]
+    },
+    {
+      "x": 5,
+      "z": 1,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, 0]
+    },
+    {
+      "x": 5,
+      "z": 2,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 2]
+    },
+    {
+      "x": 5,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [3, 5]
+    },
+    {
+      "x": 5,
+      "z": 2,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 3]
+    },
+    {
+      "x": 5,
+      "z": 2,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 5,
+      "z": 3,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 3]
+    },
+    {
+      "x": 5,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 5]
+    },
+    {
+      "x": 5,
+      "z": 3,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 2]
+    },
+    {
+      "x": 5,
+      "z": 3,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [3, 0]
+    },
+    {
+      "x": 5,
+      "z": 4,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 4]
+    },
+    {
+      "x": 5,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 5]
+    },
+    {
+      "x": 5,
+      "z": 4,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 1]
+    },
+    {
+      "x": 5,
+      "z": 4,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [4, 0]
+    },
+    {
+      "x": 5,
+      "z": 5,
+      "size": 6,
+      "rotation": "NONE",
+      "result": [5, 5]
+    },
+    {
+      "x": 5,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 5]
+    },
+    {
+      "x": 5,
+      "z": 5,
+      "size": 6,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 5,
+      "z": 5,
+      "size": 6,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 0]
+    }
+  ],
+  "points": [
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 0,
+      "az": 0,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 0,
+      "az": 0,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 1,
+      "az": 1,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_90",
+      "result": [2, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, 2]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": 1,
+      "az": 1,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [0, 2]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": -1,
+      "az": 2,
+      "rotation": "NONE",
+      "result": [0, 0]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [-2, 4]
+    },
+    {
+      "x": 0,
+      "z": 0,
+      "ax": -1,
+      "az": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [-3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 0,
+      "az": 0,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_90",
+      "result": [-1, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_180",
+      "result": [-3, -1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 0,
+      "az": 0,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, -3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 1,
+      "az": 1,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_90",
+      "result": [1, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_180",
+      "result": [-1, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": 1,
+      "az": 1,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [1, -1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": -1,
+      "az": 2,
+      "rotation": "NONE",
+      "result": [3, 1]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [0, 6]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [-5, 3]
+    },
+    {
+      "x": 3,
+      "z": 1,
+      "ax": -1,
+      "az": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [-2, -2]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 0,
+      "az": 0,
+      "rotation": "NONE",
+      "result": [-2, 5]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_90",
+      "result": [-5, -2]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 0,
+      "az": 0,
+      "rotation": "CLOCKWISE_180",
+      "result": [2, -5]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 0,
+      "az": 0,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 2]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 1,
+      "az": 1,
+      "rotation": "NONE",
+      "result": [-2, 5]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_90",
+      "result": [-3, -2]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 1,
+      "az": 1,
+      "rotation": "CLOCKWISE_180",
+      "result": [4, -3]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": 1,
+      "az": 1,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [5, 4]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": -1,
+      "az": 2,
+      "rotation": "NONE",
+      "result": [-2, 5]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_90",
+      "result": [-4, 1]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": -1,
+      "az": 2,
+      "rotation": "CLOCKWISE_180",
+      "result": [0, -1]
+    },
+    {
+      "x": -2,
+      "z": 5,
+      "ax": -1,
+      "az": 2,
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": [2, 3]
+    }
+  ],
+  "blockstates": [
+    {
+      "input": "minecraft:stone",
+      "rotation": "NONE",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:stone",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:stone",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:stone",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=east,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_stairs[facing=south,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=west,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=south,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_stairs[facing=west,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=north,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=west,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_stairs[facing=north,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=east,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_stairs[facing=west]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=north]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_stairs[facing=east]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_stairs[facing=south]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "rotation": "NONE",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "rotation": "NONE",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_sign[rotation=0]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_sign[rotation=4]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_sign[rotation=8]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_sign[rotation=12]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_sign[rotation=5]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_sign[rotation=9]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_sign[rotation=13]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_sign[rotation=1]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "rotation": "NONE",
+      "result": "minecraft:white_banner[rotation=15]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:white_banner[rotation=3]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:white_banner[rotation=7]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:white_banner[rotation=11]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_fence[east=true,north=false,south=true,west=false]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_fence[east=false,north=false,south=true,west=true]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_fence[east=false,north=true,south=false,west=true]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_fence[east=true,north=true,south=false,west=false]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "rotation": "NONE",
+      "result": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:glass_pane[east=true,north=false,south=true,waterlogged=false,west=false]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:glass_pane[east=false,north=false,south=true,waterlogged=false,west=true]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:glass_pane[east=false,north=true,south=false,waterlogged=false,west=true]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "rotation": "NONE",
+      "result": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:cobblestone_wall[east=tall,north=low,south=low,up=true,west=none]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:cobblestone_wall[east=low,north=none,south=tall,up=true,west=low]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:cobblestone_wall[east=none,north=low,south=low,up=true,west=tall]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "rotation": "NONE",
+      "result": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:vine[east=false,north=false,south=true,up=true,west=false]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:vine[east=false,north=false,south=false,up=true,west=true]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:vine[east=false,north=true,south=false,up=true,west=false]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "rotation": "NONE",
+      "result": "minecraft:crafter[crafting=false,orientation=north_up]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:crafter[crafting=false,orientation=east_up]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:crafter[crafting=false,orientation=south_up]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:crafter[crafting=false,orientation=west_up]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "rotation": "NONE",
+      "result": "minecraft:crafter[orientation=east_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:crafter[orientation=south_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:crafter[orientation=west_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:crafter[orientation=north_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "rotation": "NONE",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_door[facing=east,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_door[facing=south,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_door[facing=west,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "rotation": "NONE",
+      "result": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:chest[facing=west,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:chest[facing=north,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:chest[facing=east,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "rotation": "NONE",
+      "result": "minecraft:furnace[facing=east]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:furnace[facing=south]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:furnace[facing=west]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:furnace[facing=north]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "rotation": "NONE",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "rotation": "NONE",
+      "result": "minecraft:lever[face=wall,facing=west,powered=true]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "rotation": "CLOCKWISE_90",
+      "result": "minecraft:lever[face=wall,facing=north,powered=true]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "rotation": "CLOCKWISE_180",
+      "result": "minecraft:lever[face=wall,facing=east,powered=true]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "rotation": "COUNTERCLOCKWISE_90",
+      "result": "minecraft:lever[face=wall,facing=south,powered=true]"
+    }
+  ],
+  "mirrors": [
+    {
+      "input": "minecraft:stone",
+      "axis": "x",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:stone",
+      "axis": "z",
+      "result": "minecraft:stone"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "axis": "x",
+      "result": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]",
+      "axis": "z",
+      "result": "minecraft:oak_stairs[facing=south,half=bottom,shape=straight]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "axis": "x",
+      "result": "minecraft:oak_stairs[facing=west,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]",
+      "axis": "z",
+      "result": "minecraft:oak_stairs[facing=east,half=top,shape=inner_left]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "axis": "x",
+      "result": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=south,half=bottom,shape=outer_right,waterlogged=true]",
+      "axis": "z",
+      "result": "minecraft:oak_stairs[facing=north,half=bottom,shape=outer_right,waterlogged=true]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "axis": "x",
+      "result": "minecraft:oak_stairs[facing=east]"
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=west]",
+      "axis": "z",
+      "result": "minecraft:oak_stairs[facing=west]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "axis": "x",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=x]",
+      "axis": "z",
+      "result": "minecraft:oak_log[axis=x]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "axis": "x",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=y]",
+      "axis": "z",
+      "result": "minecraft:oak_log[axis=y]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "axis": "x",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:oak_log[axis=z]",
+      "axis": "z",
+      "result": "minecraft:oak_log[axis=z]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "axis": "x",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:hopper[facing=down]",
+      "axis": "z",
+      "result": "minecraft:hopper[facing=down]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "axis": "x",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:barrel[facing=up,open=false]",
+      "axis": "z",
+      "result": "minecraft:barrel[facing=up,open=false]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "axis": "x",
+      "result": "minecraft:oak_sign[rotation=0]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=0]",
+      "axis": "z",
+      "result": "minecraft:oak_sign[rotation=0]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "axis": "x",
+      "result": "minecraft:oak_sign[rotation=5]"
+    },
+    {
+      "input": "minecraft:oak_sign[rotation=5]",
+      "axis": "z",
+      "result": "minecraft:oak_sign[rotation=5]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "axis": "x",
+      "result": "minecraft:white_banner[rotation=15]"
+    },
+    {
+      "input": "minecraft:white_banner[rotation=15]",
+      "axis": "z",
+      "result": "minecraft:white_banner[rotation=15]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "axis": "x",
+      "result": "minecraft:oak_fence[east=false,north=false,south=true,west=true]"
+    },
+    {
+      "input": "minecraft:oak_fence[east=true,north=false,south=true,west=false]",
+      "axis": "z",
+      "result": "minecraft:oak_fence[east=true,north=true,south=false,west=false]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "axis": "x",
+      "result": "minecraft:glass_pane[east=false,north=true,south=false,waterlogged=false,west=true]"
+    },
+    {
+      "input": "minecraft:glass_pane[east=true,north=true,south=false,waterlogged=false,west=false]",
+      "axis": "z",
+      "result": "minecraft:glass_pane[east=true,north=false,south=true,waterlogged=false,west=false]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "axis": "x",
+      "result": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]"
+    },
+    {
+      "input": "minecraft:cobblestone_wall[east=low,north=tall,south=none,up=true,west=low]",
+      "axis": "z",
+      "result": "minecraft:cobblestone_wall[east=low,north=none,south=tall,up=true,west=low]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "axis": "x",
+      "result": "minecraft:vine[east=false,north=false,south=false,up=true,west=true]"
+    },
+    {
+      "input": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]",
+      "axis": "z",
+      "result": "minecraft:vine[east=true,north=false,south=false,up=true,west=false]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "axis": "x",
+      "result": "minecraft:crafter[crafting=false,orientation=north_up]"
+    },
+    {
+      "input": "minecraft:crafter[crafting=false,orientation=north_up]",
+      "axis": "z",
+      "result": "minecraft:crafter[crafting=false,orientation=south_up]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "axis": "x",
+      "result": "minecraft:crafter[orientation=west_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=east_down]",
+      "axis": "z",
+      "result": "minecraft:crafter[orientation=east_down]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "axis": "x",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:crafter[orientation=up_north]",
+      "axis": "z",
+      "result": "minecraft:crafter[orientation=up_north]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "axis": "x",
+      "result": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true]",
+      "axis": "z",
+      "result": "minecraft:oak_door[facing=south,half=lower,hinge=left,open=true]"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "axis": "x",
+      "result": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:chest[facing=south,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "axis": "z",
+      "result": "minecraft:chest[facing=north,type=left]{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "axis": "x",
+      "result": "minecraft:furnace[facing=west]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "axis": "z",
+      "result": "minecraft:furnace[facing=east]{BurnTime:200s}"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "axis": "x",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:oak_slab[type=double]",
+      "axis": "z",
+      "result": "minecraft:oak_slab[type=double]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "axis": "x",
+      "result": "minecraft:lever[face=wall,facing=east,powered=true]"
+    },
+    {
+      "input": "minecraft:lever[face=wall,facing=west,powered=true]",
+      "axis": "z",
+      "result": "minecraft:lever[face=wall,facing=west,powered=true]"
+    }
+  ],
+  "invalid": [
+    {
+      "call": "rotate_position",
+      "rotation": "SIDEWAYS",
+      "error": "McbuilderError"
+    },
+    {
+      "call": "rotate_blockstate",
+      "rotation": "SIDEWAYS",
+      "error": "McbuilderError"
+    },
+    {
+      "call": "mirror_blockstate",
+      "axis": "y",
+      "error": "McbuilderError"
+    }
+  ]
+}

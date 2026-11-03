@@ -1,0 +1,453 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-only",
+  "cases": [
+    {
+      "input": "minecraft:stone",
+      "parse": {
+        "name": "minecraft:stone",
+        "props": {},
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "minecraft:stone"
+      }
+    },
+    {
+      "input": "stone",
+      "parse": {
+        "name": "stone",
+        "props": {},
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "stone"
+      }
+    },
+    {
+      "input": "minecraft:oak_stairs[facing=north,half=bottom]",
+      "parse": {
+        "name": "minecraft:oak_stairs",
+        "props": {
+          "facing": "north",
+          "half": "bottom"
+        },
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "minecraft:oak_stairs[facing=north,half=bottom]"
+      }
+    },
+    {
+      "input": "minecraft:oak_stairs[half=bottom,facing=north]",
+      "parse": {
+        "name": "minecraft:oak_stairs",
+        "props": {
+          "half": "bottom",
+          "facing": "north"
+        },
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "minecraft:oak_stairs[facing=north,half=bottom]"
+      }
+    },
+    {
+      "input": "minecraft:oak_stairs[ facing = north , half = bottom ]",
+      "parse": {
+        "name": "minecraft:oak_stairs",
+        "props": {
+          "facing": "north",
+          "half": "bottom"
+        },
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "minecraft:oak_stairs[facing=north,half=bottom]"
+      }
+    },
+    {
+      "input": "minecraft:chest{Items:[{Slot:0b,id:\"minecraft:stone\"}]}",
+      "parse": {
+        "name": "minecraft:chest",
+        "props": {},
+        "nbt": "{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+      },
+      "canonical": {
+        "ok": "minecraft:chest{Items:[{Slot:0b,id:\"minecraft:stone\"}]}"
+      }
+    },
+    {
+      "input": "minecraft:furnace[facing=east]{BurnTime:200s}",
+      "parse": {
+        "name": "minecraft:furnace",
+        "props": {
+          "facing": "east"
+        },
+        "nbt": "{BurnTime:200s}"
+      },
+      "canonical": {
+        "ok": "minecraft:furnace[facing=east]{BurnTime:200s}"
+      }
+    },
+    {
+      "input": "minecraft:furnace{ZZ:1b,AA:2b}",
+      "parse": {
+        "name": "minecraft:furnace",
+        "props": {},
+        "nbt": "{ZZ:1b,AA:2b}"
+      },
+      "canonical": {
+        "ok": "minecraft:furnace{AA:2b,ZZ:1b}"
+      }
+    },
+    {
+      "input": "minecraft:furnace{ ZZ : 1b , AA : 2b }",
+      "parse": {
+        "name": "minecraft:furnace",
+        "props": {},
+        "nbt": "{ ZZ : 1b , AA : 2b }"
+      },
+      "canonical": {
+        "ok": "minecraft:furnace{AA:2b,ZZ:1b}"
+      }
+    },
+    {
+      "input": "minecraft:furnace{}",
+      "parse": {
+        "name": "minecraft:furnace",
+        "props": {},
+        "nbt": "{}"
+      },
+      "canonical": {
+        "ok": "minecraft:furnace{}"
+      }
+    },
+    {
+      "input": "minecraft:sign{Text:\"a,b}\",Other:'x]'}",
+      "parse": {
+        "name": "minecraft:sign",
+        "props": {},
+        "nbt": "{Text:\"a,b}\",Other:'x]'}"
+      },
+      "canonical": {
+        "ok": "minecraft:sign{Other:'x]',Text:\"a,b}\"}"
+      }
+    },
+    {
+      "input": "minecraft:sign{Text:\"esc\\\"aped,\",A:1}",
+      "parse": {
+        "name": "minecraft:sign",
+        "props": {},
+        "nbt": "{Text:\"esc\\\"aped,\",A:1}"
+      },
+      "canonical": {
+        "ok": "minecraft:sign{A:1,Text:\"esc\\\"aped,\"}"
+      }
+    },
+    {
+      "input": "minecraft:chest{Items:[{Slot:0b},{Slot:1b}],Lock:\"k\"}",
+      "parse": {
+        "name": "minecraft:chest",
+        "props": {},
+        "nbt": "{Items:[{Slot:0b},{Slot:1b}],Lock:\"k\"}"
+      },
+      "canonical": {
+        "ok": "minecraft:chest{Items:[{Slot:0b},{Slot:1b}],Lock:\"k\"}"
+      }
+    },
+    {
+      "input": "",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "[facing=north]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[facing]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[facing=]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[=north]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[facing=north,facing=south]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone[facing=north]]",
+      "parse": {
+        "name": "minecraft:stone",
+        "props": {
+          "facing": "north]"
+        },
+        "nbt": null
+      },
+      "canonical": {
+        "ok": "minecraft:stone[facing=north]]"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:1}[facing=north]",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:1",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:1}}",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:1}x",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:\"unterminated}",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a}",
+      "parse": {
+        "name": "minecraft:stone",
+        "props": {},
+        "nbt": "{a}"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{:1}",
+      "parse": {
+        "name": "minecraft:stone",
+        "props": {},
+        "nbt": "{:1}"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:1,,b:2}",
+      "parse": {
+        "name": "minecraft:stone",
+        "props": {},
+        "nbt": "{a:1,,b:2}"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone{a:[1,2}",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft: stone",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "mine craft:stone",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:stone,x",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    },
+    {
+      "input": "minecraft:sto]ne",
+      "parse": {
+        "error": "ValueError"
+      },
+      "canonical": {
+        "error": "ValueError"
+      }
+    }
+  ],
+  "suggest": [
+    {
+      "name": "oak_stair",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 3,
+      "result": ["minecraft:oak_stairs", "minecraft:oak_slab", "minecraft:stone_stairs"]
+    },
+    {
+      "name": "minecraft:oak_stairs",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 3,
+      "result": ["minecraft:oak_stairs", "minecraft:stone_stairs", "minecraft:oak_slab"]
+    },
+    {
+      "name": "stoen",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 2,
+      "result": ["minecraft:stone"]
+    },
+    {
+      "name": "zzzz",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 3,
+      "result": []
+    },
+    {
+      "name": "stone",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 0,
+      "result": []
+    },
+    {
+      "name": "stone",
+      "candidates": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:spruce_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:stone",
+        "minecraft:stone_bricks",
+        "create:oak_stairs"
+      ],
+      "n": 10,
+      "result": ["minecraft:stone"]
+    }
+  ]
+}

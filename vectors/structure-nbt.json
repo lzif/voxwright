@@ -1,0 +1,1168 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-only",
+  "cases": [
+    {
+      "name": "single/none",
+      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [1, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA"
+    },
+    {
+      "name": "single/explicit",
+      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [1, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA"
+    },
+    {
+      "name": "single/all",
+      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [1, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/0WNsQ7CMBBDDSnQFCEGPoJ/YGZmZD8qI51okyp3E18PFAUsebCebHdAwPYsLlcW05yAwzGiMX0y4AOBRXXEZpKB7uzecdmiuchI7EdN7Ivc/WSeE1HB7g9ECyLWtyH3D+u+Y2HKVj9+CliZi3MOES2TqyvnDvACZPk1xa8AAAA="
+    },
+    {
+      "name": "offset-negative/none",
+      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 1, 4],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 0, 3],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/1WNOw7CMBBEJ7GBOBQUcIfcgZqakhYt0SJZTuwouxWnJxiZz0pTjN7TbAsYbE+kdOFZfIrAvnOw4h9s8ILvVEusw2aigVW5XWrdwJ5pZOxGH7mf6a5H0RQZBRy+IFG4TgPFIHBY34bUB8kjDmZKUt58zmAlSsq5/Dt1UX6canEajurVc94FnqTgW+LaAAAA"
+    },
+    {
+      "name": "offset-negative/explicit",
+      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 1, 4],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 0, 3],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/1WNOw7CMBBEJ7GBOBQUcIfcgZqakhYt0SJZTuwouxWnJxiZz0pTjN7TbAsYbE+kdOFZfIrAvnOw4h9s8ILvVEusw2aigVW5XWrdwJ5pZOxGH7mf6a5H0RQZBRy+IFG4TgPFIHBY34bUB8kjDmZKUt58zmAlSsq5/Dt1UX6canEajurVc94FnqTgW+LaAAAA"
+    },
+    {
+      "name": "offset-negative/all",
+      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 1, 4],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 0, 1],
+            "state": 2
+          },
+          {
+            "pos": [0, 0, 2],
+            "state": 2
+          },
+          {
+            "pos": [0, 0, 3],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 1],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 2],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 3],
+            "state": 2
+          },
+          {
+            "pos": [2, 0, 0],
+            "state": 2
+          },
+          {
+            "pos": [2, 0, 1],
+            "state": 2
+          },
+          {
+            "pos": [2, 0, 2],
+            "state": 2
+          },
+          {
+            "pos": [2, 0, 3],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/42RsQ6CMBRFb1tUQI2D/oP/4Ozs6Gqe5Jk0QEvom/x6RQM4gGmTN7TnpD1Jc8BgfSahK7fBegfsjxmSYJ9s0MHvqPckGVYNVSzCeXecIrlQzdjV1nHR0kNOQbxj9OAwAk/lranIlWGg25GSbZFhea98UYbu7k0G0/jQvz4sg0UQEv5sph314+gZR0c45o+jJnrmHBXh6AjnX4+O6NERPTqiR0/0qLeTshMrlj//B7wAQUaQjFkCAAA="
+    },
+    {
+      "name": "stairs-and-props/none",
+      "placements": [
+        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
+        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
+        [0, 1, 2, "minecraft:stone"],
+        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+      ],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 2, 3],
+        "palette": [
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "north",
+              "half": "bottom"
+            }
+          },
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "east",
+              "half": "top"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_log",
+            "Properties": {
+              "axis": "x"
+            }
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 1, 2],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 1, 1],
+            "state": 3
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/52Qy07DMBBFr2O3JGaBEPwD/8C664oVWzREk9Zq4onsWVR8PU6gDwIrLFnWaI6P7owHLG43pPTKKQeJwMNTA5fDB1tMza9bTW+Dm5F6VmVfSlfDbWlgPA4hcpuo02ehw1tWCil7+JckIycNnGusO2pD3GEVJem+/NxT32H9LqoyAP9ROaasJ5NVGS+au4smq0Q+N+5/+nvZLeSOjiHDHIGmpOulPeR51gZ2lHzaxvlYrEpG5bn4zZhpc1dMtWDMHx6zYKpvzlwxtjA1Rw1TaD8bPgFwo+HfyQEAAA=="
+    },
+    {
+      "name": "stairs-and-props/explicit",
+      "placements": [
+        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
+        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
+        [0, 1, 2, "minecraft:stone"],
+        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+      ],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 2, 3],
+        "palette": [
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "north",
+              "half": "bottom"
+            }
+          },
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "east",
+              "half": "top"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_log",
+            "Properties": {
+              "axis": "x"
+            }
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 1, 2],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 1, 1],
+            "state": 3
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/52Qy07DMBBFr2O3JGaBEPwD/8C664oVWzREk9Zq4onsWVR8PU6gDwIrLFnWaI6P7owHLG43pPTKKQeJwMNTA5fDB1tMza9bTW+Dm5F6VmVfSlfDbWlgPA4hcpuo02ehw1tWCil7+JckIycNnGusO2pD3GEVJem+/NxT32H9LqoyAP9ROaasJ5NVGS+au4smq0Q+N+5/+nvZLeSOjiHDHIGmpOulPeR51gZ2lHzaxvlYrEpG5bn4zZhpc1dMtWDMHx6zYKpvzlwxtjA1Rw1TaD8bPgFwo+HfyQEAAA=="
+    },
+    {
+      "name": "stairs-and-props/all",
+      "placements": [
+        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
+        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
+        [0, 1, 2, "minecraft:stone"],
+        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+      ],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 2, 3],
+        "palette": [
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "north",
+              "half": "bottom"
+            }
+          },
+          {
+            "Name": "minecraft:oak_stairs",
+            "Properties": {
+              "facing": "east",
+              "half": "top"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:oak_log",
+            "Properties": {
+              "axis": "x"
+            }
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 0, 1],
+            "state": 4
+          },
+          {
+            "pos": [0, 0, 2],
+            "state": 4
+          },
+          {
+            "pos": [0, 1, 0],
+            "state": 4
+          },
+          {
+            "pos": [0, 1, 1],
+            "state": 4
+          },
+          {
+            "pos": [0, 1, 2],
+            "state": 2
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 1],
+            "state": 4
+          },
+          {
+            "pos": [1, 0, 2],
+            "state": 4
+          },
+          {
+            "pos": [1, 1, 0],
+            "state": 4
+          },
+          {
+            "pos": [1, 1, 1],
+            "state": 4
+          },
+          {
+            "pos": [1, 1, 2],
+            "state": 4
+          },
+          {
+            "pos": [2, 0, 0],
+            "state": 4
+          },
+          {
+            "pos": [2, 0, 1],
+            "state": 4
+          },
+          {
+            "pos": [2, 0, 2],
+            "state": 4
+          },
+          {
+            "pos": [2, 1, 0],
+            "state": 4
+          },
+          {
+            "pos": [2, 1, 1],
+            "state": 3
+          },
+          {
+            "pos": [2, 1, 2],
+            "state": 4
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/52S3U7DMAyF7aYdbRFC/LwD78A114grbpGpvC1aG1eJLyaennZo64haFhEpiqJ8PsfHSg1g4PqFlN7ZBysO4OGpgjzYLzYwPv7sbDwruOqpZVWuh2tRQv5KHcNjZx03ntb6LLT7CErWhxrqNy89e7UcSlitqbFuA4UTr9uhckvtGlafoiodwH+kcqagRyWj0k8yt5NMUHF8erj7rd/KJhLPaW8D4H7SuplKhmagGppupdmFcQT3FZhewnFIp2WgGFpXPlzmGTxj8gUmu8Bg5LXEYAJz7pVFDM7kwgXmLy9MyIUJuTAhF87kiplsJtcSgwnMJS9M8IpzmQUm9irZqR3/cH1o5Rv18Nhc2AMAAA=="
+    },
+    {
+      "name": "overwrite/none",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"],
+        [0, 0, 0, "minecraft:oak_planks"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:dirt"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22NwQrCMBBEp6ZqU8GL/kP/wbNnj15lrSuEpElI9uTX2wSqCC7M5e1jpgcUdmcSunLKJnjgMGi02bxYoTyB1ZymRGMbybEI9wV3aC80MfaT8TwmesrpYZJg4ccvD2Rv0ZG3GRqbuwujzbVDQ8WQl6XPKayzkHBd/nWaPw5mp2MvRgzXXuAN06wd2tkAAAA="
+    },
+    {
+      "name": "overwrite/explicit",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"],
+        [0, 0, 0, "minecraft:oak_planks"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:dirt"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22NwQrCMBBEp6ZqU8GL/kP/wbNnj15lrSuEpElI9uTX2wSqCC7M5e1jpgcUdmcSunLKJnjgMGi02bxYoTyB1ZymRGMbybEI9wV3aC80MfaT8TwmesrpYZJg4ccvD2Rv0ZG3GRqbuwujzbVDQ8WQl6XPKayzkHBd/nWaPw5mp2MvRgzXXuAN06wd2tkAAAA="
+    },
+    {
+      "name": "overwrite/all",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"],
+        [0, 0, 0, "minecraft:oak_planks"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:dirt"
+          },
+          {
+            "Name": "minecraft:oak_planks"
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22OsQ6CQBBEBw6Vw2gj/+A/WFtb2poV12QD3JG7rfx6ORIgJk4yzbzJZCrAYH8lpTuHKN4Bp7NFEeXDBgkC+egs2WI3UMeqXCVUorhRzzj24rgJ9NbLS4Jizus199Q+ho5cGxd6WClJgMX22fmmjWk6tzCDj/OBRQabqKQ8HfrtZH86GDslOxUVnnaBL7ibxszwAAAA"
+    },
+    {
+      "name": "carved-air/none",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [2, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:air"],
+        [0, 3, 0, "minecraft:air"],
+        [2, 2, 2, "minecraft:cobblestone"]
+      ],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 4, 3],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:air"
+          },
+          {
+            "Name": "minecraft:cobblestone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 2, 2],
+            "state": 2
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/42NwQrCMBBEhyZqUxEP4jf0Hzx79uh9G1YIpklJ9uTXaxva6s2FYdmZt0wDKOyvJHTnlF0MwKk10Nm9WGEMi/S4DXYDeRbhZjxr6Bv1jGPvAttED7lkiYExB4c1IJcW+7zaNnad5/JlsO18tM/clC41xDzXL6OwyULC0/HLVH8yk76Y6sPUHMSJ46kbeANfT6EDFgEAAA=="
+    },
+    {
+      "name": "carved-air/explicit",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [2, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:air"],
+        [0, 3, 0, "minecraft:air"],
+        [2, 2, 2, "minecraft:cobblestone"]
+      ],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 4, 3],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:air"
+          },
+          {
+            "Name": "minecraft:cobblestone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 3, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 2, 2],
+            "state": 2
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/42PwQ6CMAyGfxgowxgPhmfwHTx79ui9kJoswka2nnx6HQQw6MEmTfP3/9qmJaCwu5DQjX0wzgLHk0YWzJMVojlmFqvGtqeWRbiMskB2pY5x6IzlxtNdzkGcZUzGfjHI+LldLe3G1XXL45TGpm5d8whxea6hehem83Mo5EFIeBDfjFoxyYpJfuxZM+kft9IpP5j0zRRsxYjh4QfgBfl1c6leAQAA"
+    },
+    {
+      "name": "carved-air/all",
+      "placements": [
+        [0, 0, 0, "minecraft:stone"],
+        [2, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:air"],
+        [0, 3, 0, "minecraft:air"],
+        [2, 2, 2, "minecraft:cobblestone"]
+      ],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [3, 4, 3],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:air"
+          },
+          {
+            "Name": "minecraft:cobblestone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 0, 1],
+            "state": 1
+          },
+          {
+            "pos": [0, 0, 2],
+            "state": 1
+          },
+          {
+            "pos": [0, 1, 0],
+            "state": 1
+          },
+          {
+            "pos": [0, 1, 1],
+            "state": 1
+          },
+          {
+            "pos": [0, 1, 2],
+            "state": 1
+          },
+          {
+            "pos": [0, 2, 0],
+            "state": 1
+          },
+          {
+            "pos": [0, 2, 1],
+            "state": 1
+          },
+          {
+            "pos": [0, 2, 2],
+            "state": 1
+          },
+          {
+            "pos": [0, 3, 0],
+            "state": 1
+          },
+          {
+            "pos": [0, 3, 1],
+            "state": 1
+          },
+          {
+            "pos": [0, 3, 2],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 1],
+            "state": 1
+          },
+          {
+            "pos": [1, 0, 2],
+            "state": 1
+          },
+          {
+            "pos": [1, 1, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 1, 1],
+            "state": 1
+          },
+          {
+            "pos": [1, 1, 2],
+            "state": 1
+          },
+          {
+            "pos": [1, 2, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 2, 1],
+            "state": 1
+          },
+          {
+            "pos": [1, 2, 2],
+            "state": 1
+          },
+          {
+            "pos": [1, 3, 0],
+            "state": 1
+          },
+          {
+            "pos": [1, 3, 1],
+            "state": 1
+          },
+          {
+            "pos": [1, 3, 2],
+            "state": 1
+          },
+          {
+            "pos": [2, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [2, 0, 1],
+            "state": 1
+          },
+          {
+            "pos": [2, 0, 2],
+            "state": 1
+          },
+          {
+            "pos": [2, 1, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 1, 1],
+            "state": 1
+          },
+          {
+            "pos": [2, 1, 2],
+            "state": 1
+          },
+          {
+            "pos": [2, 2, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 2, 1],
+            "state": 1
+          },
+          {
+            "pos": [2, 2, 2],
+            "state": 2
+          },
+          {
+            "pos": [2, 3, 0],
+            "state": 1
+          },
+          {
+            "pos": [2, 3, 1],
+            "state": 1
+          },
+          {
+            "pos": [2, 3, 2],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/42Uy2rDMBBF5+G2cULpovQPCv2HrrvusnvZTEDUsYI1q3x9cEIeBBldgzHSHPksDvaaSGnzEzz82ZRjGonev1pqcjyY0jw83838bOllHwZzt/W8XFHzG3ZGb7s4Wj+FrX9nT6PRZfB6G4Q4Xbc/btt96rrBzqdaeu6G1P/n+eWfLek+5Yv+eik9ZQ9up0WZ4TuGFxipMPzgWmIYYGouAVwCuARwKeBSwKUVFxd6LTEMMDUXAy4GXAy4BHAJ4BLApYBLAVetlwDflwC9BOglQC8BegnQS4BeAvSSQi8pMAq4FHCVeq1s9OjRTv9HoiNx1lZeugUAAA=="
+    },
+    {
+      "name": "block-entity-nbt/none",
+      "placements": [
+        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
+        [1, 0, 0, "minecraft:stone"]
+      ],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [
+        "palette entry 'minecraft:chest[facing=north]{Items:[]}' carries block-entity NBT which .nbt export drops (no block_entities list is written)"
+      ],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:chest",
+            "Properties": {
+              "facing": "north"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22OsQ7CMAxEr6SFJgwMfAT/wMyMmNhN5NKINqliT3w9TSWQkGrpBvueT+cAg/2FlO6cJaQIHE8WtYQ3GxQT2Myqiix2Ew2syq6cW9RXGhmHMUT2mTo9+55FHdwtp4mzBpYW2458iE80MWXtgZU30RQZFtvHkPxLlnQLMyX5dviNQSNKysvyz1QrTDUzLUcNpYtb3A8DMwRH8wAAAA=="
+    },
+    {
+      "name": "block-entity-nbt/explicit",
+      "placements": [
+        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
+        [1, 0, 0, "minecraft:stone"]
+      ],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [
+        "palette entry 'minecraft:chest[facing=north]{Items:[]}' carries block-entity NBT which .nbt export drops (no block_entities list is written)"
+      ],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:chest",
+            "Properties": {
+              "facing": "north"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22OsQ7CMAxEr6SFJgwMfAT/wMyMmNhN5NKINqliT3w9TSWQkGrpBvueT+cAg/2FlO6cJaQIHE8WtYQ3GxQT2Myqiix2Ew2syq6cW9RXGhmHMUT2mTo9+55FHdwtp4mzBpYW2458iE80MWXtgZU30RQZFtvHkPxLlnQLMyX5dviNQSNKysvyz1QrTDUzLUcNpYtb3A8DMwRH8wAAAA=="
+    },
+    {
+      "name": "block-entity-nbt/all",
+      "placements": [
+        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
+        [1, 0, 0, "minecraft:stone"]
+      ],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [
+        "palette entry 'minecraft:chest[facing=north]{Items:[]}' carries block-entity NBT which .nbt export drops (no block_entities list is written)"
+      ],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:chest",
+            "Properties": {
+              "facing": "north"
+            }
+          },
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22OQQrCMBBFf01bm4i48BDewbVrceV+DFMbbJOSzMrT2xSsCB34i+G9Yb4BFHYXErpzTC544HjSKJN7s0KGwGZKkaOxHalnETYZNSivNDAOg/NsI7Vyth0nMTC3GEaO4jg1qFuyzj9R+RClA1bOkgTPC9j/ALkIjfrRB/tK+elGQ40hfasto1AlIeF5+XeKFaeYnIa9uFzRzPQDNPoD5woBAAA="
+    },
+    {
+      "name": "air-only/none",
+      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 2, 2],
+        "palette": [
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/zWJuw5AQBBFLyvYFZWP8A9qtVI/ZCQTLNmdytd7JG5yinOuAwyqnpRGDlEODzStRRblYoP3BNIfi+KkjVXZPZqUyAbaGfUunudAi3YkARb5tB3zGvHOomSvosLRfeEGnbZc2nIAAAA="
+    },
+    {
+      "name": "air-only/explicit",
+      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 2, 2],
+        "palette": [
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 1, 1],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/12MvQ6CQBCEBw+VO2PlQ/gO1NaW9gtZko1wR2638ulVzJnAJF8xmZ8AOJxuZPTgrJIicLl61CovdviGwK7gcZxpZDMOH1s1qO80Mc6TRO4zDdaSZHgcujH1Tw2/jZuTlqu/HPZqZLyYdacqbDoNRxMTXn6BN0+OMda6AAAA"
+    },
+    {
+      "name": "air-only/all",
+      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 2, 2],
+        "palette": [
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 0, 1],
+            "state": 0
+          },
+          {
+            "pos": [0, 1, 0],
+            "state": 0
+          },
+          {
+            "pos": [0, 1, 1],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 1],
+            "state": 0
+          },
+          {
+            "pos": [1, 1, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 1, 1],
+            "state": 0
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/42QMQ7CMAxFv0mBpIiJQ3CHzsyM7KYykkWbVoknTg+tVCZQY8nDl5++nlwDDocLG98kZR0icDoHVFlf4jAdgc2yAfuROzGT+hPJo7pyLzj2GqVN/LCGNSFgd++G9pknyAe4cchL1XccttnYZA6/GVphqKCHVnqowIcKfKjAh/74eImmpjL/C3gD5Acj3ZIBAAA="
+    },
+    {
+      "name": "fully-overwritten-first/none",
+      "placements": [
+        [0, 0, 0, "minecraft:glass"],
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "none",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:dirt"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22NMQ7CMAxFf0iBpkgwcIjegZmZkd0UI1m0SVV74vQ0kQpCwtIf7PdsN4DH7kxGV55UUgSObUCl8mKPDIHVHJcTsB2pZzNu8rhGdaGBcRgkcjfRw05qKTIWsP+Cu0yGgM2tT91Ty3qAH5MuTz7lsVYj49L8Ou6P42an5mhiwuUu8AaPJzT01AAAAA=="
+    },
+    {
+      "name": "fully-overwritten-first/explicit",
+      "placements": [
+        [0, 0, 0, "minecraft:glass"],
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "explicit",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:dirt"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22NMQ7CMAxFf0iBpkgwcIjegZmZkd0UI1m0SVV74vQ0kQpCwtIf7PdsN4DH7kxGV55UUgSObUCl8mKPDIHVHJcTsB2pZzNu8rhGdaGBcRgkcjfRw05qKTIWsP+Cu0yGgM2tT91Ty3qAH5MuTz7lsVYj49L8Ou6P42an5mhiwuUu8AaPJzT01AAAAA=="
+    },
+    {
+      "name": "fully-overwritten-first/all",
+      "placements": [
+        [0, 0, 0, "minecraft:glass"],
+        [0, 0, 0, "minecraft:stone"],
+        [1, 0, 0, "minecraft:dirt"]
+      ],
+      "air": "all",
+      "dataVersion": 4903,
+      "warnings": [],
+      "parsed": {
+        "DataVersion": 4903,
+        "size": [2, 1, 1],
+        "palette": [
+          {
+            "Name": "minecraft:stone"
+          },
+          {
+            "Name": "minecraft:dirt"
+          },
+          {
+            "Name": "minecraft:air"
+          }
+        ],
+        "blocks": [
+          {
+            "pos": [0, 0, 0],
+            "state": 0
+          },
+          {
+            "pos": [1, 0, 0],
+            "state": 1
+          }
+        ],
+        "entities": []
+      },
+      "gzipBase64": "H4sIAAAAAAAC/22NwQ6CMBBEpxSVYtQDH+E/ePbs0fuKa7IRWtLuya+XkgAxcZM57LzJTA1Y7K+kdOeYJHigOTuUST5skSFQjDJZDruBOlblOqMK5Y16xqkXz22kl16SBs+YwXEFT4m6+IfVJ4lw2D660L5Tbi0c7BDSvL2cxSYpKU/Pb8b8yZgxU7FXUeGpF/gC0zUfV+sAAAA="
+    }
+  ]
+}
