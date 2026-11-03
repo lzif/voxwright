@@ -69,7 +69,8 @@ export function rotatePoint(
   if (rotation === "CLOCKWISE_90") [rx, rz] = [-rz, rx];
   else if (rotation === "COUNTERCLOCKWISE_90") [rx, rz] = [rz, -rx];
   else if (rotation === "CLOCKWISE_180") [rx, rz] = [-rx, -rz];
-  return [ax + rx, az + rz];
+  // Adding zero turns -0 into +0.
+  return [ax + rx + 0, az + rz + 0];
 }
 
 /** Rotate a footprint cell `(x, z)` for a square footprint of `size`. Y is untouched. */

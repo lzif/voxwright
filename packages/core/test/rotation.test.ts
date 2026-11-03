@@ -43,9 +43,7 @@ describe("rotation against the Python oracle", () => {
 
   it("rotates points about an anchor", () => {
     for (const c of v.points) {
-      expect(rotatePoint(c.x, c.z, c.ax, c.az, c.rotation).map((n) => n + 0)).toEqual(
-        c.result.map((n) => n + 0),
-      );
+      expect(rotatePoint(c.x, c.z, c.ax, c.az, c.rotation)).toEqual(c.result);
     }
   });
 

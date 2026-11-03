@@ -7,7 +7,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!reference", "!**/dist", "!**/coverage", "!pnpm-lock.yaml", "!LICENSE"]
+    "includes": [
+      "**",
+      "!reference",
+      "!**/dist",
+      "!**/coverage",
+      "!pnpm-lock.yaml",
+      "!LICENSE",
+      "!vectors/*.json",
+      "!fixtures/**/*.json"
+    ]
   },
   "formatter": {
     "enabled": true,

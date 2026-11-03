@@ -79,4 +79,31 @@ describe("Volume", () => {
     expect(d.data[0]).toBe(0);
     expect(d.data[(2 * 2 + 1) * 2 + 1]).toBe(0);
   });
+
+  it("unsets cells and keeps counts right", () => {
+    const v = new Volume();
+    v.set(1, 2, 3, "minecraft:stone");
+    v.set(20, 2, 3, "minecraft:dirt");
+    expect(v.unset(1, 2, 3)).toBe(true);
+    expect(v.unset(1, 2, 3)).toBe(false);
+    expect(v.unset(99, 99, 99)).toBe(false);
+    expect(v.get(1, 2, 3)).toBeUndefined();
+    expect(v.size).toBe(1);
+    expect(v.bounds()).toEqual([
+      [20, 2, 3],
+      [20, 2, 3],
+    ]);
+  });
+
+  it("translates every cell and keeps the palette", () => {
+    const v = new Volume();
+    v.set(0, 0, 0, "minecraft:stone");
+    v.set(15, 15, 15, "minecraft:dirt");
+    v.translate(-1, 1, 17);
+    expect(v.get(-1, 1, 17)).toBe("minecraft:stone");
+    expect(v.get(14, 16, 32)).toBe("minecraft:dirt");
+    expect(v.get(0, 0, 0)).toBeUndefined();
+    expect(v.size).toBe(2);
+    expect(v.palette).toEqual(["minecraft:stone", "minecraft:dirt"]);
+  });
 });

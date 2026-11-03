@@ -1,2554 +1,3651 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-only",
-  "rotations": ["NONE", "CLOCKWISE_90", "CLOCKWISE_180", "COUNTERCLOCKWISE_90"],
+  "rotations": [
+    "NONE",
+    "CLOCKWISE_90",
+    "CLOCKWISE_180",
+    "COUNTERCLOCKWISE_90"
+  ],
   "positions": [
     {
       "x": 0,
       "z": 0,
       "size": 1,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 1,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 1,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 1,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 2,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 2,
       "rotation": "NONE",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 2,
       "rotation": "NONE",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 2,
       "rotation": "NONE",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 3,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 3,
       "rotation": "NONE",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 3,
       "rotation": "NONE",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 3,
       "rotation": "NONE",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 3,
       "rotation": "NONE",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 3,
       "rotation": "NONE",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 3,
       "rotation": "NONE",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 3,
       "rotation": "NONE",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 3,
       "rotation": "NONE",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 3,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 3,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 4,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 4,
       "rotation": "NONE",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 4,
       "rotation": "NONE",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 4,
       "rotation": "NONE",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 4,
       "rotation": "NONE",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 4,
       "rotation": "NONE",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 4,
       "rotation": "NONE",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 4,
       "rotation": "NONE",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 4,
       "rotation": "NONE",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 4,
       "rotation": "NONE",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 4,
       "rotation": "NONE",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 4,
       "rotation": "NONE",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 4,
       "rotation": "NONE",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 4,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 4,
       "rotation": "NONE",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 4,
       "rotation": "NONE",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 4,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 4,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 5,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 5,
       "rotation": "NONE",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 5,
       "rotation": "NONE",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 5,
       "rotation": "NONE",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 5,
       "rotation": "NONE",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 5,
       "rotation": "NONE",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 5,
       "rotation": "NONE",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 5,
       "rotation": "NONE",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 5,
       "rotation": "NONE",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 5,
       "rotation": "NONE",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 5,
       "rotation": "NONE",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 5,
       "rotation": "NONE",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 5,
       "rotation": "NONE",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 5,
       "rotation": "NONE",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 5,
       "rotation": "NONE",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 5,
       "rotation": "NONE",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 5,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 5,
       "rotation": "NONE",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 5,
       "rotation": "NONE",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 5,
       "rotation": "NONE",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 5,
       "rotation": "NONE",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 5,
       "rotation": "NONE",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 5,
       "rotation": "NONE",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 5,
       "rotation": "NONE",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 5,
       "rotation": "NONE",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 5,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 5,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 0]
+      "result": [
+        5,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 5]
+      "result": [
+        5,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 5]
+      "result": [
+        0,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 4]
+      "result": [
+        5,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 5]
+      "result": [
+        1,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 3]
+      "result": [
+        5,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 5]
+      "result": [
+        2,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 2]
+      "result": [
+        5,
+        2
+      ]
     },
     {
       "x": 0,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 5]
+      "result": [
+        3,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 1]
+      "result": [
+        5,
+        1
+      ]
     },
     {
       "x": 0,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 5]
+      "result": [
+        4,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [0, 5]
+      "result": [
+        0,
+        5
+      ]
     },
     {
       "x": 0,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [5, 0]
+      "result": [
+        5,
+        0
+      ]
     },
     {
       "x": 0,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 5]
+      "result": [
+        5,
+        5
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 1]
+      "result": [
+        5,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 5]
+      "result": [
+        4,
+        5
+      ]
     },
     {
       "x": 1,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 1,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 1,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [1, 5]
+      "result": [
+        1,
+        5
+      ]
     },
     {
       "x": 1,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 1,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 1,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 4]
+      "result": [
+        5,
+        4
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 2]
+      "result": [
+        5,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 5]
+      "result": [
+        3,
+        5
+      ]
     },
     {
       "x": 2,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 2,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 2,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 2,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [2, 5]
+      "result": [
+        2,
+        5
+      ]
     },
     {
       "x": 2,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 2,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 2,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 3]
+      "result": [
+        5,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 3]
+      "result": [
+        5,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 5]
+      "result": [
+        2,
+        5
+      ]
     },
     {
       "x": 3,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 3,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 3]
+      "result": [
+        3,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 2]
+      "result": [
+        3,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 3,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 3,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [3, 5]
+      "result": [
+        3,
+        5
+      ]
     },
     {
       "x": 3,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 3,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 3,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 2]
+      "result": [
+        5,
+        2
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 4]
+      "result": [
+        5,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 5]
+      "result": [
+        1,
+        5
+      ]
     },
     {
       "x": 4,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 2]
+      "result": [
+        4,
+        2
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 4]
+      "result": [
+        3,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 4,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 1]
+      "result": [
+        2,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 3]
+      "result": [
+        4,
+        3
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 4]
+      "result": [
+        2,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 2]
+      "result": [
+        1,
+        2
+      ]
     },
     {
       "x": 4,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 4]
+      "result": [
+        4,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 4]
+      "result": [
+        1,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 1]
+      "result": [
+        1,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 1]
+      "result": [
+        4,
+        1
+      ]
     },
     {
       "x": 4,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [4, 5]
+      "result": [
+        4,
+        5
+      ]
     },
     {
       "x": 4,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 4,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 4,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 1]
+      "result": [
+        5,
+        1
+      ]
     },
     {
       "x": 5,
       "z": 0,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 0]
+      "result": [
+        5,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [5, 5]
+      "result": [
+        5,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 0,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 5]
+      "result": [
+        0,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 0,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 1,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 1]
+      "result": [
+        5,
+        1
+      ]
     },
     {
       "x": 5,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [4, 5]
+      "result": [
+        4,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 1,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 4]
+      "result": [
+        0,
+        4
+      ]
     },
     {
       "x": 5,
       "z": 1,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, 0]
+      "result": [
+        1,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 2,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 2]
+      "result": [
+        5,
+        2
+      ]
     },
     {
       "x": 5,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [3, 5]
+      "result": [
+        3,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 2,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 3]
+      "result": [
+        0,
+        3
+      ]
     },
     {
       "x": 5,
       "z": 2,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 3,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 3]
+      "result": [
+        5,
+        3
+      ]
     },
     {
       "x": 5,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 5]
+      "result": [
+        2,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 3,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 5,
       "z": 3,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [3, 0]
+      "result": [
+        3,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 4,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 4]
+      "result": [
+        5,
+        4
+      ]
     },
     {
       "x": 5,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 5]
+      "result": [
+        1,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 4,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 1]
+      "result": [
+        0,
+        1
+      ]
     },
     {
       "x": 5,
       "z": 4,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [4, 0]
+      "result": [
+        4,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 5,
       "size": 6,
       "rotation": "NONE",
-      "result": [5, 5]
+      "result": [
+        5,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 5]
+      "result": [
+        0,
+        5
+      ]
     },
     {
       "x": 5,
       "z": 5,
       "size": 6,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 5,
       "z": 5,
       "size": 6,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 0]
+      "result": [
+        5,
+        0
+      ]
     }
   ],
   "points": [
@@ -2558,7 +3655,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2566,7 +3666,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2574,7 +3677,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_180",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2582,7 +3688,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2590,7 +3699,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2598,7 +3710,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_90",
-      "result": [2, 0]
+      "result": [
+        2,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2606,7 +3721,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_180",
-      "result": [2, 2]
+      "result": [
+        2,
+        2
+      ]
     },
     {
       "x": 0,
@@ -2614,7 +3732,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [0, 2]
+      "result": [
+        0,
+        2
+      ]
     },
     {
       "x": 0,
@@ -2622,7 +3743,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "NONE",
-      "result": [0, 0]
+      "result": [
+        0,
+        0
+      ]
     },
     {
       "x": 0,
@@ -2630,7 +3754,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 0,
@@ -2638,7 +3765,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [-2, 4]
+      "result": [
+        -2,
+        4
+      ]
     },
     {
       "x": 0,
@@ -2646,7 +3776,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [-3, 1]
+      "result": [
+        -3,
+        1
+      ]
     },
     {
       "x": 3,
@@ -2654,7 +3787,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
@@ -2662,7 +3798,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_90",
-      "result": [-1, 3]
+      "result": [
+        -1,
+        3
+      ]
     },
     {
       "x": 3,
@@ -2670,7 +3809,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_180",
-      "result": [-3, -1]
+      "result": [
+        -3,
+        -1
+      ]
     },
     {
       "x": 3,
@@ -2678,7 +3820,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, -3]
+      "result": [
+        1,
+        -3
+      ]
     },
     {
       "x": 3,
@@ -2686,7 +3831,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
@@ -2694,7 +3842,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_90",
-      "result": [1, 3]
+      "result": [
+        1,
+        3
+      ]
     },
     {
       "x": 3,
@@ -2702,7 +3853,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_180",
-      "result": [-1, 1]
+      "result": [
+        -1,
+        1
+      ]
     },
     {
       "x": 3,
@@ -2710,7 +3864,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [1, -1]
+      "result": [
+        1,
+        -1
+      ]
     },
     {
       "x": 3,
@@ -2718,7 +3875,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "NONE",
-      "result": [3, 1]
+      "result": [
+        3,
+        1
+      ]
     },
     {
       "x": 3,
@@ -2726,7 +3886,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [0, 6]
+      "result": [
+        0,
+        6
+      ]
     },
     {
       "x": 3,
@@ -2734,7 +3897,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [-5, 3]
+      "result": [
+        -5,
+        3
+      ]
     },
     {
       "x": 3,
@@ -2742,7 +3908,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [-2, -2]
+      "result": [
+        -2,
+        -2
+      ]
     },
     {
       "x": -2,
@@ -2750,7 +3919,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "NONE",
-      "result": [-2, 5]
+      "result": [
+        -2,
+        5
+      ]
     },
     {
       "x": -2,
@@ -2758,7 +3930,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_90",
-      "result": [-5, -2]
+      "result": [
+        -5,
+        -2
+      ]
     },
     {
       "x": -2,
@@ -2766,7 +3941,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "CLOCKWISE_180",
-      "result": [2, -5]
+      "result": [
+        2,
+        -5
+      ]
     },
     {
       "x": -2,
@@ -2774,7 +3952,10 @@
       "ax": 0,
       "az": 0,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 2]
+      "result": [
+        5,
+        2
+      ]
     },
     {
       "x": -2,
@@ -2782,7 +3963,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "NONE",
-      "result": [-2, 5]
+      "result": [
+        -2,
+        5
+      ]
     },
     {
       "x": -2,
@@ -2790,7 +3974,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_90",
-      "result": [-3, -2]
+      "result": [
+        -3,
+        -2
+      ]
     },
     {
       "x": -2,
@@ -2798,7 +3985,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "CLOCKWISE_180",
-      "result": [4, -3]
+      "result": [
+        4,
+        -3
+      ]
     },
     {
       "x": -2,
@@ -2806,7 +3996,10 @@
       "ax": 1,
       "az": 1,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [5, 4]
+      "result": [
+        5,
+        4
+      ]
     },
     {
       "x": -2,
@@ -2814,7 +4007,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "NONE",
-      "result": [-2, 5]
+      "result": [
+        -2,
+        5
+      ]
     },
     {
       "x": -2,
@@ -2822,7 +4018,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_90",
-      "result": [-4, 1]
+      "result": [
+        -4,
+        1
+      ]
     },
     {
       "x": -2,
@@ -2830,7 +4029,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "CLOCKWISE_180",
-      "result": [0, -1]
+      "result": [
+        0,
+        -1
+      ]
     },
     {
       "x": -2,
@@ -2838,7 +4040,10 @@
       "ax": -1,
       "az": 2,
       "rotation": "COUNTERCLOCKWISE_90",
-      "result": [2, 3]
+      "result": [
+        2,
+        3
+      ]
     }
   ],
   "blockstates": [

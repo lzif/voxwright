@@ -8,6 +8,7 @@ tests read these files; CI never needs Python or the asset cache.
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `blocks.json`        | `parse`, `canonicalize` and `suggest`, including malformed inputs and their error kind                                                                                    |
 | `rotation.json`      | all four rotations: positions, points about an anchor, block-state rotation and mirroring                                                                                 |
+| `materials.json`, `shapes.json`, `geometry.json`, `build.json` | the mcbuilder port: weighted palettes and `patches`, every shape (65 calls, errors included), geometry transforms and whole `Build` scenarios. Written by `export_mcbuilder_vectors.py` |
 | `structure-nbt.json` | grids written by the real exporter in all three air modes, as the parsed structure (compared before gzip, never as compressed bytes) plus the gzipped file for read tests |
 
 Regenerate from the repository root (needs `reference/`, a checkout of
@@ -17,6 +18,7 @@ mcbuilder at the PR #5 merge):
 PYTHONPATH=reference/src PYTHONDONTWRITEBYTECODE=1 \
   uv run --with numpy --with pillow --with nbtlib \
   python vectors/export_vectors.py
+python vectors/export_mcbuilder_vectors.py
 ```
 
 The output is deterministic. Nothing here uses the RNG, the asset cache or the

@@ -1,0 +1,5189 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "hashes": [
+  {
+   "key": [
+    null,
+    0,
+    0,
+    0
+   ],
+   "result": 0.19538894774972482
+  },
+  {
+   "key": [
+    7,
+    1,
+    2,
+    3
+   ],
+   "result": 0.01677483124920508
+  },
+  {
+   "key": [
+    "abc",
+    -1,
+    -2,
+    -3
+   ],
+   "result": 0.5820627177290028
+  },
+  {
+   "key": [
+    "patches",
+    "",
+    0,
+    0,
+    0
+   ],
+   "result": 0.09151021859991815
+  },
+  {
+   "key": [
+    "patches",
+    "salt",
+    -4,
+    5,
+    6
+   ],
+   "result": 0.42624026228907685
+  }
+ ],
+ "palettes": {
+  "two": {
+   "palette": [
+    "minecraft:stone",
+    [
+     "minecraft:mossy_stone_bricks",
+     0.4
+    ]
+   ]
+  },
+  "three": {
+   "palette": [
+    [
+     "minecraft:a",
+     3
+    ],
+    "minecraft:b",
+    [
+     "minecraft:c",
+     0.5
+    ],
+    [
+     "minecraft:d[x=1,y=2]",
+     0
+    ]
+   ]
+  },
+  "props": {
+   "palette": [
+    "minecraft:oak_stairs[half=bottom,facing=north]",
+    "minecraft:oak_stairs[facing=south]"
+   ]
+  }
+ },
+ "picks": [
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:mossy_stone_bricks"
+  },
+  {
+   "palette": "two",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:stone"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:b"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:c"
+  },
+  {
+   "palette": "three",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:a"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": null,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 0,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": 7,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": "abc",
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    -2,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    0,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    0,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    -1
+   ],
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    0
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  },
+  {
+   "palette": "props",
+   "seed": -3,
+   "at": [
+    5,
+    3,
+    4
+   ],
+   "result": "minecraft:oak_stairs[facing=south]"
+  }
+ ],
+ "plain": [
+  {
+   "spec": "minecraft:oak_stairs[half=bottom,facing=north]",
+   "result": "minecraft:oak_stairs[facing=north,half=bottom]"
+  },
+  {
+   "spec": {
+    "checker": [
+     "minecraft:stone",
+     "dirt"
+    ]
+   },
+   "at": [
+    1,
+    0,
+    0
+   ],
+   "result": "dirt"
+  },
+  {
+   "spec": {
+    "checker": [
+     "minecraft:stone",
+     "dirt"
+    ]
+   },
+   "at": [
+    -1,
+    0,
+    0
+   ],
+   "result": "dirt"
+  }
+ ],
+ "patches": [
+  {
+   "patches": {
+    "palette": [
+     [
+      "minecraft:stone_bricks",
+      3
+     ],
+     "minecraft:mossy_stone_bricks"
+    ],
+    "scale": 3
+   },
+   "grid": [
+    [
+     -3,
+     0,
+     -2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     -1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     0,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     -2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     -1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     0,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     -2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     -1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     0,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     -2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     -1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     0,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     1,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     2,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     0,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     1,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     1,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     1,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     1,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     2,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     5,
+     0,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     5,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     3,
+     "minecraft:mossy_stone_bricks"
+    ],
+    [
+     5,
+     1,
+     4,
+     "minecraft:mossy_stone_bricks"
+    ]
+   ]
+  },
+  {
+   "patches": {
+    "palette": [
+     [
+      "minecraft:stone_bricks",
+      3
+     ],
+     "minecraft:mossy_stone_bricks"
+    ],
+    "scale": 4,
+    "salt": "x"
+   },
+   "grid": [
+    [
+     -3,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -3,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -2,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     -1,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     0,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     1,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     2,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     3,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     4,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     0,
+     4,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     -2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     -1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     0,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     1,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     2,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     3,
+     "minecraft:stone_bricks"
+    ],
+    [
+     5,
+     1,
+     4,
+     "minecraft:stone_bricks"
+    ]
+   ]
+  },
+  {
+   "patches": {
+    "palette": [
+     "minecraft:a",
+     "minecraft:b",
+     "minecraft:c"
+    ],
+    "scale": 2.5,
+    "salt": "q"
+   },
+   "grid": [
+    [
+     -3,
+     0,
+     -2,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     0,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     0,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     0,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     0,
+     2,
+     "minecraft:b"
+    ],
+    [
+     -3,
+     0,
+     3,
+     "minecraft:b"
+    ],
+    [
+     -3,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     -3,
+     1,
+     -2,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     1,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     1,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     1,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -3,
+     1,
+     2,
+     "minecraft:b"
+    ],
+    [
+     -3,
+     1,
+     3,
+     "minecraft:a"
+    ],
+    [
+     -3,
+     1,
+     4,
+     "minecraft:a"
+    ],
+    [
+     -2,
+     0,
+     -2,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     0,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     0,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     0,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     0,
+     2,
+     "minecraft:b"
+    ],
+    [
+     -2,
+     0,
+     3,
+     "minecraft:b"
+    ],
+    [
+     -2,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     -2,
+     1,
+     -2,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     1,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     1,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     1,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -2,
+     1,
+     2,
+     "minecraft:b"
+    ],
+    [
+     -2,
+     1,
+     3,
+     "minecraft:b"
+    ],
+    [
+     -2,
+     1,
+     4,
+     "minecraft:a"
+    ],
+    [
+     -1,
+     0,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     -1,
+     0,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     0,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     0,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     0,
+     2,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     0,
+     3,
+     "minecraft:b"
+    ],
+    [
+     -1,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     -1,
+     1,
+     -2,
+     "minecraft:b"
+    ],
+    [
+     -1,
+     1,
+     -1,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     1,
+     0,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     1,
+     1,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     1,
+     2,
+     "minecraft:c"
+    ],
+    [
+     -1,
+     1,
+     3,
+     "minecraft:b"
+    ],
+    [
+     -1,
+     1,
+     4,
+     "minecraft:a"
+    ],
+    [
+     0,
+     0,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     0,
+     0,
+     -1,
+     "minecraft:b"
+    ],
+    [
+     0,
+     0,
+     0,
+     "minecraft:c"
+    ],
+    [
+     0,
+     0,
+     1,
+     "minecraft:c"
+    ],
+    [
+     0,
+     0,
+     2,
+     "minecraft:c"
+    ],
+    [
+     0,
+     0,
+     3,
+     "minecraft:b"
+    ],
+    [
+     0,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     0,
+     1,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     0,
+     1,
+     -1,
+     "minecraft:b"
+    ],
+    [
+     0,
+     1,
+     0,
+     "minecraft:c"
+    ],
+    [
+     0,
+     1,
+     1,
+     "minecraft:c"
+    ],
+    [
+     0,
+     1,
+     2,
+     "minecraft:c"
+    ],
+    [
+     0,
+     1,
+     3,
+     "minecraft:c"
+    ],
+    [
+     0,
+     1,
+     4,
+     "minecraft:a"
+    ],
+    [
+     1,
+     0,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     1,
+     0,
+     -1,
+     "minecraft:b"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:c"
+    ],
+    [
+     1,
+     0,
+     1,
+     "minecraft:c"
+    ],
+    [
+     1,
+     0,
+     2,
+     "minecraft:c"
+    ],
+    [
+     1,
+     0,
+     3,
+     "minecraft:c"
+    ],
+    [
+     1,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     1,
+     1,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     1,
+     1,
+     -1,
+     "minecraft:b"
+    ],
+    [
+     1,
+     1,
+     0,
+     "minecraft:b"
+    ],
+    [
+     1,
+     1,
+     1,
+     "minecraft:b"
+    ],
+    [
+     1,
+     1,
+     2,
+     "minecraft:c"
+    ],
+    [
+     1,
+     1,
+     3,
+     "minecraft:c"
+    ],
+    [
+     1,
+     1,
+     4,
+     "minecraft:b"
+    ],
+    [
+     2,
+     0,
+     -2,
+     "minecraft:b"
+    ],
+    [
+     2,
+     0,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:a"
+    ],
+    [
+     2,
+     0,
+     1,
+     "minecraft:b"
+    ],
+    [
+     2,
+     0,
+     2,
+     "minecraft:c"
+    ],
+    [
+     2,
+     0,
+     3,
+     "minecraft:c"
+    ],
+    [
+     2,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     2,
+     1,
+     -2,
+     "minecraft:b"
+    ],
+    [
+     2,
+     1,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     2,
+     1,
+     0,
+     "minecraft:a"
+    ],
+    [
+     2,
+     1,
+     1,
+     "minecraft:a"
+    ],
+    [
+     2,
+     1,
+     2,
+     "minecraft:c"
+    ],
+    [
+     2,
+     1,
+     3,
+     "minecraft:c"
+    ],
+    [
+     2,
+     1,
+     4,
+     "minecraft:b"
+    ],
+    [
+     3,
+     0,
+     -2,
+     "minecraft:b"
+    ],
+    [
+     3,
+     0,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     3,
+     0,
+     0,
+     "minecraft:a"
+    ],
+    [
+     3,
+     0,
+     1,
+     "minecraft:b"
+    ],
+    [
+     3,
+     0,
+     2,
+     "minecraft:c"
+    ],
+    [
+     3,
+     0,
+     3,
+     "minecraft:c"
+    ],
+    [
+     3,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     3,
+     1,
+     -2,
+     "minecraft:b"
+    ],
+    [
+     3,
+     1,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     3,
+     1,
+     0,
+     "minecraft:a"
+    ],
+    [
+     3,
+     1,
+     1,
+     "minecraft:a"
+    ],
+    [
+     3,
+     1,
+     2,
+     "minecraft:c"
+    ],
+    [
+     3,
+     1,
+     3,
+     "minecraft:c"
+    ],
+    [
+     3,
+     1,
+     4,
+     "minecraft:b"
+    ],
+    [
+     4,
+     0,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     0,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     1,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     2,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     3,
+     "minecraft:a"
+    ],
+    [
+     4,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     0,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     1,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     2,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     3,
+     "minecraft:a"
+    ],
+    [
+     4,
+     1,
+     4,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     0,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     1,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     2,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     3,
+     "minecraft:a"
+    ],
+    [
+     5,
+     0,
+     4,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     -2,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     -1,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     0,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     1,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     2,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     3,
+     "minecraft:a"
+    ],
+    [
+     5,
+     1,
+     4,
+     "minecraft:a"
+    ]
+   ]
+  }
+ ],
+ "errors": [
+  {
+   "name": "empty",
+   "spec": [],
+   "error": "McbuilderError"
+  },
+  {
+   "name": "negative",
+   "spec": [
+    [
+     "minecraft:stone",
+     -1
+    ]
+   ],
+   "error": "McbuilderError"
+  },
+  {
+   "name": "zero-sum",
+   "spec": [
+    [
+     "minecraft:stone",
+     0
+    ]
+   ],
+   "error": "McbuilderError"
+  },
+  {
+   "name": "bad-entry",
+   "spec": [
+    5
+   ],
+   "error": "McbuilderError"
+  },
+  {
+   "name": "bad-weight",
+   "spec": [
+    [
+     "minecraft:stone",
+     "x"
+    ]
+   ],
+   "error": "McbuilderError"
+  },
+  {
+   "name": "malformed-block",
+   "spec": [
+    "minecraft:stone["
+   ],
+   "error": "ValueError"
+  },
+  {
+   "name": "patches-scale-zero",
+   "error": "McbuilderError"
+  }
+ ]
+}

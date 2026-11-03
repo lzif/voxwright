@@ -3,13 +3,24 @@
   "cases": [
     {
       "name": "single/none",
-      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ]
+      ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [1, 1, 1],
+        "size": [
+          1,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -17,7 +28,11 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -27,13 +42,24 @@
     },
     {
       "name": "single/explicit",
-      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ]
+      ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [1, 1, 1],
+        "size": [
+          1,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -41,7 +67,11 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -51,13 +81,24 @@
     },
     {
       "name": "single/all",
-      "placements": [[0, 0, 0, "minecraft:stone"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ]
+      ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [1, 1, 1],
+        "size": [
+          1,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -68,7 +109,11 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -78,13 +123,30 @@
     },
     {
       "name": "offset-negative/none",
-      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "placements": [
+        [
+          -1,
+          2,
+          -3,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          2,
+          0,
+          "minecraft:oak_planks"
+        ]
+      ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 1, 4],
+        "size": [
+          3,
+          1,
+          4
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -95,11 +157,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 0, 3],
+            "pos": [
+              2,
+              0,
+              3
+            ],
             "state": 1
           }
         ],
@@ -109,13 +179,30 @@
     },
     {
       "name": "offset-negative/explicit",
-      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "placements": [
+        [
+          -1,
+          2,
+          -3,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          2,
+          0,
+          "minecraft:oak_planks"
+        ]
+      ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 1, 4],
+        "size": [
+          3,
+          1,
+          4
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -126,11 +213,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 0, 3],
+            "pos": [
+              2,
+              0,
+              3
+            ],
             "state": 1
           }
         ],
@@ -140,13 +235,30 @@
     },
     {
       "name": "offset-negative/all",
-      "placements": [[-1, 2, -3, "minecraft:stone"], [1, 2, 0, "minecraft:oak_planks"]],
+      "placements": [
+        [
+          -1,
+          2,
+          -3,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          2,
+          0,
+          "minecraft:oak_planks"
+        ]
+      ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 1, 4],
+        "size": [
+          3,
+          1,
+          4
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -160,51 +272,99 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 0, 1],
+            "pos": [
+              0,
+              0,
+              1
+            ],
             "state": 2
           },
           {
-            "pos": [0, 0, 2],
+            "pos": [
+              0,
+              0,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [0, 0, 3],
+            "pos": [
+              0,
+              0,
+              3
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 1],
+            "pos": [
+              1,
+              0,
+              1
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 2],
+            "pos": [
+              1,
+              0,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 3],
+            "pos": [
+              1,
+              0,
+              3
+            ],
             "state": 2
           },
           {
-            "pos": [2, 0, 0],
+            "pos": [
+              2,
+              0,
+              0
+            ],
             "state": 2
           },
           {
-            "pos": [2, 0, 1],
+            "pos": [
+              2,
+              0,
+              1
+            ],
             "state": 2
           },
           {
-            "pos": [2, 0, 2],
+            "pos": [
+              2,
+              0,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [2, 0, 3],
+            "pos": [
+              2,
+              0,
+              3
+            ],
             "state": 1
           }
         ],
@@ -215,17 +375,41 @@
     {
       "name": "stairs-and-props/none",
       "placements": [
-        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
-        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
-        [0, 1, 2, "minecraft:stone"],
-        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_stairs[half=bottom,facing=north]"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:oak_stairs[facing=east,half=top]"
+        ],
+        [
+          0,
+          1,
+          2,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          1,
+          1,
+          "minecraft:oak_log[axis=x]"
+        ]
       ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 2, 3],
+        "size": [
+          3,
+          2,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:oak_stairs",
@@ -253,19 +437,35 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 1, 2],
+            "pos": [
+              0,
+              1,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 1, 1],
+            "pos": [
+              2,
+              1,
+              1
+            ],
             "state": 3
           }
         ],
@@ -276,17 +476,41 @@
     {
       "name": "stairs-and-props/explicit",
       "placements": [
-        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
-        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
-        [0, 1, 2, "minecraft:stone"],
-        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_stairs[half=bottom,facing=north]"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:oak_stairs[facing=east,half=top]"
+        ],
+        [
+          0,
+          1,
+          2,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          1,
+          1,
+          "minecraft:oak_log[axis=x]"
+        ]
       ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 2, 3],
+        "size": [
+          3,
+          2,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:oak_stairs",
@@ -314,19 +538,35 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 1, 2],
+            "pos": [
+              0,
+              1,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 1, 1],
+            "pos": [
+              2,
+              1,
+              1
+            ],
             "state": 3
           }
         ],
@@ -337,17 +577,41 @@
     {
       "name": "stairs-and-props/all",
       "placements": [
-        [0, 0, 0, "minecraft:oak_stairs[half=bottom,facing=north]"],
-        [1, 0, 0, "minecraft:oak_stairs[facing=east,half=top]"],
-        [0, 1, 2, "minecraft:stone"],
-        [2, 1, 1, "minecraft:oak_log[axis=x]"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_stairs[half=bottom,facing=north]"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:oak_stairs[facing=east,half=top]"
+        ],
+        [
+          0,
+          1,
+          2,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          1,
+          1,
+          "minecraft:oak_log[axis=x]"
+        ]
       ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 2, 3],
+        "size": [
+          3,
+          2,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:oak_stairs",
@@ -378,75 +642,147 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 0, 1],
+            "pos": [
+              0,
+              0,
+              1
+            ],
             "state": 4
           },
           {
-            "pos": [0, 0, 2],
+            "pos": [
+              0,
+              0,
+              2
+            ],
             "state": 4
           },
           {
-            "pos": [0, 1, 0],
+            "pos": [
+              0,
+              1,
+              0
+            ],
             "state": 4
           },
           {
-            "pos": [0, 1, 1],
+            "pos": [
+              0,
+              1,
+              1
+            ],
             "state": 4
           },
           {
-            "pos": [0, 1, 2],
+            "pos": [
+              0,
+              1,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 1],
+            "pos": [
+              1,
+              0,
+              1
+            ],
             "state": 4
           },
           {
-            "pos": [1, 0, 2],
+            "pos": [
+              1,
+              0,
+              2
+            ],
             "state": 4
           },
           {
-            "pos": [1, 1, 0],
+            "pos": [
+              1,
+              1,
+              0
+            ],
             "state": 4
           },
           {
-            "pos": [1, 1, 1],
+            "pos": [
+              1,
+              1,
+              1
+            ],
             "state": 4
           },
           {
-            "pos": [1, 1, 2],
+            "pos": [
+              1,
+              1,
+              2
+            ],
             "state": 4
           },
           {
-            "pos": [2, 0, 0],
+            "pos": [
+              2,
+              0,
+              0
+            ],
             "state": 4
           },
           {
-            "pos": [2, 0, 1],
+            "pos": [
+              2,
+              0,
+              1
+            ],
             "state": 4
           },
           {
-            "pos": [2, 0, 2],
+            "pos": [
+              2,
+              0,
+              2
+            ],
             "state": 4
           },
           {
-            "pos": [2, 1, 0],
+            "pos": [
+              2,
+              1,
+              0
+            ],
             "state": 4
           },
           {
-            "pos": [2, 1, 1],
+            "pos": [
+              2,
+              1,
+              1
+            ],
             "state": 3
           },
           {
-            "pos": [2, 1, 2],
+            "pos": [
+              2,
+              1,
+              2
+            ],
             "state": 4
           }
         ],
@@ -457,17 +793,41 @@
     {
       "name": "overwrite/none",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"],
-        [0, 0, 0, "minecraft:oak_planks"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_planks"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:dirt"
@@ -478,11 +838,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -493,17 +861,41 @@
     {
       "name": "overwrite/explicit",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"],
-        [0, 0, 0, "minecraft:oak_planks"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_planks"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:dirt"
@@ -514,11 +906,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -529,17 +929,41 @@
     {
       "name": "overwrite/all",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"],
-        [0, 0, 0, "minecraft:oak_planks"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:oak_planks"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:dirt"
@@ -553,11 +977,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 0
           }
         ],
@@ -568,18 +1000,47 @@
     {
       "name": "carved-air/none",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [2, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:air"],
-        [0, 3, 0, "minecraft:air"],
-        [2, 2, 2, "minecraft:cobblestone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          0,
+          3,
+          0,
+          "minecraft:air"
+        ],
+        [
+          2,
+          2,
+          2,
+          "minecraft:cobblestone"
+        ]
       ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 4, 3],
+        "size": [
+          3,
+          4,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -593,15 +1054,27 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 0, 0],
+            "pos": [
+              2,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 2, 2],
+            "pos": [
+              2,
+              2,
+              2
+            ],
             "state": 2
           }
         ],
@@ -612,18 +1085,47 @@
     {
       "name": "carved-air/explicit",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [2, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:air"],
-        [0, 3, 0, "minecraft:air"],
-        [2, 2, 2, "minecraft:cobblestone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          0,
+          3,
+          0,
+          "minecraft:air"
+        ],
+        [
+          2,
+          2,
+          2,
+          "minecraft:cobblestone"
+        ]
       ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 4, 3],
+        "size": [
+          3,
+          4,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -637,23 +1139,43 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 3, 0],
+            "pos": [
+              0,
+              3,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 0, 0],
+            "pos": [
+              2,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 2, 2],
+            "pos": [
+              2,
+              2,
+              2
+            ],
             "state": 2
           }
         ],
@@ -664,18 +1186,47 @@
     {
       "name": "carved-air/all",
       "placements": [
-        [0, 0, 0, "minecraft:stone"],
-        [2, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:air"],
-        [0, 3, 0, "minecraft:air"],
-        [2, 2, 2, "minecraft:cobblestone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          2,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          0,
+          3,
+          0,
+          "minecraft:air"
+        ],
+        [
+          2,
+          2,
+          2,
+          "minecraft:cobblestone"
+        ]
       ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [3, 4, 3],
+        "size": [
+          3,
+          4,
+          3
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -689,147 +1240,291 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 0, 1],
+            "pos": [
+              0,
+              0,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [0, 0, 2],
+            "pos": [
+              0,
+              0,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [0, 1, 0],
+            "pos": [
+              0,
+              1,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [0, 1, 1],
+            "pos": [
+              0,
+              1,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [0, 1, 2],
+            "pos": [
+              0,
+              1,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [0, 2, 0],
+            "pos": [
+              0,
+              2,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [0, 2, 1],
+            "pos": [
+              0,
+              2,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [0, 2, 2],
+            "pos": [
+              0,
+              2,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [0, 3, 0],
+            "pos": [
+              0,
+              3,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [0, 3, 1],
+            "pos": [
+              0,
+              3,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [0, 3, 2],
+            "pos": [
+              0,
+              3,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 1],
+            "pos": [
+              1,
+              0,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [1, 0, 2],
+            "pos": [
+              1,
+              0,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [1, 1, 0],
+            "pos": [
+              1,
+              1,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 1, 1],
+            "pos": [
+              1,
+              1,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [1, 1, 2],
+            "pos": [
+              1,
+              1,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [1, 2, 0],
+            "pos": [
+              1,
+              2,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 2, 1],
+            "pos": [
+              1,
+              2,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [1, 2, 2],
+            "pos": [
+              1,
+              2,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [1, 3, 0],
+            "pos": [
+              1,
+              3,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [1, 3, 1],
+            "pos": [
+              1,
+              3,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [1, 3, 2],
+            "pos": [
+              1,
+              3,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [2, 0, 0],
+            "pos": [
+              2,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [2, 0, 1],
+            "pos": [
+              2,
+              0,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [2, 0, 2],
+            "pos": [
+              2,
+              0,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [2, 1, 0],
+            "pos": [
+              2,
+              1,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 1, 1],
+            "pos": [
+              2,
+              1,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [2, 1, 2],
+            "pos": [
+              2,
+              1,
+              2
+            ],
             "state": 1
           },
           {
-            "pos": [2, 2, 0],
+            "pos": [
+              2,
+              2,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 2, 1],
+            "pos": [
+              2,
+              2,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [2, 2, 2],
+            "pos": [
+              2,
+              2,
+              2
+            ],
             "state": 2
           },
           {
-            "pos": [2, 3, 0],
+            "pos": [
+              2,
+              3,
+              0
+            ],
             "state": 1
           },
           {
-            "pos": [2, 3, 1],
+            "pos": [
+              2,
+              3,
+              1
+            ],
             "state": 1
           },
           {
-            "pos": [2, 3, 2],
+            "pos": [
+              2,
+              3,
+              2
+            ],
             "state": 1
           }
         ],
@@ -840,8 +1535,18 @@
     {
       "name": "block-entity-nbt/none",
       "placements": [
-        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
-        [1, 0, 0, "minecraft:stone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:chest[facing=north]{Items:[]}"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:stone"
+        ]
       ],
       "air": "none",
       "dataVersion": 4903,
@@ -850,7 +1555,11 @@
       ],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:chest",
@@ -864,11 +1573,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],
@@ -879,8 +1596,18 @@
     {
       "name": "block-entity-nbt/explicit",
       "placements": [
-        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
-        [1, 0, 0, "minecraft:stone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:chest[facing=north]{Items:[]}"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:stone"
+        ]
       ],
       "air": "explicit",
       "dataVersion": 4903,
@@ -889,7 +1616,11 @@
       ],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:chest",
@@ -903,11 +1634,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],
@@ -918,8 +1657,18 @@
     {
       "name": "block-entity-nbt/all",
       "placements": [
-        [0, 0, 0, "minecraft:chest[facing=north]{Items:[]}"],
-        [1, 0, 0, "minecraft:stone"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:chest[facing=north]{Items:[]}"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:stone"
+        ]
       ],
       "air": "all",
       "dataVersion": 4903,
@@ -928,7 +1677,11 @@
       ],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:chest",
@@ -945,11 +1698,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],
@@ -959,13 +1720,30 @@
     },
     {
       "name": "air-only/none",
-      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          1,
+          1,
+          1,
+          "minecraft:air"
+        ]
+      ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 2, 2],
+        "size": [
+          2,
+          2,
+          2
+        ],
         "palette": [
           {
             "Name": "minecraft:air"
@@ -978,13 +1756,30 @@
     },
     {
       "name": "air-only/explicit",
-      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          1,
+          1,
+          1,
+          "minecraft:air"
+        ]
+      ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 2, 2],
+        "size": [
+          2,
+          2,
+          2
+        ],
         "palette": [
           {
             "Name": "minecraft:air"
@@ -992,11 +1787,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 1, 1],
+            "pos": [
+              1,
+              1,
+              1
+            ],
             "state": 0
           }
         ],
@@ -1006,13 +1809,30 @@
     },
     {
       "name": "air-only/all",
-      "placements": [[0, 0, 0, "minecraft:air"], [1, 1, 1, "minecraft:air"]],
+      "placements": [
+        [
+          0,
+          0,
+          0,
+          "minecraft:air"
+        ],
+        [
+          1,
+          1,
+          1,
+          "minecraft:air"
+        ]
+      ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 2, 2],
+        "size": [
+          2,
+          2,
+          2
+        ],
         "palette": [
           {
             "Name": "minecraft:air"
@@ -1020,35 +1840,67 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 0, 1],
+            "pos": [
+              0,
+              0,
+              1
+            ],
             "state": 0
           },
           {
-            "pos": [0, 1, 0],
+            "pos": [
+              0,
+              1,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [0, 1, 1],
+            "pos": [
+              0,
+              1,
+              1
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 1],
+            "pos": [
+              1,
+              0,
+              1
+            ],
             "state": 0
           },
           {
-            "pos": [1, 1, 0],
+            "pos": [
+              1,
+              1,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 1, 1],
+            "pos": [
+              1,
+              1,
+              1
+            ],
             "state": 0
           }
         ],
@@ -1059,16 +1911,35 @@
     {
       "name": "fully-overwritten-first/none",
       "placements": [
-        [0, 0, 0, "minecraft:glass"],
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:glass"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "none",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -1079,11 +1950,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],
@@ -1094,16 +1973,35 @@
     {
       "name": "fully-overwritten-first/explicit",
       "placements": [
-        [0, 0, 0, "minecraft:glass"],
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:glass"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "explicit",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -1114,11 +2012,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],
@@ -1129,16 +2035,35 @@
     {
       "name": "fully-overwritten-first/all",
       "placements": [
-        [0, 0, 0, "minecraft:glass"],
-        [0, 0, 0, "minecraft:stone"],
-        [1, 0, 0, "minecraft:dirt"]
+        [
+          0,
+          0,
+          0,
+          "minecraft:glass"
+        ],
+        [
+          0,
+          0,
+          0,
+          "minecraft:stone"
+        ],
+        [
+          1,
+          0,
+          0,
+          "minecraft:dirt"
+        ]
       ],
       "air": "all",
       "dataVersion": 4903,
       "warnings": [],
       "parsed": {
         "DataVersion": 4903,
-        "size": [2, 1, 1],
+        "size": [
+          2,
+          1,
+          1
+        ],
         "palette": [
           {
             "Name": "minecraft:stone"
@@ -1152,11 +2077,19 @@
         ],
         "blocks": [
           {
-            "pos": [0, 0, 0],
+            "pos": [
+              0,
+              0,
+              0
+            ],
             "state": 0
           },
           {
-            "pos": [1, 0, 0],
+            "pos": [
+              1,
+              0,
+              0
+            ],
             "state": 1
           }
         ],

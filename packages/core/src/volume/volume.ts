@@ -106,6 +106,32 @@ export class Volume {
     entry.s.data[i] = idx;
   }
 
+  /** Make a cell unset again. Returns whether it held a value. */
+  unset(x: number, y: number, z: number): boolean {
+    const entry = this.sections.get(
+      sectionKey(x >> SECTION_BITS, y >> SECTION_BITS, z >> SECTION_BITS),
+    );
+    if (entry === undefined) return false;
+    const i = cellIndex(x, y, z);
+    if (entry.s.data[i] === UNSET) return false;
+    entry.s.data[i] = UNSET;
+    entry.s.count--;
+    this.cellCount--;
+    return true;
+  }
+
+  /** Move every set cell by `(dx, dy, dz)` in place. The palette is kept. */
+  translate(dx: number, dy: number, dz: number): void {
+    if (dx === 0 && dy === 0 && dz === 0) return;
+    const cells: [number, number, number, number][] = [];
+    this.eachCell((x, y, z, idx) => {
+      cells.push([x + dx, y + dy, z + dz, idx]);
+    });
+    this.sections.clear();
+    this.cellCount = 0;
+    for (const [x, y, z, idx] of cells) this.set(x, y, z, this.paletteList[idx] as string);
+  }
+
   /** Palette index at a cell, or {@link UNSET}. */
   indexAt(x: number, y: number, z: number): number {
     const entry = this.sections.get(

@@ -377,7 +377,11 @@
         "create:oak_stairs"
       ],
       "n": 3,
-      "result": ["minecraft:oak_stairs", "minecraft:oak_slab", "minecraft:stone_stairs"]
+      "result": [
+        "minecraft:oak_stairs",
+        "minecraft:oak_slab",
+        "minecraft:stone_stairs"
+      ]
     },
     {
       "name": "minecraft:oak_stairs",
@@ -391,7 +395,11 @@
         "create:oak_stairs"
       ],
       "n": 3,
-      "result": ["minecraft:oak_stairs", "minecraft:stone_stairs", "minecraft:oak_slab"]
+      "result": [
+        "minecraft:oak_stairs",
+        "minecraft:stone_stairs",
+        "minecraft:oak_slab"
+      ]
     },
     {
       "name": "stoen",
@@ -405,7 +413,9 @@
         "create:oak_stairs"
       ],
       "n": 2,
-      "result": ["minecraft:stone"]
+      "result": [
+        "minecraft:stone"
+      ]
     },
     {
       "name": "zzzz",
@@ -447,7 +457,9 @@
         "create:oak_stairs"
       ],
       "n": 10,
-      "result": ["minecraft:stone"]
+      "result": [
+        "minecraft:stone"
+      ]
     }
   ]
 }
