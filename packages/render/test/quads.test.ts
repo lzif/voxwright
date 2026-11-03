@@ -33,7 +33,7 @@ const have = existsSync(join(root, "blockstates"));
 
 const near = (a: readonly number[], b: readonly number[]): void => {
   expect(a.length).toBe(b.length);
-  a.forEach((v, i) => expect(Math.abs(v - (b[i] as number))).toBeLessThan(1e-9));
+  for (const [i, v] of a.entries()) expect(Math.abs(v - (b[i] as number))).toBeLessThan(1e-9);
 };
 
 describe.skipIf(!have)("model quads against the Python renderer (vanilla assets)", () => {
