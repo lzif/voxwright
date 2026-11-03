@@ -4,6 +4,14 @@
 // palette. Cells are addressed by integer world coordinates, which may be
 // negative. Cells that were never set read as unset; an explicit
 // `minecraft:air` is a real value (carved air), distinct from unset.
+//
+// Block entities (chests, signs...) and entities ride along as raw NBT. A
+// block entity belongs to the cell and the block it was set with: it is kept
+// in a map keyed "x,y,z", it goes when the cell is unset, and it goes when
+// the cell is given a block of a different name (changing only the
+// properties, such as the facing, keeps it). Entities are a plain list.
+
+import { type BlockEntity, blockIdOf, shiftEntity, type VolumeEntity } from "./entity.ts";
 
 export const AIR = "minecraft:air";
 
@@ -56,11 +64,21 @@ const sectionKey = (sx: number, sy: number, sz: number): string => `${sx},${sy},
 const cellIndex = (x: number, y: number, z: number): number =>
   ((y & SECTION_MASK) << 8) | ((z & SECTION_MASK) << 4) | (x & SECTION_MASK);
 
+/** The key a block entity is stored under: `"x,y,z"`. */
+export const blockEntityKey = (x: number, y: number, z: number): string => `${x},${y},${z}`;
+
+export function parseBlockEntityKey(key: string): [number, number, number] {
+  const p = key.split(",").map(Number);
+  return [p[0] as number, p[1] as number, p[2] as number];
+}
+
 export class Volume {
   private readonly sections = new Map<string, { sx: number; sy: number; sz: number; s: Section }>();
   private readonly paletteList: string[] = [];
   private readonly paletteIndex = new Map<string, number>();
   private cellCount = 0;
+  private readonly blockEntityMap = new Map<string, BlockEntity>();
+  private entityList: VolumeEntity[] = [];
 
   /** The interned palette, in the order blocks were first set. */
   get palette(): readonly string[] {
@@ -70,6 +88,62 @@ export class Volume {
   /** Number of cells that have been set, air included. */
   get size(): number {
     return this.cellCount;
+  }
+
+  /** Block entities by cell, keyed `"x,y,z"`. Do not modify the map; use the methods. */
+  get blockEntities(): ReadonlyMap<string, BlockEntity> {
+    return this.blockEntityMap;
+  }
+
+  /** Number of block entities held. */
+  get blockEntityCount(): number {
+    return this.blockEntityMap.size;
+  }
+
+  /** Entities, in the order they were added. */
+  get entities(): readonly VolumeEntity[] {
+    return this.entityList;
+  }
+
+  /** The block entity at a cell, if any. */
+  blockEntityAt(x: number, y: number, z: number): BlockEntity | undefined {
+    if (this.blockEntityMap.size === 0) return undefined;
+    return this.blockEntityMap.get(blockEntityKey(x, y, z));
+  }
+
+  /**
+   * Attach a block entity to a cell, replacing any it had. The cell must hold
+   * a block (set it first).
+   */
+  setBlockEntity(x: number, y: number, z: number, entity: BlockEntity): void {
+    if (this.indexAt(x, y, z) === UNSET) {
+      throw new VolumeError(`cannot attach a block entity to unset cell ${x},${y},${z}`);
+    }
+    this.blockEntityMap.set(blockEntityKey(x, y, z), entity);
+  }
+
+  /** Remove the block entity at a cell. Returns whether there was one. */
+  deleteBlockEntity(x: number, y: number, z: number): boolean {
+    if (this.blockEntityMap.size === 0) return false;
+    return this.blockEntityMap.delete(blockEntityKey(x, y, z));
+  }
+
+  /** Visit every block entity with its cell. */
+  eachBlockEntity(fn: (x: number, y: number, z: number, entity: BlockEntity) => void): void {
+    for (const [key, entity] of this.blockEntityMap) {
+      const [x, y, z] = parseBlockEntityKey(key);
+      fn(x, y, z, entity);
+    }
+  }
+
+  /** Add an entity. Its `Pos` is in volume coordinates. */
+  addEntity(entity: VolumeEntity): void {
+    this.entityList.push(entity);
+  }
+
+  /** Replace the whole entity list. */
+  setEntities(entities: readonly VolumeEntity[]): void {
+    this.entityList = [...entities];
   }
 
   /** Add `block` to the palette if needed and return its index. */
@@ -121,9 +195,19 @@ export class Volume {
       this.sections.set(key, entry);
     }
     const i = cellIndex(x, y, z);
-    if (entry.s.data[i] === UNSET) {
+    const prev = entry.s.data[i] as number;
+    if (prev === UNSET) {
       entry.s.count++;
       this.cellCount++;
+    } else if (prev !== idx && this.blockEntityMap.size > 0) {
+      // A block entity belongs to its block: a different block name drops it.
+      const key = blockEntityKey(x, y, z);
+      if (
+        this.blockEntityMap.has(key) &&
+        blockIdOf(this.paletteList[prev] as string) !== blockIdOf(this.paletteList[idx] as string)
+      ) {
+        this.blockEntityMap.delete(key);
+      }
     }
     entry.s.data[i] = idx;
   }
@@ -139,19 +223,30 @@ export class Volume {
     entry.s.data[i] = UNSET;
     entry.s.count--;
     this.cellCount--;
+    if (this.blockEntityMap.size > 0) this.blockEntityMap.delete(blockEntityKey(x, y, z));
     return true;
   }
 
-  /** Move every set cell by `(dx, dy, dz)` in place. The palette is kept. */
+  /**
+   * Move every set cell, block entity and entity by `(dx, dy, dz)` in place.
+   * The palette is kept.
+   */
   translate(dx: number, dy: number, dz: number): void {
     if (dx === 0 && dy === 0 && dz === 0) return;
     const cells: [number, number, number, number][] = [];
     this.eachCell((x, y, z, idx) => {
       cells.push([x + dx, y + dy, z + dz, idx]);
     });
+    const entities: [number, number, number, BlockEntity][] = [];
+    this.eachBlockEntity((x, y, z, e) => {
+      entities.push([x + dx, y + dy, z + dz, e]);
+    });
     this.sections.clear();
+    this.blockEntityMap.clear();
     this.cellCount = 0;
     for (const [x, y, z, idx] of cells) this.set(x, y, z, this.paletteList[idx] as string);
+    for (const [x, y, z, e] of entities) this.blockEntityMap.set(blockEntityKey(x, y, z), e);
+    this.entityList = this.entityList.map((e) => shiftEntity(e, dx, dy, dz));
   }
 
   /** Palette index at a cell, or {@link UNSET}. */

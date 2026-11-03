@@ -51,7 +51,8 @@ describe(".schem reader against an independent encoder", () => {
       expect([meta.width, meta.height, meta.length]).toEqual(want.size);
       expect(meta.offset).toEqual(want.offset);
       expect(meta.dataVersion).toBe(want.dataVersion);
-      expect(meta.droppedBlockEntities).toBe(want.blockEntities);
+      expect(volume.blockEntityCount).toBe(want.blockEntities);
+      expect(meta.droppedBlockEntities).toBe(0);
       expect(cellsOf(volume)).toEqual(want.cells);
     });
   }

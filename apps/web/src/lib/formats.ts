@@ -29,14 +29,9 @@ export const DEFAULT_DATA_VERSION = 4903;
 export interface Opened {
   volume: Volume;
   dataVersion: number | null;
-  /** What the source format carried that was not read, one line each. */
+  /** What the source file held that could not be read into the volume, one line each. */
   loss: string[];
 }
-
-const dropped = (be: number, e: number): string[] => [
-  ...(be > 0 ? [`${be} block entities were not carried over`] : []),
-  ...(e > 0 ? [`${e} entities were not carried over`] : []),
-];
 
 /** Decode a file by its extension. Air is kept so a conversion can write it back. */
 export async function openFile(bytes: Uint8Array, name: string): Promise<Opened> {
@@ -47,7 +42,7 @@ export async function openFile(bytes: Uint8Array, name: string): Promise<Opened>
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: dropped(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".schem": {
@@ -55,7 +50,7 @@ export async function openFile(bytes: Uint8Array, name: string): Promise<Opened>
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: dropped(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".litematic": {
@@ -63,7 +58,7 @@ export async function openFile(bytes: Uint8Array, name: string): Promise<Opened>
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: dropped(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".mcstructure": {
@@ -71,7 +66,7 @@ export async function openFile(bytes: Uint8Array, name: string): Promise<Opened>
       return {
         volume: r.volume,
         dataVersion: null,
-        loss: [...dropped(r.meta.droppedBlockEntities, r.meta.droppedEntities), ...r.warnings],
+        loss: r.warnings,
       };
     }
     default:

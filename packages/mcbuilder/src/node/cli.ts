@@ -502,8 +502,8 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
         read = {
           volume: r.volume,
           dataVersion: r.meta.dataVersion,
-          be: r.meta.droppedBlockEntities,
-          e: r.meta.droppedEntities,
+          be: r.meta.droppedBlockEntities + r.volume.blockEntityCount,
+          e: r.meta.droppedEntities + r.volume.entities.length,
         };
         break;
       }
@@ -512,8 +512,8 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
         read = {
           volume: r.volume,
           dataVersion: r.meta.dataVersion,
-          be: r.meta.droppedBlockEntities,
-          e: r.meta.droppedEntities,
+          be: r.meta.droppedBlockEntities + r.volume.blockEntityCount,
+          e: r.meta.droppedEntities + r.volume.entities.length,
         };
         break;
       }
@@ -522,8 +522,8 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
         read = {
           volume: r.volume,
           dataVersion: r.meta.dataVersion,
-          be: r.meta.droppedBlockEntities,
-          e: r.meta.droppedEntities,
+          be: r.meta.droppedBlockEntities + r.volume.blockEntityCount,
+          e: r.meta.droppedEntities + r.volume.entities.length,
         };
         break;
       }
@@ -533,8 +533,8 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
         read = {
           volume: r.volume,
           dataVersion: null,
-          be: r.meta.droppedBlockEntities,
-          e: r.meta.droppedEntities,
+          be: r.meta.droppedBlockEntities + r.volume.blockEntityCount,
+          e: r.meta.droppedEntities + r.volume.entities.length,
         };
         break;
       }

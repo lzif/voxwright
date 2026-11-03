@@ -8,8 +8,10 @@
 //
 // Formats are chosen by file extension: `.schem` (Sponge v2 and v3),
 // structure-block `.nbt`, `.litematic` and Bedrock `.mcstructure`. Block
-// entities and entities are not carried over, and Bedrock translation is
-// rule based; the script prints a loss report of everything it dropped.
+// entities (chests, signs...) and entities are carried between the three
+// Java formats, and kept as they are from one .mcstructure to another. Between
+// Java and Bedrock they are not translated, and Bedrock block translation is
+// rule based; the script prints a loss report of everything it could not carry.
 
 import { readFile, writeFile } from "node:fs/promises";
 import { extname } from "node:path";
@@ -53,17 +55,13 @@ interface Loaded {
 }
 
 async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promise<Loaded> {
-  const counts = (be: number, e: number): string[] => [
-    ...(be > 0 ? [`${be} block entities were not carried over`] : []),
-    ...(e > 0 ? [`${e} entities were not carried over`] : []),
-  ];
   switch (format) {
     case ".schem": {
       const r = await readSchem(bytes, { keepAir });
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: counts(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".nbt": {
@@ -71,7 +69,7 @@ async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promis
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: counts(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".litematic": {
@@ -79,7 +77,7 @@ async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promis
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
-        loss: counts(r.meta.droppedBlockEntities, r.meta.droppedEntities),
+        loss: r.warnings,
       };
     }
     case ".mcstructure": {
@@ -87,7 +85,7 @@ async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promis
       return {
         volume: r.volume,
         dataVersion: null,
-        loss: [...counts(r.meta.droppedBlockEntities, r.meta.droppedEntities), ...r.warnings],
+        loss: r.warnings,
       };
     }
   }

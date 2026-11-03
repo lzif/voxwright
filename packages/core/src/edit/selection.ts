@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Selection tools: copy, paste, move, rotate and mirror. Blocks carry their
-// block-entity NBT in the block string, so it travels with them.
+// Selection tools: copy, paste, move, rotate and mirror. A block's block
+// entity (chest contents, sign text...) travels with it: the clipboard keeps
+// a copy, and move, rotate and mirror re-attach the same one at the new cell.
+// Entities (mobs, item frames...) are not part of a selection and stay put.
 //
 // Rotation and mirroring use the same position and block-state transforms as
 // mcbuilder's structure paste (`rotatePosition`, `rotateBlockstate`,
 // `mirrorBlockstate`), so they match its golden vectors.
 
 import { AIR_BLOCKS } from "../codecs/common.ts";
+import { cloneNbt } from "../nbt/index.ts";
 import {
   mirrorBlockstate,
   type Rotation,
   rotateBlockstate,
   rotatePosition,
 } from "../rotation/index.ts";
-import { UNSET, type Vec3, type Volume } from "../volume/index.ts";
+import { type BlockEntity, UNSET, type Vec3, type Volume } from "../volume/index.ts";
 import { type Box, boxSize, eachCellInBox } from "./box.ts";
 import { baseState, type Command, CommandBuilder, EditError } from "./command.ts";
 
@@ -31,6 +34,8 @@ export interface Clipboard {
   readonly offsets: Int32Array;
   /** Index into `palette` per cell. */
   readonly indices: Int32Array;
+  /** Block entities by cell number (the position in `offsets` and `indices`). Copies, never shared with the volume. */
+  readonly blockEntities: ReadonlyMap<number, BlockEntity>;
 }
 
 export function clipboardCellCount(clip: Clipboard): number {
@@ -43,12 +48,17 @@ export function copySelection(volume: Volume, box: Box): Clipboard {
   const remap = new Map<number, number>();
   const offsets: number[] = [];
   const indices: number[] = [];
+  const blockEntities = new Map<number, BlockEntity>();
   eachCellInBox(volume, box, (x, y, z, idx) => {
     let local = remap.get(idx);
     if (local === undefined) {
       local = palette.length;
       palette.push(volume.palette[idx] as string);
       remap.set(idx, local);
+    }
+    const entity = volume.blockEntityAt(x, y, z);
+    if (entity !== undefined) {
+      blockEntities.set(indices.length, { edition: entity.edition, nbt: cloneNbt(entity.nbt) });
     }
     offsets.push(x - box.min[0], y - box.min[1], z - box.min[2]);
     indices.push(local);
@@ -58,6 +68,7 @@ export function copySelection(volume: Volume, box: Box): Clipboard {
     palette,
     offsets: Int32Array.from(offsets),
     indices: Int32Array.from(indices),
+    blockEntities,
   };
 }
 
@@ -82,11 +93,17 @@ export function pasteClipboard(
   for (let i = 0; i < clip.indices.length; i++) {
     const idx = mapped[clip.indices[i] as number] as number;
     if (idx === UNSET) continue;
-    b.place(
-      at[0] + (clip.offsets[3 * i] as number),
-      at[1] + (clip.offsets[3 * i + 1] as number),
-      at[2] + (clip.offsets[3 * i + 2] as number),
-      idx,
+    const x = at[0] + (clip.offsets[3 * i] as number);
+    const y = at[1] + (clip.offsets[3 * i + 1] as number);
+    const z = at[2] + (clip.offsets[3 * i + 2] as number);
+    b.place(x, y, z, idx);
+    // The pasted cell replaces the old one completely, block entity included.
+    const entity = clip.blockEntities.get(i);
+    b.setBlockEntity(
+      x,
+      y,
+      z,
+      entity === undefined ? undefined : { edition: entity.edition, nbt: cloneNbt(entity.nbt) },
     );
   }
   return b.finish();
@@ -108,8 +125,10 @@ export function moveSelection(
   const b = new CommandBuilder(volume, "move");
   if (delta[0] === 0 && delta[1] === 0 && delta[2] === 0) return b.finish();
   const moved: number[] = [];
+  const carried: (BlockEntity | undefined)[] = [];
   eachCellInBox(volume, box, (x, y, z, idx) => {
     moved.push(x, y, z, idx);
+    carried.push(volume.blockEntityAt(x, y, z));
   });
   for (let i = 0; i < moved.length; i += 4) {
     b.unset(moved[i] as number, moved[i + 1] as number, moved[i + 2] as number);
@@ -118,11 +137,12 @@ export function moveSelection(
     const idx = moved[i + 3] as number;
     if (options.skipAir === true && AIR_BLOCKS.has(baseState(volume.palette[idx] as string)))
       continue;
-    b.setIndex(
+    b.setCell(
       (moved[i] as number) + delta[0],
       (moved[i + 1] as number) + delta[1],
       (moved[i + 2] as number) + delta[2],
       idx,
+      carried[i / 4],
     );
   }
   return b.finish();
@@ -196,8 +216,10 @@ function transformSelection(
   mapBlock: (block: string) => string,
 ): Command {
   const cells: number[] = [];
+  const carried: (BlockEntity | undefined)[] = [];
   eachCellInBox(volume, box, (x, y, z, idx) => {
     cells.push(x, y, z, idx);
+    carried.push(volume.blockEntityAt(x, y, z));
   });
   for (let i = 0; i < cells.length; i += 4) {
     b.unset(cells[i] as number, cells[i + 1] as number, cells[i + 2] as number);
@@ -214,7 +236,7 @@ function transformSelection(
       (cells[i] as number) - box.min[0],
       (cells[i + 2] as number) - box.min[2],
     );
-    b.setIndex(box.min[0] + nx, cells[i + 1] as number, box.min[2] + nz, next);
+    b.setCell(box.min[0] + nx, cells[i + 1] as number, box.min[2] + nz, next, carried[i / 4]);
   }
   return b.finish();
 }

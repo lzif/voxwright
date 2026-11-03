@@ -103,9 +103,12 @@ node scripts/convert.ts in.mcstructure out.nbt
 
 Reads and writes Sponge `.schem` (v2 and v3), structure-block `.nbt`,
 Litematica `.litematic` and Bedrock `.mcstructure`, chosen by extension. It
-prints a loss report: block entities and entities are not carried over, and
-Bedrock block states are translated by rule, so anything the rules do not
-cover is dropped and listed rather than guessed. It runs `.ts` files directly, which needs a Node release
+prints a loss report. Block entities (chest contents, signs, banners) and
+entities are carried between the three Java formats, and kept as they are from
+one `.mcstructure` to another; between Java and Bedrock they are not
+translated, so they are listed with a count and kind instead. Bedrock block
+states are translated by rule, so anything the rules do not cover is dropped
+and listed rather than guessed. It runs `.ts` files directly, which needs a Node release
 with type stripping (22.18 or later).
 
 ## Status

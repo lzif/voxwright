@@ -10,6 +10,16 @@
 //
 // Block states are translated to and from Java by the rules in
 // `bedrock.ts`. What the rules cannot express is reported in `warnings`.
+//
+// Block entities are `block_position_data.<cell index>.block_entity_data`,
+// entities are `structure.entities` (with `Pos`, three floats relative to the
+// structure's corner). Bedrock NBT is not Java NBT, so a volume holds them
+// as `edition: "bedrock"` compounds, verbatim, and writes them back to
+// `.mcstructure` as they are (`x`, `y`, `z` are set from the cell). They
+// are never written into a Java format, and Java ones are never written
+// here; both directions are reported as lost. Beds are the exception: the
+// colour in a Bedrock bed's block entity becomes part of the Java block
+// name, and is rebuilt from it on writing.
 
 import { canonicalize, parseBlockString } from "../blocks/index.ts";
 import {
@@ -25,8 +35,16 @@ import {
   TagId,
   writeNbt,
 } from "../nbt/index.ts";
-import { AIR, Volume } from "../volume/index.ts";
+import {
+  AIR,
+  type BlockEntity,
+  entityPosition,
+  shiftEntity,
+  Volume,
+  type VolumeEntity,
+} from "../volume/index.ts";
 import { type BedrockScalar, type BedrockValue, bedrockToJava, javaToBedrock } from "./bedrock.ts";
+import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
   AIR_BLOCKS,
   asCompound,
@@ -44,12 +62,35 @@ const BLOCK_VERSION = 18168865;
 export interface McstructureMeta {
   formatVersion: number | null;
   size: [number, number, number];
+  /** Block entities in the file that could not be placed in the volume. */
   droppedBlockEntities: number;
+  /** Entities in the file that could not be placed in the volume. */
   droppedEntities: number;
 }
 
+/** Keys of a bed's block entity that carry nothing the Java block name does not. */
+const BED_KEYS: ReadonlySet<string> = new Set(["id", "color", "isMovable", "x", "y", "z"]);
+
+/** A bed block entity that holds only its colour, which the block name rebuilds. */
+function isPlainBed(be: CompoundTag): boolean {
+  if (
+    be.value.get("id")?.type !== "string" ||
+    (be.value.get("id") as { value: string }).value !== "Bed"
+  )
+    return false;
+  for (const [k, v] of be.value) {
+    if (!BED_KEYS.has(k)) return false;
+    if (k === "isMovable" && !(v.type === "byte" && v.value === 1)) return false;
+  }
+  return be.value.has("color");
+}
+
 export interface McstructureRead {
-  /** Blocks translated to Java, shifted so the smallest kept coordinate is 0. */
+  /**
+   * Blocks translated to Java, shifted so the smallest kept coordinate is 0.
+   * Block entities and entities are the file's own Bedrock NBT (see
+   * `edition`), shifted the same way.
+   */
   volume: Volume;
   meta: McstructureMeta;
   /** What could not be translated, one line each, without repeats. */
@@ -108,18 +149,24 @@ export async function readMcstructure(
   // Block entities keyed by cell index.
   const positionData = child(palContainer, "block_position_data");
   const bedColor = new Map<number, number>();
-  let droppedBlockEntities = 0;
+  const lost = new Tally();
+  const pendingBlockEntities = new Map<number, CompoundTag>();
+  let ticks = 0;
   if (positionData?.type === "compound") {
     for (const [key, entry] of positionData.value) {
-      const be = entry.type === "compound" ? child(entry, "block_entity_data") : undefined;
+      if (entry.type !== "compound") continue;
+      if (child(entry, "tick_queue_data") !== undefined) ticks++;
+      const be = child(entry, "block_entity_data");
       if (be?.type !== "compound") continue;
-      const idTag = child(be, "id");
+      const cell = Number(key);
       const color = child(be, "color");
+      const idTag = child(be, "id");
       if (idTag?.type === "string" && idTag.value === "Bed" && color !== undefined) {
-        bedColor.set(Number(key), asNumber(color, "bed color"));
-      } else {
-        droppedBlockEntities++;
+        bedColor.set(cell, asNumber(color, "bed color"));
       }
+      if (isPlainBed(be)) continue;
+      if (!Number.isInteger(cell) || cell < 0 || cell >= total) lost.addBlockEntity(kindOf(idTag));
+      else pendingBlockEntities.set(cell, be);
     }
   }
 
@@ -182,10 +229,9 @@ export async function readMcstructure(
   }
 
   const volume = new Volume();
+  let [mx, my, mz] = [0, 0, 0];
   if (kept.length > 0) {
-    let mx = Number.POSITIVE_INFINITY;
-    let my = mx;
-    let mz = mx;
+    mx = my = mz = Number.POSITIVE_INFINITY;
     for (const [x, y, z] of kept) {
       if (x < mx) mx = x;
       if (y < my) my = y;
@@ -193,15 +239,41 @@ export async function readMcstructure(
     }
     for (const [x, y, z, s] of kept) volume.set(x - mx, y - my, z - mz, s);
   }
+  for (const [cell, be] of pendingBlockEntities) {
+    const x = Math.floor(cell / (sy * sz)) - mx;
+    const y = (Math.floor(cell / sz) % sy) - my;
+    const z = (cell % sz) - mz;
+    if (volume.indexAt(x, y, z) < 0) lost.addBlockEntity(kindOf(child(be, "id")));
+    else {
+      const entity: BlockEntity = {
+        edition: "bedrock",
+        nbt: compound(entriesWithout(be, POSITION_KEYS)),
+      };
+      volume.setBlockEntity(x, y, z, entity);
+    }
+  }
   const entities = child(structure, "entities");
+  for (const raw of entities?.type === "list" ? entities.value : []) {
+    if (raw.type !== "compound" || entityPosition(raw) === undefined) {
+      lost.addEntity(
+        raw.type === "compound" ? kindOf(child(raw, "identifier") ?? child(raw, "id")) : "unknown",
+      );
+      continue;
+    }
+    volume.addEntity(shiftEntity({ edition: "bedrock", nbt: raw }, -mx, -my, -mz));
+  }
+  for (const line of lost.lines("their position holds no block, or is missing or malformed")) {
+    warnings.add(line);
+  }
+  if (ticks > 0) warnings.add(`${ticks} pending block ticks not carried over`);
   const fv = child(root, "format_version");
   return {
     volume,
     meta: {
       formatVersion: fv === undefined ? null : asNumber(fv, "format_version"),
       size: [sx, sy, sz],
-      droppedBlockEntities,
-      droppedEntities: entities?.type === "list" ? entities.value.length : 0,
+      droppedBlockEntities: lost.blockEntityCount,
+      droppedEntities: lost.entityCount,
     },
     warnings: [...warnings],
   };
@@ -256,6 +328,20 @@ export function buildMcstructure(volume: Volume): { root: NbtRoot; warnings: str
     for (const w of r.warnings) warnings.add(w);
     return r;
   });
+  const [ox, oy, oz] = dense.origin;
+  // A Java bed block entity holds nothing but its id; the Bedrock bed's colour is rebuilt from the block.
+  for (const line of foreignLines(volume, "bedrock", (x, y, z, e) => {
+    const v = dense.data[((x - ox) * sy + (y - oy)) * sz + (z - oz)] as number;
+    const id = e.nbt.value.get("id");
+    return (
+      e.nbt.value.size === 1 &&
+      id?.type === "string" &&
+      id.value === "minecraft:bed" &&
+      perPalette[v]?.bedColor !== undefined
+    );
+  })) {
+    warnings.add(line);
+  }
   const mapped = perPalette.map((r) => intern(r.block.name, r.block.states));
   const waterIdx = perPalette.some((r) => r.waterlogged)
     ? intern("minecraft:water", new Map([["liquid_depth", { kind: "int", value: 0 }]]))
@@ -272,7 +358,23 @@ export function buildMcstructure(volume: Volume): { root: NbtRoot; warnings: str
         main.push(int(v < 0 ? -1 : (mapped[v] as number)));
         const r = v < 0 ? undefined : perPalette[v];
         layer2.push(int(r?.waterlogged ? waterIdx : -1));
-        if (r?.bedColor !== undefined) {
+        const stored = volume.blockEntityAt(ox + x, oy + y, oz + z);
+        if (stored?.edition === "bedrock") {
+          positionData.value.set(
+            String(i),
+            compound([
+              [
+                "block_entity_data",
+                compound([
+                  ...entriesWithout(stored.nbt, POSITION_KEYS),
+                  ["x", int(x)],
+                  ["y", int(y)],
+                  ["z", int(z)],
+                ]),
+              ],
+            ]),
+          );
+        } else if (r?.bedColor !== undefined) {
           positionData.value.set(
             String(i),
             compound([
@@ -293,6 +395,9 @@ export function buildMcstructure(volume: Volume): { root: NbtRoot; warnings: str
     }
   }
 
+  const mobs = volume.entities
+    .filter((e: VolumeEntity) => e.edition === "bedrock")
+    .map((e) => shiftEntity(e, -ox, -oy, -oz).nbt);
   const root = compound([
     ["format_version", int(1)],
     ["size", list(TagId.Int, [int(sx), int(sy), int(sz)])],
@@ -300,7 +405,7 @@ export function buildMcstructure(volume: Volume): { root: NbtRoot; warnings: str
       "structure",
       compound([
         ["block_indices", list(TagId.List, [list(TagId.Int, main), list(TagId.Int, layer2)])],
-        ["entities", list(TagId.Compound, [])],
+        ["entities", list(TagId.Compound, mobs)],
         [
           "palette",
           compound([

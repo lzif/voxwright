@@ -13,21 +13,34 @@
 
 import { createHash } from "node:crypto";
 import { readdirSync } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   applyCommand,
   type Box,
+  byte as byteTag,
+  type CompoundTag,
+  compound,
   copySelection,
+  double,
+  int,
   linePoints,
+  list,
   makeBox,
   mirrorSelection,
   moveSelection,
+  nbtEqual,
   pasteClipboard,
   readLitematic,
+  readMcstructure,
+  readSchem,
+  readStructureNbt,
   rotateSelection,
+  string,
+  TagId,
   Volume,
+  writeLitematic,
 } from "@voxwright/core";
 import puppeteer, { type ElementHandle, type KeyInput } from "puppeteer-core";
 import { chromiumArgs } from "./site.ts";
@@ -1032,6 +1045,171 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
       t("accepting opens the file afresh, with an empty history"),
     );
     ok(!(await warns()), t("a freshly opened file has nothing to warn about"));
+
+    // -- Block entities ride along ---------------------------------------------------------------
+    // bloxelizer.com saved the 18 chests of the house without contents, so the file is made here: the
+    // same build, with every chest filled and an armor stand standing in it. It is opened in the page,
+    // one unrelated block is edited with the mouse, and the export must still hold every chest as it was.
+    const chestFile = join(downloads, "chests.litematic");
+    const filled = (
+      await readLitematic(new Uint8Array(await readFile(ctx.fixture)), { keepAir: true })
+    ).volume;
+    const chestCells: Vec[] = [];
+    filled.eachCell((x, y, z, idx) => {
+      if ((filled.palette[idx] as string).startsWith("minecraft:chest")) chestCells.push([x, y, z]);
+    });
+    chestCells.sort((a, b) => a[1] - b[1] || a[2] - b[2] || a[0] - b[0]);
+    const contentsOf = (n: number): CompoundTag =>
+      compound([
+        ["id", string("minecraft:chest")],
+        [
+          "Items",
+          list(TagId.Compound, [
+            compound([
+              ["Slot", byteTag(n % 27)],
+              ["id", string("minecraft:diamond")],
+              ["count", int(n + 1)],
+            ]),
+          ]),
+        ],
+        ["CustomName", string(`{"text":"chest ${n}"}`)],
+      ]);
+    chestCells.forEach(([x, y, z], n) => {
+      filled.setBlockEntity(x, y, z, { edition: "java", nbt: contentsOf(n) });
+    });
+    filled.addEntity({
+      edition: "java",
+      nbt: compound([
+        ["id", string("minecraft:armor_stand")],
+        ["Pos", list(TagId.Double, [double(3.5), double(1), double(3.5)])],
+      ]),
+    });
+    ok(chestCells.length === 18, t("the house has 18 chests"));
+    await writeFile(chestFile, (await writeLitematic(filled, { dataVersion: 5023 })).bytes);
+
+    const blockEntityCount = (): Promise<number> =>
+      page.evaluate(() => (window.__voxwright as Vox).volume().blockEntityCount);
+    const exportAs = async (format: string, ext: string): Promise<Uint8Array> => {
+      const name = `chests-edited${ext}`;
+      await rm(join(downloads, name), { force: true });
+      await page.select('[data-testid="format"]', format);
+      await page.click('[data-testid="convert"]');
+      const deadline = Date.now() + 30000;
+      while (!readdirSync(downloads).includes(name) && Date.now() < deadline) await sleep(200);
+      ok(readdirSync(downloads).includes(name), t(`exporting as ${ext} writes ${name}`));
+      return new Uint8Array(await readFile(join(downloads, name)));
+    };
+    /** Do all 18 chests of an exported volume hold exactly what was put in them, at the same cells? */
+    const sameChests = (v: Volume, origin: Vec): boolean => {
+      let good = v.blockEntityCount === 18;
+      chestCells.forEach(([x, y, z], n) => {
+        const e = v.blockEntityAt(x - origin[0], y - origin[1], z - origin[2]);
+        good &&= e !== undefined && e.edition === "java" && nbtEqual(e.nbt, contentsOf(n));
+      });
+      return good;
+    };
+
+    answer = "accept";
+    await input.uploadFile(chestFile);
+    await page.waitForFunction(() => (window.__voxwright as Vox).volume().blockEntityCount > 0, {
+      timeout: 60000,
+    });
+    await settle();
+    ok((await blockEntityCount()) === 18, t("the page holds the 18 chests' contents"));
+    ok(
+      (await page.evaluate(() => (window.__voxwright as Vox).volume().entities.length)) === 1,
+      t("...and the entity"),
+    );
+    ok(
+      (await page.$$eval('[data-testid="loss"] li', (l) => l.length)) === 0,
+      t("opening it reports nothing lost"),
+    );
+    const chestStart = await snapshot();
+
+    // Edit an unrelated block with a real click: turn a block that is not a chest into gold.
+    await chooseBlock("minecraft:gold_block");
+    await press("b");
+    all = await tops();
+    const plain = all.find((c) => !c.block.startsWith("minecraft:chest")) as (typeof all)[number];
+    await hoverAt(plain.pt);
+    await page.mouse.down();
+    await page.mouse.up();
+    await sleep(150);
+    const chestEdited = await snapshot();
+    ok(
+      key(diff(chestStart, chestEdited)) === key([key(plain.pos)]),
+      t(`Replace changed exactly ${key(plain.pos)}, which is not a chest`),
+    );
+    ok((await blockEntityCount()) === 18, t("the edit left all 18 chests' contents in the page"));
+
+    for (const [format, ext] of [
+      ["litematic", ".litematic"],
+      ["nbt", ".nbt"],
+      ["schem", ".schem"],
+      ["schem2", ".schem"],
+    ] as const) {
+      const bytes = await exportAs(format, ext);
+      const r =
+        format === "litematic"
+          ? await readLitematic(bytes, { keepAir: true })
+          : format === "nbt"
+            ? await readStructureNbt(bytes, { keepAir: true })
+            : await readSchem(bytes, { keepAir: true });
+      // .nbt leaves air out, so its corner is that of the non-air blocks; the others write the whole box.
+      const lo = (format === "nbt" ? filled.bounds() : filled.placedBounds())?.[0] ?? [0, 0, 0];
+      ok(
+        sameChests(r.volume, [lo[0], lo[1], lo[2]]),
+        t(`the exported ${format} holds all 18 chests with the contents they were opened with`),
+      );
+      ok(
+        r.volume.entities.length === 1 && r.warnings.length === 0,
+        t(`...and the entity, and the ${format} reader reports nothing lost`),
+      );
+      ok(
+        r.volume.get(plain.pos[0] - lo[0], plain.pos[1] - lo[1], plain.pos[2] - lo[2]) ===
+          "minecraft:gold_block",
+        t(`...and the edit itself`),
+      );
+    }
+
+    // Replacing a chest drops its contents; undo brings them back. (The chests are indoors, so the
+    // replacement goes through the page's edit hook, which is the editor's place command.)
+    const [cx, cy, cz] = chestCells[0] as Vec;
+    await page.evaluate(
+      (x, y, z) => (window.__voxwright as Vox).edit(x, y, z, "minecraft:barrel[facing=up]"),
+      cx,
+      cy,
+      cz,
+    );
+    ok((await blockEntityCount()) === 17, t("replacing a chest drops its contents"));
+    await press("z", ["Control"]);
+    ok((await blockEntityCount()) === 18, t("undo brings the contents back"));
+    {
+      const bytes = await exportAs("litematic", ".litematic");
+      const lo = filled.placedBounds()?.[0] ?? [0, 0, 0];
+      ok(
+        sameChests((await readLitematic(bytes, { keepAir: true })).volume, [lo[0], lo[1], lo[2]]),
+        t("an export after the undo holds all 18 chests again"),
+      );
+    }
+
+    // Java contents cannot be written to Bedrock: the page says so.
+    await page.select('[data-testid="format"]', "mcstructure");
+    await page.click('[data-testid="convert"]');
+    await sleep(1500);
+    const bedrockLoss = await page.$$eval('[data-testid="loss"] li', (l) =>
+      l.map((x) => x.textContent ?? ""),
+    );
+    ok(
+      bedrockLoss.some((l) => /^18 block entities not carried over .*chest x18/.test(l)) &&
+        bedrockLoss.some((l) => /^1 entity not carried over .*armor_stand x1/.test(l)),
+      t(
+        `.mcstructure export lists the 18 chests and the entity as lost (${bedrockLoss.join(" | ")})`,
+      ),
+    );
+    const bedrock = await readMcstructure(await exportAs("mcstructure", ".mcstructure"));
+    ok(bedrock.volume.blockEntityCount === 0, t("...and writes none of them"));
+
     ok(
       errors.length === 0,
       t(`no console errors${errors.length ? `: ${errors.join(" | ")}` : ""}`),

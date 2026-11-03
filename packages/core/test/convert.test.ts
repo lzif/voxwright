@@ -20,12 +20,14 @@ describe("scripts/convert.ts", () => {
     const out = join(dir, "out.nbt");
     const log = run(join(root, "fixtures/synthetic/v3-small.schem"), out);
     expect(log).toContain("24 blocks");
-    expect(log).toContain("1 loss report entry");
+    expect(log).toContain("0 loss report entries");
     const original = await readSchem(
       new Uint8Array(readFileSync(join(root, "fixtures/synthetic/v3-small.schem"))),
     );
     const converted = await readStructureNbt(new Uint8Array(readFileSync(out)));
     expect(converted.volume.size).toBe(original.volume.size);
+    // The chest's block entity travels with it.
+    expect(converted.volume.blockEntityCount).toBe(1);
     expect(converted.meta.dataVersion).toBe(4903);
   });
 

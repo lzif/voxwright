@@ -7,6 +7,12 @@
 // Version 3: the root holds one compound, "Schematic", and the block data
 // lives in its "Blocks" compound (Palette, Data, BlockEntities).
 // Block index = (y * Length + z) * Width + x, with block data as varints.
+//
+// Block entities: v2 lists `{Id, Pos, ...data}` with the data flattened next
+// to the id; v3 lists `{Id, Pos, Data}`. Entities are `{Id, Pos, ...}` in the
+// same two layouts, `Pos` being three doubles. Positions are in the same
+// coordinates as the blocks. A volume holds them as `{id, ...data}` and
+// `{id, Pos, ...data}` (see `volume/entity.ts`).
 
 import { canonicalize } from "../blocks/index.ts";
 import {
@@ -22,7 +28,15 @@ import {
   TagId,
   writeNbtGzip,
 } from "../nbt/index.ts";
-import { AIR, Volume } from "../volume/index.ts";
+import { AIR, entityPosition, shiftEntity, Volume, type VolumeEntity } from "../volume/index.ts";
+import {
+  attachBlockEntity,
+  entriesWithout,
+  foreignLines,
+  kindOf,
+  POSITION_KEYS,
+  Tally,
+} from "./carry.ts";
 import {
   AIR_BLOCKS,
   asCompound,
@@ -44,14 +58,21 @@ export interface SchemMeta {
   width: number;
   height: number;
   length: number;
+  /** Block entities in the file that could not be placed in the volume. */
   droppedBlockEntities: number;
+  /** Entities in the file that could not be placed in the volume. */
   droppedEntities: number;
 }
 
 export interface SchemRead {
-  /** Cells at `(0..width-1, 0..height-1, 0..length-1)`; air is dropped unless `keepAir`. */
+  /**
+   * Cells at `(0..width-1, 0..height-1, 0..length-1)`, with their block
+   * entities and the entities; air is dropped unless `keepAir`.
+   */
   volume: Volume;
   meta: SchemMeta;
+  /** What the file held that the volume does not, one line each. */
+  warnings: string[];
 }
 
 function readVarint(data: Uint8Array, pos: number): [value: number, next: number] {
@@ -91,8 +112,88 @@ function readOffset(tag: CompoundTag): [number, number, number] {
   return [0, 0, 0];
 }
 
-function countList(tag: NbtTag | undefined): number {
-  return tag?.type === "list" ? tag.value.length : 0;
+function compoundList(tag: NbtTag | undefined): NbtTag[] {
+  return tag?.type === "list" ? tag.value : [];
+}
+
+/**
+ * The compound a volume holds for a file entry: `id` first (from `Id`), then
+ * `head`, then the entries of `rest` that are not in `skip`.
+ */
+function canonical(
+  id: NbtTag | undefined,
+  head: [string, NbtTag][],
+  rest: Iterable<[string, NbtTag]>,
+  skip: ReadonlySet<string>,
+): CompoundTag {
+  const out = compound();
+  if (id?.type === "string") out.value.set("id", id);
+  for (const [k, v] of head) out.value.set(k, v);
+  for (const [k, v] of rest)
+    if (!skip.has(k) && !(k === "id" && id?.type === "string")) out.value.set(k, v);
+  return out;
+}
+
+function readBlockEntities(
+  volume: Volume,
+  list: NbtTag[],
+  version: SchemVersion,
+  lost: Tally,
+): void {
+  for (const raw of list) {
+    if (raw.type !== "compound") {
+      lost.addBlockEntity("unknown");
+      continue;
+    }
+    const idTag = child(raw, "Id") ?? child(raw, "id");
+    const pos = child(raw, "Pos");
+    if (pos?.type !== "intArray" || pos.value.length !== 3) {
+      lost.addBlockEntity(kindOf(idTag));
+      continue;
+    }
+    const data = child(raw, "Data");
+    const rest: [string, NbtTag][] =
+      version === 2
+        ? [...raw.value]
+        : [
+            ...entriesWithout(raw, new Set(["Id", "id", "Pos", "Data"])),
+            ...(data?.type === "compound" ? [...data.value] : []),
+          ];
+    const skip = new Set([...POSITION_KEYS, ...(version === 2 ? ["Id", "Pos"] : [])]);
+    const nbt = canonical(idTag, [], rest, skip);
+    const [x, y, z] = [pos.value[0], pos.value[1], pos.value[2]] as [number, number, number];
+    attachBlockEntity(volume, x, y, z, { edition: "java", nbt }, lost, kindOf(idTag));
+  }
+}
+
+function readEntities(volume: Volume, list: NbtTag[], version: SchemVersion, lost: Tally): void {
+  for (const raw of list) {
+    if (raw.type !== "compound") {
+      lost.addEntity("unknown");
+      continue;
+    }
+    const idTag = child(raw, "Id") ?? child(raw, "id");
+    const pos = child(raw, "Pos");
+    const data = child(raw, "Data");
+    const rest: [string, NbtTag][] =
+      version === 2
+        ? [...raw.value]
+        : [
+            ...entriesWithout(raw, new Set(["Id", "id", "Pos", "Data"])),
+            ...(data?.type === "compound" ? [...data.value] : []),
+          ];
+    const nbt = canonical(
+      idTag,
+      pos === undefined ? [] : [["Pos", pos]],
+      rest,
+      new Set(["Id", "Pos"]),
+    );
+    if (entityPosition(nbt) === undefined) {
+      lost.addEntity(kindOf(idTag));
+      continue;
+    }
+    volume.addEntity({ edition: "java", nbt });
+  }
 }
 
 /** Read a Sponge `.schem` (version 2 or 3, gzipped or not) into a {@link Volume}. */
@@ -186,6 +287,10 @@ export async function readSchem(
     volume.set(x, y, z, AIR_BLOCKS.has(name) ? AIR : state);
   }
 
+  const lost = new Tally();
+  readBlockEntities(volume, compoundList(blockEntities), version, lost);
+  readEntities(volume, compoundList(child(schem, "Entities")), version, lost);
+
   const dv = child(schem, "DataVersion");
   return {
     volume,
@@ -196,9 +301,10 @@ export async function readSchem(
       width,
       height,
       length,
-      droppedBlockEntities: countList(blockEntities),
-      droppedEntities: countList(child(schem, "Entities")),
+      droppedBlockEntities: lost.blockEntityCount,
+      droppedEntities: lost.entityCount,
     },
+    warnings: lost.lines("their position holds no block, or is missing or malformed"),
   };
 }
 
@@ -208,6 +314,51 @@ export interface WriteSchemOptions {
   version?: SchemVersion;
   /** Written as the file's `Offset`. Default `[0, 0, 0]`. */
   offset?: readonly [number, number, number];
+}
+
+/** Java block entities as file entries, in y, z, x order, positions relative to `origin`. */
+function writeBlockEntities(
+  volume: Volume,
+  origin: readonly [number, number, number],
+  version: SchemVersion,
+): NbtTag[] {
+  const found: { x: number; y: number; z: number; nbt: CompoundTag }[] = [];
+  volume.eachBlockEntity((x, y, z, e) => {
+    if (e.edition === "java")
+      found.push({ x: x - origin[0], y: y - origin[1], z: z - origin[2], nbt: e.nbt });
+  });
+  found.sort((a, b) => a.y - b.y || a.z - b.z || a.x - b.x);
+  return found.map(({ x, y, z, nbt }) => {
+    const out = compound();
+    const id = nbt.value.get("id");
+    if (id !== undefined) out.value.set("Id", id);
+    out.value.set("Pos", intArray(Int32Array.of(x, y, z)));
+    const rest = entriesWithout(nbt, new Set(["id"]));
+    if (version === 2) for (const [k, v] of rest) out.value.set(k, v);
+    else out.value.set("Data", compound(rest));
+    return out;
+  });
+}
+
+/** Java entities as file entries, `Pos` relative to `origin`. */
+function writeEntities(
+  volume: Volume,
+  origin: readonly [number, number, number],
+  version: SchemVersion,
+): NbtTag[] {
+  return volume.entities
+    .filter((e): e is VolumeEntity => e.edition === "java")
+    .map((e) => {
+      const { nbt } = shiftEntity(e, -origin[0], -origin[1], -origin[2]);
+      const out = compound();
+      const id = nbt.value.get("id");
+      if (id !== undefined) out.value.set("Id", id);
+      out.value.set("Pos", nbt.value.get("Pos") as NbtTag);
+      const rest = entriesWithout(nbt, new Set(["id", "Pos"]));
+      if (version === 2) for (const [k, v] of rest) out.value.set(k, v);
+      else out.value.set("Data", compound(rest));
+      return out;
+    });
 }
 
 /**
@@ -232,7 +383,7 @@ export function buildSchem(
     if (n > 0xffff) throw new CodecError(`${axis} ${n} does not fit in an unsigned short`);
   }
 
-  const warnings: string[] = [];
+  const warnings: string[] = [...foreignLines(volume, "java")];
   const ids = new Map<string, number>();
   const paletteTag = compound();
   const idOf = (state: string): number => {
@@ -267,6 +418,8 @@ export function buildSchem(
     }
   }
 
+  const blockEntities = writeBlockEntities(volume, dense.origin, version);
+  const entities = writeEntities(volume, dense.origin, version);
   const blockData = byteArray(new Int8Array(Uint8Array.from(out).buffer));
   const offset = options.offset ?? [0, 0, 0];
   const body: [string, NbtTag][] = [
@@ -282,8 +435,9 @@ export function buildSchem(
       ["PaletteMax", int(ids.size)],
       ["Palette", paletteTag],
       ["BlockData", blockData],
-      ["BlockEntities", list(TagId.Compound, [])],
+      ["BlockEntities", list(TagId.Compound, blockEntities)],
     );
+    if (entities.length > 0) body.push(["Entities", list(TagId.Compound, entities)]);
     return { root: compound(body), warnings };
   }
   body.push([
@@ -291,9 +445,10 @@ export function buildSchem(
     compound([
       ["Palette", paletteTag],
       ["Data", blockData],
-      ["BlockEntities", list(TagId.Compound, [])],
+      ["BlockEntities", list(TagId.Compound, blockEntities)],
     ]),
   ]);
+  if (entities.length > 0) body.push(["Entities", list(TagId.Compound, entities)]);
   return { root: compound([["Schematic", compound(body)]]), warnings };
 }
 

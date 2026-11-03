@@ -8,6 +8,12 @@
 // longs), `max(2, ceil(log2(palette size)))` bits each, in the order
 // `y * |sizeX| * |sizeZ| + z * |sizeX| + x`. A negative size on an axis means
 // the region extends backwards from its Position.
+//
+// Each region also has `TileEntities` (the block entity's NBT with `x`, `y`,
+// `z` relative to the region's lowest corner) and `Entities` (the entity's
+// NBT with `Pos`, three doubles relative to the same corner). A volume holds
+// block entities without `x`, `y`, `z` and entities with `Pos` in volume
+// coordinates. Regions are flattened into one volume at their positions.
 
 import { canonicalize, joinBlockString } from "../blocks/index.ts";
 import {
@@ -23,7 +29,8 @@ import {
   TagId,
   writeNbtGzip,
 } from "../nbt/index.ts";
-import { AIR, Volume } from "../volume/index.ts";
+import { AIR, entityPosition, shiftEntity, Volume, type VolumeEntity } from "../volume/index.ts";
+import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
   AIR_BLOCKS,
   asCompound,
@@ -39,14 +46,21 @@ export interface LitematicMeta {
   version: number;
   dataVersion: number | null;
   regionCount: number;
+  /** Block entities in the file that could not be placed in the volume. */
   droppedBlockEntities: number;
+  /** Entities in the file that could not be placed in the volume. */
   droppedEntities: number;
 }
 
 export interface LitematicRead {
-  /** All regions placed at their positions, then shifted so the smallest kept coordinate is 0. */
+  /**
+   * All regions placed at their positions, with their block entities and
+   * entities, then shifted so the smallest kept coordinate is 0.
+   */
   volume: Volume;
   meta: LitematicMeta;
+  /** What the file held that the volume does not, one line each. */
+  warnings: string[];
 }
 
 function bitsFor(paletteSize: number): number {
@@ -116,6 +130,14 @@ function paletteState(entry: NbtTag): string {
   return canonicalize(joinBlockString(nameTag.value, props));
 }
 
+interface RegionRead {
+  blocks: [number, number, number, string][];
+  blockEntities: { pos: [number, number, number]; nbt: CompoundTag }[];
+  /** Entities with `Pos` still relative to the region, and the region's lowest corner. */
+  entities: VolumeEntity[];
+  min: [number, number, number];
+}
+
 /** Read a `.litematic` (gzipped or not) into a {@link Volume}. */
 export async function readLitematic(
   bytes: Uint8Array,
@@ -133,9 +155,10 @@ export async function readLitematic(
   }
   const regions = asCompound(child(root, "Regions"), "Regions");
 
-  const kept: [number, number, number, string][] = [];
-  let droppedBlockEntities = 0;
-  let droppedEntities = 0;
+  const lost = new Tally();
+  const warnings: string[] = [];
+  let ticks = 0;
+  const read: RegionRead[] = [];
   for (const [name, regionTag] of regions.value) {
     const region = asCompound(regionTag, `region ${name}`);
     const pos = xyz(child(region, "Position"), "Position");
@@ -148,7 +171,22 @@ export async function readLitematic(
       number,
     ];
     const total = abs[0] * abs[1] * abs[2];
-    if (total === 0) continue;
+    const tileEntities = child(region, "TileEntities");
+    const entities = child(region, "Entities");
+    for (const key of ["PendingBlockTicks", "PendingFluidTicks"]) {
+      const t = child(region, key);
+      if (t?.type === "list") ticks += t.value.length;
+    }
+    if (total === 0) {
+      // Nothing can sit in an empty region.
+      for (const t of tileEntities?.type === "list" ? tileEntities.value : []) {
+        lost.addBlockEntity(t.type === "compound" ? kindOf(child(t, "id")) : "unknown");
+      }
+      for (const t of entities?.type === "list" ? entities.value : []) {
+        lost.addEntity(t.type === "compound" ? kindOf(child(t, "id")) : "unknown");
+      }
+      continue;
+    }
     if (total > 0x7fffffff) throw new CodecError(`region ${name} is too large`);
 
     const paletteTag = child(region, "BlockStatePalette");
@@ -159,39 +197,89 @@ export async function readLitematic(
     if (statesTag?.type !== "longArray") throw new CodecError(`region ${name} has no BlockStates`);
     const idx = unpack(statesTag.value, bitsFor(palette.length), total);
 
-    const te = child(region, "TileEntities");
-    if (te?.type === "list") droppedBlockEntities += te.value.length;
-    const en = child(region, "Entities");
-    if (en?.type === "list") droppedEntities += en.value.length;
-
     const [w, , l] = abs;
-    for (let i = 0; i < total; i++) {
+    /** The block kept at a cell of this region, or `undefined` for air that is dropped and editor leftovers. */
+    const kept = (i: number): string | undefined => {
       const state = palette[idx[i] as number];
       if (state === undefined)
         throw new CodecError(`region ${name} uses palette index ${idx[i]} outside its palette`);
       const base = state.split("[", 1)[0] as string;
-      if (SKIP_BLOCKS.has(base)) continue;
+      if (SKIP_BLOCKS.has(base)) return undefined;
       const isAir = AIR_BLOCKS.has(base);
-      if (isAir && !options.keepAir) continue;
+      if (isAir && !options.keepAir) return undefined;
+      return isAir ? AIR : state;
+    };
+    const r: RegionRead = { blocks: [], blockEntities: [], entities: [], min };
+    for (let i = 0; i < total; i++) {
+      const state = kept(i);
+      if (state === undefined) continue;
       const x = i % w;
       const z = Math.floor(i / w) % l;
       const y = Math.floor(i / (w * l));
-      kept.push([min[0] + x, min[1] + y, min[2] + z, isAir ? AIR : state]);
+      r.blocks.push([min[0] + x, min[1] + y, min[2] + z, state]);
     }
+
+    for (const t of tileEntities?.type === "list" ? tileEntities.value : []) {
+      if (t.type !== "compound") {
+        lost.addBlockEntity("unknown");
+        continue;
+      }
+      const kind = kindOf(child(t, "id"));
+      const rel = [child(t, "x"), child(t, "y"), child(t, "z")].map((v) =>
+        v !== undefined && (v.type === "int" || v.type === "short" || v.type === "byte")
+          ? v.value
+          : Number.NaN,
+      ) as [number, number, number];
+      const inside = rel.every((v, i) => Number.isInteger(v) && v >= 0 && v < (abs[i] as number));
+      if (!inside || kept((rel[1] * l + rel[2]) * w + rel[0]) === undefined) {
+        lost.addBlockEntity(kind);
+        continue;
+      }
+      r.blockEntities.push({
+        pos: [min[0] + rel[0], min[1] + rel[1], min[2] + rel[2]],
+        nbt: compound(entriesWithout(t, POSITION_KEYS)),
+      });
+    }
+
+    for (const t of entities?.type === "list" ? entities.value : []) {
+      if (t.type !== "compound" || entityPosition(t) === undefined) {
+        lost.addEntity(t.type === "compound" ? kindOf(child(t, "id")) : "unknown");
+        continue;
+      }
+      // `Pos` is relative to the region's lowest corner.
+      r.entities.push({ edition: "java", nbt: t });
+    }
+    read.push(r);
   }
 
   const volume = new Volume();
-  if (kept.length > 0) {
-    let mx = Number.POSITIVE_INFINITY;
-    let my = mx;
-    let mz = mx;
-    for (const [x, y, z] of kept) {
-      if (x < mx) mx = x;
-      if (y < my) my = y;
-      if (z < mz) mz = z;
+  let [mx, my, mz] = [0, 0, 0];
+  if (read.some((r) => r.blocks.length > 0)) {
+    mx = my = mz = Number.POSITIVE_INFINITY;
+    for (const r of read) {
+      for (const [x, y, z] of r.blocks) {
+        if (x < mx) mx = x;
+        if (y < my) my = y;
+        if (z < mz) mz = z;
+      }
     }
-    for (const [x, y, z, s] of kept) volume.set(x - mx, y - my, z - mz, s);
   }
+  // Later regions are placed over earlier ones, block entities included.
+  for (const r of read) {
+    for (const [x, y, z, s] of r.blocks) {
+      volume.set(x - mx, y - my, z - mz, s);
+      volume.deleteBlockEntity(x - mx, y - my, z - mz);
+    }
+    for (const { pos, nbt } of r.blockEntities) {
+      volume.setBlockEntity(pos[0] - mx, pos[1] - my, pos[2] - mz, { edition: "java", nbt });
+    }
+    for (const e of r.entities) {
+      volume.addEntity(shiftEntity(e, r.min[0] - mx, r.min[1] - my, r.min[2] - mz));
+    }
+  }
+
+  warnings.push(...lost.lines("their position holds no block, or is missing or malformed"));
+  if (ticks > 0) warnings.push(`${ticks} pending block and fluid ticks not carried over`);
   const dv = child(root, "MinecraftDataVersion");
   return {
     volume,
@@ -199,9 +287,10 @@ export async function readLitematic(
       version,
       dataVersion: dv === undefined ? null : asNumber(dv, "MinecraftDataVersion"),
       regionCount: regions.value.size,
-      droppedBlockEntities,
-      droppedEntities,
+      droppedBlockEntities: lost.blockEntityCount,
+      droppedEntities: lost.entityCount,
     },
+    warnings,
   };
 }
 
@@ -224,7 +313,7 @@ export function buildLitematic(
   const [w, h, l] = dense.size;
   if (dense.data.length === 0) throw new CodecError("build is empty — nothing to export");
 
-  const warnings: string[] = [];
+  const warnings: string[] = [...foreignLines(volume, "java")];
   // Litematica expects air at palette index 0.
   const states: string[] = [AIR];
   const remap = new Int32Array(dense.palette.length);
@@ -284,14 +373,28 @@ export function buildLitematic(
       ["y", int(b)],
       ["z", int(c)],
     ]);
+  const [ox, oy, oz] = dense.origin;
+  const tileEntities: { x: number; y: number; z: number; nbt: CompoundTag }[] = [];
+  volume.eachBlockEntity((x, y, z, e) => {
+    if (e.edition === "java") {
+      tileEntities.push({ x: x - ox, y: y - oy, z: z - oz, nbt: e.nbt });
+    }
+  });
+  tileEntities.sort((a, b) => a.y - b.y || a.z - b.z || a.x - b.x);
+  const tiles = tileEntities.map(({ x, y, z, nbt }) =>
+    compound([["x", int(x)], ["y", int(y)], ["z", int(z)], ...entriesWithout(nbt, POSITION_KEYS)]),
+  );
+  const mobs = volume.entities
+    .filter((e) => e.edition === "java")
+    .map((e) => shiftEntity(e, -ox, -oy, -oz).nbt);
   const time = BigInt(options.time ?? 0);
   const region = compound([
     ["Position", vec(0, 0, 0)],
     ["Size", vec(w, h, l)],
     ["BlockStatePalette", list(TagId.Compound, palette)],
     ["BlockStates", longArray(pack(values, bitsFor(palette.length)))],
-    ["TileEntities", list(TagId.Compound, [])],
-    ["Entities", list(TagId.Compound, [])],
+    ["TileEntities", list(TagId.Compound, tiles)],
+    ["Entities", list(TagId.Compound, mobs)],
     ["PendingBlockTicks", list(TagId.Compound, [])],
     ["PendingFluidTicks", list(TagId.Compound, [])],
   ]);

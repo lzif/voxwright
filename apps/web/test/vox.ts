@@ -77,6 +77,14 @@ export interface Vox {
     bounds(): [number[], number[]] | null;
     placedBounds(): [number[], number[]] | null;
     get(x: number, y: number, z: number): string | undefined;
+    readonly blockEntityCount: number;
+    readonly entities: readonly unknown[];
+    blockEntityAt(
+      x: number,
+      y: number,
+      z: number,
+    ): { edition: string; nbt: { value: Map<string, unknown> } } | undefined;
+    eachBlockEntity(fn: (x: number, y: number, z: number) => void): void;
   };
   edit(
     x: number,

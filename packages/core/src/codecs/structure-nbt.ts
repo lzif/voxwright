@@ -4,6 +4,12 @@
 // `DataVersion`, `size`, `palette` and `blocks`. This matches what a
 // structure block saves and what mcbuilder's exporter writes and its
 // importer reads.
+//
+// A block's block entity is its `nbt` (with `id`, without a position).
+// `entities` holds `{pos, blockPos, nbt}`: `pos` is three doubles relative to
+// the structure's corner and `nbt` is the entity's NBT. A volume holds the
+// entity as its `nbt` with `Pos` set to `pos`; `blockPos` is written back as
+// the floor of `pos`, which is what the game writes.
 
 import { canonicalize, joinBlockString, parseBlockString } from "../blocks/index.ts";
 import {
@@ -18,7 +24,15 @@ import {
   TagId,
   writeNbtGzip,
 } from "../nbt/index.ts";
-import { AIR, Volume } from "../volume/index.ts";
+import {
+  AIR,
+  type BlockEntity,
+  entityPosition,
+  positionTag,
+  shiftEntity,
+  Volume,
+} from "../volume/index.ts";
+import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
   AIR_BLOCKS,
   asCompound,
@@ -32,16 +46,21 @@ import {
 
 export interface StructureNbtMeta {
   dataVersion: number | null;
-  /** Block entities present in the file; their data is not carried over. */
+  /** Block entities in the file that could not be placed in the volume. */
   droppedBlockEntities: number;
-  /** Entities present in the file; they are not carried over. */
+  /** Entities in the file that could not be placed in the volume. */
   droppedEntities: number;
 }
 
 export interface StructureNbtRead {
-  /** Blocks shifted so the smallest x, y and z of the kept blocks are 0. */
+  /**
+   * Blocks, their block entities and the entities, shifted so the smallest
+   * x, y and z of the kept blocks are 0.
+   */
   volume: Volume;
   meta: StructureNbtMeta;
+  /** What the file held that the volume does not, one line each. */
+  warnings: string[];
 }
 
 function stateOf(name: string, props: ReadonlyMap<string, string>): string {
@@ -89,7 +108,8 @@ export async function readStructureNbt(
   const states = paletteTag.value.map(paletteState);
 
   const kept: [number, number, number, string][] = [];
-  let droppedBlockEntities = 0;
+  const pendingBlockEntities = new Map<string, CompoundTag>();
+  const lost = new Tally();
   for (const b of blocksTag.value) {
     const block = asCompound(b, "block");
     const pos = child(block, "pos");
@@ -103,8 +123,13 @@ export async function readStructureNbt(
     const stateIdx = asNumber(child(block, "state"), "block state");
     const state = states[stateIdx];
     if (state === undefined) throw new CodecError(`block state ${stateIdx} is outside the palette`);
-    if (child(block, "nbt") !== undefined) droppedBlockEntities++;
+    const nbt = child(block, "nbt");
     const name = state.split("[", 1)[0] as string;
+    const skipped = SKIP_BLOCKS.has(name) || (AIR_BLOCKS.has(name) && !options.keepAir);
+    if (nbt !== undefined) {
+      if (nbt.type === "compound" && !skipped) pendingBlockEntities.set(`${x},${y},${z}`, nbt);
+      else lost.addBlockEntity(kindOf(nbt.type === "compound" ? nbt.value.get("id") : undefined));
+    }
     if (SKIP_BLOCKS.has(name)) continue;
     if (AIR_BLOCKS.has(name)) {
       if (options.keepAir) kept.push([x, y, z, AIR]);
@@ -114,10 +139,9 @@ export async function readStructureNbt(
   }
 
   const volume = new Volume();
+  let [mx, my, mz] = [0, 0, 0];
   if (kept.length > 0) {
-    let mx = Number.POSITIVE_INFINITY;
-    let my = mx;
-    let mz = mx;
+    mx = my = mz = Number.POSITIVE_INFINITY;
     for (const [x, y, z] of kept) {
       if (x < mx) mx = x;
       if (y < my) my = y;
@@ -125,16 +149,41 @@ export async function readStructureNbt(
     }
     for (const [x, y, z, s] of kept) volume.set(x - mx, y - my, z - mz, s);
   }
+  for (const [key, nbt] of pendingBlockEntities) {
+    const [x, y, z] = key.split(",").map(Number) as [number, number, number];
+    const entity: BlockEntity = {
+      edition: "java",
+      nbt: compound(entriesWithout(nbt, POSITION_KEYS)),
+    };
+    volume.setBlockEntity(x - mx, y - my, z - mz, entity);
+  }
+
+  const entitiesTag = child(tag, "entities");
+  for (const raw of entitiesTag?.type === "list" ? entitiesTag.value : []) {
+    const e = raw.type === "compound" ? child(raw, "nbt") : undefined;
+    if (raw.type !== "compound" || e?.type !== "compound") {
+      lost.addEntity("unknown");
+      continue;
+    }
+    const nbt = compound(e.value);
+    const pos = child(raw, "pos");
+    if (pos !== undefined) nbt.value.set("Pos", pos);
+    if (entityPosition(nbt) === undefined) {
+      lost.addEntity(kindOf(e.value.get("id")));
+      continue;
+    }
+    volume.addEntity(shiftEntity({ edition: "java", nbt }, -mx, -my, -mz));
+  }
 
   const dv = child(tag, "DataVersion");
-  const entities = child(tag, "entities");
   return {
     volume,
     meta: {
       dataVersion: dv === undefined ? null : asNumber(dv, "DataVersion"),
-      droppedBlockEntities,
-      droppedEntities: entities?.type === "list" ? entities.value.length : 0,
+      droppedBlockEntities: lost.blockEntityCount,
+      droppedEntities: lost.entityCount,
     },
+    warnings: lost.lines("their position holds no block, or is missing or malformed"),
   };
 }
 
@@ -166,7 +215,7 @@ export function buildStructureNbt(
   const [sx, sy, sz] = dense.size;
   if (dense.data.length === 0) throw new CodecError("build is empty — nothing to export");
 
-  const warnings: string[] = [];
+  const warnings: string[] = [...foreignLines(volume, "java")];
   const palette: NbtTag[] = [];
   let airIdx: number | null = null;
   dense.palette.forEach((canonical, i) => {
@@ -190,6 +239,8 @@ export function buildStructureNbt(
   }
 
   const blocks: NbtTag[] = [];
+  const lost = new Tally();
+  const [ox, oy, oz] = dense.origin;
   for (let x = 0; x < sx; x++) {
     for (let y = 0; y < sy; y++) {
       for (let z = 0; z < sz; z++) {
@@ -200,14 +251,42 @@ export function buildStructureNbt(
         } else if (airMode === "none" && idx === airIdx) {
           continue;
         }
-        blocks.push(
-          compound([
-            ["pos", list(TagId.Int, [int(x), int(y), int(z)])],
-            ["state", int(idx)],
-          ]),
-        );
+        const block = compound([
+          ["pos", list(TagId.Int, [int(x), int(y), int(z)])],
+          ["state", int(idx)],
+        ]);
+        const entity = volume.blockEntityAt(ox + x, oy + y, oz + z);
+        if (entity?.edition === "java") block.value.set("nbt", entity.nbt);
+        blocks.push(block);
       }
     }
+  }
+  // A block entity on a cell that is not written (air, in the modes that leave it out) is lost.
+  volume.eachBlockEntity((x, y, z, e) => {
+    if (e.edition !== "java") return;
+    const key = ((x - ox) * sy + (y - oy)) * sz + (z - oz);
+    const idx = dense.data[key] as number;
+    if (idx < 0 ? airMode !== "all" : airMode === "none" && idx === airIdx) {
+      lost.addBlockEntity(kindOf(e.nbt.value.get("id")));
+    }
+  });
+  warnings.push(...lost.lines("their cell is air, which this export leaves out"));
+
+  const entities: NbtTag[] = [];
+  for (const e of volume.entities) {
+    if (e.edition !== "java") continue;
+    const moved = shiftEntity(e, -ox, -oy, -oz);
+    const p = entityPosition(moved.nbt) as [number, number, number];
+    entities.push(
+      compound([
+        ["pos", positionTag("java", p[0], p[1], p[2])],
+        [
+          "blockPos",
+          list(TagId.Int, [int(Math.floor(p[0])), int(Math.floor(p[1])), int(Math.floor(p[2]))]),
+        ],
+        ["nbt", moved.nbt],
+      ]),
+    );
   }
 
   const root = compound([
@@ -215,7 +294,7 @@ export function buildStructureNbt(
     ["size", list(TagId.Int, [int(sx), int(sy), int(sz)])],
     ["palette", list(TagId.Compound, palette)],
     ["blocks", list(TagId.Compound, blocks)],
-    ["entities", list(TagId.Compound, [])],
+    ["entities", list(TagId.Compound, entities)],
   ]);
   return { root, warnings };
 }

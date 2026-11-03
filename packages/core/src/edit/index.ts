@@ -17,6 +17,7 @@ export {
 } from "./box.ts";
 export {
   applyCommand,
+  type BlockEntityChange,
   type BuilderOptions,
   type Command,
   CommandBuilder,
