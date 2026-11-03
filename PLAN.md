@@ -91,6 +91,8 @@ The port starts from the merged `main` (mcbuilder 0.2.0, about 8,400 lines of Py
 | 10   | `assets` (291)                                  | Unzips the client jar and fetches the minecraft-data block registry                                                        |
 | 11   | `examples/`                                     | Port every script; they are the end-to-end tests                                                                           |
 
+**Status:** steps 1 to 6 are ported in `packages/mcbuilder` and pass vectors exported from the Python oracle (`vectors/*.json`). Step 6 covers the importer's summary, constant naming, box merging and a TypeScript script writer; reading the `.nbt` itself is `core`'s codec. Steps 7 to 11 (diff and guide, render, cli, assets, examples) are not started.
+
 ## Port gotchas
 
 - **RNG:** `Build(seed=...)` uses Python's Mersenne Twister with SHA-512 string seeding. The port uses a new PRNG, so seeded builds differ from Python; the vectors only cover paths that do not use the RNG.
@@ -115,7 +117,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 
 - [x] Create the repository `lzif/voxwright` so the scaffold can start (created **private**; make it public when ready)
 - [x] Choose `AGPL-3.0-only` or `AGPL-3.0-or-later` for the SPDX headers, before M0 (`AGPL-3.0-only`)
-- [ ] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit, one `.litematic` from Litematica, one `.mcstructure` from Bedrock
+- [ ] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit (`.nbt`, `.litematic` and `.mcstructure` of one build are in `fixtures/real/`, saved by bloxelizer.com, not Litematica or Bedrock)
 - [ ] Reserve the `@voxwright` npm organization and check the domain and trademark
 - [ ] Pick the open source Bedrock to Java block-mapping table and confirm its license is AGPL-compatible (needed by M2)
 
