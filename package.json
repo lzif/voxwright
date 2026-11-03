@@ -20,7 +20,8 @@
     "typecheck": "pnpm -r --if-present run typecheck && tsc -p scripts/tsconfig.json",
     "test": "vitest run",
     "depcheck": "depcruise --config .dependency-cruiser.cjs .",
-    "convert": "node scripts/convert.ts"
+    "convert": "node scripts/convert.ts",
+    "licenses": "node scripts/licenses.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",

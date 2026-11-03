@@ -133,13 +133,13 @@ const HIGHLIGHT_STYLES = {
 
 export class WebglRenderer implements Renderer {
   private readonly options: WebglRendererOptions;
-  private readonly atlas: Atlas;
+  private atlas: Atlas;
   private readonly scheduler: MeshScheduler;
   private readonly scene = new Scene();
   private readonly camera = new PerspectiveCamera(60, 1, 0.1, 4000);
   private readonly world = new Group();
   private readonly marks = new Group();
-  private readonly texture: DataTexture;
+  private texture: DataTexture;
   private readonly materials: MeshBasicMaterial[];
   private readonly sections = new Map<string, SectionObjects>();
   private readonly orbit = new OrbitController();
@@ -185,25 +185,8 @@ export class WebglRenderer implements Renderer {
 
   constructor(options: WebglRendererOptions) {
     this.options = options;
-    const assets = options.pack === null ? null : sourceFromDecoded(options.pack);
-    this.atlas = buildAtlas(
-      assets === null ? [] : Object.keys(options.pack?.textures ?? {}),
-      assets ?? { readJson: () => null, texture: () => null },
-    );
-
-    // Colours are mixed in the same space the CPU renderer works in: no sRGB conversion anywhere.
-    this.texture = new DataTexture(
-      this.atlas.data,
-      this.atlas.width,
-      this.atlas.height,
-      RGBAFormat,
-      UnsignedByteType,
-    );
-    this.texture.magFilter = NearestFilter;
-    this.texture.minFilter = NearestFilter;
-    this.texture.generateMipmaps = false;
-    this.texture.colorSpace = NoColorSpace;
-    this.texture.needsUpdate = true;
+    this.atlas = this.makeAtlas(options.pack);
+    this.texture = this.makeTexture();
     const common = { map: this.texture, vertexColors: true, side: FrontSide } as const;
     this.materials = [
       new MeshBasicMaterial({ ...common }),
@@ -230,6 +213,31 @@ export class WebglRenderer implements Renderer {
       atlas: atlasLayout(this.atlas),
       onActivity: () => this.requestFrame(),
     });
+  }
+
+  private makeAtlas(pack: DecodedPack | null): Atlas {
+    const assets = pack === null ? null : sourceFromDecoded(pack);
+    return buildAtlas(
+      assets === null ? [] : Object.keys(pack?.textures ?? {}),
+      assets ?? { readJson: () => null, texture: () => null },
+    );
+  }
+
+  private makeTexture(): DataTexture {
+    // Colours are mixed in the same space the CPU renderer works in: no sRGB conversion anywhere.
+    const texture = new DataTexture(
+      this.atlas.data,
+      this.atlas.width,
+      this.atlas.height,
+      RGBAFormat,
+      UnsignedByteType,
+    );
+    texture.magFilter = NearestFilter;
+    texture.minFilter = NearestFilter;
+    texture.generateMipmaps = false;
+    texture.colorSpace = NoColorSpace;
+    texture.needsUpdate = true;
+    return texture;
   }
 
   // -- Renderer interface -------------------------------------------------------------------
@@ -276,6 +284,29 @@ export class WebglRenderer implements Renderer {
     this.scheduler.setVolume(v);
     this.applySliceToScheduler();
     this.frameCamera();
+    this.requestFrame();
+  }
+
+  /**
+   * Swap the textures and models for another pack (or `null` for flat fallback cubes) and mesh the
+   * open volume again. The camera, the slice and the volume stay as they are.
+   */
+  setPack(pack: DecodedPack | null): void {
+    this.options.pack = pack;
+    this.atlas = this.makeAtlas(pack);
+    const old = this.texture;
+    this.texture = this.makeTexture();
+    for (const m of this.materials) {
+      m.map = this.texture;
+      m.needsUpdate = true;
+    }
+    old.dispose();
+    this.clearSections();
+    this.volumeSetAt = performance.now();
+    this.firstFullFrameMs = null;
+    this.meshingMs = null;
+    this.scheduler.setPack(pack, atlasLayout(this.atlas));
+    this.applySliceToScheduler();
     this.requestFrame();
   }
 

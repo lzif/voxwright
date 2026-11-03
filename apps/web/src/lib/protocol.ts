@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { FormatId } from "./formats.ts";
+import type { Pack } from "./pack-extract.ts";
 
 export interface RenderRequest {
   azimuth: number;
@@ -15,6 +16,8 @@ export interface RenderRequest {
 
 export type ToWorker =
   | { id: number; type: "init"; packUrl: string }
+  /** The user's own pack (laid over the site's), or `null` to drop it. */
+  | { id: number; type: "userpack"; pack: Pack | null }
   | { id: number; type: "open"; bytes: ArrayBuffer; name: string }
   | ({ id: number; type: "render" } & RenderRequest)
   | { id: number; type: "convert"; format: FormatId };

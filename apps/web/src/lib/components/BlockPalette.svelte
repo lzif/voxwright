@@ -24,6 +24,38 @@ function choose(block: string): void {
   session.error = "";
 }
 
+// The list is one stop in the Tab order: the chosen entry (or the one last focused) takes the Tab key,
+// and the arrow keys, Home and End move between entries.
+let roving = $state<string | null>(null);
+let listEl: HTMLUListElement;
+const keys = $derived([...(offerTyped ? ["\u0000typed"] : []), ...found.shown.map((e) => e.block)]);
+const tabbable = $derived(
+  roving !== null && keys.includes(roving)
+    ? roving
+    : keys.includes(session.block)
+      ? session.block
+      : (keys[0] ?? null),
+);
+
+function onListKey(e: KeyboardEvent): void {
+  const items = [...listEl.querySelectorAll<HTMLButtonElement>("button")];
+  const at = items.indexOf(document.activeElement as HTMLButtonElement);
+  if (at < 0) return;
+  const next =
+    e.key === "ArrowDown"
+      ? at + 1
+      : e.key === "ArrowUp"
+        ? at - 1
+        : e.key === "Home"
+          ? 0
+          : e.key === "End"
+            ? items.length - 1
+            : -1;
+  if (next < 0) return;
+  e.preventDefault();
+  items[Math.max(0, Math.min(items.length - 1, next))]?.focus();
+}
+
 function onSearchKey(e: KeyboardEvent): void {
   if (e.key !== "Enter") return;
   e.preventDefault();
@@ -59,9 +91,10 @@ function onSearchKey(e: KeyboardEvent): void {
     aria-label="Search blocks"
     data-testid="palette-search"
   />
-  <ul class="list" data-testid="palette-list">
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions: the keys come from the buttons inside this list -->
+  <ul class="list" data-testid="palette-list" aria-label="Blocks (arrow keys move, Enter chooses)" bind:this={listEl} onkeydown={onListKey}>
     {#if offerTyped}
-      <li><button class="entry typed" onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
+      <li><button class="entry typed" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
     {/if}
     {#each found.shown as entry (entry.block)}
       <li>
@@ -69,6 +102,9 @@ function onSearchKey(e: KeyboardEvent): void {
           class="entry"
           class:on={session.block === entry.block}
           class:build={entry.source === "build"}
+          aria-pressed={session.block === entry.block}
+          tabindex={tabbable === entry.block ? 0 : -1}
+          onfocus={() => (roving = entry.block)}
           title={`${entry.block} (${entry.source === "build" ? "used in this build" : "from the texture pack"})`}
           onclick={() => choose(entry.block)}
           data-block={entry.block}
@@ -83,7 +119,7 @@ function onSearchKey(e: KeyboardEvent): void {
 </section>
 
 <style>
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.4rem; color: #6b655b; }
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.4rem; color: #5f594f; }
   input[type="text"], input[type="search"] { width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font: inherit; font-size: 0.9rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }
   input.invalid { border-color: #b3382b; }
   .sr { position: absolute; left: -9999px; }
@@ -94,6 +130,6 @@ function onSearchKey(e: KeyboardEvent): void {
   .entry.on { background: #2b2925; color: #f4f1eb; }
   .entry.build { font-weight: 600; }
   .entry.typed { font-style: italic; }
-  .hint { color: #8a8378; font-size: 0.8rem; margin: 0.3rem 0 0; }
+  .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
   .bad { color: #7a1f16; }
 </style>

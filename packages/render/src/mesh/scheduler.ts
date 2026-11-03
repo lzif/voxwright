@@ -123,6 +123,15 @@ export class MeshScheduler {
     return new Promise((r) => this.initWaiters.push(r));
   }
 
+  /**
+   * Give every worker another pack and atlas, and mesh the open volume again from scratch (the old
+   * meshes use the old atlas). Messages reach a worker in order, so the new pack lands first.
+   */
+  setPack(pack: DecodedPack | null, atlas: AtlasLayout): void {
+    for (const w of this.workers) w.postMessage({ type: "init", pack, atlas });
+    this.setVolume(this.volume);
+  }
+
   /** Replace the volume: everything queued or in flight for the old one is dropped. */
   setVolume(volume: Volume | null): void {
     this.epoch++;

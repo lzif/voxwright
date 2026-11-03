@@ -18,6 +18,15 @@ const size = $derived(
 );
 const AXES = [0, 1, 2] as const;
 let from = $state("");
+// A way to change single blocks without a pointer: type the cell.
+let at = $state<[number, number, number]>([0, 0, 0]);
+const span = $derived.by(() => {
+  void session.revision;
+  const bb = session.volume.placedBounds();
+  return bb === null
+    ? ""
+    : `The build spans x ${bb[0][0]} to ${bb[1][0]}, y ${bb[0][1]} to ${bb[1][1]}, z ${bb[0][2]} to ${bb[1][2]}.`;
+});
 let delta = $state<[number, number, number]>([0, 0, 0]);
 
 function setCorner(which: "min" | "max", axis: 0 | 1 | 2, e: Event): void {
@@ -42,13 +51,27 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
 };
 </script>
 
+<section data-testid="coords-panel" aria-labelledby="coords-title">
+  <h2 id="coords-title">Block at coordinates</h2>
+  <div class="move">
+    {#each AXES as a}
+      <label>{"xyz"[a]} <input type="number" bind:value={at[a]} data-testid={`at-${"xyz"[a]}`} /></label>
+    {/each}
+  </div>
+  <div class="actions">
+    <button onclick={() => session.placeAt([at[0], at[1], at[2]], session.block)} data-testid="at-set">Set to chosen block</button>
+    <button class="ghost" onclick={() => session.eraseAt([at[0], at[1], at[2]])} data-testid="at-erase">Erase</button>
+  </div>
+  <p class="hint">Works with the keyboard alone. {span} The block state panel then shows that block.</p>
+</section>
+
 <section data-testid="selection-panel">
   <h2>Selection</h2>
   {#if sel === null || size === null}
     <p class="hint">Choose the Select tool and drag from one block to another, or <button class="link" onclick={() => session.selectAll()} data-testid="select-all">select everything</button>.</p>
   {:else}
     <p class="size" data-testid="selection-size">{size.join(" × ")} blocks</p>
-    <div class="coords" aria-label="Selection corners">
+    <div class="coords" role="group" aria-label="Selection corners">
       {#each AXES as a}
         <span class="axis">{"xyz"[a]}</span>
         <input type="number" value={sel.min[a]} onchange={(e) => setCorner("min", a, e)} aria-label={`From ${"xyz"[a]}`} data-testid={`sel-min-${"xyz"[a]}`} />
@@ -101,10 +124,10 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
 </section>
 
 <style>
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #6b655b; }
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #5f594f; }
   .size { margin: 0 0 0.3rem; font-weight: 600; }
   .coords { display: grid; grid-template-columns: 1rem 1fr 1fr; gap: 0.25rem 0.3rem; align-items: center; }
-  .axis { color: #8a8378; font-size: 0.8rem; }
+  .axis { color: #5f594f; font-size: 0.8rem; }
   input[type="number"], input[type="text"] { box-sizing: border-box; min-width: 0; width: 100%; padding: 0.25rem 0.4rem; font: inherit; font-size: 0.85rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }
   button { background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; font: inherit; font-size: 0.85rem; }
   button:disabled { opacity: 0.45; cursor: default; }
@@ -114,9 +137,9 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
   .actions { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin: 0.5rem 0 0; }
   .replace { margin: 0.5rem 0 0; display: grid; gap: 0.3rem; }
   .move { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin: 0.5rem 0 0; }
-  .move label { display: inline-flex; gap: 0.2rem; align-items: center; width: 4.4rem; font-size: 0.8rem; color: #6b655b; }
+  .move label { display: inline-flex; gap: 0.2rem; align-items: center; width: 4.4rem; font-size: 0.8rem; color: #5f594f; }
   .nudges { display: inline-flex; gap: 0.2rem; }
-  .check { font-size: 0.8rem; display: flex; gap: 0.3rem; align-items: center; color: #6b655b; }
-  .hint { color: #8a8378; font-size: 0.8rem; margin: 0.2rem 0 0; }
+  .check { font-size: 0.8rem; display: flex; gap: 0.3rem; align-items: center; color: #5f594f; }
+  .hint { color: #5f594f; font-size: 0.8rem; margin: 0.2rem 0 0; }
   code { font-size: 0.75rem; }
 </style>

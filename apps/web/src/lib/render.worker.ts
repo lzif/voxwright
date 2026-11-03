@@ -8,9 +8,12 @@ import { type AssetSource, renderView, sliceDense, type View } from "@voxwright/
 import { assetsFromPack, fetchPack } from "./assets.ts";
 import { describeVolume } from "./describe.ts";
 import { type FormatId, openFile, saveAs } from "./formats.ts";
+import { mergePacks, type Pack } from "./pack-extract.ts";
 import type { FromWorker, ToWorker } from "./protocol.ts";
 
 let assets: AssetSource | null = null;
+let sitePack: Pack | null = null;
+let userPack: Pack | null = null;
 let volume: Volume | null = null;
 let dense: DenseVolume | null = null;
 let dataVersion: number | null = null;
@@ -18,13 +21,25 @@ let dataVersion: number | null = null;
 const post = (m: FromWorker, transfer: Transferable[] = []): void =>
   (self as unknown as Worker).postMessage(m, transfer);
 
+/** The site's pack with the user's laid over it. */
+async function useAssets(): Promise<void> {
+  const pack = mergePacks(sitePack, userPack);
+  assets = pack ? await assetsFromPack(pack) : null;
+}
+
 self.onmessage = async (e: MessageEvent<ToWorker>) => {
   const m = e.data;
   try {
     switch (m.type) {
       case "init": {
-        const pack = await fetchPack(m.packUrl);
-        assets = pack ? await assetsFromPack(pack) : null;
+        sitePack = await fetchPack(m.packUrl);
+        await useAssets();
+        post({ id: m.id, type: "ready", haveAssets: assets !== null });
+        return;
+      }
+      case "userpack": {
+        userPack = m.pack;
+        await useAssets();
         post({ id: m.id, type: "ready", haveAssets: assets !== null });
         return;
       }

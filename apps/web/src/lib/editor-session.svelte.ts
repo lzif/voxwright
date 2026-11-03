@@ -60,6 +60,8 @@ export interface SessionOptions {
   dataVersion: number | null;
   /** Block ids the texture pack knows, for the palette; empty without a pack. */
   packBlocks: readonly string[];
+  /** Edits the volume already holds that cannot be undone (a restored autosave); default 0. */
+  baseEdits?: number;
 }
 
 /** What the pointer is over. */
@@ -93,7 +95,10 @@ export class EditSession {
   readonly editor: Editor;
   readonly volume: Volume;
   readonly dataVersion: number | null;
-  readonly packBlocks: readonly string[];
+  /** Block ids the texture pack knows; replaced when the user adds or removes a pack. */
+  packBlocks = $state.raw<readonly string[]>([]);
+  /** Edits already in the volume when the session began: a restored autosave carries some, with no undo history. */
+  readonly baseEdits: number;
 
   tool = $state<ToolId>("navigate");
   /** The block the drawing tools use: a block id, optionally with `[properties]`. */
@@ -117,6 +122,7 @@ export class EditSession {
   private drag: Drag | null = null;
   private slice: { y0: number; y1: number } | null = null;
   private bounds: Box | null;
+  /** The revision at the last export; a restored session starts at -1, unsaved. */
   private savedRevision = 0;
   private pointer: { x: number; y: number } | null = null;
   private frame = 0;
@@ -128,7 +134,9 @@ export class EditSession {
     this.volume = options.volume;
     this.dataVersion = options.dataVersion;
     this.packBlocks = options.packBlocks;
+    this.baseEdits = options.baseEdits ?? 0;
     this.editor = new Editor(options.volume);
+    if (this.baseEdits > 0) this.savedRevision = -1;
     const bb = options.volume.placedBounds();
     this.bounds = bb === null ? null : { min: bb[0], max: bb[1] };
   }
@@ -150,9 +158,16 @@ export class EditSession {
     return this.editor.history.undoCount;
   }
 
-  /** Edits the user has not exported (nor undone): what the leave-the-page warning is about. */
+  /** Edits made in this session plus the ones a restore carried over (those cannot be undone). */
+  get editCount(): number {
+    return this.baseEdits + this.undoCount;
+  }
+
+  /** Edits the user has not exported (nor undone): what the leave-the-page warning and autosave are about. */
   get unsaved(): boolean {
-    return this.editor.history.canUndo && this.revision !== this.savedRevision;
+    return (
+      (this.editor.history.canUndo || this.baseEdits > 0) && this.revision !== this.savedRevision
+    );
   }
 
   markSaved(): void {
@@ -216,6 +231,11 @@ export class EditSession {
     this.detach = null;
     cancelAnimationFrame(this.frame);
     this.renderer.highlight([]);
+  }
+
+  /** Say that this session began from a restored autosave. */
+  noteRestored(edits: number, saved: string): void {
+    this.message = `Restored ${edits} edit${edits === 1 ? "" : "s"} saved ${saved}. Undo history was not kept, so these edits cannot be undone.`;
   }
 
   /** The layers the view is limited to; picking ignores everything outside them. */
@@ -714,7 +734,22 @@ export class EditSession {
 
   /** Put a block at a cell, as one undo step. */
   placeAt(pos: Vec3, block: string): boolean {
-    return this.attempt(() => placeCells(this.volume, [pos], block, "place"));
+    const done = this.attempt(() => placeCells(this.volume, [pos], block, "place"));
+    if (done) this.pointAt(pos);
+    return done;
+  }
+
+  /** Remove the block at a cell (write air), as one undo step. */
+  eraseAt(pos: Vec3): boolean {
+    const done = this.attempt(() => eraseCells(this.volume, [pos], { toAir: true }, "erase"));
+    if (done) this.pointAt(pos);
+    return done;
+  }
+
+  /** Make a cell the one the block-state panel shows, as if the pointer were over it. */
+  private pointAt(pos: Vec3): void {
+    this.inspected = pos;
+    this.refreshHighlight();
   }
 
   /** Change one property of the inspected block (a typed value is as good as a suggested one). */

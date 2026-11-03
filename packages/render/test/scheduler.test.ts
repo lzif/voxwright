@@ -107,6 +107,19 @@ describe("mesh scheduler", () => {
     expect(gone.find((u) => u.key === "0,1,0")?.mesh).toBeNull();
   });
 
+  it("meshes the open volume again with another pack", async () => {
+    const { sched } = setup(2);
+    await sched.whenReady();
+    sched.setVolume(sample());
+    await settle(sched);
+    expect(sched.stats().fallback).toEqual([]);
+    sched.setPack(null, buildAtlas([], { readJson: () => null, texture: () => null }));
+    const again = await settle(sched);
+    expect(again.map((u) => u.key).sort()).toEqual(sched.sectionKeys().sort());
+    expect(again.every((u) => u.mesh !== null)).toBe(true);
+    expect(sched.stats().fallback).toContain("minecraft:stone");
+  });
+
   it("meshes dirty sections ahead of the initial build", async () => {
     const { sched, workers } = setup(1);
     await sched.whenReady();

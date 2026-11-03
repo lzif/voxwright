@@ -69,12 +69,12 @@ function add(): void {
 </section>
 
 <style>
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #6b655b; }
+  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #5f594f; }
   .name { margin: 0 0 0.3rem; font-weight: 600; }
-  .pos { font-weight: 400; color: #8a8378; font-size: 0.8rem; }
+  .pos { font-weight: 400; color: #5f594f; font-size: 0.8rem; }
   .row { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.4rem; align-items: center; margin: 0.2rem 0; font-size: 0.85rem; }
   .row.add { grid-template-columns: 1fr 1fr auto; }
   input, select { box-sizing: border-box; min-width: 0; width: 100%; padding: 0.25rem 0.4rem; font: inherit; font-size: 0.85rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }
   button { background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer; font: inherit; font-size: 0.85rem; }
-  .hint { color: #8a8378; font-size: 0.8rem; margin: 0.3rem 0 0; }
+  .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
 </style>

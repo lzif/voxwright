@@ -28,10 +28,12 @@ const at = (p: readonly number[]): string => p.join(", ");
 </div>
 
 <p class="line" data-testid="edit-line">
-  <span class="where" data-testid="hover" title={session.hover?.block}>{#if session.hover}{at(session.hover.position)} · {session.hover.block.replace("minecraft:", "")}{:else}&nbsp;{/if}</span>
-  {#if session.error}<span class="bad" data-testid="edit-error">{session.error}</span>
-  {:else if session.message}<span data-testid="edit-message">{session.message}</span>
-  {:else}<span class="dim">{session.toolHelp}</span>{/if}
+  <span class="where" data-testid="hover" title={session.hover?.block} aria-hidden="true">{#if session.hover}{at(session.hover.position)} · {session.hover.block.replace("minecraft:", "")}{:else}&nbsp;{/if}</span>
+  <span class="msg" aria-live="polite">
+    {#if session.error}<span class="bad" data-testid="edit-error" role="alert">{session.error}</span>
+    {:else if session.message}<span data-testid="edit-message">{session.message}</span>
+    {:else}<span class="dim">{session.toolHelp}</span>{/if}
+  </span>
 </p>
 
 <style>
@@ -39,13 +41,14 @@ const at = (p: readonly number[]): string => p.join(", ");
   button { background: #e2dccf; color: #2b2925; border: 0; border-radius: 6px; padding: 0.35rem 0.6rem; cursor: pointer; font: inherit; font-size: 0.9rem; }
   button.on { background: #2b2925; color: #f4f1eb; }
   button:disabled { opacity: 0.45; cursor: default; }
-  kbd { margin-left: 0.35rem; font: inherit; font-size: 0.7rem; opacity: 0.6; }
+  kbd { margin-left: 0.35rem; font: inherit; font-size: 0.7rem; }
   .sep { width: 1px; align-self: stretch; background: #c9c3b6; margin: 0 0.2rem; }
   .check { font-size: 0.9rem; display: inline-flex; gap: 0.3rem; align-items: center; margin-left: 0.3rem; }
   /* A fixed height: if this line grew or shrank, the canvas below would move under the pointer. */
   .line { margin: 0.35rem 0 0.4rem; font-size: 0.85rem; height: 1.5em; line-height: 1.5em; display: flex; gap: 0.8rem; overflow: hidden; white-space: nowrap; }
+  .msg { flex: 1 1 auto; }
   .line > span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .where { flex: 0 0 22ch; font-family: ui-monospace, monospace; color: #6b655b; }
-  .dim { color: #8a8378; }
+  .where { flex: 0 0 22ch; font-family: ui-monospace, monospace; color: #5f594f; }
+  .dim { color: #5f594f; }
   .bad { color: #7a1f16; }
 </style>

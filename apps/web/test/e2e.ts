@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import puppeteer, { type ElementHandle, type Page } from "puppeteer-core";
 import { editorSuite } from "./editor-suite.ts";
+import { m4Suite } from "./m4-suite.ts";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
 import type { Pose, Vox } from "./vox.ts";
 
@@ -366,6 +367,13 @@ try {
   await suite(true);
   await suite(false);
   await editorSuite({
+    url,
+    chromium,
+    shots: values.shots,
+    fixture: join(fixtures, "Rafeals_house.litematic"),
+    ok,
+  });
+  await m4Suite({
     url,
     chromium,
     shots: values.shots,

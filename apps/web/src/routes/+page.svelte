@@ -2,18 +2,31 @@
 <script lang="ts">
 import type { Volume } from "@voxwright/core";
 import type { RendererStats, WebglRenderer } from "@voxwright/render/webgl";
-import { onMount } from "svelte";
+import { onMount, untrack } from "svelte";
 import { decodePack, fetchPack } from "../lib/assets.ts";
+import { Autosave } from "../lib/autosave.svelte.ts";
 import BlockPalette from "../lib/components/BlockPalette.svelte";
 import BlockStatePanel from "../lib/components/BlockStatePanel.svelte";
 import EditToolbar from "../lib/components/EditToolbar.svelte";
+import PackPanel from "../lib/components/PackPanel.svelte";
+import RestoreDialog from "../lib/components/RestoreDialog.svelte";
 import SelectionPanel from "../lib/components/SelectionPanel.svelte";
+import SiteFooter from "../lib/components/SiteFooter.svelte";
 import { describeVolume } from "../lib/describe.ts";
 import { packBlockIds } from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
-import { FORMATS, type FormatId, openFile, saveAs } from "../lib/formats.ts";
+import { FORMATS, type FormatId, type Opened, openFile, saveAs } from "../lib/formats.ts";
+import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import Worker from "../lib/render.worker.ts?worker";
+import { restoreSnapshot, type Snapshot } from "../lib/snapshot.ts";
+import {
+  loadUserPack,
+  readUserPack,
+  removeUserPack,
+  type StoredPack,
+  saveUserPack,
+} from "../lib/user-pack.ts";
 
 // "webgl": the GPU renderer in render/webgl, drawing on this page's thread with a pool of mesher
 // workers. "cpu": the software rasterizer in a worker, for browsers without WebGL2.
@@ -54,6 +67,19 @@ let yMax = $state(0);
 let format = $state<FormatId>("litematic");
 let conversionNotes = $state<string[]>([]);
 let dragging = false;
+
+// Autosave of the edited volume, and the offer to restore the last one.
+const autosave = new Autosave();
+let offer = $state.raw<Snapshot | "damaged" | null>(null);
+let offerBusy = $state(false);
+let offerError = $state("");
+
+// The texture pack: the site's own (if it ships one) with the user's laid over it.
+let sitePack = $state.raw<Pack | null>(null);
+let userPack = $state.raw<StoredPack | null>(null);
+let packBusy = $state(false);
+let packError = $state("");
+let packNote = $state("");
 
 function call(msg: WithoutId<ToWorker>, transfer: Transferable[] = []): Promise<FromWorker> {
   const id = nextId++;
@@ -110,29 +136,7 @@ async function loadForGpu(file: File): Promise<void> {
     await nextPaint(); // let the status show before the parse holds the thread
     const t0 = performance.now();
     const opened = await openFile(bytes, file.name);
-    const t1 = performance.now();
-    const described = describeVolume(file.name, opened.volume, opened.dataVersion, opened.loss);
-    const t2 = performance.now();
-    if (described.blocks === 0) throw new Error("nothing to draw: the file has no blocks");
-    volume = opened.volume;
-    dataVersion = opened.dataVersion;
-    info = described;
-    yMin = 0;
-    yMax = described.size[1] - 1;
-    timings = { parseMs: t1 - t0, describeMs: t2 - t1, firstFrameMs: 0 };
-    status = `${described.name}: ${described.size.join(" × ")}, ${described.blocks} blocks`;
-    const r = renderer as WebglRenderer;
-    endSession();
-    r.setVolume(volume);
-    r.setSlice(null);
-    r.setCamera("orbit");
-    camMode = "orbit";
-    if (canEdit) startSession(r, opened.volume, opened.dataVersion);
-    await r.whenIdle();
-    const s = r.stats();
-    timings.firstFrameMs = s.firstFullFrameMs ?? 0;
-    placeholders = s.fallbackBlocks.map((n) => n.replace("minecraft:", ""));
-    refreshStats();
+    await showVolume(opened, file.name, 0, performance.now() - t0);
   } catch (err) {
     error = err instanceof Error ? err.message : String(err);
     status = "could not open that file";
@@ -141,8 +145,50 @@ async function loadForGpu(file: File): Promise<void> {
   }
 }
 
-function startSession(r: WebglRenderer, v: Volume, dv: number | null): void {
-  const s = new EditSession({ renderer: r, canvas, volume: v, dataVersion: dv, packBlocks });
+/**
+ * Put a volume on screen and, if the page can edit, start an editing session on it. `baseEdits` is
+ * the number of edits a restored autosave already carries (their undo history is gone).
+ */
+async function showVolume(
+  opened: Opened,
+  name: string,
+  baseEdits: number,
+  parseMs: number,
+): Promise<void> {
+  const t1 = performance.now();
+  const described = describeVolume(name, opened.volume, opened.dataVersion, opened.loss);
+  const t2 = performance.now();
+  if (described.blocks === 0) throw new Error("nothing to draw: the file has no blocks");
+  volume = opened.volume;
+  dataVersion = opened.dataVersion;
+  info = described;
+  yMin = 0;
+  yMax = described.size[1] - 1;
+  timings = { parseMs, describeMs: t2 - t1, firstFrameMs: 0 };
+  status = `${described.name}: ${described.size.join(" × ")}, ${described.blocks} blocks`;
+  const r = renderer as WebglRenderer;
+  endSession();
+  r.setVolume(volume);
+  r.setSlice(null);
+  r.setCamera("orbit");
+  camMode = "orbit";
+  if (canEdit) startSession(r, opened.volume, opened.dataVersion, baseEdits);
+  await r.whenIdle();
+  const s = r.stats();
+  timings.firstFrameMs = s.firstFullFrameMs ?? 0;
+  placeholders = s.fallbackBlocks.map((n) => n.replace("minecraft:", ""));
+  refreshStats();
+}
+
+function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits: number): void {
+  const s = new EditSession({
+    renderer: r,
+    canvas,
+    volume: v,
+    dataVersion: dv,
+    packBlocks,
+    baseEdits,
+  });
   stopSession = s.attach();
   session = s;
 }
@@ -157,9 +203,144 @@ function endSession(): void {
 /** Opening another file drops the edits made to this one, so ask first. */
 function confirmDiscard(): boolean {
   if (!session?.unsaved) return true;
-  return window.confirm(
+  const go = window.confirm(
     "You have edits that are not exported yet. Opening another file discards them. Continue?",
   );
+  if (go) void autosave.clear(); // the user chose to drop them; do not offer them again on the next visit
+  return go;
+}
+
+// Autosave follows the session; a change to it (an edit, undo, redo) schedules a snapshot.
+$effect(() => {
+  const s = session;
+  untrack(() =>
+    autosave.watch(
+      s === null
+        ? null
+        : {
+            session: s,
+            meta: () => ({
+              name: info?.name ?? "structure",
+              dataVersion: s.dataVersion,
+              loss: info?.loss ?? [],
+            }),
+          },
+    ),
+  );
+});
+$effect(() => {
+  const s = session;
+  if (s === null) return;
+  void s.revision;
+  untrack(() => autosave.changed());
+});
+
+const when = (ms: number): string => new Date(ms).toLocaleString();
+
+async function restoreSaved(): Promise<void> {
+  const snap = offer;
+  if (snap === null || snap === "damaged") return;
+  offerBusy = true;
+  offerError = "";
+  error = "";
+  conversionNotes = [];
+  try {
+    status = `restoring ${snap.name}…`;
+    await nextPaint();
+    const t0 = performance.now();
+    const v = restoreSnapshot(snap);
+    await showVolume(
+      { volume: v, dataVersion: snap.dataVersion, loss: snap.loss },
+      snap.name,
+      snap.edits,
+      performance.now() - t0,
+    );
+    offer = null;
+    status = `restored ${snap.name} from autosave (${snap.edits} edit${snap.edits === 1 ? "" : "s"})`;
+    session?.noteRestored(snap.edits, when(snap.savedAt));
+  } catch (err) {
+    offerError = `The saved session could not be restored: ${err instanceof Error ? err.message : String(err)}`;
+    status = idleStatus();
+  } finally {
+    offerBusy = false;
+  }
+}
+
+async function discardSaved(): Promise<void> {
+  offerBusy = true;
+  await autosave.clear();
+  offerBusy = false;
+  offer = null;
+  offerError = "";
+}
+
+/** A saved session from an earlier visit? Offer it. Only a page that can edit has any use for it. */
+async function checkForSaved(): Promise<void> {
+  if (!canEdit) return;
+  const found = await autosave.peek();
+  if (found !== null) offer = found;
+}
+
+const idleStatus = (): string =>
+  haveAssets
+    ? "open a schematic to begin"
+    : "open a schematic to begin (no texture pack: blocks are drawn as flat colours)";
+
+// -- Texture packs ------------------------------------------------------------------------------
+
+/** Lay the user's pack over the site's and give the result to whichever renderer is running. */
+async function applyPacks(): Promise<void> {
+  const merged = mergePacks(sitePack, userPack?.pack ?? null);
+  if (kind === "webgl" && renderer) {
+    const decoded = merged ? await decodePack(merged) : null;
+    renderer.setPack(decoded);
+    packBlocks = merged ? packBlockIds(merged.json) : [];
+    if (session) session.packBlocks = packBlocks;
+    haveAssets = decoded !== null;
+    if (info) {
+      await renderer.whenIdle();
+      placeholders = renderer.stats().fallbackBlocks.map((n) => n.replace("minecraft:", ""));
+    }
+  } else if (kind === "cpu") {
+    const m = await call({ type: "userpack", pack: userPack?.pack ?? null });
+    if (m.type === "ready") haveAssets = m.haveAssets;
+    if (info) await draw(request(false));
+  }
+  if (info === null) status = idleStatus();
+}
+
+async function addPack(file: File): Promise<void> {
+  packError = "";
+  packNote = "";
+  packBusy = true;
+  try {
+    const { stored, skipped } = await readUserPack(file);
+    userPack = stored;
+    packNote = skipped.length
+      ? `Ignored ${skipped.length} file${skipped.length === 1 ? "" : "s"} that were not valid JSON.`
+      : "";
+    try {
+      await saveUserPack(stored);
+    } catch (err) {
+      packNote =
+        `${packNote} The pack is in use now but could not be kept in this browser (${err instanceof Error ? err.message : String(err)}), so it will be gone after a reload.`.trim();
+    }
+    await applyPacks();
+  } catch (err) {
+    packError = err instanceof Error ? err.message : String(err);
+  } finally {
+    packBusy = false;
+  }
+}
+
+async function removePack(): Promise<void> {
+  packBusy = true;
+  packError = "";
+  packNote = "";
+  userPack = null;
+  await removeUserPack();
+  await applyPacks();
+  packBusy = false;
 }
 
 // The block counts follow the edits, a moment after the last one.
@@ -238,9 +419,10 @@ async function convert(): Promise<void> {
     try {
       const { bytes, warnings } = await saveAs(volume, format, dataVersion);
       conversionNotes = warnings;
-      const edited = session !== null && session.undoCount > 0;
+      const edited = session !== null && session.editCount > 0;
       download(bytes, `${base}${edited ? "-edited" : ""}${ext}`);
       session?.markSaved();
+      void autosave.clear(); // exported: the file is the copy now, so the autosave is not needed
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
@@ -279,11 +461,61 @@ function onBeforeUnload(e: BeforeUnloadEvent): void {
   e.returnValue = "";
 }
 
+const isPackFile = (f: File): boolean => /\.(zip|jar)$/i.test(f.name);
+
+/** A tab that is hidden may never come back: write the autosave now. */
+function onHidden(): void {
+  if (document.visibilityState === "hidden") void autosave.flush();
+}
+
 function onDrop(e: DragEvent): void {
   e.preventDefault();
   const f = e.dataTransfer?.files[0];
-  if (f) void load(f);
+  if (!f) return;
+  if (isPackFile(f)) void addPack(f);
+  else void load(f);
 }
+
+// Without a mouse: arrow keys turn the picture, + and - zoom, while the picture has the focus.
+// (In Fly mode the renderer reads the keys itself.)
+function onCanvasKey(e: KeyboardEvent): void {
+  if (kind === "starting" || info === null || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (kind === "webgl" && camMode === "fly") return;
+  const turn: Record<string, [number, number]> = {
+    ArrowLeft: [-5, 0],
+    ArrowRight: [5, 0],
+    ArrowUp: [0, 5],
+    ArrowDown: [0, -5],
+  };
+  const t = turn[e.key];
+  if (t) {
+    azimuth = (((azimuth + t[0]) % 360) + 360) % 360;
+    elevation = Math.min(
+      kind === "webgl" ? 89 : 90,
+      Math.max(kind === "webgl" ? -89 : 0, elevation + t[1]),
+    );
+    if (kind === "webgl") setAngles();
+    else void draw(request(false));
+  } else if (e.key === "+" || e.key === "=") zoom(1 / 1.2);
+  else if (e.key === "-" || e.key === "_") zoom(1.2);
+  else return;
+  e.preventDefault();
+}
+
+function zoom(factor: number): void {
+  if (kind !== "webgl" || !renderer) return;
+  renderer.setOrbit({ distance: renderer.getPose().distance * factor });
+}
+
+/** The text alternative to the picture: what is open, its size and its main blocks. */
+const summary = $derived(
+  info === null
+    ? "No schematic is open."
+    : `${info.name}: ${info.size.join(" by ")} blocks, ${info.blocks} blocks in all. Most used: ${info.counts
+        .slice(0, 5)
+        .map(([n, c]) => `${n.replace("minecraft:", "")} ${c}`)
+        .join(", ")}.`,
+);
 
 /** A throwaway canvas, so that the page's own canvas stays free for either kind of context. */
 function hasWebgl2(): boolean {
@@ -296,10 +528,14 @@ function hasWebgl2(): boolean {
 
 async function startGpu(): Promise<boolean> {
   try {
-    const [{ createWebglRenderer }, pack] = await Promise.all([
+    const [{ createWebglRenderer }, site, user] = await Promise.all([
       import("@voxwright/render/webgl"),
       fetchPack(new URL("pack/pack.json", document.baseURI).href),
+      loadUserPack(),
     ]);
+    sitePack = site;
+    userPack = user;
+    const pack = mergePacks(site, user?.pack ?? null);
     const decoded = pack ? await decodePack(pack) : null;
     packBlocks = pack ? packBlockIds(pack.json) : [];
     const r = createWebglRenderer({ pack: decoded });
@@ -329,6 +565,7 @@ onMount(() => {
   coarse.addEventListener("change", syncPointer);
   fine.addEventListener("change", syncPointer);
   window.addEventListener("beforeunload", onBeforeUnload);
+  document.addEventListener("visibilitychange", onHidden);
   worker = new Worker();
   worker.onerror = (e) => {
     error = `the viewer's worker failed to start: ${e.message || "see the browser console"}`;
@@ -345,15 +582,15 @@ onMount(() => {
     if (hasWebgl2() && (await startGpu())) {
       kind = "webgl";
       statsTimer = window.setInterval(refreshStats, 500);
-      status = haveAssets
-        ? "open a schematic to begin"
-        : "open a schematic to begin (no texture pack: blocks are drawn as flat colours)";
+      status = idleStatus();
       // Test and measurement hook: the page's own state, and one way to change a block.
       (window as unknown as { __voxwright: unknown }).__voxwright = {
         renderer,
         timings: () => $state.snapshot(timings),
         volume: () => volume,
         session: () => session,
+        /** Write the autosave now instead of waiting for its timer. */
+        flushAutosave: () => autosave.flush(),
         /** Change one block through the editor; report ms until its mesh is swapped in and until a frame shows it. */
         async edit(
           x: number,
@@ -370,9 +607,11 @@ onMount(() => {
           return { appliedMs, visibleMs: performance.now() - t };
         },
       };
+      await checkForSaved();
       return;
     }
     kind = "cpu";
+    userPack = await loadUserPack();
     const m = await call({
       type: "init",
       packUrl: new URL("pack/pack.json", document.baseURI).href,
@@ -382,14 +621,14 @@ onMount(() => {
       status = "the viewer could not start";
     } else if (m.type === "ready") {
       haveAssets = m.haveAssets;
-      status = haveAssets
-        ? "open a schematic to begin"
-        : "open a schematic to begin (no texture pack: blocks are drawn as flat colours)";
+      status = idleStatus();
+      if (userPack) await applyPacks();
     }
   })();
   return () => {
     window.clearInterval(statsTimer);
     window.removeEventListener("beforeunload", onBeforeUnload);
+    document.removeEventListener("visibilitychange", onHidden);
     coarse.removeEventListener("change", syncPointer);
     fine.removeEventListener("change", syncPointer);
     endSession();
@@ -399,26 +638,37 @@ onMount(() => {
 });
 </script>
 
+<a class="skip" href="#view" data-testid="skip-link">Skip to the picture</a>
 <main ondragover={(e) => e.preventDefault()} ondrop={onDrop}>
   <header>
     <h1>voxwright</h1>
-    <p id="status" data-testid="status">{status}</p>
+    <p id="status" data-testid="status" role="status">{status}</p>
     <p class="engine" data-testid="renderer" data-kind={kind}>{kind === "webgl" ? "GPU renderer" : kind === "cpu" ? "software renderer (no WebGL2)" : ""}</p>
   </header>
 
-  <section class="open">
+  <section class="open" aria-label="Open a file">
     <label class="button">
       Open a schematic
-      <input type="file" accept=".nbt,.schem,.litematic,.mcstructure" data-testid="file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) void load(f); }} />
+      <input type="file" class="sr-only" accept=".nbt,.schem,.litematic,.mcstructure" data-testid="file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) void load(f); }} />
     </label>
     <span>or drop a <code>.nbt</code>, <code>.schem</code>, <code>.litematic</code> or <code>.mcstructure</code> file here. Nothing is uploaded: the file is read in your browser.</span>
   </section>
 
-  {#if error}<p class="error" data-testid="error">{error}</p>{/if}
+  <PackPanel
+    hasSitePack={sitePack !== null}
+    user={userPack}
+    busy={packBusy}
+    note={packNote}
+    error={packError}
+    onadd={(f) => void addPack(f)}
+    onremove={() => void removePack()}
+  />
+
+  {#if error}<p class="error" data-testid="error" role="alert">{error}</p>{/if}
 
   <div class="stage" class:editable={session !== null}>
     {#if session}
-      <div class="tools" data-testid="editor-side">
+      <div class="tools" data-testid="editor-side" role="region" aria-label="Editing panels">
         <BlockPalette {session} />
         <BlockStatePanel {session} />
         <SelectionPanel {session} />
@@ -428,7 +678,11 @@ onMount(() => {
       {#if session}<EditToolbar {session} />{/if}
       <canvas
         bind:this={canvas}
+        id="view"
         data-testid="canvas"
+        aria-label="3D view of the open schematic"
+        aria-describedby="canvas-summary"
+        tabindex="0"
         class:ready={info !== null}
         class:gl={kind === "webgl"}
         class:editing={session?.interactive}
@@ -436,10 +690,12 @@ onMount(() => {
         onpointermove={pointerMove}
         onpointerup={pointerUp}
         onpointercancel={pointerUp}
+        onkeydown={onCanvasKey}
       ></canvas>
+      <p id="canvas-summary" class="sr-only" data-testid="canvas-summary">{summary}</p>
       {#if session}
         <p class="hint" data-testid="edit-help">
-          With a tool selected: click to use it, hold Alt and drag to turn the view, hold Shift (or use the right button) and drag to move sideways, scroll to zoom. Choose View to look around without editing. Tools work in the Orbit camera. Shortcuts are in each button's tooltip; Esc cancels. Edits stay in this page until you export: the file you opened is never changed.
+          With a tool selected: click to use it, hold Alt and drag to turn the view, hold Shift (or use the right button) and drag to move sideways, scroll to zoom. Choose View to look around without editing. Tools work in the Orbit camera. Shortcuts are in each button's tooltip; Esc cancels. Without a mouse, the Selection panel changes blocks by typed coordinates. Edits stay in this page until you export: the file you opened is never changed. A copy is kept in this browser so a closed tab can be restored; undo history is not kept.
         </p>
       {:else if info && kind === "webgl"}
         <p class="hint" data-testid="edit-note">Editing needs a mouse and keyboard; on this device the page is a viewer.</p>
@@ -449,17 +705,23 @@ onMount(() => {
     </div>
 
     {#if info}
-      <aside>
+      <aside aria-label="View, export and block counts">
         <h2>View</h2>
         {#if kind === "webgl"}
           <div class="seg" role="group" aria-label="Camera">
-            <button class:on={camMode === "orbit"} onclick={() => setCamMode("orbit")} data-testid="mode-orbit">Orbit</button>
-            <button class:on={camMode === "fly"} onclick={() => setCamMode("fly")} data-testid="mode-fly">Fly</button>
+            <button class:on={camMode === "orbit"} aria-pressed={camMode === "orbit"} onclick={() => setCamMode("orbit")} data-testid="mode-orbit">Orbit</button>
+            <button class:on={camMode === "fly"} aria-pressed={camMode === "fly"} onclick={() => setCamMode("fly")} data-testid="mode-fly">Fly</button>
           </div>
-          <p class="hint" data-testid="camera-hint">{camMode === "orbit" ? "Drag to turn, scroll to zoom, shift-drag or right-drag to move sideways." : "Click the picture, then W A S D to move, Space and C for up and down, Shift to go faster, scroll to change speed. Esc lets go of the mouse."}</p>
+          <p class="hint" data-testid="camera-hint">{camMode === "orbit" ? "Drag to turn, scroll to zoom, shift-drag or right-drag to move sideways. With the picture focused: arrow keys turn it, + and - zoom." : "Click the picture, then W A S D to move, Space and C for up and down, Shift to go faster, scroll to change speed. Esc lets go of the mouse."}</p>
         {/if}
         <label>Turn <input type="range" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="azimuth" /> <output>{Math.round(azimuth)}°</output></label>
         <label>Tilt <input type="range" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="elevation" /> <output>{Math.round(elevation)}°</output></label>
+        {#if kind === "webgl"}
+          <div class="seg" role="group" aria-label="Zoom">
+            <button onclick={() => zoom(1 / 1.2)} data-testid="zoom-in">Zoom in</button>
+            <button onclick={() => zoom(1.2)} data-testid="zoom-out">Zoom out</button>
+          </div>
+        {/if}
         {#if kind === "cpu"}<p class="hint">You can also drag the picture to turn it. {renderMs ? `Last frame: ${renderMs} ms.` : ""}</p>{/if}
 
         <h2>Layers</h2>
@@ -467,16 +729,32 @@ onMount(() => {
         <label>To <input type="range" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="ymax" /> <output>{yMax}</output></label>
 
         <h2>{session ? "Export" : "Convert"}</h2>
-        <select bind:value={format} data-testid="format">
+        <select bind:value={format} aria-label="File format" data-testid="format">
           {#each FORMATS as f}<option value={f.id}>{f.label}</option>{/each}
         </select>
         <button onclick={convert} data-testid="convert">{session ? "Export and download" : "Convert and download"}</button>
-        {#if session}<p class="hint" data-testid="export-note">{session.undoCount} edit{session.undoCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
-        {#if info.loss.length || conversionNotes.length}
-          <h3>Loss report</h3>
-          <ul data-testid="loss">
-            {#each [...new Set([...info.loss, ...conversionNotes])] as line}<li>{line}</li>{/each}
-          </ul>
+        {#if session}<p class="hint" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
+        <div aria-live="polite" data-testid="loss-region">
+          {#if info.loss.length || conversionNotes.length}
+            <h3>Loss report</h3>
+            <ul data-testid="loss">
+              {#each [...new Set([...info.loss, ...conversionNotes])] as line}<li>{line}</li>{/each}
+            </ul>
+          {/if}
+        </div>
+        {#if session}
+          <h2>Autosave</h2>
+          <p class="hint" data-testid="autosave" role="status">
+            {#if autosave.state === "failed" || autosave.state === "unavailable"}
+              <span class="bad">{autosave.problem}</span>
+            {:else if autosave.state === "saved" && autosave.savedAt !== null}
+              Saved in this browser at {new Date(autosave.savedAt).toLocaleTimeString()}. Undo history is not kept.
+            {:else if session.unsaved}
+              Edits are copied to this browser a few seconds after you stop. Undo history is not kept.
+            {:else}
+              Edits are copied to this browser a few seconds after you stop. Nothing to save yet.
+            {/if}
+          </p>
         {/if}
 
         {#if kind === "webgl" && stats}
@@ -497,11 +775,29 @@ onMount(() => {
       </aside>
     {/if}
   </div>
-  {#if busy}<p class="busy">working…</p>{/if}
+  {#if busy}<p class="busy" role="status">working…</p>{/if}
 </main>
 
+<SiteFooter />
+
+<RestoreDialog
+  {offer}
+  busy={offerBusy}
+  error={offerError}
+  onrestore={() => void restoreSaved()}
+  ondiscard={() => void discardSaved()}
+/>
+
 <style>
-  :global(body) { margin: 0; font: 15px/1.45 system-ui, sans-serif; color: #2b2925; background: #f4f1eb; }
+  :global(body) { margin: 0; font: 15px/1.45 system-ui, sans-serif; color: #2b2925; background: #f4f1eb; min-height: 100vh; }
+  :global(:focus-visible) { outline: 3px solid #1d4ed8; outline-offset: 2px; }
+  .skip { position: absolute; left: 0.5rem; top: -4rem; background: #2b2925; color: #f4f1eb; padding: 0.5rem 0.8rem; border-radius: 6px; z-index: 5; }
+  .skip:focus { top: 0.5rem; }
+  :global(.sr-only) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  /* Nothing here moves on its own; this keeps it so if a transition or animation is ever added. */
+  @media (prefers-reduced-motion: reduce) {
+    :global(*, *::before, *::after) { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
   main { max-width: 1500px; margin: 0 auto; padding: 1.2rem; }
   header { display: flex; align-items: baseline; gap: 1.2rem; }
   h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.02em; }
@@ -510,7 +806,8 @@ onMount(() => {
   #status { color: #6b655b; margin: 0; }
   .open { margin: 0.8rem 0 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
   .button, button { background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.5rem 0.9rem; cursor: pointer; font: inherit; }
-  .button input { display: none; }
+  .button { position: relative; }
+  .button:focus-within { outline: 3px solid #1d4ed8; outline-offset: 2px; }
   .stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1.2rem; align-items: start; }
   canvas { width: 100%; max-height: 80vh; object-fit: contain; background: #f4f1eb; border: 1px dashed #c9c3b6; border-radius: 8px; min-height: 240px; touch-action: none; }
   canvas.ready { border-style: solid; cursor: grab; }
@@ -521,13 +818,14 @@ onMount(() => {
   .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
   .seg button { background: #e2dccf; color: #2b2925; }
   .seg button.on { background: #2b2925; color: #f4f1eb; }
-  .engine { margin: 0 0 0 auto; font-size: 0.8rem; color: #8a8378; }
+  .engine { margin: 0 0 0 auto; font-size: 0.8rem; color: #5f594f; }
   .stage.editable { grid-template-columns: 280px minmax(0, 1fr) 280px; }
   .center { min-width: 0; }
   .tools { background: #fffdf8; border: 1px solid #e2dccf; border-radius: 8px; padding: 0.9rem 1rem 1rem; max-height: 86vh; overflow: auto; }
   canvas.editing { cursor: crosshair; }
-  canvas.gl { height: min(72vh, 760px); max-height: none; outline: none; }
-  .hint { color: #8a8378; font-size: 0.85rem; margin: 0.3rem 0 0; }
+  canvas.gl { height: min(72vh, 760px); max-height: none; }
+  .hint { color: #5f594f; font-size: 0.85rem; margin: 0.3rem 0 0; }
+  .bad { color: #7a1f16; }
   .error { background: #fbe3e0; color: #7a1f16; padding: 0.6rem 0.8rem; border-radius: 6px; }
   .counts { padding-left: 1.2rem; margin: 0; } .counts span { display: inline-block; min-width: 2.6rem; text-align: right; color: #6b655b; }
   ul { margin: 0; padding-left: 1.2rem; font-size: 0.88rem; }

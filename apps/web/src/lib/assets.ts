@@ -12,11 +12,9 @@ import {
   type RasterImage,
 } from "@voxwright/render";
 
-export interface Pack {
-  json: Record<string, unknown>;
-  textures: Record<string, string>;
-  animated: string[];
-}
+import type { Pack } from "./pack-extract.ts";
+
+export type { Pack };
 
 async function decode(base64: string): Promise<RasterImage> {
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));

@@ -11,20 +11,21 @@
 
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { parseArgs } from "node:util";
+import { buildPack, isWanted } from "../src/lib/pack-extract.ts";
 
 const { values } = parseArgs({ options: { from: { type: "string" }, out: { type: "string" } } });
 const root = values.from ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
 const out = values.out ?? new URL("../static/pack/pack.json", import.meta.url).pathname;
 
-async function walk(dir: string, ext: string): Promise<string[]> {
+async function walk(dir: string): Promise<string[]> {
   const names = await readdir(dir).catch(() => []);
   const files: string[] = [];
   for (const n of names.sort()) {
     const p = join(dir, n);
-    if ((await stat(p)).isDirectory()) files.push(...(await walk(p, ext)));
-    else if (n.endsWith(ext)) files.push(p);
+    if ((await stat(p)).isDirectory()) files.push(...(await walk(p)));
+    else files.push(p);
   }
   return files;
 }
@@ -34,30 +35,20 @@ if (!(await stat(join(root, "blockstates")).catch(() => null))) {
   process.exit(1);
 }
 
-const json: Record<string, unknown> = {};
-for (const sub of ["blockstates", "models/block"]) {
-  for (const f of await walk(join(root, sub), ".json"))
-    json[relative(root, f)] = JSON.parse(await readFile(f, "utf8"));
-}
-const textures: Record<string, string> = {};
-const animated: string[] = [];
-const wanted = [
-  join(root, "textures/block"),
-  join(root, "textures/entity/chest"),
-  join(root, "textures/entity/banner"),
-];
-for (const dir of wanted) {
-  for (const f of await walk(dir, ".png")) {
-    const id = relative(join(root, "textures"), f).replace(/\.png$/, "");
-    textures[id] = (await readFile(f)).toString("base64");
-    const meta = await readFile(`${f}.mcmeta`, "utf8").catch(() => null);
-    if (meta && typeof JSON.parse(meta).animation === "object") animated.push(id);
+// The same extraction runs in the browser on a pack the user brings (src/lib/pack-extract.ts).
+const files = new Map<string, Uint8Array>();
+for (const sub of ["blockstates", "models/block", "textures/block", "textures/entity"]) {
+  for (const f of await walk(join(root, sub))) {
+    const path = relative(root, f).split(sep).join("/");
+    if (isWanted(path)) files.set(path, await readFile(f));
   }
 }
+const { pack, skipped } = buildPack(files);
+for (const p of skipped) console.warn(`skipped ${p}: not valid JSON`);
 
 await mkdir(dirname(out), { recursive: true });
-await writeFile(out, JSON.stringify({ json, textures, animated }));
+await writeFile(out, JSON.stringify(pack));
 const size = (await stat(out)).size;
 console.log(
-  `wrote ${out}: ${Object.keys(json).length} json files, ${Object.keys(textures).length} textures, ${(size / 1e6).toFixed(1)} MB`,
+  `wrote ${out}: ${Object.keys(pack.json).length} json files, ${Object.keys(pack.textures).length} textures, ${(size / 1e6).toFixed(1)} MB`,
 );
