@@ -1,0 +1,1669 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "diffs": {
+  "identical": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ]
+   ],
+   "added": [],
+   "removed": [],
+   "changed": [],
+   "cells_a": 2,
+   "cells_b": 2,
+   "is_empty": true,
+   "total": 0,
+   "text": {
+    "0": "diff run-001 -> run-002\n  no differences (2 cells in both)",
+    "3": "diff run-001 -> run-002\n  no differences (2 cells in both)",
+    "30": "diff run-001 -> run-002\n  no differences (2 cells in both)"
+   }
+  },
+  "empty-both": {
+   "a": [],
+   "b": [],
+   "added": [],
+   "removed": [],
+   "changed": [],
+   "cells_a": 0,
+   "cells_b": 0,
+   "is_empty": true,
+   "total": 0,
+   "text": {
+    "0": "diff run-001 -> run-002\n  no differences (0 cells in both)",
+    "3": "diff run-001 -> run-002\n  no differences (0 cells in both)",
+    "30": "diff run-001 -> run-002\n  no differences (0 cells in both)"
+   }
+  },
+  "added": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ]
+   ],
+   "added": [
+    [
+     [
+      1,
+      0,
+      0
+     ],
+     "minecraft:dirt"
+    ]
+   ],
+   "removed": [],
+   "changed": [],
+   "cells_a": 1,
+   "cells_b": 2,
+   "is_empty": false,
+   "total": 1,
+   "text": {
+    "0": "diff run-001 -> run-002\n  1 changed cell: 1 added, 0 removed, 0 replaced (1 -> 2 cells)\n  ... 1 more change not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  1 changed cell: 1 added, 0 removed, 0 replaced (1 -> 2 cells)\n  + (1, 0, 0) minecraft:dirt",
+    "30": "diff run-001 -> run-002\n  1 changed cell: 1 added, 0 removed, 0 replaced (1 -> 2 cells)\n  + (1, 0, 0) minecraft:dirt"
+   }
+  },
+  "removed": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ]
+   ],
+   "b": [
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ]
+   ],
+   "added": [],
+   "removed": [
+    [
+     [
+      0,
+      0,
+      0
+     ],
+     "minecraft:stone"
+    ]
+   ],
+   "changed": [],
+   "cells_a": 2,
+   "cells_b": 1,
+   "is_empty": false,
+   "total": 1,
+   "text": {
+    "0": "diff run-001 -> run-002\n  1 changed cell: 0 added, 1 removed, 0 replaced (2 -> 1 cells)\n  ... 1 more change not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  1 changed cell: 0 added, 1 removed, 0 replaced (2 -> 1 cells)\n  - (0, 0, 0) minecraft:stone",
+    "30": "diff run-001 -> run-002\n  1 changed cell: 0 added, 1 removed, 0 replaced (2 -> 1 cells)\n  - (0, 0, 0) minecraft:stone"
+   }
+  },
+  "replaced": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:glass"
+    ]
+   ],
+   "added": [],
+   "removed": [],
+   "changed": [
+    [
+     [
+      0,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:glass"
+    ]
+   ],
+   "cells_a": 1,
+   "cells_b": 1,
+   "is_empty": false,
+   "total": 1,
+   "text": {
+    "0": "diff run-001 -> run-002\n  1 changed cell: 0 added, 0 removed, 1 replaced (1 -> 1 cells)\n  ... 1 more change not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  1 changed cell: 0 added, 0 removed, 1 replaced (1 -> 1 cells)\n  ~ (0, 0, 0) minecraft:stone -> minecraft:glass",
+    "30": "diff run-001 -> run-002\n  1 changed cell: 0 added, 0 removed, 1 replaced (1 -> 1 cells)\n  ~ (0, 0, 0) minecraft:stone -> minecraft:glass"
+   }
+  },
+  "mixed": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:glass"
+    ],
+    [
+     -1,
+     5,
+     2,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:glass"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:glass"
+    ],
+    [
+     3,
+     1,
+     1,
+     "minecraft:dirt"
+    ],
+    [
+     -1,
+     5,
+     2,
+     "minecraft:stone"
+    ],
+    [
+     -2,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "added": [
+    [
+     [
+      -2,
+      0,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      3,
+      1,
+      1
+     ],
+     "minecraft:dirt"
+    ]
+   ],
+   "removed": [
+    [
+     [
+      1,
+      0,
+      0
+     ],
+     "minecraft:dirt"
+    ]
+   ],
+   "changed": [
+    [
+     [
+      0,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:glass"
+    ]
+   ],
+   "cells_a": 4,
+   "cells_b": 5,
+   "is_empty": false,
+   "total": 4,
+   "text": {
+    "0": "diff run-001 -> run-002\n  4 changed cells: 2 added, 1 removed, 1 replaced (4 -> 5 cells)\n  ... 4 more changes not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  4 changed cells: 2 added, 1 removed, 1 replaced (4 -> 5 cells)\n  + (-2, 0, 0) minecraft:stone\n  + (3, 1, 1) minecraft:dirt\n  - (1, 0, 0) minecraft:dirt\n  ... 1 more change not shown (use --max N)",
+    "30": "diff run-001 -> run-002\n  4 changed cells: 2 added, 1 removed, 1 replaced (4 -> 5 cells)\n  + (-2, 0, 0) minecraft:stone\n  + (3, 1, 1) minecraft:dirt\n  - (1, 0, 0) minecraft:dirt\n  ~ (0, 0, 0) minecraft:stone -> minecraft:glass"
+   }
+  },
+  "one-cell": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "added": [],
+   "removed": [],
+   "changed": [],
+   "cells_a": 1,
+   "cells_b": 1,
+   "is_empty": true,
+   "total": 0,
+   "text": {
+    "0": "diff run-001 -> run-002\n  no differences (1 cell in both)",
+    "3": "diff run-001 -> run-002\n  no differences (1 cell in both)",
+    "30": "diff run-001 -> run-002\n  no differences (1 cell in both)"
+   }
+  },
+  "many": {
+   "a": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     3,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     4,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     5,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     6,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     7,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     8,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     9,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     10,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     11,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     12,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     13,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     14,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     15,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     16,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     17,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     18,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     19,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     20,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     21,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     22,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     23,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     24,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     25,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     26,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     27,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     28,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     29,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     30,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     31,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     32,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     33,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     34,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     35,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     36,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     37,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     38,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     39,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     0,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     1,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     3,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     4,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     5,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     6,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     7,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     8,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     9,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     10,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     11,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     12,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     13,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     14,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     15,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     16,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     17,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     18,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     19,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     20,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     21,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     22,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     23,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     24,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     25,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     26,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     27,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     28,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     29,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     30,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     31,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     32,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     33,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     34,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     35,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     36,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     37,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     38,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     39,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     0,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     1,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     2,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     3,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     4,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     5,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     6,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     7,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     8,
+     1,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     9,
+     1,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "added": [
+    [
+     [
+      0,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      1,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      2,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      3,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      4,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      5,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      6,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      7,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      8,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      9,
+      1,
+      0
+     ],
+     "minecraft:stone"
+    ]
+   ],
+   "removed": [],
+   "changed": [
+    [
+     [
+      0,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      1,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      2,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      3,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      4,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      5,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      6,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      7,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      8,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      9,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      10,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      11,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      12,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      13,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      14,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      15,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      16,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      17,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      18,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      19,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      20,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      21,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      22,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      23,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      24,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      25,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      26,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      27,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      28,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      29,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      30,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      31,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      32,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      33,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      34,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      35,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      36,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      37,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      38,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ],
+    [
+     [
+      39,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ]
+   ],
+   "cells_a": 40,
+   "cells_b": 50,
+   "is_empty": false,
+   "total": 50,
+   "text": {
+    "0": "diff run-001 -> run-002\n  50 changed cells: 10 added, 0 removed, 40 replaced (40 -> 50 cells)\n  ... 50 more changes not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  50 changed cells: 10 added, 0 removed, 40 replaced (40 -> 50 cells)\n  + (0, 1, 0) minecraft:stone\n  + (1, 1, 0) minecraft:stone\n  + (2, 1, 0) minecraft:stone\n  ... 47 more changes not shown (use --max N)",
+    "30": "diff run-001 -> run-002\n  50 changed cells: 10 added, 0 removed, 40 replaced (40 -> 50 cells)\n  + (0, 1, 0) minecraft:stone\n  + (1, 1, 0) minecraft:stone\n  + (2, 1, 0) minecraft:stone\n  + (3, 1, 0) minecraft:stone\n  + (4, 1, 0) minecraft:stone\n  + (5, 1, 0) minecraft:stone\n  + (6, 1, 0) minecraft:stone\n  + (7, 1, 0) minecraft:stone\n  + (8, 1, 0) minecraft:stone\n  + (9, 1, 0) minecraft:stone\n  ~ (0, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (1, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (2, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (3, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (4, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (5, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (6, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (7, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (8, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (9, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (10, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (11, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (12, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (13, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (14, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (15, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (16, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (17, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (18, 0, 0) minecraft:stone -> minecraft:dirt\n  ~ (19, 0, 0) minecraft:stone -> minecraft:dirt\n  ... 20 more changes not shown (use --max N)"
+   }
+  },
+  "sort-order": {
+   "a": [
+    [
+     10,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     2,
+     0,
+     0,
+     "minecraft:stone"
+    ],
+    [
+     -3,
+     0,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "b": [
+    [
+     2,
+     0,
+     0,
+     "minecraft:dirt"
+    ],
+    [
+     -3,
+     9,
+     0,
+     "minecraft:stone"
+    ]
+   ],
+   "added": [
+    [
+     [
+      -3,
+      9,
+      0
+     ],
+     "minecraft:stone"
+    ]
+   ],
+   "removed": [
+    [
+     [
+      -3,
+      0,
+      0
+     ],
+     "minecraft:stone"
+    ],
+    [
+     [
+      10,
+      0,
+      0
+     ],
+     "minecraft:stone"
+    ]
+   ],
+   "changed": [
+    [
+     [
+      2,
+      0,
+      0
+     ],
+     "minecraft:stone",
+     "minecraft:dirt"
+    ]
+   ],
+   "cells_a": 3,
+   "cells_b": 2,
+   "is_empty": false,
+   "total": 4,
+   "text": {
+    "0": "diff run-001 -> run-002\n  4 changed cells: 1 added, 2 removed, 1 replaced (3 -> 2 cells)\n  ... 4 more changes not shown (use --max N)",
+    "3": "diff run-001 -> run-002\n  4 changed cells: 1 added, 2 removed, 1 replaced (3 -> 2 cells)\n  + (-3, 9, 0) minecraft:stone\n  - (-3, 0, 0) minecraft:stone\n  - (10, 0, 0) minecraft:stone\n  ... 1 more change not shown (use --max N)",
+    "30": "diff run-001 -> run-002\n  4 changed cells: 1 added, 2 removed, 1 replaced (3 -> 2 cells)\n  + (-3, 9, 0) minecraft:stone\n  - (-3, 0, 0) minecraft:stone\n  - (10, 0, 0) minecraft:stone\n  ~ (2, 0, 0) minecraft:stone -> minecraft:dirt"
+   }
+  }
+ },
+ "resolve": {
+  "run-001": {
+   "ok": "run-001"
+  },
+  "001": {
+   "ok": "run-001"
+  },
+  "1": {
+   "ok": "run-001"
+  },
+  "2": {
+   "ok": "run-002"
+  },
+  "10": {
+   "ok": "run-010"
+  },
+  "010": {
+   "ok": "run-010"
+  },
+  "custom": {
+   "ok": "custom"
+  },
+  "abc": {
+   "ok": "run-abc"
+  },
+  "run-abc": {
+   "ok": "run-abc"
+  },
+  "99": {
+   "error": "McbuilderError"
+  },
+  "afile": {
+   "error": "McbuilderError"
+  },
+  "": {
+   "error": "McbuilderError"
+  },
+  "  ": {
+   "error": "McbuilderError"
+  },
+  ".": {
+   "error": "McbuilderError"
+  },
+  "..": {
+   "error": "McbuilderError"
+  },
+  ".hidden": {
+   "error": "McbuilderError"
+  },
+  "a/b": {
+   "error": "McbuilderError"
+  },
+  " 001 ": {
+   "ok": "run-001"
+  },
+  "run-1": {
+   "error": "McbuilderError"
+  }
+ },
+ "runs": {
+  "plain": {
+   "nbt_b64": "H4sIAAAAAAAC/22OTQ6CQAyFHwLKjAsXegfv4Nq1ceXWVFJkAkzJTFee3oEEjYlNXtL2e/2xQI7tmZRuHKITD+yPBkV0L84xQWCVlE0y2IzUsyrbqV2huNDA2A3Ocx2o0VNU8YwFHL5AqLtHJReihb0GGTmo41hh3VDt/BOll6Btmmypb7B+iKoMgElpL3UX54sG+Shx+esTOcq0W3kufj3ZH0+WPBV7ddMHdqZvvj+wmgcBAAA=",
+   "report": {
+    "artifacts": [
+     {
+      "file": "a.nbt",
+      "format": "nbt",
+      "data_version": 4903
+     }
+    ],
+    "origin": [
+     0,
+     0,
+     0
+    ]
+   },
+   "extra_files": {},
+   "result": {
+    "ok": [
+     [
+      [
+       0,
+       0,
+       0
+      ],
+      "minecraft:stone"
+     ],
+     [
+      [
+       1,
+       0,
+       0
+      ],
+      "minecraft:oak_stairs[facing=north,half=bottom]"
+     ]
+    ]
+   }
+  },
+  "origin": {
+   "nbt_b64": "H4sIAAAAAAAC/1WOuw7CMAxFb0iBpkgw8BH8AzMzI7spRrJokyr2xNdDo5aHF8s+x48G8NicyOjCWSVFYH8IqFSe7DFCYDFlF7AeqGMzbsZ2jepMPWPXS+Q2092OaikyZrD9gptkQ8Dq2qX2oWU8wA9J5yOf8FiqkXEp/h03PfPruLdTczQx4bIXeAFHoTyK1AAAAA==",
+   "report": {
+    "artifacts": [
+     {
+      "file": "a.nbt",
+      "format": "nbt",
+      "data_version": 4903
+     }
+    ],
+    "origin": [
+     -5,
+     3,
+     10
+    ]
+   },
+   "extra_files": {},
+   "result": {
+    "ok": [
+     [
+      [
+       -5,
+       3,
+       10
+      ],
+      "minecraft:stone"
+     ],
+     [
+      [
+       -4,
+       5,
+       10
+      ],
+      "minecraft:dirt"
+     ]
+    ]
+   }
+  },
+  "air-dropped": {
+   "nbt_b64": "H4sIAAAAAAAC/22NsQ6CQBBEBw6Vw6gFH+E/WFtb2q+4Jhvhjtxt5dcrZ4Bo2GSKnXmZqQCD7ZmUrhyieAfUR4siyosNhvCrbJDFpqeWVbka7BLFhTrGoRPHTaCHnqJ6xxiD3RyQhMnez/ZdgsJifWt984yp1cL0Po670xmsopJyen6ZbIHJ/ph8gck/TMlORYXTNvAGqabvzw8BAAA=",
+   "report": {
+    "artifacts": [
+     {
+      "file": "a.nbt",
+      "format": "nbt",
+      "data_version": 4903
+     }
+    ],
+    "origin": [
+     0,
+     0,
+     0
+    ]
+   },
+   "extra_files": {},
+   "result": {
+    "ok": [
+     [
+      [
+       0,
+       0,
+       0
+      ],
+      "minecraft:stone"
+     ],
+     [
+      [
+       2,
+       0,
+       0
+      ],
+      "minecraft:dirt"
+     ]
+    ]
+   }
+  },
+  "no-origin": {
+   "nbt_b64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA",
+   "report": {
+    "artifacts": [
+     {
+      "file": "a.nbt",
+      "format": "nbt",
+      "data_version": 4903
+     }
+    ],
+    "origin": null
+   },
+   "extra_files": {},
+   "result": {
+    "ok": [
+     [
+      [
+       0,
+       0,
+       0
+      ],
+      "minecraft:stone"
+     ]
+    ]
+   }
+  },
+  "bad-origin": {
+   "nbt_b64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA",
+   "report": {
+    "artifacts": [
+     {
+      "file": "a.nbt",
+      "format": "nbt",
+      "data_version": 4903
+     }
+    ],
+    "origin": [
+     "a",
+     1,
+     2
+    ]
+   },
+   "extra_files": {},
+   "result": {
+    "error": "McbuilderError"
+   }
+  },
+  "no-report": {
+   "nbt_b64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA",
+   "report": null,
+   "extra_files": {},
+   "result": {
+    "error": "McbuilderError"
+   }
+  },
+  "no-artifacts": {
+   "nbt_b64": "H4sIAAAAAAAC/z2MsQ6CQBBEhxwqdxYWfoT/YE1Nab+SMdkAd4Tdyq8nYHCSKV4mbxIQcG3F5cXFtGTg/oioTb8M2EagOhpxmWWkO9OGDepOJuI2aWa/yMef5iUTEef3WPrB0s8Kc7Hj7J+Ak7k4d4homF1duTvACpbIe32YAAAA",
+   "report": {
+    "artifacts": [],
+    "origin": [
+     0,
+     0,
+     0
+    ]
+   },
+   "extra_files": {},
+   "result": {
+    "ok": [
+     [
+      [
+       0,
+       0,
+       0
+      ],
+      "minecraft:stone"
+     ]
+    ]
+   }
+  }
+ }
+}

@@ -623,6 +623,99 @@ def clean_vectors():
         "dropped": dict(dropped),
     }
 
+def diff_vectors():
+    import base64
+    import io
+    import tempfile
+
+    from mcbuilder import diff as diff_mod
+    from mcbuilder.export_nbt import write_structure_nbt
+    from mcbuilder.voxels import VoxelGrid
+
+    def vm(cells):
+        return {(x, y, z): b for x, y, z, b in cells}
+
+    S, D, G = "minecraft:stone", "minecraft:dirt", "minecraft:glass"
+    scenarios = {
+        "identical": ([(0, 0, 0, S), (1, 0, 0, D)], [(0, 0, 0, S), (1, 0, 0, D)]),
+        "empty-both": ([], []),
+        "added": ([(0, 0, 0, S)], [(0, 0, 0, S), (1, 0, 0, D)]),
+        "removed": ([(0, 0, 0, S), (1, 0, 0, D)], [(1, 0, 0, D)]),
+        "replaced": ([(0, 0, 0, S)], [(0, 0, 0, G)]),
+        "mixed": (
+            [(0, 0, 0, S), (1, 0, 0, D), (2, 0, 0, G), (-1, 5, 2, S)],
+            [(0, 0, 0, G), (2, 0, 0, G), (3, 1, 1, D), (-1, 5, 2, S), (-2, 0, 0, S)],
+        ),
+        "one-cell": ([(0, 0, 0, S)], [(0, 0, 0, S)]),
+        "many": (
+            [(x, 0, 0, S) for x in range(40)],
+            [(x, 0, 0, D) for x in range(40)] + [(x, 1, 0, S) for x in range(10)],
+        ),
+        "sort-order": ([(10, 0, 0, S), (2, 0, 0, S), (-3, 0, 0, S)], [(2, 0, 0, D), (-3, 9, 0, S)]),
+    }
+    diffs = {}
+    for name, (a, b) in scenarios.items():
+        d = diff_mod.diff_voxel_maps(vm(a), vm(b))
+        entry = {
+            "a": [list(c) for c in a],
+            "b": [list(c) for c in b],
+            "added": [[list(p), blk] for p, blk in d.added],
+            "removed": [[list(p), blk] for p, blk in d.removed],
+            "changed": [[list(p), o, n] for p, o, n in d.changed],
+            "cells_a": d.cells_a,
+            "cells_b": d.cells_b,
+            "is_empty": d.is_empty,
+            "total": d.total,
+            "text": {str(m): diff_mod.format_diff(d, "run-001", "run-002", max_entries=m) for m in (0, 3, 30)},
+        }
+        diffs[name] = entry
+
+    # resolve_run_dir over a fake directory listing
+    resolve = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp)
+        names = ["run-001", "run-002", "run-010", "custom", "run-abc"]
+        for n in names:
+            (base / n).mkdir()
+        (base / "afile").write_text("x")
+        for rid in ["run-001", "001", "1", "2", "10", "010", "custom", "abc", "run-abc", "99", "afile", "", "  ", ".", "..", ".hidden", "a/b", " 001 ", "run-1"]:
+            r = run(lambda rid=rid: diff_mod.resolve_run_dir(base, rid).name)
+            resolve[rid] = r
+    # load_run_voxels over generated run dirs
+    runs = {}
+    def mk(name, cells, report_extra=None, drop_report=False, junk=None):
+        grid = VoxelGrid()
+        for x, y, z, b in cells:
+            grid.place(x, y, z, b, None)
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "a.nbt"
+            write_structure_nbt(grid, p, data_version=4903, air="explicit")
+            raw = p.read_bytes()
+        report = {"artifacts": [{"file": "a.nbt", "format": "nbt", "data_version": 4903}], "origin": [0, 0, 0]}
+        report.update(report_extra or {})
+        return {"nbt_b64": base64.b64encode(raw).decode(), "report": None if drop_report else report, "extra_files": junk or {}}
+    run_specs = {
+        "plain": mk("plain", [(0, 0, 0, S), (1, 0, 0, "minecraft:oak_stairs[facing=north,half=bottom]")]),
+        "origin": mk("origin", [(0, 0, 0, S), (1, 2, 0, D)], {"origin": [-5, 3, 10]}),
+        "air-dropped": mk("air-dropped", [(0, 0, 0, S), (1, 0, 0, "minecraft:air"), (2, 0, 0, D)]),
+        "no-origin": mk("no-origin", [(0, 0, 0, S)], {"origin": None}),
+        "bad-origin": mk("bad-origin", [(0, 0, 0, S)], {"origin": ["a", 1, 2]}),
+        "no-report": mk("no-report", [(0, 0, 0, S)], drop_report=True),
+        "no-artifacts": mk("no-artifacts", [(0, 0, 0, S)], {"artifacts": []}),
+    }
+    for name, spec in run_specs.items():
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp) / name
+            d.mkdir()
+            if name != "no-artifacts" or True:
+                (d / "a.nbt").write_bytes(base64.b64decode(spec["nbt_b64"]))
+            if spec["report"] is not None:
+                (d / "report.json").write_text(json.dumps(spec["report"]))
+            r = run(lambda d=d: [[list(p), b] for p, b in sorted(diff_mod.load_run_voxels(d).items())])
+        runs[name] = {**spec, "result": r}
+    return {"diffs": diffs, "resolve": resolve, "runs": runs}
+
+
 if __name__ == "__main__":
     write("materials.json", materials_vectors())
     write("shapes.json", shapes_vectors())
@@ -633,3 +726,4 @@ if __name__ == "__main__":
     write("config.json", config_vectors())
     write("importer.json", importer_vectors())
     write("clean.json", clean_vectors())
+    write("diff.json", diff_vectors())

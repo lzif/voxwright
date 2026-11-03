@@ -41,6 +41,7 @@ node packages/mcbuilder/bin/mcbuild.ts init house.ts
 node packages/mcbuilder/bin/mcbuild.ts check house.ts
 node packages/mcbuilder/bin/mcbuild.ts run house.ts                  # report.json + house.nbt
 node packages/mcbuilder/bin/mcbuild.ts import build.litematic -o build.ts
+node packages/mcbuilder/bin/mcbuild.ts diff 1 2                       # cells added, removed, replaced
 ```
 
 A script exports a `Build` as `BUILD`. Previews, `diff` and `guide` need the

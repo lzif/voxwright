@@ -8,6 +8,17 @@ export {
   resolveAssetsDir,
 } from "./config.ts";
 export { DATA_VERSIONS, ExportError, resolveDataVersion } from "./dataversion.ts";
+export {
+  DiffError,
+  diffVoxelMaps,
+  formatDiff,
+  isEmpty as diffIsEmpty,
+  type Pos,
+  total as diffTotal,
+  type VoxelDiff,
+  type VoxelMap,
+  voxelKey,
+} from "./diff.ts";
 export { BuildError, GridBoundsError, McbuilderError } from "./errors.ts";
 export { type Cell, Geometry, type Point } from "./geometry.ts";
 export {

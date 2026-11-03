@@ -9,3 +9,4 @@ export {
   versionKey,
 } from "./assets.ts";
 export { CliError, HOUSE_TEMPLATE, runCli, scanDeterminism } from "./cli.ts";
+export { diffRunDirs, loadRunVoxels, resolveRunDir } from "./diff.ts";

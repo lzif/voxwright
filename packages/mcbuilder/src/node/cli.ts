@@ -6,6 +6,7 @@
 //   mcbuild check <script> [--config file]
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
 //   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
+//   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
 //   mcbuild assets fetch --version V [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
@@ -28,11 +29,13 @@ import {
 import { Build } from "../build.ts";
 import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts";
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
+import { DiffError, formatDiff } from "../diff.ts";
 import { McbuilderError } from "../errors.ts";
 import { cleanProperties, structureFromVolume, summary, toScript } from "../importer.ts";
 import { Registry, RegistryError } from "../registry.ts";
 import { buildReport, reportToJson } from "../report.ts";
 import { AssetError, fetchAssets, type HttpGet } from "./assets.ts";
+import { diffRunDirs, resolveRunDir } from "./diff.ts";
 
 export class CliError extends Error {}
 
@@ -434,6 +437,43 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
   return 0;
 }
 
+/** `--max -1` reads as a negative number, as in Python's argparse, not as a flag. */
+function glueNegativeNumbers(args: string[]): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i] as string;
+    const next = args[i + 1];
+    if (a.startsWith("--") && !a.includes("=") && next !== undefined && /^-\d+$/.test(next)) {
+      out.push(`${a}=${next}`);
+      i++;
+    } else out.push(a);
+  }
+  return out;
+}
+
+async function cmdDiff(args: string[], io: Required<Io>): Promise<number> {
+  const { values, positionals } = parseArgs({
+    args: glueNegativeNumbers(args),
+    allowPositionals: true,
+    options: { out: { type: "string", default: "dist/" }, max: { type: "string", default: "30" } },
+  });
+  const [runA, runB] = positionals;
+  if (runA === undefined || runB === undefined || positionals.length !== 2)
+    throw new CliError("diff: give two run ids");
+  const runsDir = resolve(io.cwd, values.out as string);
+  if (!(await stat(runsDir).catch(() => null))?.isDirectory())
+    throw new CliError(`runs directory not found: ${runsDir}`);
+  const max = Number(values.max);
+  if (!Number.isInteger(max) || max < 0)
+    throw new CliError(`invalid --max: ${values.max} (must be >= 0)`);
+  const aDir = await resolveRunDir(runsDir, runA);
+  const bDir = await resolveRunDir(runsDir, runB);
+  const diff = await diffRunDirs(aDir, bDir);
+  io.out(formatDiff(diff, basename(aDir), basename(bDir), { maxEntries: max }));
+  io.out("  comparison: image skipped (previews need the renderer, which is not ported yet)");
+  return diff.added.length + diff.removed.length + diff.changed.length === 0 ? 0 : 1;
+}
+
 async function cmdInit(args: string[], io: Required<Io>): Promise<number> {
   const { values, positionals } = parseArgs({
     args,
@@ -502,9 +542,10 @@ const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
   mcbuild check <script> [--config file]
   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw]
+  mcbuild diff <run-a> <run-b> [--out dir] [--max N]
   mcbuild assets fetch --version V [--cache-dir dir] [--force]
 
-Previews, diff and guide need the renderer, which is not ported yet.`;
+Previews and guide need the renderer, which is not ported yet.`;
 
 /** Run the CLI. Returns the exit code; never calls `process.exit`. */
 export async function runCli(
@@ -537,6 +578,7 @@ export async function runCli(
         full.out(USAGE);
         return command === undefined ? 2 : 0;
       case "diff":
+        return await cmdDiff(rest, full);
       case "guide":
         full.err(`mcbuild: '${command}' needs the renderer, which is not ported yet`);
         return 2;
@@ -545,7 +587,7 @@ export async function runCli(
         return 2;
     }
   } catch (e) {
-    if (e instanceof CliError || e instanceof McbuilderError) {
+    if (e instanceof CliError || e instanceof DiffError || e instanceof McbuilderError) {
       full.err(`mcbuild: ${e.message}`);
       return 1;
     }

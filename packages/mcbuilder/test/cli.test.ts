@@ -162,7 +162,7 @@ BUILD.scope(() => {
     expect(await runCli(["check", join(root, "nope.ts")], missing.io)).toBe(1);
     const unknown = capture();
     expect(await runCli(["frobnicate"], unknown.io)).toBe(2);
-    expect(await runCli(["diff", "a", "b"], capture().io)).toBe(2);
+    expect(await runCli(["guide", "a"], capture().io)).toBe(2);
     expect(await runCli([], capture().io)).toBe(2);
   });
 
