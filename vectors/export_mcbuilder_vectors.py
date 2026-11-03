@@ -57,7 +57,8 @@ def material(d):
 
 
 def error_name(e: Exception) -> str:
-    for cls in (GridBoundsError, BuildError, McbuilderError, TypeError, ValueError):
+    from mcbuilder.render.views import ViewError
+    for cls in (ViewError, GridBoundsError, BuildError, McbuilderError, TypeError, ValueError):
         if isinstance(e, cls):
             return cls.__name__
     return type(e).__name__
@@ -716,6 +717,32 @@ def diff_vectors():
     return {"diffs": diffs, "resolve": resolve, "runs": runs}
 
 
+
+def views_vectors():
+    from mcbuilder.render import views as V
+
+    def dump(vs):
+        return [{"azimuth": v.azimuth, "elevation": v.elevation, "label": v.label} for v in vs]
+
+    specs = [
+        "top", "iso", "az045_el025", "az:045_el:025", "az000_el000", "az359_el090", "az10_el5", "az007_el033",
+        "orbit8_el25", "orbit:8_el:25", "orbit3_el10", "orbit7_el15", "orbit1_el0", "orbit16_el45", "orbit36_el25",
+        "iso;top", "az045_el025;top;iso", " top ; iso ", "orbit8_el25;top", "orbit5_el33;orbit3_el12",
+        "az360_el25", "az045_el091", "orbit0_el25", "orbit37_el25", "orbit20_el25;orbit20_el25", "", ";", "top;", "bogus",
+        "az45", "az045_el025;", "AZ045_EL025", "orbit8_el-5", "iso,top", "az045_el025 ",
+    ]
+    parsed = {s: run(lambda s=s: dump(V.parse_views(s))) for s in specs}
+    resolved = {
+        "none": dump(V.resolve(None)),
+        "string": dump(V.resolve("iso;top")),
+        "list-of-strings": dump(V.resolve(["iso", "az045_el025;top"])),
+        "list-of-views": dump(V.resolve(V.parse_views("iso;top"))),
+        "empty-list": dump(V.resolve([])),
+    }
+    counts = {str(n): run(lambda n=n: dump(V.with_count(V.parse_views("iso"), n))) for n in (1, 3, 8, 35, 36, 0, -2)}
+    return {"max_views": V.MAX_VIEWS, "defaults": dump(V.default_views()), "parsed": parsed, "resolved": resolved, "with_count": counts}
+
+
 if __name__ == "__main__":
     write("materials.json", materials_vectors())
     write("shapes.json", shapes_vectors())
@@ -727,3 +754,4 @@ if __name__ == "__main__":
     write("importer.json", importer_vectors())
     write("clean.json", clean_vectors())
     write("diff.json", diff_vectors())
+    write("views.json", views_vectors())

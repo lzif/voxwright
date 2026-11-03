@@ -48,6 +48,14 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The renderer tests compare against Mojang's client assets, which are
+      # fetched at run time and never committed. The cache keeps them between runs.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mcbuilder
+          key: mcbuilder-assets-26.2
+      - name: Fetch vanilla assets
+        run: node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2
       - name: Pick the comparison base
         id: base
         run: |

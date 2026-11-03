@@ -1,0 +1,24 @@
+{
+  "name": "@voxwright/render",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Cameras and rendering for voxwright. Depends on core only.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@voxwright/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5",
+    "pngjs": "^7.0.0"
+  }
+}

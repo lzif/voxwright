@@ -1,0 +1,1112 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "max_views": 36,
+ "defaults": [
+  {
+   "azimuth": 0.0,
+   "elevation": 25.0,
+   "label": "az000_el025"
+  },
+  {
+   "azimuth": 45.0,
+   "elevation": 25.0,
+   "label": "az045_el025"
+  },
+  {
+   "azimuth": 90.0,
+   "elevation": 25.0,
+   "label": "az090_el025"
+  },
+  {
+   "azimuth": 135.0,
+   "elevation": 25.0,
+   "label": "az135_el025"
+  },
+  {
+   "azimuth": 180.0,
+   "elevation": 25.0,
+   "label": "az180_el025"
+  },
+  {
+   "azimuth": 225.0,
+   "elevation": 25.0,
+   "label": "az225_el025"
+  },
+  {
+   "azimuth": 270.0,
+   "elevation": 25.0,
+   "label": "az270_el025"
+  },
+  {
+   "azimuth": 315.0,
+   "elevation": 25.0,
+   "label": "az315_el025"
+  },
+  {
+   "azimuth": 0.0,
+   "elevation": 90.0,
+   "label": "top"
+  }
+ ],
+ "parsed": {
+  "top": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 90.0,
+     "label": "top"
+    }
+   ]
+  },
+  "iso": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    }
+   ]
+  },
+  "az045_el025": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    }
+   ]
+  },
+  "az:045_el:025": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    }
+   ]
+  },
+  "az000_el000": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 0.0,
+     "label": "az000_el000"
+    }
+   ]
+  },
+  "az359_el090": {
+   "ok": [
+    {
+     "azimuth": 359.0,
+     "elevation": 90.0,
+     "label": "az359_el090"
+    }
+   ]
+  },
+  "az10_el5": {
+   "ok": [
+    {
+     "azimuth": 10.0,
+     "elevation": 5.0,
+     "label": "az010_el005"
+    }
+   ]
+  },
+  "az007_el033": {
+   "ok": [
+    {
+     "azimuth": 7.0,
+     "elevation": 33.0,
+     "label": "az007_el033"
+    }
+   ]
+  },
+  "orbit8_el25": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 25.0,
+     "label": "az090_el025"
+    },
+    {
+     "azimuth": 135.0,
+     "elevation": 25.0,
+     "label": "az135_el025"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 25.0,
+     "label": "az180_el025"
+    },
+    {
+     "azimuth": 225.0,
+     "elevation": 25.0,
+     "label": "az225_el025"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 25.0,
+     "label": "az270_el025"
+    },
+    {
+     "azimuth": 315.0,
+     "elevation": 25.0,
+     "label": "az315_el025"
+    }
+   ]
+  },
+  "orbit:8_el:25": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 25.0,
+     "label": "az090_el025"
+    },
+    {
+     "azimuth": 135.0,
+     "elevation": 25.0,
+     "label": "az135_el025"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 25.0,
+     "label": "az180_el025"
+    },
+    {
+     "azimuth": 225.0,
+     "elevation": 25.0,
+     "label": "az225_el025"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 25.0,
+     "label": "az270_el025"
+    },
+    {
+     "azimuth": 315.0,
+     "elevation": 25.0,
+     "label": "az315_el025"
+    }
+   ]
+  },
+  "orbit3_el10": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 10.0,
+     "label": "az000_el010"
+    },
+    {
+     "azimuth": 120.0,
+     "elevation": 10.0,
+     "label": "az120_el010"
+    },
+    {
+     "azimuth": 240.0,
+     "elevation": 10.0,
+     "label": "az240_el010"
+    }
+   ]
+  },
+  "orbit7_el15": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 15.0,
+     "label": "az000_el015"
+    },
+    {
+     "azimuth": 51.428571429,
+     "elevation": 15.0,
+     "label": "az051.429_el015"
+    },
+    {
+     "azimuth": 102.857142857,
+     "elevation": 15.0,
+     "label": "az102.857_el015"
+    },
+    {
+     "azimuth": 154.285714286,
+     "elevation": 15.0,
+     "label": "az154.286_el015"
+    },
+    {
+     "azimuth": 205.714285714,
+     "elevation": 15.0,
+     "label": "az205.714_el015"
+    },
+    {
+     "azimuth": 257.142857143,
+     "elevation": 15.0,
+     "label": "az257.143_el015"
+    },
+    {
+     "azimuth": 308.571428571,
+     "elevation": 15.0,
+     "label": "az308.571_el015"
+    }
+   ]
+  },
+  "orbit1_el0": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 0.0,
+     "label": "az000_el000"
+    }
+   ]
+  },
+  "orbit16_el45": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 45.0,
+     "label": "az000_el045"
+    },
+    {
+     "azimuth": 22.5,
+     "elevation": 45.0,
+     "label": "az022.5_el045"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 45.0,
+     "label": "az045_el045"
+    },
+    {
+     "azimuth": 67.5,
+     "elevation": 45.0,
+     "label": "az067.5_el045"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 45.0,
+     "label": "az090_el045"
+    },
+    {
+     "azimuth": 112.5,
+     "elevation": 45.0,
+     "label": "az112.5_el045"
+    },
+    {
+     "azimuth": 135.0,
+     "elevation": 45.0,
+     "label": "az135_el045"
+    },
+    {
+     "azimuth": 157.5,
+     "elevation": 45.0,
+     "label": "az157.5_el045"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 45.0,
+     "label": "az180_el045"
+    },
+    {
+     "azimuth": 202.5,
+     "elevation": 45.0,
+     "label": "az202.5_el045"
+    },
+    {
+     "azimuth": 225.0,
+     "elevation": 45.0,
+     "label": "az225_el045"
+    },
+    {
+     "azimuth": 247.5,
+     "elevation": 45.0,
+     "label": "az247.5_el045"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 45.0,
+     "label": "az270_el045"
+    },
+    {
+     "azimuth": 292.5,
+     "elevation": 45.0,
+     "label": "az292.5_el045"
+    },
+    {
+     "azimuth": 315.0,
+     "elevation": 45.0,
+     "label": "az315_el045"
+    },
+    {
+     "azimuth": 337.5,
+     "elevation": 45.0,
+     "label": "az337.5_el045"
+    }
+   ]
+  },
+  "orbit36_el25": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 10.0,
+     "elevation": 25.0,
+     "label": "az010_el025"
+    },
+    {
+     "azimuth": 20.0,
+     "elevation": 25.0,
+     "label": "az020_el025"
+    },
+    {
+     "azimuth": 30.0,
+     "elevation": 25.0,
+     "label": "az030_el025"
+    },
+    {
+     "azimuth": 40.0,
+     "elevation": 25.0,
+     "label": "az040_el025"
+    },
+    {
+     "azimuth": 50.0,
+     "elevation": 25.0,
+     "label": "az050_el025"
+    },
+    {
+     "azimuth": 60.0,
+     "elevation": 25.0,
+     "label": "az060_el025"
+    },
+    {
+     "azimuth": 70.0,
+     "elevation": 25.0,
+     "label": "az070_el025"
+    },
+    {
+     "azimuth": 80.0,
+     "elevation": 25.0,
+     "label": "az080_el025"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 25.0,
+     "label": "az090_el025"
+    },
+    {
+     "azimuth": 100.0,
+     "elevation": 25.0,
+     "label": "az100_el025"
+    },
+    {
+     "azimuth": 110.0,
+     "elevation": 25.0,
+     "label": "az110_el025"
+    },
+    {
+     "azimuth": 120.0,
+     "elevation": 25.0,
+     "label": "az120_el025"
+    },
+    {
+     "azimuth": 130.0,
+     "elevation": 25.0,
+     "label": "az130_el025"
+    },
+    {
+     "azimuth": 140.0,
+     "elevation": 25.0,
+     "label": "az140_el025"
+    },
+    {
+     "azimuth": 150.0,
+     "elevation": 25.0,
+     "label": "az150_el025"
+    },
+    {
+     "azimuth": 160.0,
+     "elevation": 25.0,
+     "label": "az160_el025"
+    },
+    {
+     "azimuth": 170.0,
+     "elevation": 25.0,
+     "label": "az170_el025"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 25.0,
+     "label": "az180_el025"
+    },
+    {
+     "azimuth": 190.0,
+     "elevation": 25.0,
+     "label": "az190_el025"
+    },
+    {
+     "azimuth": 200.0,
+     "elevation": 25.0,
+     "label": "az200_el025"
+    },
+    {
+     "azimuth": 210.0,
+     "elevation": 25.0,
+     "label": "az210_el025"
+    },
+    {
+     "azimuth": 220.0,
+     "elevation": 25.0,
+     "label": "az220_el025"
+    },
+    {
+     "azimuth": 230.0,
+     "elevation": 25.0,
+     "label": "az230_el025"
+    },
+    {
+     "azimuth": 240.0,
+     "elevation": 25.0,
+     "label": "az240_el025"
+    },
+    {
+     "azimuth": 250.0,
+     "elevation": 25.0,
+     "label": "az250_el025"
+    },
+    {
+     "azimuth": 260.0,
+     "elevation": 25.0,
+     "label": "az260_el025"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 25.0,
+     "label": "az270_el025"
+    },
+    {
+     "azimuth": 280.0,
+     "elevation": 25.0,
+     "label": "az280_el025"
+    },
+    {
+     "azimuth": 290.0,
+     "elevation": 25.0,
+     "label": "az290_el025"
+    },
+    {
+     "azimuth": 300.0,
+     "elevation": 25.0,
+     "label": "az300_el025"
+    },
+    {
+     "azimuth": 310.0,
+     "elevation": 25.0,
+     "label": "az310_el025"
+    },
+    {
+     "azimuth": 320.0,
+     "elevation": 25.0,
+     "label": "az320_el025"
+    },
+    {
+     "azimuth": 330.0,
+     "elevation": 25.0,
+     "label": "az330_el025"
+    },
+    {
+     "azimuth": 340.0,
+     "elevation": 25.0,
+     "label": "az340_el025"
+    },
+    {
+     "azimuth": 350.0,
+     "elevation": 25.0,
+     "label": "az350_el025"
+    }
+   ]
+  },
+  "iso;top": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 90.0,
+     "label": "top"
+    }
+   ]
+  },
+  "az045_el025;top;iso": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 90.0,
+     "label": "top"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    }
+   ]
+  },
+  " top ; iso ": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 90.0,
+     "label": "top"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    }
+   ]
+  },
+  "orbit8_el25;top": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 25.0,
+     "label": "az090_el025"
+    },
+    {
+     "azimuth": 135.0,
+     "elevation": 25.0,
+     "label": "az135_el025"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 25.0,
+     "label": "az180_el025"
+    },
+    {
+     "azimuth": 225.0,
+     "elevation": 25.0,
+     "label": "az225_el025"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 25.0,
+     "label": "az270_el025"
+    },
+    {
+     "azimuth": 315.0,
+     "elevation": 25.0,
+     "label": "az315_el025"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 90.0,
+     "label": "top"
+    }
+   ]
+  },
+  "orbit5_el33;orbit3_el12": {
+   "ok": [
+    {
+     "azimuth": 0.0,
+     "elevation": 33.0,
+     "label": "az000_el033"
+    },
+    {
+     "azimuth": 72.0,
+     "elevation": 33.0,
+     "label": "az072_el033"
+    },
+    {
+     "azimuth": 144.0,
+     "elevation": 33.0,
+     "label": "az144_el033"
+    },
+    {
+     "azimuth": 216.0,
+     "elevation": 33.0,
+     "label": "az216_el033"
+    },
+    {
+     "azimuth": 288.0,
+     "elevation": 33.0,
+     "label": "az288_el033"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 12.0,
+     "label": "az000_el012"
+    },
+    {
+     "azimuth": 120.0,
+     "elevation": 12.0,
+     "label": "az120_el012"
+    },
+    {
+     "azimuth": 240.0,
+     "elevation": 12.0,
+     "label": "az240_el012"
+    }
+   ]
+  },
+  "az360_el25": {
+   "error": "ViewError"
+  },
+  "az045_el091": {
+   "error": "ViewError"
+  },
+  "orbit0_el25": {
+   "error": "ViewError"
+  },
+  "orbit37_el25": {
+   "error": "ViewError"
+  },
+  "orbit20_el25;orbit20_el25": {
+   "error": "ViewError"
+  },
+  "": {
+   "error": "ViewError"
+  },
+  ";": {
+   "error": "ViewError"
+  },
+  "top;": {
+   "error": "ViewError"
+  },
+  "bogus": {
+   "error": "ViewError"
+  },
+  "az45": {
+   "error": "ViewError"
+  },
+  "az045_el025;": {
+   "error": "ViewError"
+  },
+  "AZ045_EL025": {
+   "error": "ViewError"
+  },
+  "orbit8_el-5": {
+   "error": "ViewError"
+  },
+  "iso,top": {
+   "error": "ViewError"
+  },
+  "az045_el025 ": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    }
+   ]
+  }
+ },
+ "resolved": {
+  "none": [
+   {
+    "azimuth": 0.0,
+    "elevation": 25.0,
+    "label": "az000_el025"
+   },
+   {
+    "azimuth": 45.0,
+    "elevation": 25.0,
+    "label": "az045_el025"
+   },
+   {
+    "azimuth": 90.0,
+    "elevation": 25.0,
+    "label": "az090_el025"
+   },
+   {
+    "azimuth": 135.0,
+    "elevation": 25.0,
+    "label": "az135_el025"
+   },
+   {
+    "azimuth": 180.0,
+    "elevation": 25.0,
+    "label": "az180_el025"
+   },
+   {
+    "azimuth": 225.0,
+    "elevation": 25.0,
+    "label": "az225_el025"
+   },
+   {
+    "azimuth": 270.0,
+    "elevation": 25.0,
+    "label": "az270_el025"
+   },
+   {
+    "azimuth": 315.0,
+    "elevation": 25.0,
+    "label": "az315_el025"
+   },
+   {
+    "azimuth": 0.0,
+    "elevation": 90.0,
+    "label": "top"
+   }
+  ],
+  "string": [
+   {
+    "azimuth": 45.0,
+    "elevation": 35.0,
+    "label": "iso"
+   },
+   {
+    "azimuth": 0.0,
+    "elevation": 90.0,
+    "label": "top"
+   }
+  ],
+  "list-of-strings": [
+   {
+    "azimuth": 45.0,
+    "elevation": 35.0,
+    "label": "iso"
+   },
+   {
+    "azimuth": 45.0,
+    "elevation": 25.0,
+    "label": "az045_el025"
+   },
+   {
+    "azimuth": 0.0,
+    "elevation": 90.0,
+    "label": "top"
+   }
+  ],
+  "list-of-views": [
+   {
+    "azimuth": 45.0,
+    "elevation": 35.0,
+    "label": "iso"
+   },
+   {
+    "azimuth": 0.0,
+    "elevation": 90.0,
+    "label": "top"
+   }
+  ],
+  "empty-list": []
+ },
+ "with_count": {
+  "1": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    }
+   ]
+  },
+  "3": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 120.0,
+     "elevation": 25.0,
+     "label": "az120_el025"
+    },
+    {
+     "azimuth": 240.0,
+     "elevation": 25.0,
+     "label": "az240_el025"
+    }
+   ]
+  },
+  "8": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 45.0,
+     "elevation": 25.0,
+     "label": "az045_el025"
+    },
+    {
+     "azimuth": 90.0,
+     "elevation": 25.0,
+     "label": "az090_el025"
+    },
+    {
+     "azimuth": 135.0,
+     "elevation": 25.0,
+     "label": "az135_el025"
+    },
+    {
+     "azimuth": 180.0,
+     "elevation": 25.0,
+     "label": "az180_el025"
+    },
+    {
+     "azimuth": 225.0,
+     "elevation": 25.0,
+     "label": "az225_el025"
+    },
+    {
+     "azimuth": 270.0,
+     "elevation": 25.0,
+     "label": "az270_el025"
+    },
+    {
+     "azimuth": 315.0,
+     "elevation": 25.0,
+     "label": "az315_el025"
+    }
+   ]
+  },
+  "35": {
+   "ok": [
+    {
+     "azimuth": 45.0,
+     "elevation": 35.0,
+     "label": "iso"
+    },
+    {
+     "azimuth": 0.0,
+     "elevation": 25.0,
+     "label": "az000_el025"
+    },
+    {
+     "azimuth": 10.285714286,
+     "elevation": 25.0,
+     "label": "az010.286_el025"
+    },
+    {
+     "azimuth": 20.571428571,
+     "elevation": 25.0,
+     "label": "az020.571_el025"
+    },
+    {
+     "azimuth": 30.857142857,
+     "elevation": 25.0,
+     "label": "az030.857_el025"
+    },
+    {
+     "azimuth": 41.142857143,
+     "elevation": 25.0,
+     "label": "az041.143_el025"
+    },
+    {
+     "azimuth": 51.428571429,
+     "elevation": 25.0,
+     "label": "az051.429_el025"
+    },
+    {
+     "azimuth": 61.714285714,
+     "elevation": 25.0,
+     "label": "az061.714_el025"
+    },
+    {
+     "azimuth": 72.0,
+     "elevation": 25.0,
+     "label": "az072_el025"
+    },
+    {
+     "azimuth": 82.285714286,
+     "elevation": 25.0,
+     "label": "az082.286_el025"
+    },
+    {
+     "azimuth": 92.571428571,
+     "elevation": 25.0,
+     "label": "az092.571_el025"
+    },
+    {
+     "azimuth": 102.857142857,
+     "elevation": 25.0,
+     "label": "az102.857_el025"
+    },
+    {
+     "azimuth": 113.142857143,
+     "elevation": 25.0,
+     "label": "az113.143_el025"
+    },
+    {
+     "azimuth": 123.428571429,
+     "elevation": 25.0,
+     "label": "az123.429_el025"
+    },
+    {
+     "azimuth": 133.714285714,
+     "elevation": 25.0,
+     "label": "az133.714_el025"
+    },
+    {
+     "azimuth": 144.0,
+     "elevation": 25.0,
+     "label": "az144_el025"
+    },
+    {
+     "azimuth": 154.285714286,
+     "elevation": 25.0,
+     "label": "az154.286_el025"
+    },
+    {
+     "azimuth": 164.571428571,
+     "elevation": 25.0,
+     "label": "az164.571_el025"
+    },
+    {
+     "azimuth": 174.857142857,
+     "elevation": 25.0,
+     "label": "az174.857_el025"
+    },
+    {
+     "azimuth": 185.142857143,
+     "elevation": 25.0,
+     "label": "az185.143_el025"
+    },
+    {
+     "azimuth": 195.428571429,
+     "elevation": 25.0,
+     "label": "az195.429_el025"
+    },
+    {
+     "azimuth": 205.714285714,
+     "elevation": 25.0,
+     "label": "az205.714_el025"
+    },
+    {
+     "azimuth": 216.0,
+     "elevation": 25.0,
+     "label": "az216_el025"
+    },
+    {
+     "azimuth": 226.285714286,
+     "elevation": 25.0,
+     "label": "az226.286_el025"
+    },
+    {
+     "azimuth": 236.571428571,
+     "elevation": 25.0,
+     "label": "az236.571_el025"
+    },
+    {
+     "azimuth": 246.857142857,
+     "elevation": 25.0,
+     "label": "az246.857_el025"
+    },
+    {
+     "azimuth": 257.142857143,
+     "elevation": 25.0,
+     "label": "az257.143_el025"
+    },
+    {
+     "azimuth": 267.428571429,
+     "elevation": 25.0,
+     "label": "az267.429_el025"
+    },
+    {
+     "azimuth": 277.714285714,
+     "elevation": 25.0,
+     "label": "az277.714_el025"
+    },
+    {
+     "azimuth": 288.0,
+     "elevation": 25.0,
+     "label": "az288_el025"
+    },
+    {
+     "azimuth": 298.285714286,
+     "elevation": 25.0,
+     "label": "az298.286_el025"
+    },
+    {
+     "azimuth": 308.571428571,
+     "elevation": 25.0,
+     "label": "az308.571_el025"
+    },
+    {
+     "azimuth": 318.857142857,
+     "elevation": 25.0,
+     "label": "az318.857_el025"
+    },
+    {
+     "azimuth": 329.142857143,
+     "elevation": 25.0,
+     "label": "az329.143_el025"
+    },
+    {
+     "azimuth": 339.428571429,
+     "elevation": 25.0,
+     "label": "az339.429_el025"
+    },
+    {
+     "azimuth": 349.714285714,
+     "elevation": 25.0,
+     "label": "az349.714_el025"
+    }
+   ]
+  },
+  "36": {
+   "error": "ViewError"
+  },
+  "0": {
+   "error": "ValueError"
+  },
+  "-2": {
+   "error": "ValueError"
+  }
+ }
+}
