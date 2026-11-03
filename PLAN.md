@@ -50,7 +50,7 @@ One workspace under a single AGPL-3.0 `LICENSE`; each package is written as if i
 Each task becomes one GitHub issue under milestone M0, in this order.
 
 - [x] Repo foundations: AGPL-3.0 `LICENSE`, README, `.editorconfig`, pnpm workspace, `tsconfig.base.json` (strict, ESM, `verbatimModuleSyntax`), Biome, Vitest workspace, dependency-cruiser rules
-- [ ] CI: GitHub Actions per path with a pnpm cache, on Node LTS and Node 25 (workflow written in `.github/workflows/ci.yml`; not run yet, there is no remote)
+- [x] CI: GitHub Actions per path with a pnpm cache, on Node LTS and Node 25
 - [x] `vectors/`: an export script that runs the Python mcbuilder on input grids and writes JSON (see Golden vectors)
 - [x] `core/nbt`: reader and writer, big and little endian, gzip through `CompressionStream`
 - [x] `core/blocks`: block-state parsing and canonical strings compatible with mcbuilder
@@ -113,8 +113,8 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 
 ## Open items
 
-- [ ] Create the empty public repository `lzif/voxwright` (no README or LICENSE) so the scaffold can start
-- [ ] Choose `AGPL-3.0-only` or `AGPL-3.0-or-later` for the SPDX headers, before M0
+- [x] Create the repository `lzif/voxwright` so the scaffold can start (created **private**; make it public when ready)
+- [x] Choose `AGPL-3.0-only` or `AGPL-3.0-or-later` for the SPDX headers, before M0 (`AGPL-3.0-only`)
 - [ ] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit, one `.litematic` from Litematica, one `.mcstructure` from Bedrock
 - [ ] Reserve the `@voxwright` npm organization and check the domain and trademark
 - [ ] Pick the open source Bedrock to Java block-mapping table and confirm its license is AGPL-compatible (needed by M2)
