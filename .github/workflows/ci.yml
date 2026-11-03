@@ -1,0 +1,74 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Repository-wide checks: formatting, lint, dependency direction.
+  # Cheap, and they cover files that no single package owns.
+  repo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check
+      - run: pnpm run depcheck
+
+  # Per-package jobs run only for packages that changed, or that depend on
+  # one that changed (`...[ref]` selects dependents too), so a docs-only
+  # change does not rebuild the app.
+  packages:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [lts/*, "25"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Pick the comparison base
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=origin/${{ github.base_ref }}" >> "$GITHUB_OUTPUT"
+          else
+            before="${{ github.event.before }}"
+            case "$before" in
+              ""|0000000000000000000000000000000000000000) before="HEAD~1" ;;
+            esac
+            echo "ref=$before" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Typecheck changed packages
+        run: pnpm --filter "...[${{ steps.base.outputs.ref }}]" --if-present run typecheck
+      - name: Test changed packages
+        run: pnpm --filter "...[${{ steps.base.outputs.ref }}]" --if-present run test
+      # Shared inputs (vectors, fixtures, scripts, root config) are not
+      # inside a package, so changes to them run everything.
+      - name: Test everything when shared inputs changed
+        run: |
+          if git diff --name-only "${{ steps.base.outputs.ref }}" -- vectors fixtures scripts vitest.config.ts tsconfig.base.json pnpm-lock.yaml | grep -q .; then
+            pnpm -r --if-present run typecheck
+            pnpm -r --if-present run test
+          fi

@@ -1,0 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "noEmit": true, "types": ["node"] },
+  "include": ["."]
+}

@@ -17,11 +17,14 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check .",
-    "test": "vitest run --passWithNoTests",
-    "depcheck": "depcruise --config .dependency-cruiser.cjs packages apps"
+    "typecheck": "pnpm -r --if-present run typecheck && tsc -p scripts/tsconfig.json",
+    "test": "vitest run",
+    "depcheck": "depcruise --config .dependency-cruiser.cjs .",
+    "convert": "node scripts/convert.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.4",
+    "@types/node": "^22.20.5",
     "dependency-cruiser": "^18.7.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5"
