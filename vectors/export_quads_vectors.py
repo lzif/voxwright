@@ -63,7 +63,13 @@ BLOCKS = [
     "minecraft:oak_sign[rotation=4]", "minecraft:oak_pressure_plate", "minecraft:flower_pot",
     "minecraft:amethyst_cluster[facing=up]", "minecraft:sea_lantern", "minecraft:dark_prismarine_slab[type=bottom]",
     "minecraft:bed", "minecraft:chest[facing=west]", "minecraft:not_a_real_block",
-    "minecraft:spruce_shelf[facing=south]", "minecraft:pale_moss_carpet[bottom=true,east=none,north=none,south=none,west=none]",
+    "minecraft:spruce_shelf[facing=south]",
+    "minecraft:water", "minecraft:lava", "minecraft:chest[facing=north]", "minecraft:chest[facing=east,type=left]",
+    "minecraft:chest[facing=south]", "minecraft:trapped_chest[facing=west]", "minecraft:ender_chest[facing=north]",
+    "minecraft:copper_chest[facing=south]", "minecraft:waxed_oxidized_copper_chest[facing=east]",
+    "minecraft:red_banner[rotation=0]", "minecraft:blue_banner[rotation=5]", "minecraft:white_banner[rotation=15]",
+    "minecraft:black_wall_banner[facing=east]", "minecraft:light_blue_wall_banner[facing=north]",
+    "minecraft:unknown_banner[rotation=0]", "minecraft:pale_moss_carpet[bottom=true,east=none,north=none,south=none,west=none]",
 ]
 
 
@@ -84,10 +90,10 @@ def main() -> None:
         name, props = _fast._split_blockstate(canonical)
         fb: set = set()
         color = _fast._fallback_color(name)
-        quads = faithful._resolve_block_quads(name, props, root, tex_cache, color, fb)
-        entry = {"fallback_color": list(color), "fallback_blocks": sorted(fb)}
-        if quads is None:
-            entry["quads"] = None
+        quads, is_fallback = faithful.resolve_block_quads(canonical, root, tex_cache, fb)
+        entry = {"fallback_color": list(color), "fallback_blocks": sorted(fb), "is_fallback": bool(is_fallback)}
+        if False:
+            pass
         else:
             entry["quads"] = [
                 {

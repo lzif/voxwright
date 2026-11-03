@@ -56,10 +56,10 @@ export interface Quad {
   flat: boolean;
 }
 
-type FaceName = "up" | "down" | "north" | "south" | "west" | "east";
+export type FaceName = "up" | "down" | "north" | "south" | "west" | "east";
 
 /** Classic Minecraft-ish face shading, keyed by the snapped world normal. */
-const SHADES: Record<string, number> = {
+export const SHADES: Record<string, number> = {
   "0,1,0": 1.0,
   "0,-1,0": 0.5,
   "0,0,-1": 0.8,
@@ -68,7 +68,7 @@ const SHADES: Record<string, number> = {
   "-1,0,0": 0.6,
 };
 
-const FACE_NORMALS: Record<FaceName, Vec3> = {
+export const FACE_NORMALS: Record<FaceName, Vec3> = {
   up: [0, 1, 0],
   down: [0, -1, 0],
   north: [0, 0, -1],
@@ -86,6 +86,8 @@ const UV_AXES: Record<FaceName, readonly [number, boolean, number, boolean]> = {
   up: [0, true, 2, true],
   down: [0, false, 2, true],
 };
+
+export const FACE_NAMES: readonly FaceName[] = ["up", "down", "north", "south", "west", "east"];
 
 const isFace = (n: string): n is FaceName => Object.hasOwn(FACE_NORMALS, n);
 
@@ -177,7 +179,7 @@ const asObject = (v: unknown): Json | null =>
   typeof v === "object" && v !== null && !Array.isArray(v) ? (v as Json) : null;
 const lastAfterColon = (s: string): string => s.slice(s.indexOf(":") + 1);
 
-interface ResolvedModel {
+export interface ResolvedModel {
   elements: Json[];
   images: Map<string, RasterImage | null>;
   ambientOcclusion: boolean;
@@ -188,6 +190,10 @@ interface ResolvedModel {
  * overriding the parent; elements come from the nearest chain entry that
  * defines them, and `ambientocclusion` is read from that same entry.
  */
+export function modelElements(modelRef: string, assets: AssetSource): ResolvedModel | null {
+  return resolveModel(modelRef, assets);
+}
+
 function resolveModel(modelRef: string, assets: AssetSource): ResolvedModel | null {
   const chain: Json[] = [];
   const seen = new Set<string>();
@@ -332,7 +338,7 @@ export function modelApplications(
   const variants = asObject(bs.variants);
   if (variants !== null && Object.keys(variants).length > 0) {
     const v = matchVariant(variants, props, DEFAULT_PROPS);
-    if (v && v.model) apps.push(applicationOf(v));
+    if (v?.model) apps.push(applicationOf(v));
   } else if (Array.isArray(bs.multipart) && bs.multipart.length > 0) {
     for (const rawCase of bs.multipart as Json[]) {
       const when = rawCase.when;
@@ -340,7 +346,7 @@ export function modelApplications(
       let apply = rawCase.apply;
       if (Array.isArray(apply)) apply = apply.length > 0 ? apply[0] : null;
       const a = asObject(apply);
-      if (a && a.model) apps.push(applicationOf(a));
+      if (a?.model) apps.push(applicationOf(a));
     }
   }
   return apps;
@@ -349,7 +355,7 @@ export function modelApplications(
 // -- quad construction -----------------------------------------------------------------------
 
 /** Snap a near-axis normal to its dominant axis. */
-function snapNormal(v: Vec3): Vec3 {
+export function snapNormal(v: Vec3): Vec3 {
   let ax = 0;
   for (let i = 1; i < 3; i++) if (Math.abs(v[i] as number) > Math.abs(v[ax] as number)) ax = i;
   const out: Vec3 = [0, 0, 0];
@@ -358,7 +364,7 @@ function snapNormal(v: Vec3): Vec3 {
 }
 
 /** 4 corners of an element face (0..1 coords), in a fixed order. */
-function faceBaseCorners(face: FaceName, f: Vec3, t: Vec3): Vec3[] {
+export function faceBaseCorners(face: FaceName, f: Vec3, t: Vec3): Vec3[] {
   const [x0, y0, z0] = f;
   const [x1, y1, z1] = t;
   switch (face) {
@@ -408,7 +414,7 @@ function faceBaseCorners(face: FaceName, f: Vec3, t: Vec3): Vec3[] {
 }
 
 /** Order 4 corners as `[(u0,v0), (u0,v1), (u1,v1), (u1,v0)]`. */
-function orderCornersUv(corners: Vec3[], face: FaceName): Vec3[] {
+export function orderCornersUv(corners: Vec3[], face: FaceName): Vec3[] {
   const [uAxis, uMinIsU0, vAxis, vMinIsV0] = UV_AXES[face];
   const key = (c: Vec3): [number, number] => {
     const u = c[uAxis] as number;

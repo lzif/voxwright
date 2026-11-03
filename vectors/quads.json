@@ -8,6 +8,7 @@
     73
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -276,6 +277,7 @@
     27
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -544,6 +546,7 @@
     27
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -812,6 +815,7 @@
     27
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -1080,6 +1084,7 @@
     54
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -1348,6 +1353,7 @@
     81
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -1616,6 +1622,7 @@
     246
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -1884,6 +1891,7 @@
     179
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -2152,6 +2160,7 @@
     179
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -2420,6 +2429,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -2895,6 +2905,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -3370,6 +3381,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -3845,6 +3857,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -4488,6 +4501,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -4959,6 +4973,7 @@
     236
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -5434,6 +5449,7 @@
     2
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -6077,6 +6093,7 @@
     125
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -6341,6 +6358,7 @@
     125
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -6605,6 +6623,7 @@
     125
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -6873,6 +6892,7 @@
     103
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -7437,6 +7457,7 @@
     103
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -7525,6 +7546,7 @@
     203
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -8573,6 +8595,7 @@
     220
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -10151,6 +10174,7 @@
     220
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -11729,6 +11753,7 @@
     121
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -12594,6 +12619,7 @@
     121
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -12846,6 +12872,7 @@
     223
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -13480,6 +13507,7 @@
     223
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -14079,6 +14107,7 @@
     73
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -14678,6 +14707,7 @@
     130
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -14844,6 +14874,7 @@
     130
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -15010,6 +15041,7 @@
     152
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -15231,6 +15263,7 @@
     152
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -15452,6 +15485,7 @@
     222
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -15716,6 +15750,7 @@
     222
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -15980,6 +16015,7 @@
     160
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -16420,6 +16456,7 @@
     146
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -16688,6 +16725,7 @@
     139
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -16854,6 +16892,7 @@
     119
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -17020,6 +17059,7 @@
     13
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -17268,6 +17308,7 @@
     223
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -17512,6 +17553,7 @@
     27
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -17955,6 +17997,7 @@
     56
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -18203,6 +18246,7 @@
     88
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -18291,6 +18335,7 @@
     173
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -18457,6 +18502,7 @@
     36
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -18721,6 +18767,7 @@
     98
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -21121,6 +21168,7 @@
     124
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -22467,6 +22515,7 @@
     167
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -22914,6 +22963,7 @@
     78
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -23353,6 +23403,7 @@
     247
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -24663,6 +24714,7 @@
     223
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -25106,6 +25158,7 @@
     154
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -25354,6 +25407,7 @@
     49
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -26242,6 +26296,7 @@
     208
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -26408,6 +26463,7 @@
     18
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -26676,6 +26732,7 @@
     217
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -26940,7 +26997,267 @@
     115
    ],
    "fallback_blocks": [],
-   "quads": null
+   "is_fallback": true,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      1,
+      0
+     ],
+     "cull": [
+      0,
+      1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "9b62c6eca7a8ae9cf34d0c6f7c3a16c3abcabae452ed5a1c125fe4f2252a27ce"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      -1,
+      0
+     ],
+     "cull": [
+      0,
+      -1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "3d57bad6ce17852a32af7aa3f7caff86596aefb0303e662b6fd70140c5249835"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      -1
+     ],
+     "cull": [
+      0,
+      0,
+      -1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      1
+     ],
+     "cull": [
+      0,
+      0,
+      1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1,
+      0,
+      0
+     ],
+     "cull": [
+      -1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      1,
+      0,
+      0
+     ],
+     "cull": [
+      1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    }
+   ]
   },
   "minecraft:chest[facing=west]": {
    "fallback_color": [
@@ -26949,7 +27266,711 @@
     82
    ],
    "fallback_blocks": [],
-   "quads": null
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "a07edfb0a7803582e4b175605a4dc4d4a23a66beb1201bf001fe181f0909fd8e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "d265a3ba483fdbc0c8310d7cbb80bcd935d5b19c92431fe887bf0568eaa6f3c4"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "34ddf8bc97e9375bb23b350a5adf06361ba88367b114e914eb6dadd1e4eab879"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "8b143690c44acbca9354f64713902601fe75246e60297a152a59302f6586aa7c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "499675978c58a0ecc27cc3405b8fe7632dafbf53f64ef76c46d2c1d485203a47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "efdcd62d556dfdf3a1084c15b2092c9ab45430af482fad2de9be317b68eefac3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "404de441fb71efd8e77168b648efba7b7e8fa6eb4b5ecad76fa348650984f179"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "d337ff23bad8fbcad06fd398f14faad919e4f3ac4d8bcacfca1e4d162ec1624c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "43041c65c28ee72a7ec778e2e65a1c5531a1450bde4b36975a9de6e3d5ea0468"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "c8d5d8c476edcc6341e8ba5f8bfa00a238d6ffe52d93e840f09f30999b1697b3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "52339d2cc343e2062f0627b2c58cd8d0d6484da16a36c6bfeca3d9217685db47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "47c2422c53b1aa3e321d571ad439c8e3cda8e6fa6138fb3bd0d2878cf3d3ac2e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
   },
   "minecraft:not_a_real_block": {
    "fallback_color": [
@@ -26958,7 +27979,267 @@
     22
    ],
    "fallback_blocks": [],
-   "quads": null
+   "is_fallback": true,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      1,
+      0
+     ],
+     "cull": [
+      0,
+      1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "9b62c6eca7a8ae9cf34d0c6f7c3a16c3abcabae452ed5a1c125fe4f2252a27ce"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      -1,
+      0
+     ],
+     "cull": [
+      0,
+      -1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "3d57bad6ce17852a32af7aa3f7caff86596aefb0303e662b6fd70140c5249835"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      -1
+     ],
+     "cull": [
+      0,
+      0,
+      -1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      1
+     ],
+     "cull": [
+      0,
+      0,
+      1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1,
+      0,
+      0
+     ],
+     "cull": [
+      -1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      1,
+      0,
+      0
+     ],
+     "cull": [
+      1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    }
+   ]
   },
   "minecraft:spruce_shelf[facing=south]": {
    "fallback_color": [
@@ -26967,6 +28248,7 @@
     246
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [
@@ -27599,6 +28881,8784 @@
     }
    ]
   },
+  "minecraft:water": {
+   "fallback_color": [
+    63,
+    118,
+    228
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       0.8888888888888888,
+       0.0
+      ],
+      [
+       0.0,
+       0.8888888888888888,
+       1.0
+      ],
+      [
+       1.0,
+       0.8888888888888888,
+       1.0
+      ],
+      [
+       1.0,
+       0.8888888888888888,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      1,
+      0
+     ],
+     "cull": [
+      0,
+      1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "01d3d48df91c2784e4f018cc48adae32b0c5347f478d1ee00298a206c0f0fdb7"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      -1,
+      0
+     ],
+     "cull": [
+      0,
+      -1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "8ccf951283a2cbb3dba2bc42a6d23e1ef997893c0d35c9e8b409e670c5bd2ca4"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      -1
+     ],
+     "cull": [
+      0,
+      0,
+      -1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "4a7b6181febbbaa7f347447db36faba63e00779679d5b478b43f1d3a68902916"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      1
+     ],
+     "cull": [
+      0,
+      0,
+      1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "4a7b6181febbbaa7f347447db36faba63e00779679d5b478b43f1d3a68902916"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1,
+      0,
+      0
+     ],
+     "cull": [
+      -1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "4ce042f52a174724cac597d35ab6891f7de05851fa46da7233321fc41db4a397"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      1,
+      0,
+      0
+     ],
+     "cull": [
+      1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "4ce042f52a174724cac597d35ab6891f7de05851fa46da7233321fc41db4a397"
+     }
+    }
+   ]
+  },
+  "minecraft:lava": {
+   "fallback_color": [
+    255,
+    110,
+    20
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       0.8888888888888888,
+       0.0
+      ],
+      [
+       0.0,
+       0.8888888888888888,
+       1.0
+      ],
+      [
+       1.0,
+       0.8888888888888888,
+       1.0
+      ],
+      [
+       1.0,
+       0.8888888888888888,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      1,
+      0
+     ],
+     "cull": [
+      0,
+      1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "a8e128660e862cba841a81b9d5be98c60bb89e009fe1b8fa2f55a42dd7ceb784"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      -1,
+      0
+     ],
+     "cull": [
+      0,
+      -1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "950b9e1df026052aa2b5a8a9eaec35ff32cd6f52965f95b14a7d7b68923d887e"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      -1
+     ],
+     "cull": [
+      0,
+      0,
+      -1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "85571712124d312467e31f6ccef8273bd68af1858b596b4a62f7d9009ae94455"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      1
+     ],
+     "cull": [
+      0,
+      0,
+      1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "85571712124d312467e31f6ccef8273bd68af1858b596b4a62f7d9009ae94455"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1,
+      0,
+      0
+     ],
+     "cull": [
+      -1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "e146277b9c04ad24656c8e5de05021e8583e31d44a81732174102450823c6644"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      1,
+      0,
+      0
+     ],
+     "cull": [
+      1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGBA",
+      "sha256": "e146277b9c04ad24656c8e5de05021e8583e31d44a81732174102450823c6644"
+     }
+    }
+   ]
+  },
+  "minecraft:chest[facing=north]": {
+   "fallback_color": [
+    181,
+    140,
+    82
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "34ddf8bc97e9375bb23b350a5adf06361ba88367b114e914eb6dadd1e4eab879"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "d65bf0a7cf4283bc28eead31dc520f6d548ecce651e82fb4338325de8dd05b3f"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "a07edfb0a7803582e4b175605a4dc4d4a23a66beb1201bf001fe181f0909fd8e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "49c332d5b6b0913e521629305537f7034515f62e2f75535fd3635915ea34f311"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "499675978c58a0ecc27cc3405b8fe7632dafbf53f64ef76c46d2c1d485203a47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "efdcd62d556dfdf3a1084c15b2092c9ab45430af482fad2de9be317b68eefac3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "43041c65c28ee72a7ec778e2e65a1c5531a1450bde4b36975a9de6e3d5ea0468"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "e6aee15ed1bf22016a32e0a4df95d23f4d9f5568113245ee1d8c42f9562f0f57"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "404de441fb71efd8e77168b648efba7b7e8fa6eb4b5ecad76fa348650984f179"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "6113ad86ab6e6eccd541641be8dae67cfd57423ec98d63708df6d34d73d10756"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "52339d2cc343e2062f0627b2c58cd8d0d6484da16a36c6bfeca3d9217685db47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "47c2422c53b1aa3e321d571ad439c8e3cda8e6fa6138fb3bd0d2878cf3d3ac2e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:chest[facing=east,type=left]": {
+   "fallback_color": [
+    181,
+    140,
+    82
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "a07edfb0a7803582e4b175605a4dc4d4a23a66beb1201bf001fe181f0909fd8e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "d265a3ba483fdbc0c8310d7cbb80bcd935d5b19c92431fe887bf0568eaa6f3c4"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "34ddf8bc97e9375bb23b350a5adf06361ba88367b114e914eb6dadd1e4eab879"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "8b143690c44acbca9354f64713902601fe75246e60297a152a59302f6586aa7c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "499675978c58a0ecc27cc3405b8fe7632dafbf53f64ef76c46d2c1d485203a47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "efdcd62d556dfdf3a1084c15b2092c9ab45430af482fad2de9be317b68eefac3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "404de441fb71efd8e77168b648efba7b7e8fa6eb4b5ecad76fa348650984f179"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "d337ff23bad8fbcad06fd398f14faad919e4f3ac4d8bcacfca1e4d162ec1624c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "43041c65c28ee72a7ec778e2e65a1c5531a1450bde4b36975a9de6e3d5ea0468"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "c8d5d8c476edcc6341e8ba5f8bfa00a238d6ffe52d93e840f09f30999b1697b3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "52339d2cc343e2062f0627b2c58cd8d0d6484da16a36c6bfeca3d9217685db47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "47c2422c53b1aa3e321d571ad439c8e3cda8e6fa6138fb3bd0d2878cf3d3ac2e"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ],
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:chest[facing=south]": {
+   "fallback_color": [
+    181,
+    140,
+    82
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "34ddf8bc97e9375bb23b350a5adf06361ba88367b114e914eb6dadd1e4eab879"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "d65bf0a7cf4283bc28eead31dc520f6d548ecce651e82fb4338325de8dd05b3f"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "a07edfb0a7803582e4b175605a4dc4d4a23a66beb1201bf001fe181f0909fd8e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "49c332d5b6b0913e521629305537f7034515f62e2f75535fd3635915ea34f311"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "499675978c58a0ecc27cc3405b8fe7632dafbf53f64ef76c46d2c1d485203a47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "efdcd62d556dfdf3a1084c15b2092c9ab45430af482fad2de9be317b68eefac3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "43041c65c28ee72a7ec778e2e65a1c5531a1450bde4b36975a9de6e3d5ea0468"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "e6aee15ed1bf22016a32e0a4df95d23f4d9f5568113245ee1d8c42f9562f0f57"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "404de441fb71efd8e77168b648efba7b7e8fa6eb4b5ecad76fa348650984f179"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "6113ad86ab6e6eccd541641be8dae67cfd57423ec98d63708df6d34d73d10756"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "52339d2cc343e2062f0627b2c58cd8d0d6484da16a36c6bfeca3d9217685db47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "47c2422c53b1aa3e321d571ad439c8e3cda8e6fa6138fb3bd0d2878cf3d3ac2e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:trapped_chest[facing=west]": {
+   "fallback_color": [
+    170,
+    110,
+    75
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "a07edfb0a7803582e4b175605a4dc4d4a23a66beb1201bf001fe181f0909fd8e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "439a78c0084f109ba8c9281b02c7008e49d2e425468ead36661eddbb07b5a062"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "34ddf8bc97e9375bb23b350a5adf06361ba88367b114e914eb6dadd1e4eab879"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "8b143690c44acbca9354f64713902601fe75246e60297a152a59302f6586aa7c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "499675978c58a0ecc27cc3405b8fe7632dafbf53f64ef76c46d2c1d485203a47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "461bf5e594b565352ebd9ffcfb5a6a21520ac6f428d6398aa34525f636c54437"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "404de441fb71efd8e77168b648efba7b7e8fa6eb4b5ecad76fa348650984f179"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "a5b9f341cdc87d0c7658bb82e0aba73eabe9d845fa2745a7724815cf21251708"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "43041c65c28ee72a7ec778e2e65a1c5531a1450bde4b36975a9de6e3d5ea0468"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "c8d5d8c476edcc6341e8ba5f8bfa00a238d6ffe52d93e840f09f30999b1697b3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "52339d2cc343e2062f0627b2c58cd8d0d6484da16a36c6bfeca3d9217685db47"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "47c2422c53b1aa3e321d571ad439c8e3cda8e6fa6138fb3bd0d2878cf3d3ac2e"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.0625,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.0625,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.0,
+       0.5625,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:ender_chest[facing=north]": {
+   "fallback_color": [
+    60,
+    55,
+    70
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "c02cff243ec3b4d1dd08bab831f2e956963046d08b3d6eb5185c4197f6e4453a"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "c865aa81bb6c480d68b5447dee85095ad4844211ae18bee99d5b97d0599c09be"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "c5c30485d0660b27ef6f7d4b1b1edb7bb33fe03bcda9d49e9419b48a89c56451"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "5aea08d6a0f2c3bb535451690eb3fc4f0f2d97a306dd098e140a24d9cb40cece"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "295bd1c90c35ba5e184b4307c43ebd5c82e9f0d5918bd1d69a829990f739b577"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "4cfd32cac7bdc4f6ff0919ea8915248bbbc0ff6d280608d63290ca9cc01e045c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "f75bec90a9605ec9e9bf86e953a1ead9fda14710d9870c759eddc019a0659aa4"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "72ccac5a4bffe3bd93815bda99718032c2da6e01b324220a323bae20c11e8c63"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "623f48c50436a89d8222e78b64950f6a4b229587d5cf70e1d8a7742b4226cb5c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "469c0c67d3fa0864afc4427cd926f7b02fbf6a7d0ffa79c842ce7b6889833015"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "51826caa0bcee63d31ba4417f02623881c14c67020c7b49f0dd79d5e6f919ac5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "4d248299818e7ea33109293c87582597d9e2d3af5cad5808063c6c3716db31b6"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "17681820e131ce94bee01a9e10e430b3ee62ae3f0f5ef15734e14bae4c271ef5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "17681820e131ce94bee01a9e10e430b3ee62ae3f0f5ef15734e14bae4c271ef5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "3b462dce57402c56a11101fe3d44e4cc524cc14d5dc51433da2636da90c34547"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "3b462dce57402c56a11101fe3d44e4cc524cc14d5dc51433da2636da90c34547"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0625
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "1e89a4749e968dcab3c92c23278a8cb42636cfa8593d707584e6dec0e4440237"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.5625,
+       0.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0625
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "2f0d5fb6758167de6f500788e2ab1b5f69323517dd65d46783711d08b08ef66d"
+     }
+    }
+   ]
+  },
+  "minecraft:copper_chest[facing=south]": {
+   "fallback_color": [
+    200,
+    120,
+    70
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "4617a82e4ae46b3862fd92ddf3445c63182ccd88a9e309dab737ca9cc26d7b30"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "5f0b1e95f6c3a6ae12d55a23b44423fed6fac577c7a577b64bcacf6e5390ddfe"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "912da0c77b1c33bbae8c27d01bfed32ca39eda295458ad0fe89a4e9a21484e12"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "ee539a49a0b6acc22709081bc98d644179f6c44524576c5b80cbf7093e7f17ee"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "31d6b0b0f0d9100d160bed1a0c22e02ed7fc51ca3c07fb2f290de5b3e74ae42d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "25bc25430658ac0e675c681f6474aecf8df1d8a5868d4bae3c2260ee39dc9d70"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "9d91d2a41921088a7d3e85d60e68b552438b5a2b27f1b8bcd4d041029d1febab"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "5610d660c844ea1ef7318e1ec5d24c322636e6d02b5616769facae39c49a3081"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "42dd85e9050835a3fb15c4d62d4955090fe8e14dd7f48fa6956429574c5d5ff9"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "5772053ae40e9c70e5b57fafbe7c0cfae103754e5a1991246b9617dfddd6f06a"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "0aaf253432de07137c0ce07e2887442cd1a9dc6079c3e0aa626707357842eae4"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "83f1ecd4362636d41af98f7880a50e7fba4f082655c416b2fe86aad1de640b08"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "2625c6a63ac785ab05364a93942e2115961363b8ecd9f90bb09778bb5fcbfad8"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "89ca2e7bb40c781a4f517e785f288b16efb4a047cb367ebf6351f59efd6295fb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.8125,
+       1.0
+      ],
+      [
+       0.5625,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       0.9375
+      ],
+      [
+       0.4375,
+       0.8125,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.5625,
+       1.0
+      ],
+      [
+       0.4375,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       0.9375
+      ],
+      [
+       0.5625,
+       0.5625,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:waxed_oxidized_copper_chest[facing=east]": {
+   "fallback_color": [
+    200,
+    120,
+    70
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "314904731e8956eba4e286951bda17321dacaa45479a08ca76645b15700a2674"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "ef1456a620a9acc9b9d1431f989fc97387ab7e4b936b7711b3a4d99f4047d49a"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "b13a386cb66478e90ef65750b9d79f8bbcf3bae3bce9f0ee333b47babf267c54"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       10
+      ],
+      "mode": "RGBA",
+      "sha256": "25bba540fccd39ab6fd05a6ca24d981f219e78d6647dce1d093b7bc86e14ddca"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "acfb5ad90727d99bfcec5c9ee888ebf41c3271312042a294613228ab846aacda"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.0,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.0,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "ea001e83163656329ac0971dd7ef3298d0fac3cad1f3fd9989f5628a97c241a2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "b9a2814e3b22071d4d96b8fa8301b5df2083513beec7896e4efb1ae3578fb357"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "977b950649f97f88d9878a42174536b8c6c5268a8ec2cd3865845843dea0b0f5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "1131fe0fb093a03dcb144c4afbed52fdbe71e08f1942241bf7ef32ad4d343882"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       5
+      ],
+      "mode": "RGBA",
+      "sha256": "60ccfa537622039db847c63db19564aa0992eb0bb000b5d47565a9cfdb01d25b"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.0625
+      ],
+      [
+       0.0625,
+       0.9375,
+       0.9375
+      ],
+      [
+       0.9375,
+       0.9375,
+       0.9375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "8310f002ffce543c9b3d9512c1c9cf12a0df57864a7fbda8e0ecbe981f01195f"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.9375
+      ],
+      [
+       0.0625,
+       0.625,
+       0.0625
+      ],
+      [
+       0.9375,
+       0.625,
+       0.0625
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       14,
+       14
+      ],
+      "mode": "RGBA",
+      "sha256": "0838d1224855bcace86ed7d686e4621c93f0cce1f99a1ea9f7a4890d9b06cf1e"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "01ae846c540d94b8c531e174b85647dea6ac6c5e6f7811500866c4eb2b560cb2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       1,
+       4
+      ],
+      "mode": "RGBA",
+      "sha256": "a6e683d20ca6d09012f672d71a547c8b4290cdd2babed53ca0a6a4ab809a61be"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.4375
+      ],
+      [
+       0.9375,
+       0.8125,
+       0.5625
+      ],
+      [
+       1.0,
+       0.8125,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "830e163eba769d4216afe4d2e5619655ac2fd3b42ad5e1ea1452ae4a12498f0d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.5625
+      ],
+      [
+       0.9375,
+       0.5625,
+       0.4375
+      ],
+      [
+       1.0,
+       0.5625,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       1
+      ],
+      "mode": "RGBA",
+      "sha256": "aef36e3231c2b1f9d72772bf4ecdb4014d9fd348726712a4e8dfd35aa9a05a45"
+     }
+    }
+   ]
+  },
+  "minecraft:red_banner[rotation=0]": {
+   "fallback_color": [
+    176,
+    46,
+    38
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.5625,
+       0.875,
+       0.4375
+      ],
+      [
+       0.5625,
+       0.0,
+       0.4375
+      ],
+      [
+       0.4375,
+       0.0,
+       0.4375
+      ],
+      [
+       0.4375,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "a7c46a2887b6e54c835a06c5fd8d33b2fb3bfa25af26498c82f6fcf8d43851f7"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.875,
+       0.5625
+      ],
+      [
+       0.4375,
+       0.0,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.0,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.875,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "6702ff954081a38038fe71da907cdd66f7f4fa3a89307ea2c02b976e8fff93b5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5625,
+       0.875,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.0,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.0,
+       0.4375
+      ],
+      [
+       0.5625,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "3ece77be0ff30adb75891b0ebe24a4da78e1a425493164337253c3dba4edf166"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.875,
+       0.4375
+      ],
+      [
+       0.4375,
+       0.0,
+       0.4375
+      ],
+      [
+       0.4375,
+       0.0,
+       0.5625
+      ],
+      [
+       0.4375,
+       0.875,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "6a1166b581604f5d79710c6dfd41629bda1d6188ba7c4c161ed2895fd0d3ed28"
+     }
+    },
+    {
+     "points": [
+      [
+       0.4375,
+       0.875,
+       0.4375
+      ],
+      [
+       0.4375,
+       0.875,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.875,
+       0.5625
+      ],
+      [
+       0.5625,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "088f5d7791396a5e990c1042a8206749c67d707f799460045dfb9d20e0e8280f"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.875,
+       0.4375
+      ],
+      [
+       1.125,
+       0.75,
+       0.4375
+      ],
+      [
+       -0.125,
+       0.75,
+       0.4375
+      ],
+      [
+       -0.125,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.875,
+       0.5625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.5625
+      ],
+      [
+       1.125,
+       0.75,
+       0.5625
+      ],
+      [
+       1.125,
+       0.875,
+       0.5625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.875,
+       0.5625
+      ],
+      [
+       1.125,
+       0.75,
+       0.5625
+      ],
+      [
+       1.125,
+       0.75,
+       0.4375
+      ],
+      [
+       1.125,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "f5f9dd8c3504d6e8458e69311953cddaf56bc6b7810ad1d4a225557b90b9a49b"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.875,
+       0.4375
+      ],
+      [
+       -0.125,
+       0.75,
+       0.4375
+      ],
+      [
+       -0.125,
+       0.75,
+       0.5625
+      ],
+      [
+       -0.125,
+       0.875,
+       0.5625
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "5aac65c928ed20cf70b763eb33d8f045f5862b218f0b31b3dd98fe8cc5d0d57d"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.875,
+       0.4375
+      ],
+      [
+       -0.125,
+       0.875,
+       0.5625
+      ],
+      [
+       1.125,
+       0.875,
+       0.5625
+      ],
+      [
+       1.125,
+       0.875,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "344d98814176fc509646d452bc22a0acf4a3a9dae42a1de7a63e3a82dafb4ed2"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.4375
+      ],
+      [
+       1.125,
+       0.75,
+       0.5625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.5625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.4375
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c25014316651cd6ce96936939b98c4af3939833e0236959fa29798ff627daad0"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       0.53125
+      ],
+      [
+       -0.125,
+       0.125,
+       0.53125
+      ],
+      [
+       1.125,
+       0.125,
+       0.53125
+      ],
+      [
+       1.125,
+       0.75,
+       0.53125
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "c5bd9bcc05b37853030e9ccf8520014adb2bb34fcfc9005df1383cf5845930d2"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.46875
+      ],
+      [
+       1.125,
+       0.125,
+       0.46875
+      ],
+      [
+       -0.125,
+       0.125,
+       0.46875
+      ],
+      [
+       -0.125,
+       0.75,
+       0.46875
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "7b136ee7581706175a801ab4ee02d5719b3e11a18c0fca9f3bf0755a92f80f72"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.53125
+      ],
+      [
+       1.125,
+       0.125,
+       0.53125
+      ],
+      [
+       1.125,
+       0.125,
+       0.46875
+      ],
+      [
+       1.125,
+       0.75,
+       0.46875
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "769ae092c5485473d87db89e60eb8213cefb5c4e2c3d7e8f863c64440833bf75"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       0.46875
+      ],
+      [
+       -0.125,
+       0.125,
+       0.46875
+      ],
+      [
+       -0.125,
+       0.125,
+       0.53125
+      ],
+      [
+       -0.125,
+       0.75,
+       0.53125
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "7c63b8464fc3dbe853fd525f21d669284430ef1e21aa9b06f5c444c1bf306e48"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       0.46875
+      ],
+      [
+       -0.125,
+       0.75,
+       0.53125
+      ],
+      [
+       1.125,
+       0.75,
+       0.53125
+      ],
+      [
+       1.125,
+       0.75,
+       0.46875
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "355936d3f322840823b1fd2f89bd11da6bd0e15fb781457566fbc8fc72d459eb"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.125,
+       0.46875
+      ],
+      [
+       1.125,
+       0.125,
+       0.53125
+      ],
+      [
+       -0.125,
+       0.125,
+       0.53125
+      ],
+      [
+       -0.125,
+       0.125,
+       0.46875
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "b815bb9ea2307bec58c1769fd85859ab6c96494976a499ec7d4b8e13689c4f70"
+     }
+    }
+   ]
+  },
+  "minecraft:blue_banner[rotation=5]": {
+   "fallback_color": [
+    60,
+    68,
+    170
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.5338247562591373,
+       0.875,
+       0.5816601853047735
+      ],
+      [
+       0.5338247562591373,
+       0.0,
+       0.5816601853047735
+      ],
+      [
+       0.5816601853047735,
+       0.0,
+       0.46617524374086267
+      ],
+      [
+       0.5816601853047735,
+       0.875,
+       0.46617524374086267
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "d126962c8b1c1d891591f53ee5e17135c0ae1c01873cf8c0e0756a2614f5be03"
+     }
+    },
+    {
+     "points": [
+      [
+       0.46617524374086267,
+       0.875,
+       0.41833981469522646
+      ],
+      [
+       0.46617524374086267,
+       0.0,
+       0.41833981469522646
+      ],
+      [
+       0.41833981469522646,
+       0.0,
+       0.5338247562591373
+      ],
+      [
+       0.41833981469522646,
+       0.875,
+       0.5338247562591373
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "203d112e6a603734bf118063adc0afa84f6aa1fb209a813917e3f2d04f277f42"
+     }
+    },
+    {
+     "points": [
+      [
+       0.41833981469522646,
+       0.875,
+       0.5338247562591373
+      ],
+      [
+       0.41833981469522646,
+       0.0,
+       0.5338247562591373
+      ],
+      [
+       0.5338247562591373,
+       0.0,
+       0.5816601853047735
+      ],
+      [
+       0.5338247562591373,
+       0.875,
+       0.5816601853047735
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "7cd19eaca81a63496084091adf63d158650cdcfc81cb57744006bdb40ee16cf5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5816601853047735,
+       0.875,
+       0.46617524374086267
+      ],
+      [
+       0.5816601853047735,
+       0.0,
+       0.46617524374086267
+      ],
+      [
+       0.46617524374086267,
+       0.0,
+       0.41833981469522646
+      ],
+      [
+       0.46617524374086267,
+       0.875,
+       0.41833981469522646
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "01343e07221e7340dc1669dab3618478af6077361e4e5e9ca73a6da04cdedb9d"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5816601853047735,
+       0.875,
+       0.46617524374086267
+      ],
+      [
+       0.46617524374086267,
+       0.875,
+       0.41833981469522646
+      ],
+      [
+       0.41833981469522646,
+       0.875,
+       0.5338247562591373
+      ],
+      [
+       0.5338247562591373,
+       0.875,
+       0.5816601853047735
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "088f5d7791396a5e990c1042a8206749c67d707f799460045dfb9d20e0e8280f"
+     }
+    },
+    {
+     "points": [
+      [
+       0.31856532555377437,
+       0.875,
+       1.1013424223423725
+      ],
+      [
+       0.31856532555377437,
+       0.75,
+       1.1013424223423725
+      ],
+      [
+       0.7969196160101364,
+       0.75,
+       -0.05350699329673613
+      ],
+      [
+       0.7969196160101364,
+       0.875,
+       -0.05350699329673613
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8e9135842e2e4a456857962e38bd3fa1d610218fb628b16656620ed83e050177"
+     }
+    },
+    {
+     "points": [
+      [
+       0.6814346744462256,
+       0.875,
+       -0.10134242234237234
+      ],
+      [
+       0.6814346744462256,
+       0.75,
+       -0.10134242234237234
+      ],
+      [
+       0.2030803839898635,
+       0.75,
+       1.053506993296736
+      ],
+      [
+       0.2030803839898635,
+       0.875,
+       1.053506993296736
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8e9135842e2e4a456857962e38bd3fa1d610218fb628b16656620ed83e050177"
+     }
+    },
+    {
+     "points": [
+      [
+       0.2030803839898635,
+       0.875,
+       1.053506993296736
+      ],
+      [
+       0.2030803839898635,
+       0.75,
+       1.053506993296736
+      ],
+      [
+       0.31856532555377437,
+       0.75,
+       1.1013424223423725
+      ],
+      [
+       0.31856532555377437,
+       0.875,
+       1.1013424223423725
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "726313e5a119f7e7de96fdcd8b1d1f5ef487cdce4841bdfe2fed9078e37cba82"
+     }
+    },
+    {
+     "points": [
+      [
+       0.7969196160101364,
+       0.875,
+       -0.05350699329673613
+      ],
+      [
+       0.7969196160101364,
+       0.75,
+       -0.05350699329673613
+      ],
+      [
+       0.6814346744462256,
+       0.75,
+       -0.10134242234237234
+      ],
+      [
+       0.6814346744462256,
+       0.875,
+       -0.10134242234237234
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c8ffc2af87bdd6a4586662a0d2dfbb37d92c7827b2e6b486249f700953dd160a"
+     }
+    },
+    {
+     "points": [
+      [
+       0.7969196160101364,
+       0.875,
+       -0.05350699329673613
+      ],
+      [
+       0.6814346744462256,
+       0.875,
+       -0.10134242234237234
+      ],
+      [
+       0.2030803839898635,
+       0.875,
+       1.053506993296736
+      ],
+      [
+       0.31856532555377437,
+       0.875,
+       1.1013424223423725
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "344d98814176fc509646d452bc22a0acf4a3a9dae42a1de7a63e3a82dafb4ed2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.31856532555377437,
+       0.75,
+       1.1013424223423725
+      ],
+      [
+       0.2030803839898635,
+       0.75,
+       1.053506993296736
+      ],
+      [
+       0.6814346744462256,
+       0.75,
+       -0.10134242234237234
+      ],
+      [
+       0.7969196160101364,
+       0.75,
+       -0.05350699329673613
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c25014316651cd6ce96936939b98c4af3939833e0236959fa29798ff627daad0"
+     }
+    },
+    {
+     "points": [
+      [
+       0.7103059098372033,
+       0.75,
+       -0.08938356508096329
+      ],
+      [
+       0.7103059098372033,
+       0.125,
+       -0.08938356508096329
+      ],
+      [
+       0.23195161938084122,
+       0.125,
+       1.0654658505581451
+      ],
+      [
+       0.23195161938084122,
+       0.75,
+       1.0654658505581451
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "200d4d733682c6f4014e8b8580ce292156378db458edcd6822d2ad1b76b1906c"
+     }
+    },
+    {
+     "points": [
+      [
+       0.2896940901627966,
+       0.75,
+       1.0893835650809633
+      ],
+      [
+       0.2896940901627966,
+       0.125,
+       1.0893835650809633
+      ],
+      [
+       0.7680483806191587,
+       0.125,
+       -0.06546585055814519
+      ],
+      [
+       0.7680483806191587,
+       0.75,
+       -0.06546585055814519
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "4373b15fd6f90828ed81270ca8dfe7c98a9588e580604dec53fcca8b125822fe"
+     }
+    },
+    {
+     "points": [
+      [
+       0.23195161938084122,
+       0.75,
+       1.0654658505581451
+      ],
+      [
+       0.23195161938084122,
+       0.125,
+       1.0654658505581451
+      ],
+      [
+       0.2896940901627966,
+       0.125,
+       1.0893835650809633
+      ],
+      [
+       0.2896940901627966,
+       0.75,
+       1.0893835650809633
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "58cfe45f3da5de125bfd69a76e0de8a7448d186a481eec4e7cfe825b2f9722a4"
+     }
+    },
+    {
+     "points": [
+      [
+       0.7680483806191587,
+       0.75,
+       -0.06546585055814519
+      ],
+      [
+       0.7680483806191587,
+       0.125,
+       -0.06546585055814519
+      ],
+      [
+       0.7103059098372033,
+       0.125,
+       -0.08938356508096329
+      ],
+      [
+       0.7103059098372033,
+       0.75,
+       -0.08938356508096329
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "3f6161c4a1dbd71788a5b5b22bcb142f7701338a711c9d0d1ccbf2076dd31d4b"
+     }
+    },
+    {
+     "points": [
+      [
+       0.7680483806191587,
+       0.75,
+       -0.06546585055814519
+      ],
+      [
+       0.7103059098372033,
+       0.75,
+       -0.08938356508096329
+      ],
+      [
+       0.23195161938084122,
+       0.75,
+       1.0654658505581451
+      ],
+      [
+       0.2896940901627966,
+       0.75,
+       1.0893835650809633
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c28092f3a5f49407177348bc15b6a73cdece30ed1fb2bb8d2206cc768b62bf78"
+     }
+    },
+    {
+     "points": [
+      [
+       0.2896940901627966,
+       0.125,
+       1.0893835650809633
+      ],
+      [
+       0.23195161938084122,
+       0.125,
+       1.0654658505581451
+      ],
+      [
+       0.7103059098372033,
+       0.125,
+       -0.08938356508096329
+      ],
+      [
+       0.7680483806191587,
+       0.125,
+       -0.06546585055814519
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "a6148e4306df2e7026308ca728f8543f8b09fb3e8023c96866585de1688b1ff8"
+     }
+    }
+   ]
+  },
+  "minecraft:white_banner[rotation=15]": {
+   "fallback_color": [
+    249,
+    255,
+    254
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.5338247562591373,
+       0.875,
+       0.41833981469522646
+      ],
+      [
+       0.5338247562591373,
+       0.0,
+       0.41833981469522646
+      ],
+      [
+       0.41833981469522646,
+       0.0,
+       0.46617524374086267
+      ],
+      [
+       0.41833981469522646,
+       0.875,
+       0.46617524374086267
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "a7c46a2887b6e54c835a06c5fd8d33b2fb3bfa25af26498c82f6fcf8d43851f7"
+     }
+    },
+    {
+     "points": [
+      [
+       0.46617524374086267,
+       0.875,
+       0.5816601853047735
+      ],
+      [
+       0.46617524374086267,
+       0.0,
+       0.5816601853047735
+      ],
+      [
+       0.5816601853047735,
+       0.0,
+       0.5338247562591373
+      ],
+      [
+       0.5816601853047735,
+       0.875,
+       0.5338247562591373
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "6702ff954081a38038fe71da907cdd66f7f4fa3a89307ea2c02b976e8fff93b5"
+     }
+    },
+    {
+     "points": [
+      [
+       0.5816601853047735,
+       0.875,
+       0.5338247562591373
+      ],
+      [
+       0.5816601853047735,
+       0.0,
+       0.5338247562591373
+      ],
+      [
+       0.5338247562591373,
+       0.0,
+       0.41833981469522646
+      ],
+      [
+       0.5338247562591373,
+       0.875,
+       0.41833981469522646
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "3ece77be0ff30adb75891b0ebe24a4da78e1a425493164337253c3dba4edf166"
+     }
+    },
+    {
+     "points": [
+      [
+       0.41833981469522646,
+       0.875,
+       0.46617524374086267
+      ],
+      [
+       0.41833981469522646,
+       0.0,
+       0.46617524374086267
+      ],
+      [
+       0.46617524374086267,
+       0.0,
+       0.5816601853047735
+      ],
+      [
+       0.46617524374086267,
+       0.875,
+       0.5816601853047735
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       40
+      ],
+      "mode": "RGBA",
+      "sha256": "6a1166b581604f5d79710c6dfd41629bda1d6188ba7c4c161ed2895fd0d3ed28"
+     }
+    },
+    {
+     "points": [
+      [
+       0.41833981469522646,
+       0.875,
+       0.46617524374086267
+      ],
+      [
+       0.46617524374086267,
+       0.875,
+       0.5816601853047735
+      ],
+      [
+       0.5816601853047735,
+       0.875,
+       0.5338247562591373
+      ],
+      [
+       0.5338247562591373,
+       0.875,
+       0.41833981469522646
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "088f5d7791396a5e990c1042a8206749c67d707f799460045dfb9d20e0e8280f"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0535069932967362,
+       0.875,
+       0.20308038398986356
+      ],
+      [
+       1.0535069932967362,
+       0.75,
+       0.20308038398986356
+      ],
+      [
+       -0.10134242234237234,
+       0.75,
+       0.6814346744462256
+      ],
+      [
+       -0.10134242234237234,
+       0.875,
+       0.6814346744462256
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.05350699329673614,
+       0.875,
+       0.7969196160101364
+      ],
+      [
+       -0.05350699329673614,
+       0.75,
+       0.7969196160101364
+      ],
+      [
+       1.1013424223423722,
+       0.75,
+       0.3185653255537744
+      ],
+      [
+       1.1013424223423722,
+       0.875,
+       0.3185653255537744
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.1013424223423722,
+       0.875,
+       0.3185653255537744
+      ],
+      [
+       1.1013424223423722,
+       0.75,
+       0.3185653255537744
+      ],
+      [
+       1.0535069932967362,
+       0.75,
+       0.20308038398986356
+      ],
+      [
+       1.0535069932967362,
+       0.875,
+       0.20308038398986356
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "f5f9dd8c3504d6e8458e69311953cddaf56bc6b7810ad1d4a225557b90b9a49b"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.10134242234237234,
+       0.875,
+       0.6814346744462256
+      ],
+      [
+       -0.10134242234237234,
+       0.75,
+       0.6814346744462256
+      ],
+      [
+       -0.05350699329673614,
+       0.75,
+       0.7969196160101364
+      ],
+      [
+       -0.05350699329673614,
+       0.875,
+       0.7969196160101364
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "5aac65c928ed20cf70b763eb33d8f045f5862b218f0b31b3dd98fe8cc5d0d57d"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.10134242234237234,
+       0.875,
+       0.6814346744462256
+      ],
+      [
+       -0.05350699329673614,
+       0.875,
+       0.7969196160101364
+      ],
+      [
+       1.1013424223423722,
+       0.875,
+       0.3185653255537744
+      ],
+      [
+       1.0535069932967362,
+       0.875,
+       0.20308038398986356
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "344d98814176fc509646d452bc22a0acf4a3a9dae42a1de7a63e3a82dafb4ed2"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0535069932967362,
+       0.75,
+       0.20308038398986356
+      ],
+      [
+       1.1013424223423722,
+       0.75,
+       0.3185653255537744
+      ],
+      [
+       -0.05350699329673614,
+       0.75,
+       0.7969196160101364
+      ],
+      [
+       -0.10134242234237234,
+       0.75,
+       0.6814346744462256
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c25014316651cd6ce96936939b98c4af3939833e0236959fa29798ff627daad0"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.06546585055814519,
+       0.75,
+       0.7680483806191587
+      ],
+      [
+       -0.06546585055814519,
+       0.125,
+       0.7680483806191587
+      ],
+      [
+       1.0893835650809633,
+       0.125,
+       0.2896940901627967
+      ],
+      [
+       1.0893835650809633,
+       0.75,
+       0.2896940901627967
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "8bed85089659c1349c06abd62f28f84248352486110ffb4da16bc54f45f5ad9b"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0654658505581451,
+       0.75,
+       0.23195161938084127
+      ],
+      [
+       1.0654658505581451,
+       0.125,
+       0.23195161938084127
+      ],
+      [
+       -0.08938356508096329,
+       0.125,
+       0.7103059098372033
+      ],
+      [
+       -0.08938356508096329,
+       0.75,
+       0.7103059098372033
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "3c1169d46d219a7c472edfc55c6ec93f9cd4abaeb3adcd399689412f88146dbe"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0893835650809633,
+       0.75,
+       0.2896940901627967
+      ],
+      [
+       1.0893835650809633,
+       0.125,
+       0.2896940901627967
+      ],
+      [
+       1.0654658505581451,
+       0.125,
+       0.23195161938084127
+      ],
+      [
+       1.0654658505581451,
+       0.75,
+       0.23195161938084127
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "429761e67a5a4cc3f6c49b4eb8fc2799ca2b0c4edc2b07f6ffabe76a05b0de5e"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.08938356508096329,
+       0.75,
+       0.7103059098372033
+      ],
+      [
+       -0.08938356508096329,
+       0.125,
+       0.7103059098372033
+      ],
+      [
+       -0.06546585055814519,
+       0.125,
+       0.7680483806191587
+      ],
+      [
+       -0.06546585055814519,
+       0.75,
+       0.7680483806191587
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "af7665fe409cfb00c4a76310d30ce752d27c33b300a7f158d3a6bf37ec5156cd"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.08938356508096329,
+       0.75,
+       0.7103059098372033
+      ],
+      [
+       -0.06546585055814519,
+       0.75,
+       0.7680483806191587
+      ],
+      [
+       1.0893835650809633,
+       0.75,
+       0.2896940901627967
+      ],
+      [
+       1.0654658505581451,
+       0.75,
+       0.23195161938084127
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "ce35caf681cef4ff5c1bff11e523403cccf64ad9c489bb0d827ad5cc68c1ab48"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0654658505581451,
+       0.125,
+       0.23195161938084127
+      ],
+      [
+       1.0893835650809633,
+       0.125,
+       0.2896940901627967
+      ],
+      [
+       -0.06546585055814519,
+       0.125,
+       0.7680483806191587
+      ],
+      [
+       -0.08938356508096329,
+       0.125,
+       0.7103059098372033
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "991723994557bf49be297413a6c2e2217dec1237979c7dd2dc20b9dc4c1a9c67"
+     }
+    }
+   ]
+  },
+  "minecraft:black_wall_banner[facing=east]": {
+   "fallback_color": [
+    29,
+    29,
+    33
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       0.875,
+       -0.125
+      ],
+      [
+       0.0,
+       0.75,
+       -0.125
+      ],
+      [
+       0.0,
+       0.75,
+       1.125
+      ],
+      [
+       0.0,
+       0.875,
+       1.125
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8e9135842e2e4a456857962e38bd3fa1d610218fb628b16656620ed83e050177"
+     }
+    },
+    {
+     "points": [
+      [
+       0.125,
+       0.875,
+       1.125
+      ],
+      [
+       0.125,
+       0.75,
+       1.125
+      ],
+      [
+       0.125,
+       0.75,
+       -0.125
+      ],
+      [
+       0.125,
+       0.875,
+       -0.125
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8e9135842e2e4a456857962e38bd3fa1d610218fb628b16656620ed83e050177"
+     }
+    },
+    {
+     "points": [
+      [
+       0.125,
+       0.875,
+       -0.125
+      ],
+      [
+       0.125,
+       0.75,
+       -0.125
+      ],
+      [
+       0.0,
+       0.75,
+       -0.125
+      ],
+      [
+       0.0,
+       0.875,
+       -0.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "726313e5a119f7e7de96fdcd8b1d1f5ef487cdce4841bdfe2fed9078e37cba82"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.875,
+       1.125
+      ],
+      [
+       0.0,
+       0.75,
+       1.125
+      ],
+      [
+       0.125,
+       0.75,
+       1.125
+      ],
+      [
+       0.125,
+       0.875,
+       1.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c8ffc2af87bdd6a4586662a0d2dfbb37d92c7827b2e6b486249f700953dd160a"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.875,
+       1.125
+      ],
+      [
+       0.125,
+       0.875,
+       1.125
+      ],
+      [
+       0.125,
+       0.875,
+       -0.125
+      ],
+      [
+       0.0,
+       0.875,
+       -0.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "344d98814176fc509646d452bc22a0acf4a3a9dae42a1de7a63e3a82dafb4ed2"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       0.75,
+       -0.125
+      ],
+      [
+       0.125,
+       0.75,
+       -0.125
+      ],
+      [
+       0.125,
+       0.75,
+       1.125
+      ],
+      [
+       0.0,
+       0.75,
+       1.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c25014316651cd6ce96936939b98c4af3939833e0236959fa29798ff627daad0"
+     }
+    },
+    {
+     "points": [
+      [
+       0.09375,
+       0.75,
+       1.125
+      ],
+      [
+       0.09375,
+       0.125,
+       1.125
+      ],
+      [
+       0.09375,
+       0.125,
+       -0.125
+      ],
+      [
+       0.09375,
+       0.75,
+       -0.125
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "c4e56d8a189a4ef4723a31a5f908674f8cf0b47fe5b80f1f804d44747e3b4815"
+     }
+    },
+    {
+     "points": [
+      [
+       0.03125,
+       0.75,
+       -0.125
+      ],
+      [
+       0.03125,
+       0.125,
+       -0.125
+      ],
+      [
+       0.03125,
+       0.125,
+       1.125
+      ],
+      [
+       0.03125,
+       0.75,
+       1.125
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "9f9f1aaeed47c064ff429ca7d23d8e749ee5bae7691fc171211f51ba50375095"
+     }
+    },
+    {
+     "points": [
+      [
+       0.09375,
+       0.75,
+       -0.125
+      ],
+      [
+       0.09375,
+       0.125,
+       -0.125
+      ],
+      [
+       0.03125,
+       0.125,
+       -0.125
+      ],
+      [
+       0.03125,
+       0.75,
+       -0.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "f4a78f61137ea98d8b9f8b2a9cf5ca4f5f1ae8935af25a0cc2bad83add6d8deb"
+     }
+    },
+    {
+     "points": [
+      [
+       0.03125,
+       0.75,
+       1.125
+      ],
+      [
+       0.03125,
+       0.125,
+       1.125
+      ],
+      [
+       0.09375,
+       0.125,
+       1.125
+      ],
+      [
+       0.09375,
+       0.75,
+       1.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "4e2a747d128c34113ee4f5fe8322c0af8b52a3f319cfc809f779d6f2e3fd5fc7"
+     }
+    },
+    {
+     "points": [
+      [
+       0.03125,
+       0.75,
+       1.125
+      ],
+      [
+       0.09375,
+       0.75,
+       1.125
+      ],
+      [
+       0.09375,
+       0.75,
+       -0.125
+      ],
+      [
+       0.03125,
+       0.75,
+       -0.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "61580d30c81ac6c6e0e77e4b73bd1814a51102641372550e4bed1667750577de"
+     }
+    },
+    {
+     "points": [
+      [
+       0.03125,
+       0.125,
+       -0.125
+      ],
+      [
+       0.09375,
+       0.125,
+       -0.125
+      ],
+      [
+       0.09375,
+       0.125,
+       1.125
+      ],
+      [
+       0.03125,
+       0.125,
+       1.125
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "d3b4b9ed27e8abacd582031dd89d9cbe9384d644d4f2c98fe2c9d04d946f84e1"
+     }
+    }
+   ]
+  },
+  "minecraft:light_blue_wall_banner[facing=north]": {
+   "fallback_color": [
+    58,
+    179,
+    218
+   ],
+   "fallback_blocks": [],
+   "is_fallback": false,
+   "quads": [
+    {
+     "points": [
+      [
+       -0.125,
+       0.875,
+       1.0
+      ],
+      [
+       -0.125,
+       0.75,
+       1.0
+      ],
+      [
+       1.125,
+       0.75,
+       1.0
+      ],
+      [
+       1.125,
+       0.875,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.875,
+       0.875
+      ],
+      [
+       1.125,
+       0.75,
+       0.875
+      ],
+      [
+       -0.125,
+       0.75,
+       0.875
+      ],
+      [
+       -0.125,
+       0.875,
+       0.875
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "8734cdd0ae4faf1d5ed199c3e15e1fa936983cd8f096e69e28ac3801f537596d"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.875,
+       0.875
+      ],
+      [
+       -0.125,
+       0.75,
+       0.875
+      ],
+      [
+       -0.125,
+       0.75,
+       1.0
+      ],
+      [
+       -0.125,
+       0.875,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "f5f9dd8c3504d6e8458e69311953cddaf56bc6b7810ad1d4a225557b90b9a49b"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.875,
+       1.0
+      ],
+      [
+       1.125,
+       0.75,
+       1.0
+      ],
+      [
+       1.125,
+       0.75,
+       0.875
+      ],
+      [
+       1.125,
+       0.875,
+       0.875
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "5aac65c928ed20cf70b763eb33d8f045f5862b218f0b31b3dd98fe8cc5d0d57d"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.875,
+       1.0
+      ],
+      [
+       1.125,
+       0.875,
+       0.875
+      ],
+      [
+       -0.125,
+       0.875,
+       0.875
+      ],
+      [
+       -0.125,
+       0.875,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "344d98814176fc509646d452bc22a0acf4a3a9dae42a1de7a63e3a82dafb4ed2"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       1.0
+      ],
+      [
+       -0.125,
+       0.75,
+       0.875
+      ],
+      [
+       1.125,
+       0.75,
+       0.875
+      ],
+      [
+       1.125,
+       0.75,
+       1.0
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "c25014316651cd6ce96936939b98c4af3939833e0236959fa29798ff627daad0"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.90625
+      ],
+      [
+       1.125,
+       0.125,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.125,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.90625
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      -1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "0400dc094b37d6bc3fa1d257e6c9f1d67c3ce576cd1aaf59715d419005e5588a"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       0.96875
+      ],
+      [
+       -0.125,
+       0.125,
+       0.96875
+      ],
+      [
+       1.125,
+       0.125,
+       0.96875
+      ],
+      [
+       1.125,
+       0.75,
+       0.96875
+      ]
+     ],
+     "normal": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       20,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "811ef81ad35f9b9dcb97c4110c13a1a834ca4a29c873baa9a260dbb74a86e5e2"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.75,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.125,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.125,
+       0.96875
+      ],
+      [
+       -0.125,
+       0.75,
+       0.96875
+      ]
+     ],
+     "normal": [
+      -1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "cacb017bfa8e54319307c4df1540947ab6002577e9a547b52f6c3597eb930ddf"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.96875
+      ],
+      [
+       1.125,
+       0.125,
+       0.96875
+      ],
+      [
+       1.125,
+       0.125,
+       0.90625
+      ],
+      [
+       1.125,
+       0.75,
+       0.90625
+      ]
+     ],
+     "normal": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       2,
+       41
+      ],
+      "mode": "RGBA",
+      "sha256": "f1dbe3b393ee2016535a82fa6c08a7afdaf9d7df58a0111bb7582c56344974db"
+     }
+    },
+    {
+     "points": [
+      [
+       1.125,
+       0.75,
+       0.96875
+      ],
+      [
+       1.125,
+       0.75,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.90625
+      ],
+      [
+       -0.125,
+       0.75,
+       0.96875
+      ]
+     ],
+     "normal": [
+      0.0,
+      1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "0721fcb0b3bcc34842e3e97fb8da3c464fecee0b70b57d0e543471e4e6bb7ea5"
+     }
+    },
+    {
+     "points": [
+      [
+       -0.125,
+       0.125,
+       0.96875
+      ],
+      [
+       -0.125,
+       0.125,
+       0.90625
+      ],
+      [
+       1.125,
+       0.125,
+       0.90625
+      ],
+      [
+       1.125,
+       0.125,
+       0.96875
+      ]
+     ],
+     "normal": [
+      0.0,
+      -1.0,
+      0.0
+     ],
+     "cull": null,
+     "flat": false,
+     "image": {
+      "size": [
+       22,
+       2
+      ],
+      "mode": "RGBA",
+      "sha256": "b993ecf2e10fee8fcc5b8ea42fffacebc8ec252f12b299d364eb425328f55a71"
+     }
+    }
+   ]
+  },
+  "minecraft:unknown_banner[rotation=0]": {
+   "fallback_color": [
+    128,
+    19,
+    6
+   ],
+   "fallback_blocks": [],
+   "is_fallback": true,
+   "quads": [
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      1,
+      0
+     ],
+     "cull": [
+      0,
+      1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "9b62c6eca7a8ae9cf34d0c6f7c3a16c3abcabae452ed5a1c125fe4f2252a27ce"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      -1,
+      0
+     ],
+     "cull": [
+      0,
+      -1,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "3d57bad6ce17852a32af7aa3f7caff86596aefb0303e662b6fd70140c5249835"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       0.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      -1
+     ],
+     "cull": [
+      0,
+      0,
+      -1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       1.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      0,
+      0,
+      1
+     ],
+     "cull": [
+      0,
+      0,
+      1
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "046c0bdc48c5293c074ef2ce2fa76d2dbd201088d84d44c64c1e94ef5be967d3"
+     }
+    },
+    {
+     "points": [
+      [
+       0.0,
+       1.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       0.0
+      ],
+      [
+       0.0,
+       0.0,
+       1.0
+      ],
+      [
+       0.0,
+       1.0,
+       1.0
+      ]
+     ],
+     "normal": [
+      -1,
+      0,
+      0
+     ],
+     "cull": [
+      -1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    },
+    {
+     "points": [
+      [
+       1.0,
+       1.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       1.0
+      ],
+      [
+       1.0,
+       0.0,
+       0.0
+      ],
+      [
+       1.0,
+       1.0,
+       0.0
+      ]
+     ],
+     "normal": [
+      1,
+      0,
+      0
+     ],
+     "cull": [
+      1,
+      0,
+      0
+     ],
+     "flat": false,
+     "image": {
+      "size": [
+       16,
+       16
+      ],
+      "mode": "RGB",
+      "sha256": "4e1af2c1623bf29cf6a13e966b3841aef589bb03ba42ef6e5f898cf7dd3cd438"
+     }
+    }
+   ]
+  },
   "minecraft:pale_moss_carpet[bottom=true,east=none,north=none,south=none,west=none]": {
    "fallback_color": [
     90,
@@ -27606,6 +37666,7 @@
     16
    ],
    "fallback_blocks": [],
+   "is_fallback": false,
    "quads": [
     {
      "points": [

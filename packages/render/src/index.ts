@@ -1,5 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 export type { AssetSource } from "./assets.ts";
+export {
+  blockQuads,
+  DYE_RGB,
+  FALLBACK_MAGENTA,
+  FLUID_RGBA,
+  FLUID_SURFACE_HEIGHT,
+  fallbackColor,
+  fallbackCubeQuads,
+  fluidCubeQuads,
+  tryEntityQuads,
+} from "./blocks.ts";
 export { DEFAULT_PROPS, type Rgb, TINT_TABLE } from "./constants.ts";
 export type { RasterImage } from "./image.ts";
 export {
@@ -10,6 +21,20 @@ export {
   splitBlockstate,
   type Vec3,
 } from "./models.ts";
+export {
+  blockOccludesAo,
+  cellQuads,
+  effectiveBlock,
+  inferConnectorProps,
+  inferWallProps,
+  isHorizConnectorBlock,
+  isWallBlock,
+  type OccGrid,
+  prepareScene,
+  quadAoLevels,
+  quadCulledByNeighbour,
+  type Scene,
+} from "./scene.ts";
 export {
   checkCap,
   defaultViews,

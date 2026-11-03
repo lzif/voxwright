@@ -124,3 +124,66 @@ export function shade(img: RasterImage, factor: number): RasterImage {
 export function tint(img: RasterImage, rgb: readonly [number, number, number]): RasterImage {
   return scaleChannels(img, [rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0]);
 }
+
+export const copyImage = (img: RasterImage): RasterImage => ({
+  ...img,
+  data: new Uint8Array(img.data),
+});
+
+/** Pixel as `[r, g, b, a]` (alpha 255 for RGB images). */
+export function getPixel(img: RasterImage, x: number, y: number): [number, number, number, number] {
+  const i = (y * img.width + x) * img.channels;
+  return [
+    img.data[i] as number,
+    img.data[i + 1] as number,
+    img.data[i + 2] as number,
+    img.channels === 4 ? (img.data[i + 3] as number) : 255,
+  ];
+}
+
+export function setPixel(
+  img: RasterImage,
+  x: number,
+  y: number,
+  rgba: readonly [number, number, number, number],
+): void {
+  const i = (y * img.width + x) * img.channels;
+  img.data[i] = rgba[0];
+  img.data[i + 1] = rgba[1];
+  img.data[i + 2] = rgba[2];
+  if (img.channels === 4) img.data[i + 3] = rgba[3];
+}
+
+/** Paste `src` into `dst` at `(left, top)` without blending, converting modes as Pillow does. */
+export function paste(dst: RasterImage, src: RasterImage, left: number, top: number): void {
+  for (let y = 0; y < src.height; y++) {
+    for (let x = 0; x < src.width; x++) {
+      const dx = left + x;
+      const dy = top + y;
+      if (dx < 0 || dy < 0 || dx >= dst.width || dy >= dst.height) continue;
+      setPixel(dst, dx, dy, getPixel(src, x, y));
+    }
+  }
+}
+
+/** Multiply RGB by `k / 255` with integer floor (`v * k // 255`); alpha untouched. */
+export function tintRgb(img: RasterImage, rgb: readonly [number, number, number]): RasterImage {
+  const c = img.channels;
+  const data = new Uint8Array(img.data);
+  for (let i = 0; i < img.width * img.height; i++) {
+    for (let k = 0; k < 3; k++)
+      data[i * c + k] = Math.floor(((img.data[i * c + k] as number) * (rgb[k] as number)) / 255);
+  }
+  return { ...img, data };
+}
+
+/** A solid RGBA image. */
+export function solidRgba(
+  width: number,
+  height: number,
+  rgba: readonly [number, number, number, number],
+): RasterImage {
+  const data = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i++) data.set(rgba, i * 4);
+  return { width, height, channels: 4, data };
+}

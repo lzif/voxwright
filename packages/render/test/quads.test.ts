@@ -5,7 +5,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { type Quad, type Rgb, resolveBlockQuads, splitBlockstate } from "../src/index.ts";
+import { blockQuads, fallbackColor, type Quad, type Rgb, splitBlockstate } from "../src/index.ts";
 import { directoryAssets } from "../src/node/index.ts";
 
 interface QuadWant {
@@ -20,7 +20,7 @@ const vectors = JSON.parse(
 ) as {
   blocks: Record<
     string,
-    { fallback_color: Rgb; fallback_blocks: string[]; quads: QuadWant[] | null }
+    { fallback_color: Rgb; fallback_blocks: string[]; is_fallback: boolean; quads: QuadWant[] }
   >;
 };
 
@@ -41,15 +41,13 @@ describe.skipIf(!have)("model quads against the Python renderer (vanilla assets)
 
   for (const [canonical, want] of Object.entries(vectors.blocks)) {
     it(canonical, () => {
-      const [name, props] = splitBlockstate(canonical);
+      const [name] = splitBlockstate(canonical);
       const fallback = new Set<string>();
-      const got = resolveBlockQuads(name, props, assets, want.fallback_color, fallback);
+      expect(fallbackColor(name)).toEqual(want.fallback_color);
+      const got = blockQuads(canonical, assets, fallback);
       expect([...fallback].sort()).toEqual(want.fallback_blocks);
-      if (want.quads === null) {
-        expect(got).toBeNull();
-        return;
-      }
-      const quads = got as Quad[];
+      expect(got.isFallback).toBe(want.is_fallback);
+      const quads: Quad[] = got.quads;
       expect(quads.length).toBe(want.quads.length);
       quads.forEach((q, i) => {
         const w = want.quads?.[i] as QuadWant;
@@ -70,7 +68,7 @@ describe.skipIf(!have)("model quads against the Python renderer (vanilla assets)
 describe("model quads without assets", () => {
   it("lists the blockstates the vectors cover", () => {
     expect(Object.keys(vectors.blocks).length).toBeGreaterThan(50);
-    expect(vectors.blocks["minecraft:not_a_real_block"]?.quads).toBeNull();
+    expect(vectors.blocks["minecraft:not_a_real_block"]?.is_fallback).toBe(true);
   });
   it("splits canonical blockstates", () => {
     expect(splitBlockstate("minecraft:oak_log[axis=y]")).toEqual([
