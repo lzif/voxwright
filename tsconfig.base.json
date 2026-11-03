@@ -8,14 +8,15 @@
     "moduleDetection": "force",
     "strict": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "isolatedModules": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": false
+    "resolveJsonModule": true
   }
 }

@@ -26,6 +26,14 @@ module.exports = {
       },
     },
     {
+      name: "core-no-node-builtins",
+      comment:
+        "packages/core/src must run in a browser: no node: built-in modules. Tests may use them.",
+      severity: "error",
+      from: { path: "^packages/core/src/" },
+      to: { dependencyTypes: ["core"] },
+    },
+    {
       name: "render-only-uses-core",
       comment: "packages/render may depend on packages/core only.",
       severity: "error",
