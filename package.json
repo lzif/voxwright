@@ -1,0 +1,29 @@
+{
+  "name": "voxwright",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser schematic editor and a TypeScript port of mcbuilder.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.16.1",
+      "onFail": "download"
+    }
+  },
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "test": "vitest run --passWithNoTests",
+    "depcheck": "depcruise --config .dependency-cruiser.cjs packages apps"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.4",
+    "dependency-cruiser": "^18.7.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5"
+  }
+}
