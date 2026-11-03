@@ -88,7 +88,29 @@ export class Volume {
     checkCoord("x", x);
     checkCoord("y", y);
     checkCoord("z", z);
-    const idx = this.intern(block);
+    this.put(x, y, z, this.intern(block));
+  }
+
+  /**
+   * Set a cell by palette index, or make it unset with {@link UNSET}. The
+   * index must come from this volume's palette (it never shrinks, so an
+   * index stays valid for the life of the volume).
+   */
+  setIndex(x: number, y: number, z: number, index: number): void {
+    if (index === UNSET) {
+      this.unset(x, y, z);
+      return;
+    }
+    if (!Number.isInteger(index) || index < 0 || index >= this.paletteList.length) {
+      throw new VolumeError(`palette index ${index} is out of range`);
+    }
+    checkCoord("x", x);
+    checkCoord("y", y);
+    checkCoord("z", z);
+    this.put(x, y, z, index);
+  }
+
+  private put(x: number, y: number, z: number, idx: number): void {
     const sx = x >> SECTION_BITS;
     const sy = y >> SECTION_BITS;
     const sz = z >> SECTION_BITS;
