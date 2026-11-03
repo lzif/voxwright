@@ -91,7 +91,7 @@ The port starts from the merged `main` (mcbuilder 0.2.0, about 8,400 lines of Py
 | 10   | `assets` (291)                                  | Unzips the client jar and fetches the minecraft-data block registry                                                        |
 | 11   | `examples/`                                     | Port every script; they are the end-to-end tests                                                                           |
 
-**Status:** steps 1 to 6 are ported in `packages/mcbuilder` and pass vectors exported from the Python oracle (`vectors/*.json`). Step 6 covers the importer's summary, constant naming, box merging and a TypeScript script writer; reading the `.nbt` itself is `core`'s codec. Steps 7 to 11 (diff and guide, render, cli, assets, examples) are not started.
+**Status:** steps 1 to 6 are ported in `packages/mcbuilder` and pass vectors exported from the Python oracle (`vectors/*.json`). Step 6 covers the importer's summary, constant naming, box merging and a TypeScript script writer; reading the `.nbt` itself is `core`'s codec. Also done: the `mcbuild` CLI minus previews (`init`, `check`, `run`, `import`, `assets fetch`, in `packages/mcbuilder/src/node`) and step 10 (assets), checked against a fake network and once against the real one. Not started: `diff` and `guide` (step 7), render (step 8), previews in the CLI, and porting `examples/` (step 11).
 
 ## Port gotchas
 

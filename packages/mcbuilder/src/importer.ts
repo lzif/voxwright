@@ -8,7 +8,8 @@
 // structure exactly. Reading the files themselves is the codecs' job in
 // `@voxwright/core`.
 
-import { compareCodePoints, type Volume } from "@voxwright/core";
+import { canonicalize, compareCodePoints, type Volume } from "@voxwright/core";
+import type { Registry } from "./registry.ts";
 
 export type StructureCell = readonly [x: number, y: number, z: number, block: string];
 
@@ -49,6 +50,51 @@ export function structureFromVolume(
 }
 
 const AIR = "minecraft:air";
+
+/**
+ * Drop properties the registry does not know. Files converted from Bedrock
+ * often carry extra Bedrock-only properties next to the Java ones
+ * (`wall_post_bit`, `occupied_bit`, `half` on slabs...); the Java properties
+ * are already there, so dropping the extras gives the right Java block.
+ * Returns a new structure; what was dropped is counted in `droppedProperties`.
+ */
+export function cleanProperties(structure: Structure, registry: Registry): Structure {
+  const cache = new Map<string, { state: string; dropped: string[] }>();
+  const dropped = new Map(structure.droppedProperties);
+  const blocks = structure.blocks.map(([x, y, z, b]): StructureCell => {
+    let hit = cache.get(b);
+    if (hit === undefined) {
+      const bracket = b.indexOf("[");
+      const name = bracket === -1 ? b : b.slice(0, bracket);
+      const rest = bracket === -1 ? "" : b.slice(bracket + 1);
+      const legal = Object.hasOwn(registry.blocks, name) ? registry.blocks[name] : undefined;
+      if (legal === undefined || rest === "") {
+        hit = { state: b, dropped: [] };
+      } else {
+        const props = new Map<string, string>();
+        for (const kv of rest.replace(/\]+$/, "").split(",")) {
+          const eq = kv.indexOf("=");
+          if (eq !== -1) props.set(kv.slice(0, eq), kv.slice(eq + 1));
+        }
+        const keep = new Map<string, string>();
+        const gone: string[] = [];
+        for (const [k, v] of props) {
+          if (Object.hasOwn(legal, k) && (legal[k] as string[]).includes(v)) keep.set(k, v);
+          else gone.push(`${localName(name)}.${k}`);
+        }
+        const kept = [...keep.keys()].sort(compareCodePoints).map((k) => `${k}=${keep.get(k)}`);
+        hit = {
+          state: canonicalize(kept.length > 0 ? `${name}[${kept.join(",")}]` : name),
+          dropped: gone,
+        };
+      }
+      cache.set(b, hit);
+    }
+    for (const k of hit.dropped) dropped.set(k, (dropped.get(k) ?? 0) + 1);
+    return [x, y, z, hit.state];
+  });
+  return { ...structure, blocks, droppedProperties: dropped };
+}
 
 /** Python's `format(x, ".{digits}f")`: round half to even on exact ties. */
 export function pyFixed(x: number, digits: number): string {

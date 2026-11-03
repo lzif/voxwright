@@ -587,6 +587,42 @@ def importer_vectors():
     return {"scenarios": out}
 
 
+
+
+def clean_vectors():
+    from mcbuilder import importer
+    from mcbuilder.registry import Registry, normalize_block_data
+
+    reg = Registry(
+        normalize_block_data(
+            [
+                {"name": "oak_stairs", "states": [
+                    {"name": "facing", "type": "enum", "values": ["north", "south"]},
+                    {"name": "half", "type": "enum", "values": ["top", "bottom"]},
+                ]},
+                {"name": "oak_slab", "states": [{"name": "type", "type": "enum", "values": ["top", "bottom", "double"]}]},
+                {"name": "stone", "states": []},
+            ]
+        ),
+        "t",
+    )
+    blocks = {
+        (0, 0, 0): "minecraft:oak_stairs[facing=north,half=bottom,wall_post_bit=1]",
+        (1, 0, 0): "minecraft:oak_stairs[facing=north,half=bottom,wall_post_bit=1]",
+        (2, 0, 0): "minecraft:oak_stairs[facing=up,half=top]",
+        (3, 0, 0): "minecraft:oak_slab[type=top,half=top,occupied_bit=0]",
+        (4, 0, 0): "minecraft:stone[waterlogged=false]",
+        (5, 0, 0): "minecraft:unknown_block[a=b]",
+        (6, 0, 0): "minecraft:oak_slab",
+    }
+    work = dict(blocks)
+    dropped = importer._clean_properties(work, reg)
+    return {
+        "cells": [[*p, b] for p, b in blocks.items()],
+        "cleaned": [[*p, b] for p, b in work.items()],
+        "dropped": dict(dropped),
+    }
+
 if __name__ == "__main__":
     write("materials.json", materials_vectors())
     write("shapes.json", shapes_vectors())
@@ -596,3 +632,4 @@ if __name__ == "__main__":
     write("report.json", report_vectors())
     write("config.json", config_vectors())
     write("importer.json", importer_vectors())
+    write("clean.json", clean_vectors())

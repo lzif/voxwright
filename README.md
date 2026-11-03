@@ -33,6 +33,22 @@ Dependencies point one way only; `.dependency-cruiser.cjs` enforces this.
 
 Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm depcheck`.
 
+## The `mcbuild` command
+
+```sh
+node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # registry + client assets
+node packages/mcbuilder/bin/mcbuild.ts init house.ts
+node packages/mcbuilder/bin/mcbuild.ts check house.ts
+node packages/mcbuilder/bin/mcbuild.ts run house.ts                  # report.json + house.nbt
+node packages/mcbuilder/bin/mcbuild.ts import build.litematic -o build.ts
+```
+
+A script exports a `Build` as `BUILD`. Previews, `diff` and `guide` need the
+renderer and are not ported yet; `run --preview` says so instead of ignoring
+the flag. `assets fetch` downloads the Mojang client jar and the
+minecraft-data registry at your request; nothing from either is stored in this
+repository.
+
 ## Converting a schematic
 
 ```sh

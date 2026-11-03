@@ -7,9 +7,11 @@ export {
   parseConfig,
   resolveAssetsDir,
 } from "./config.ts";
+export { DATA_VERSIONS, ExportError, resolveDataVersion } from "./dataversion.ts";
 export { BuildError, GridBoundsError, McbuilderError } from "./errors.ts";
 export { type Cell, Geometry, type Point } from "./geometry.ts";
 export {
+  cleanProperties,
   constName,
   type ImportCall,
   type ImportPlan,

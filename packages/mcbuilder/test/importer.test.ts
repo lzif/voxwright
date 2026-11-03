@@ -2,10 +2,13 @@
 import { describe, expect, it } from "vitest";
 import {
   Build,
+  cleanProperties,
   constName,
   mergeBoxes,
+  normalizeBlockData,
   planImport,
   pyFixed,
+  Registry,
   type Structure,
   summary,
   toScript,
@@ -96,5 +99,48 @@ describe("importer against the Python oracle", () => {
     expect(pyFixed(13.5, 0)).toBe("14");
     expect(pyFixed(99.96, 1)).toBe("100.0");
     expect(pyFixed(50, 1)).toBe("50.0");
+  });
+});
+
+describe("cleanProperties against the Python oracle", () => {
+  const v = loadVector<{
+    cells: [number, number, number, string][];
+    cleaned: [number, number, number, string][];
+    dropped: Record<string, number>;
+  }>("clean.json");
+  const registry = new Registry(
+    normalizeBlockData([
+      {
+        name: "oak_stairs",
+        states: [
+          { name: "facing", type: "enum", values: ["north", "south"] },
+          { name: "half", type: "enum", values: ["top", "bottom"] },
+        ],
+      },
+      {
+        name: "oak_slab",
+        states: [{ name: "type", type: "enum", values: ["top", "bottom", "double"] }],
+      },
+      { name: "stone", states: [] },
+    ]),
+    "t",
+  );
+
+  it("drops unknown properties and counts them the same way", () => {
+    const st: Structure = {
+      blocks: v.cells,
+      source: "x",
+      dataVersion: null,
+      droppedBlockEntities: 0,
+      droppedEntities: 0,
+      droppedProperties: new Map(),
+    };
+    const out = cleanProperties(st, registry);
+    expect(out.blocks).toEqual(v.cleaned);
+    expect(Object.fromEntries(out.droppedProperties)).toEqual(v.dropped);
+    expect(st.blocks).toEqual(v.cells); // the input is not mutated
+    expect(summary(out).join("\n")).toContain(
+      "dropped unknown properties (Bedrock leftovers?): oak_slab.half x1",
+    );
   });
 });

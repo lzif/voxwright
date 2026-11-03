@@ -1,0 +1,98 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "cells": [
+  [
+   0,
+   0,
+   0,
+   "minecraft:oak_stairs[facing=north,half=bottom,wall_post_bit=1]"
+  ],
+  [
+   1,
+   0,
+   0,
+   "minecraft:oak_stairs[facing=north,half=bottom,wall_post_bit=1]"
+  ],
+  [
+   2,
+   0,
+   0,
+   "minecraft:oak_stairs[facing=up,half=top]"
+  ],
+  [
+   3,
+   0,
+   0,
+   "minecraft:oak_slab[type=top,half=top,occupied_bit=0]"
+  ],
+  [
+   4,
+   0,
+   0,
+   "minecraft:stone[waterlogged=false]"
+  ],
+  [
+   5,
+   0,
+   0,
+   "minecraft:unknown_block[a=b]"
+  ],
+  [
+   6,
+   0,
+   0,
+   "minecraft:oak_slab"
+  ]
+ ],
+ "cleaned": [
+  [
+   0,
+   0,
+   0,
+   "minecraft:oak_stairs[facing=north,half=bottom]"
+  ],
+  [
+   1,
+   0,
+   0,
+   "minecraft:oak_stairs[facing=north,half=bottom]"
+  ],
+  [
+   2,
+   0,
+   0,
+   "minecraft:oak_stairs[half=top]"
+  ],
+  [
+   3,
+   0,
+   0,
+   "minecraft:oak_slab[type=top]"
+  ],
+  [
+   4,
+   0,
+   0,
+   "minecraft:stone"
+  ],
+  [
+   5,
+   0,
+   0,
+   "minecraft:unknown_block[a=b]"
+  ],
+  [
+   6,
+   0,
+   0,
+   "minecraft:oak_slab"
+  ]
+ ],
+ "dropped": {
+  "oak_stairs.wall_post_bit": 2,
+  "oak_stairs.facing": 1,
+  "oak_slab.half": 1,
+  "oak_slab.occupied_bit": 1,
+  "stone.waterlogged": 1
+ }
+}
