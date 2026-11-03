@@ -54,6 +54,31 @@ export interface Quad {
   image: RasterImage;
   cull: Vec3 | null;
   flat: boolean;
+  /**
+   * Where `image` came from, for a mesher that samples a texture atlas instead
+   * of copying pixels. Absent on quads that are one flat colour (see `solid`).
+   */
+  tex?: QuadTex;
+  /** Set instead of `tex` when the whole quad is one RGBA colour, shading already applied. */
+  solid?: readonly [number, number, number, number];
+}
+
+/**
+ * How `Quad.image` derives from a texture: crop `rect` out of the (first
+ * frame of the) texture `id`, flip, rotate clockwise by `rotation`, multiply
+ * the colour by `tint` (or leave it), then scale by `shade`.
+ */
+export interface QuadTex {
+  /** Texture id as `AssetSource.texture` takes it, e.g. `block/stone`. */
+  id: string;
+  /** Crop rectangle in texture pixels `[left, top, right, bottom]`, before flips and rotation. */
+  rect: readonly [number, number, number, number];
+  flipH: boolean;
+  flipV: boolean;
+  rotation: 0 | 90 | 180 | 270;
+  tint: Rgb | null;
+  /** Directional shading factor already folded into `image`. */
+  shade: number;
 }
 
 export type FaceName = "up" | "down" | "north" | "south" | "west" | "east";
@@ -182,6 +207,8 @@ const lastAfterColon = (s: string): string => s.slice(s.indexOf(":") + 1);
 export interface ResolvedModel {
   elements: Json[];
   images: Map<string, RasterImage | null>;
+  /** Texture id behind each entry of `images`, `null` where the image is missing. */
+  ids: Map<string, string | null>;
   ambientOcclusion: boolean;
 }
 
@@ -236,14 +263,15 @@ function resolveModel(modelRef: string, assets: AssetSource): ResolvedModel | nu
     return resolve(textures[v.slice(1)] ?? "", depth + 1);
   };
   const images = new Map<string, RasterImage | null>();
+  const ids = new Map<string, string | null>();
   for (const [name, value] of Object.entries(textures)) {
     const target = resolve(value);
-    images.set(
-      name,
-      typeof target === "string" && target !== "" ? assets.texture(lastAfterColon(target)) : null,
-    );
+    const id = typeof target === "string" && target !== "" ? lastAfterColon(target) : null;
+    const image = id === null ? null : assets.texture(id);
+    images.set(name, image);
+    ids.set(name, image === null ? null : id);
   }
-  return { elements, images, ambientOcclusion };
+  return { elements, images, ids, ambientOcclusion };
 }
 
 // -- blockstate -> model applications ---------------------------------------------------
@@ -466,7 +494,7 @@ export function resolveBlockQuads(
   for (const { model, x: xDeg, y: yDeg, uvlock } of apps) {
     const resolved = resolveModel(model, assets);
     if (resolved === null) return null;
-    const { elements, images, ambientOcclusion } = resolved;
+    const { elements, images, ids, ambientOcclusion } = resolved;
     for (const el of elements) {
       if (!Array.isArray(el.from) || !Array.isArray(el.to)) return null; // corrupt element: degrade the block
       const f = (el.from as number[]).map((c) => c / 16.0) as Vec3;
@@ -529,6 +557,7 @@ export function resolveBlockQuads(
         let flipH = false;
         let flipV = false;
         let hasRealTexture = false;
+        let rect: [number, number, number, number] = [0, 0, 0, 0];
         if (img === null) {
           // Per-face graceful degradation to a flat colour; the block still renders.
           fallbackBlocks.add(blockName);
@@ -544,21 +573,18 @@ export function resolveBlockQuads(
           hasRealTexture = true;
         }
         const [sx, sy] = [img.width / 16.0, img.height / 16.0];
-        let piece = crop(
-          img,
-          pyRound(u0 * sx),
-          pyRound(v0 * sy),
-          pyRound(u1 * sx),
-          pyRound(v1 * sy),
-        );
+        rect = [pyRound(u0 * sx), pyRound(v0 * sy), pyRound(u1 * sx), pyRound(v1 * sy)];
+        let piece = crop(img, rect[0], rect[1], rect[2], rect[3]);
         if (piece.width < 1 || piece.height < 1) continue;
         if (flipH) piece = flipLeftRight(piece);
         if (flipV) piece = flipTopBottom(piece);
-        piece = faceUvRotation(piece, Math.trunc(Number(face.rotation ?? 0)));
+        const faceRotation = Math.trunc(Number(face.rotation ?? 0));
+        piece = faceUvRotation(piece, faceRotation);
 
         // Biome tint (plains default), multiplied into the per-face crop only.
         const ti = face.tintindex;
         const tintRgb = Object.hasOwn(TINT_TABLE, blockName) ? TINT_TABLE[blockName] : undefined;
+        let appliedTint: Rgb | null = null;
         if (
           hasRealTexture &&
           typeof ti === "number" &&
@@ -567,6 +593,7 @@ export function resolveBlockQuads(
           tintRgb !== undefined
         ) {
           piece = tint(piece, tintRgb);
+          appliedTint = tintRgb;
         }
 
         // UV corner assignment: painted-on for both uvlock values.
@@ -578,13 +605,30 @@ export function resolveBlockQuads(
           }
         }
         const factor = flat ? 1.0 : (SHADES[worldN.join(",")] ?? 0.75);
-        quads.push({
-          points: ordered,
-          normal: worldFloat,
-          image: shade(piece, factor),
-          cull,
-          flat,
-        });
+        const shaded = shade(piece, factor);
+        const quad: Quad = { points: ordered, normal: worldFloat, image: shaded, cull, flat };
+        const texId = hasRealTexture ? (ids.get(texVar) ?? null) : null;
+        if (texId !== null) {
+          const r = ((faceRotation % 360) + 360) % 360;
+          quad.tex = {
+            id: texId,
+            rect,
+            flipH,
+            flipV,
+            rotation: r === 90 ? 90 : r === 180 ? 180 : r === 270 ? 270 : 0,
+            tint: appliedTint,
+            shade: factor,
+          };
+        } else {
+          // Missing texture: the face is one flat colour.
+          quad.solid = [
+            shaded.data[0] as number,
+            shaded.data[1] as number,
+            shaded.data[2] as number,
+            255,
+          ];
+        }
+        quads.push(quad);
       }
     }
   }

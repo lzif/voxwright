@@ -22,6 +22,8 @@ export type ToWorker =
 export interface Info {
   name: string;
   size: [number, number, number];
+  /** World position of the lowest corner (the volume's placed bounds start there). */
+  origin: [number, number, number];
   blocks: number;
   dataVersion: number | null;
   /** Non-air block counts, most used first. */

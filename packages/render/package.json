@@ -2,23 +2,26 @@
   "name": "@voxwright/render",
   "version": "0.0.0",
   "private": true,
-  "description": "Cameras and rendering for voxwright. Depends on core only.",
+  "description": "Meshing and rendering for voxwright: a DOM-free section mesher and CPU rasterizer, and a three.js renderer at ./webgl. Depends on core only.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": "./src/index.ts",
-    "./node": "./src/node/index.ts"
+    "./node": "./src/node/index.ts",
+    "./webgl": "./src/webgl/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.webgl.json",
     "test": "vitest run"
   },
   "dependencies": {
-    "@voxwright/core": "workspace:*"
+    "@voxwright/core": "workspace:*",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@types/pngjs": "^6.0.5",
+    "@types/three": "^0.187.0",
     "pngjs": "^7.0.0"
   }
 }

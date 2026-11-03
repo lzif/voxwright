@@ -34,7 +34,7 @@ const AO_NON_OCCLUDING = new Set([
 ]);
 
 /** Same-kind neighbours of these hide each other's shared faces (vanilla HalfTransparentBlock rule). */
-const SAME_TRANSLUCENT_BLOCKS = new Set([
+export const SAME_TRANSLUCENT_BLOCKS: ReadonlySet<string> = new Set([
   "minecraft:glass",
   "minecraft:water",
   "minecraft:ice",
@@ -294,9 +294,18 @@ function buildConnectors(
   return out;
 }
 
-/** Classify the palette, expand to a padded occlusion grid, and infer wall and fence connections. */
-export function prepareScene(dense: DenseVolume, assets: AssetSource | null): Scene {
-  const occIdx = paletteOcclusion(dense.palette, assets);
+/**
+ * Classify the palette, expand to a padded occlusion grid, and infer wall and fence connections.
+ * A caller that already knows which palette entries occlude passes `knownOcc`
+ * (indexed like the palette; entries it leaves out count as non-occluding) and
+ * saves classifying the whole palette again.
+ */
+export function prepareScene(
+  dense: DenseVolume,
+  assets: AssetSource | null,
+  knownOcc?: boolean[],
+): Scene {
+  const occIdx = knownOcc ?? paletteOcclusion(dense.palette, assets);
   const [sx, sy, sz] = dense.size;
   const psz: [number, number, number] = [sx + 2, sy + 2, sz + 2];
   const occData = new Uint8Array(psz[0] * psz[1] * psz[2]);

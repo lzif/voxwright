@@ -6,8 +6,9 @@
 import type { DenseVolume, Volume } from "@voxwright/core";
 import { type AssetSource, renderView, sliceDense, type View } from "@voxwright/render";
 import { assetsFromPack, fetchPack } from "./assets.ts";
+import { describeVolume } from "./describe.ts";
 import { type FormatId, openFile, saveAs } from "./formats.ts";
-import type { FromWorker, Info, ToWorker } from "./protocol.ts";
+import type { FromWorker, ToWorker } from "./protocol.ts";
 
 let assets: AssetSource | null = null;
 let volume: Volume | null = null;
@@ -16,27 +17,6 @@ let dataVersion: number | null = null;
 
 const post = (m: FromWorker, transfer: Transferable[] = []): void =>
   (self as unknown as Worker).postMessage(m, transfer);
-
-const AIR = "minecraft:air";
-
-function describe(name: string, v: Volume, loss: string[]): Info {
-  const counts = new Map<string, number>();
-  v.eachCell((_x, _y, _z, idx) => {
-    const b = v.palette[idx] as string;
-    if (b === AIR) return;
-    const base = b.split("[", 1)[0] as string;
-    counts.set(base, (counts.get(base) ?? 0) + 1);
-  });
-  const d = v.toDense();
-  return {
-    name,
-    size: [...d.size],
-    blocks: [...counts.values()].reduce((a, b) => a + b, 0),
-    dataVersion,
-    counts: [...counts].sort((a, b) => b[1] - a[1]),
-    loss,
-  };
-}
 
 self.onmessage = async (e: MessageEvent<ToWorker>) => {
   const m = e.data;
@@ -52,13 +32,18 @@ self.onmessage = async (e: MessageEvent<ToWorker>) => {
         const opened = await openFile(new Uint8Array(m.bytes), m.name);
         volume = opened.volume;
         dataVersion = opened.dataVersion;
-        dense = volume.toDense();
-        post({ id: m.id, type: "opened", info: describe(m.name, volume, opened.loss) });
+        dense = null; // made when a frame is first asked for
+        post({
+          id: m.id,
+          type: "opened",
+          info: describeVolume(m.name, volume, dataVersion, opened.loss),
+        });
         return;
       }
       case "render": {
-        if (dense === null || dense.data.length === 0)
-          throw new Error("nothing to draw: the file has no blocks");
+        if (volume === null) throw new Error("nothing to draw: open a file first");
+        dense ??= volume.toDense();
+        if (dense.data.length === 0) throw new Error("nothing to draw: the file has no blocks");
         const t = performance.now();
         const view: View = { azimuth: m.azimuth, elevation: m.elevation, label: "" };
         const cut = sliceDense(dense, m.yMin, m.yMax);

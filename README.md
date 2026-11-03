@@ -12,7 +12,7 @@ This is a private pnpm monorepo. Workspace members live under `packages/*` and
 | Path                 | Role                                                                                                                                                   | State              |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
 | `packages/core`      | NBT, block-state strings, rotation, volume and the `.nbt` and `.schem` codecs. Imports nothing from other workspace members and has no DOM dependency. | M0 pieces in place |
-| `packages/render`    | Rendering. May depend on `core`.                                                                                                                       | not started        |
+| `packages/render`    | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `@voxwright/render/webgl`. May depend on `core`.                              | M1 in place        |
 | `packages/mcbuilder` | TypeScript port of mcbuilder. May depend on `render` and `core`.                                                                                       | not started        |
 | `apps/web`           | The browser editor. May depend on `render` and `core`.                                                                                                 | not started        |
 | `vectors/`           | Golden JSON exported from the Python mcbuilder, plus the exporter.                                                                                     | in place           |
@@ -25,9 +25,12 @@ Dependencies point one way only; `.dependency-cruiser.cjs` enforces this.
 ## The web app
 
 `apps/web` is a static SvelteKit site: open a `.nbt`, `.schem`, `.litematic` or
-`.mcstructure`, turn it by dragging, limit it to a range of layers, and convert it
-to any of the four formats with a loss report. Everything runs in your browser
-(drawing happens in a worker); nothing is uploaded.
+`.mcstructure`, turn it by dragging or fly through it with W A S D, limit it to a
+range of layers, and convert it to any of the four formats with a loss report.
+Everything runs in your browser; nothing is uploaded. Drawing uses WebGL2
+(`@voxwright/render/webgl`: our own section mesher in a pool of workers, drawn
+with three.js); without WebGL2 the page falls back to a software rasterizer in a
+worker.
 
 ```sh
 node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # Mojang's assets, once
@@ -37,7 +40,9 @@ pnpm --filter @voxwright/web dev       # or: build, then serve apps/web/build fr
 
 The texture pack is built on your machine from Mojang's assets and is
 git-ignored; without it the page still works and draws flat colours.
-`node apps/web/test/e2e.ts` drives the built site in Chrome.
+`node apps/web/test/e2e.ts` drives the built site in Chrome, once with WebGL2 and
+once with the GPU off. `node apps/web/test/perf.ts` and
+`node apps/web/scripts/measure.ts` measure a generated 256-wide build.
 
 ## Tooling
 

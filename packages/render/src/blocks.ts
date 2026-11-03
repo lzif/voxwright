@@ -102,12 +102,14 @@ export function fallbackCubeQuads(color: Rgb): Quad[] {
   return FACE_NAMES.map((face) => {
     const ordered = orderCornersUv(faceBaseCorners(face, [0, 0, 0], [1, 1, 1]), face);
     const n = FACE_NORMALS[face];
+    const shaded = shade(img, SHADES[n.join(",")] as number);
     return {
       points: ordered,
       normal: n,
-      image: shade(img, SHADES[n.join(",")] as number),
+      image: shaded,
       cull: n,
       flat: false,
+      solid: [shaded.data[0] as number, shaded.data[1] as number, shaded.data[2] as number, 255],
     };
   });
 }
@@ -127,13 +129,14 @@ export function fluidCubeQuads(
     const ordered = orderCornersUv(faceBaseCorners(face, [0, 0, 0], t), face);
     const n = FACE_NORMALS[face];
     const factor = SHADES[n.join(",")] as number;
-    const img = solidRgba(16, 16, [
+    const solid = [
       Math.min(255, Math.trunc(r * factor)),
       Math.min(255, Math.trunc(g * factor)),
       Math.min(255, Math.trunc(b * factor)),
       a,
-    ]);
-    return { points: ordered, normal: n, image: img, cull: n, flat: false };
+    ] as const;
+    const img = solidRgba(16, 16, solid);
+    return { points: ordered, normal: n, image: img, cull: n, flat: false, solid };
   });
 }
 
@@ -187,6 +190,8 @@ const CHEST_LATCH_UVS: FaceUvs = {
   down: [3, 0, 5, 1],
 };
 
+const BANNER_TEXTURE = "entity/banner/banner_base";
+
 const FACING_Y_ROT: Record<string, number> = { north: 0, east: 90, south: 180, west: 270 };
 const WALL_BANNER_Y_ROT: Record<string, number> = { south: 0, west: 90, north: 180, east: 270 };
 
@@ -218,6 +223,10 @@ interface RawEntityQuad {
   points: Vec3[];
   normal: Vec3;
   crop: RasterImage;
+  /** Texture id and crop rectangle, for atlas sampling; `tint` multiplies the colour. */
+  texId: string;
+  rect: UvRect;
+  tint: Rgb | null;
 }
 
 /**
@@ -225,7 +234,14 @@ interface RawEntityQuad {
  * unshaded; the caller rotates points and normals and shades for the world
  * normal. Faces absent from `faceUvs` are skipped.
  */
-function entityBoxQuads(f: Vec3, t: Vec3, faceUvs: FaceUvs, img: RasterImage): RawEntityQuad[] {
+function entityBoxQuads(
+  f: Vec3,
+  t: Vec3,
+  faceUvs: FaceUvs,
+  img: RasterImage,
+  texId: string,
+  tint: Rgb | null = null,
+): RawEntityQuad[] {
   const out: RawEntityQuad[] = [];
   for (const [face, rect] of Object.entries(faceUvs) as [FaceName, UvRect][]) {
     const piece = crop(img, rect[0], rect[1], rect[2], rect[3]);
@@ -234,6 +250,9 @@ function entityBoxQuads(f: Vec3, t: Vec3, faceUvs: FaceUvs, img: RasterImage): R
       points: orderCornersUv(faceBaseCorners(face, f, t), face),
       normal: FACE_NORMALS[face],
       crop: piece,
+      texId,
+      rect,
+      tint,
     });
   }
   return out;
@@ -241,17 +260,19 @@ function entityBoxQuads(f: Vec3, t: Vec3, faceUvs: FaceUvs, img: RasterImage): R
 
 /** Rotate entity quads to their final orientation and shade for the world normal. Block entities never neighbour-cull. */
 function finalizeEntityQuads(quads: RawEntityQuad[], degrees: number, continuous = false): Quad[] {
-  return quads.map(({ points, normal, crop: piece }) => {
+  return quads.map(({ points, normal, crop: piece, texId, rect, tint }) => {
     const pts = points.map((p) => (continuous ? rotYContinuous(p, degrees) : rotYDeg(p, degrees)));
     const n2 = snapNormal(
       continuous ? rotYContinuousDir(normal, degrees) : rotYDirDeg(normal, degrees),
     );
+    const factor = SHADES[n2.join(",")] ?? 0.75;
     return {
       points: pts,
       normal: n2,
-      image: shade(piece, SHADES[n2.join(",")] ?? 0.75),
+      image: shade(piece, factor),
       cull: null,
       flat: false,
+      tex: { id: texId, rect, flipH: false, flipV: false, rotation: 0, tint, shade: factor },
     };
   });
 }
@@ -281,7 +302,11 @@ function fillTransparentCorners(
 }
 
 /** Single-chest approximation: body + lid + latch boxes, latch canonically on the north face. */
-function chestQuads(props: Record<string, string>, source: RasterImage): Quad[] | null {
+function chestQuads(
+  props: Record<string, string>,
+  source: RasterImage,
+  texId: string,
+): Quad[] | null {
   if (source.width !== 64 || source.height !== 64) return null;
   const img = copyImage(source);
   // The latch unwrap has two fully transparent corner texels, (0,0) and (5,0).
@@ -290,9 +315,27 @@ function chestQuads(props: Record<string, string>, source: RasterImage): Quad[] 
     [5, 0],
   ]);
   const parts = [
-    ...entityBoxQuads([1 / 16, 0.0, 1 / 16], [15 / 16, 10 / 16, 15 / 16], CHEST_BODY_UVS, img),
-    ...entityBoxQuads([1 / 16, 10 / 16, 1 / 16], [15 / 16, 15 / 16, 15 / 16], CHEST_LID_UVS, img),
-    ...entityBoxQuads([7 / 16, 9 / 16, 0.0], [9 / 16, 13 / 16, 1 / 16], CHEST_LATCH_UVS, img),
+    ...entityBoxQuads(
+      [1 / 16, 0.0, 1 / 16],
+      [15 / 16, 10 / 16, 15 / 16],
+      CHEST_BODY_UVS,
+      img,
+      texId,
+    ),
+    ...entityBoxQuads(
+      [1 / 16, 10 / 16, 1 / 16],
+      [15 / 16, 15 / 16, 15 / 16],
+      CHEST_LID_UVS,
+      img,
+      texId,
+    ),
+    ...entityBoxQuads(
+      [7 / 16, 9 / 16, 0.0],
+      [9 / 16, 13 / 16, 1 / 16],
+      CHEST_LATCH_UVS,
+      img,
+      texId,
+    ),
   ];
   return finalizeEntityQuads(parts, FACING_Y_ROT[props.facing ?? "north"] ?? 0);
 }
@@ -304,6 +347,7 @@ function bannerQuads(
   dye: Rgb,
   wall: boolean,
 ): Quad[] | null {
+  const texId = BANNER_TEXTURE;
   if (img.width !== 64 || img.height !== 64) return null;
   // Tint the cloth panels in a working copy; pole and bar stay wood.
   const panel = copyImage(img);
@@ -323,7 +367,9 @@ function bannerQuads(
       west: [50, 2, 52, 42],
       up: [46, 0, 48, 2],
     };
-    quads.push(...entityBoxQuads([7 / 16, 0.0, 7 / 16], [9 / 16, 14 / 16, 9 / 16], poleUvs, img));
+    quads.push(
+      ...entityBoxQuads([7 / 16, 0.0, 7 / 16], [9 / 16, 14 / 16, 9 / 16], poleUvs, img, texId),
+    );
   }
   // Crossbar (20x2x2); the strip's end columns have transparent corners, so the ends sample just inside them.
   const barUvs: FaceUvs = {
@@ -337,12 +383,14 @@ function bannerQuads(
   let clothF: Vec3;
   let clothT: Vec3;
   if (wall) {
-    quads.push(...entityBoxQuads([-2 / 16, 12 / 16, 0.0], [18 / 16, 14 / 16, 2 / 16], barUvs, img));
+    quads.push(
+      ...entityBoxQuads([-2 / 16, 12 / 16, 0.0], [18 / 16, 14 / 16, 2 / 16], barUvs, img, texId),
+    );
     clothF = [-2 / 16, 2 / 16, 0.5 / 16];
     clothT = [18 / 16, 12 / 16, 1.5 / 16];
   } else {
     quads.push(
-      ...entityBoxQuads([-2 / 16, 12 / 16, 7 / 16], [18 / 16, 14 / 16, 9 / 16], barUvs, img),
+      ...entityBoxQuads([-2 / 16, 12 / 16, 7 / 16], [18 / 16, 14 / 16, 9 / 16], barUvs, img, texId),
     );
     clothF = [-2 / 16, 2 / 16, 7.5 / 16];
     clothT = [18 / 16, 12 / 16, 8.5 / 16];
@@ -356,7 +404,7 @@ function bannerQuads(
     up: [0, 0, 22, 2],
     down: [0, 39, 22, 41],
   };
-  quads.push(...entityBoxQuads(clothF, clothT, clothUvs, panel));
+  quads.push(...entityBoxQuads(clothF, clothT, clothUvs, panel, texId, dye));
   if (wall) return finalizeEntityQuads(quads, WALL_BANNER_Y_ROT[props.facing ?? "north"] ?? 0);
   const rotation = Number.parseInt(props.rotation ?? "0", 10);
   return finalizeEntityQuads(
@@ -377,7 +425,7 @@ export function tryEntityQuads(
 ): Quad[] | null {
   if (Object.hasOwn(ENTITY_TEXTURES, name)) {
     const img = assets.texture(ENTITY_TEXTURES[name] as string);
-    return img === null ? null : chestQuads(props, img);
+    return img === null ? null : chestQuads(props, img, ENTITY_TEXTURES[name] as string);
   }
   const short = name.slice(name.indexOf(":") + 1);
   let color: string;
@@ -391,7 +439,7 @@ export function tryEntityQuads(
   } else return null;
   const dye = Object.hasOwn(DYE_RGB, color) ? DYE_RGB[color] : undefined;
   if (dye === undefined) return null;
-  const img = assets.texture("entity/banner/banner_base");
+  const img = assets.texture(BANNER_TEXTURE);
   return img === null ? null : bannerQuads(props, img, dye, wall);
 }
 

@@ -4,6 +4,9 @@
 //   apps/web, mcbuilder -> render, core
 //   render              -> core
 //   core                -> nothing else in the workspace, and no DOM
+// packages/render/src/webgl is the browser entry point (@voxwright/render/webgl): the only
+// place that may import three.js or touch the DOM, and nothing outside it may import it
+// except apps/web. The rest of render stays DOM-free, so Node programs can use it.
 // Directory names are packages/<name> and apps/<name>.
 
 /** @type {import('dependency-cruiser').IConfiguration} */
@@ -46,6 +49,29 @@ module.exports = {
       severity: "error",
       from: { path: "^packages/mcbuilder/" },
       to: { path: "^(packages/(?!mcbuilder/|render/|core/)|apps/)" },
+    },
+    {
+      name: "three-only-in-render-webgl",
+      comment:
+        "three.js is for the browser renderer only: nothing outside packages/render/src/webgl imports it.",
+      severity: "error",
+      from: { pathNot: "^packages/render/(src/webgl/|test/webgl)" },
+      to: { path: "(^|/)node_modules/three(/|$)" },
+    },
+    {
+      name: "render-dom-free-outside-webgl",
+      comment:
+        "packages/render outside src/webgl must not import the browser entry point, so it stays usable in Node.",
+      severity: "error",
+      from: { path: "^packages/render/", pathNot: "^packages/render/(src/webgl/|test/webgl)" },
+      to: { path: "^packages/render/src/webgl/" },
+    },
+    {
+      name: "mcbuilder-no-webgl",
+      comment: "The Node CLI never imports the browser renderer.",
+      severity: "error",
+      from: { path: "^packages/mcbuilder/" },
+      to: { path: "^packages/render/src/webgl/" },
     },
     {
       name: "web-only-uses-render-and-core",

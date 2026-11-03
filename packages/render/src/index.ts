@@ -30,10 +30,12 @@ export { buildFaceTextures } from "./fast.ts";
 export { drawText, textScale, textWidth } from "./font.ts";
 export type { Canvas, RasterImage } from "./image.ts";
 export { crop, fromRgba } from "./image.ts";
+export * from "./mesh/index.ts";
 export {
   type ModelApplication,
   modelApplications,
   type Quad,
+  type QuadTex,
   resolveBlockQuads,
   splitBlockstate,
   type Vec3,
