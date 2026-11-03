@@ -5,7 +5,7 @@
 // 7 rows tall (descenders add two rows) and 5 columns wide, scaled by whole
 // numbers for larger sizes.
 
-import type { Canvas } from "./rasterize.ts";
+import type { Canvas } from "./image.ts";
 
 const G: Record<string, string> = {
   " ": ".....|.....|.....|.....|.....|.....|.....",
@@ -170,4 +170,20 @@ export function drawText(
   if (options.stroke)
     glyphPass(canvas, x, y, text, scale, options.strokeColor ?? [0, 0, 0], options.stroke);
   glyphPass(canvas, x, y, text, scale, options.color, 0);
+}
+
+/** Ink mask for `text` at scale 1 (7 rows tall, descenders two more): `[width, height, rows of 0 or 1]`. */
+export function textMask(text: string): { width: number; height: number; on: Uint8Array } {
+  const width = text.length * 6;
+  const height = 9;
+  const on = new Uint8Array(width * height);
+  let cx = 0;
+  for (const ch of text) {
+    const rows = GLYPHS.get(ch) ?? GLYPHS.get("?");
+    rows?.forEach((row, ry) => {
+      for (let rx = 0; rx < row.length; rx++) if (row[rx] === "#") on[ry * width + cx + rx] = 1;
+    });
+    cx += 6;
+  }
+  return { width, height, on };
 }

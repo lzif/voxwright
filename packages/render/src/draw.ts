@@ -2,8 +2,7 @@
 
 // Small drawing helpers on an opaque RGB canvas.
 
-import type { RasterImage } from "./image.ts";
-import type { Canvas } from "./rasterize.ts";
+import type { Canvas, RasterImage } from "./image.ts";
 
 export type Rgb3 = readonly [number, number, number];
 
@@ -164,4 +163,77 @@ export function blendToward(img: RasterImage, bg: Rgb3, alpha: number): RasterIm
     }
   }
   return { ...img, data };
+}
+
+/** Blend `rgb` over a pixel with `alpha` in 0..255, rounding like an integer compositor. */
+function blendPixel(c: Canvas, x: number, y: number, rgb: Rgb3, alpha: number): void {
+  if (x < 0 || y < 0 || x >= c.width || y >= c.height || alpha <= 0) return;
+  const i = (y * c.width + x) * 3;
+  for (let k = 0; k < 3; k++)
+    c.data[i + k] = Math.floor(
+      ((rgb[k] as number) * alpha + (c.data[i + k] as number) * (255 - alpha) + 127) / 255,
+    );
+}
+
+/** Filled rectangle (corners inclusive) with partial opacity. */
+export function fillRectAlpha(
+  c: Canvas,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  rgb: Rgb3,
+  alpha: number,
+): void {
+  const [lx, hx] = [Math.round(Math.min(x0, x1)), Math.round(Math.max(x0, x1))];
+  const [ly, hy] = [Math.round(Math.min(y0, y1)), Math.round(Math.max(y0, y1))];
+  for (let y = ly; y <= hy; y++) for (let x = lx; x <= hx; x++) blendPixel(c, x, y, rgb, alpha);
+}
+
+/** Line of the given width with partial opacity. */
+export function drawLineAlpha(
+  c: Canvas,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  rgb: Rgb3,
+  alpha: number,
+  width = 1,
+): void {
+  const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2));
+  const half = (width - 1) / 2;
+  const seen = new Set<number>();
+  for (let i = 0; i <= steps; i++) {
+    const x = x0 + ((x1 - x0) * i) / steps;
+    const y = y0 + ((y1 - y0) * i) / steps;
+    for (let dy = -Math.ceil(half); dy <= Math.ceil(half); dy++) {
+      for (let dx = -Math.ceil(half); dx <= Math.ceil(half); dx++) {
+        const [px, py] = [Math.round(x) + dx, Math.round(y) + dy];
+        const key = py * 100000 + px;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        blendPixel(c, px, py, rgb, alpha);
+      }
+    }
+  }
+}
+
+/** Ring (outline only) inscribed in the box, with partial opacity. */
+export function drawRingAlpha(
+  c: Canvas,
+  cx: number,
+  cy: number,
+  radius: number,
+  rgb: Rgb3,
+  alpha: number,
+  width = 2,
+): void {
+  const [inner, outer] = [radius - width, radius];
+  for (let y = Math.floor(cy - outer); y <= Math.ceil(cy + outer); y++) {
+    for (let x = Math.floor(cx - outer); x <= Math.ceil(cx + outer); x++) {
+      const d = Math.hypot(x + 0.5 - cx, y + 0.5 - cy);
+      if (d <= outer && d > inner) blendPixel(c, x, y, rgb, alpha);
+    }
+  }
 }

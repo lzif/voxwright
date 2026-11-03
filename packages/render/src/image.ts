@@ -4,6 +4,13 @@
 // Semantics follow Pillow's, which the original used: crops outside the image
 // are zero-filled, channel scaling truncates, alpha is never scaled.
 
+/** An opaque RGB canvas. */
+export interface Canvas {
+  width: number;
+  height: number;
+  data: Uint8Array;
+}
+
 export interface RasterImage {
   width: number;
   height: number;

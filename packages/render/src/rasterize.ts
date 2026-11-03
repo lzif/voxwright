@@ -8,7 +8,10 @@
 
 import type { DenseVolume } from "@voxwright/core";
 import type { AssetSource } from "./assets.ts";
-import type { RasterImage } from "./image.ts";
+import type { Rgb3 } from "./draw.ts";
+import { drawLineAlpha, drawRingAlpha, fillRectAlpha } from "./draw.ts";
+import { drawText, textMask, textWidth } from "./font.ts";
+import type { Canvas, RasterImage } from "./image.ts";
 import { type Quad, snapNormal, splitBlockstate, type Vec3 } from "./models.ts";
 import { pyRound } from "./pymath.ts";
 import {
@@ -105,13 +108,6 @@ function lstsq3(
 }
 
 // -- canvas -----------------------------------------------------------------------------------
-
-/** An opaque RGB canvas. */
-export interface Canvas {
-  width: number;
-  height: number;
-  data: Uint8Array;
-}
 
 function newCanvas(width: number, height: number, rgb: readonly [number, number, number]): Canvas {
   const data = new Uint8Array(width * height * 3);
@@ -429,6 +425,67 @@ export interface RenderOptions {
   margin?: number;
   /** Soft contact shadow under the structure. Default true. */
   shadow?: boolean;
+  /** A title drawn top-centre, which also adds headroom above the structure. */
+  title?: string;
+  /** The view label and north compass. Default true. */
+  overlay?: boolean;
+}
+
+const TITLE_COLOR: Rgb3 = [110, 105, 95];
+
+/** Pixel-style title, top-centre: drawn small, then scaled up by whole pixels. */
+export function drawTitle(canvas: Canvas, title: string): void {
+  const m = textMask(title);
+  const pad = 2;
+  const scale = Math.max(2, Math.trunc(canvas.width / 260));
+  const [w, h] = [m.width + pad * 2, m.height + pad * 2];
+  const left = Math.trunc((canvas.width - w * scale) / 2);
+  const top = Math.trunc(canvas.height * 0.045);
+  for (let y = 0; y < m.height; y++) {
+    for (let x = 0; x < m.width; x++) {
+      if (!m.on[y * m.width + x]) continue;
+      for (let dy = 0; dy < scale; dy++) {
+        for (let dx = 0; dx < scale; dx++) {
+          const px = left + (x + pad) * scale + dx;
+          const py = top + (y + pad) * scale + dy;
+          if (px < 0 || py < 0 || px >= canvas.width || py >= canvas.height) continue;
+          canvas.data.set(TITLE_COLOR, (py * canvas.width + px) * 3);
+        }
+      }
+    }
+  }
+  void h;
+}
+
+/** The view label (bottom-left) and a north compass (bottom-right). */
+export function drawOverlay(canvas: Canvas, view: View, r: Vec3, u: Vec3): void {
+  const { width: W, height: H } = canvas;
+  const pad = 5;
+  const [tw, th] = [textWidth(view.label, 11), 7];
+  const [lx, ly] = [10, H - 10 - th - 2 * pad];
+  fillRectAlpha(canvas, lx - pad, ly - pad, lx + tw + pad, ly + th + pad, [0, 0, 0], 160);
+  drawText(canvas, lx, ly, view.label, { size: 11, color: [255, 255, 255] });
+
+  // Compass: project north (-Z) onto the screen.
+  const [sx, sy] = [-r[2], -u[2]];
+  const [cx, cy, rad] = [W - 42, H - 42, 24];
+  drawRingAlpha(canvas, cx, cy, rad, [255, 255, 255], 220, 2);
+  const length = Math.hypot(sx, sy);
+  const [nw, nh] = [textWidth("N", 11), 7];
+  if (length > 1e-6) {
+    const [dx, dy] = [sx / length, -sy / length]; // screen y points down
+    const [ex, ey] = [cx + dx * (rad - 6), cy + dy * (rad - 6)];
+    drawLineAlpha(canvas, cx, cy, ex, ey, [255, 255, 255], 230, 2);
+    drawText(canvas, Math.round(ex + dx * 10 - nw / 2), Math.round(ey + dy * 10 - nh / 2), "N", {
+      size: 11,
+      color: [255, 255, 255],
+    });
+  } else {
+    drawText(canvas, Math.round(cx - nw / 2), Math.round(cy - nh / 2), "N", {
+      size: 11,
+      color: [255, 255, 255],
+    });
+  }
 }
 
 interface Drawn {
@@ -488,7 +545,11 @@ export function renderView(
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const crop = renderableBounds(dense);
-  if (crop === null) return newCanvas(512, 512, BG_PRESENTATION);
+  if (crop === null) {
+    const empty = newCanvas(512, 512, BG_PRESENTATION);
+    if (options.title) drawTitle(empty, options.title);
+    return empty;
+  }
   const scene = prepareScene(dense, assets);
   const { d, r, u } = camera(view);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop;
@@ -507,6 +568,8 @@ export function renderView(
   maxx += mx;
   miny -= my;
   maxy += my;
+  // Headroom for the title.
+  if (options.title) miny -= (maxy - miny) * 0.16;
   const w2d = Math.max(maxx - minx, 1e-9);
   const h2d = Math.max(maxy - miny, 1e-9);
   const scale = (longest / Math.max(w2d, h2d)) * ss;
@@ -585,7 +648,12 @@ export function renderView(
     drawTexturedQuad(canvas, verts, q.tex, ao);
   }
 
-  return ss > 1 ? downscaleLanczos(canvas, Math.trunc(W / ss), Math.trunc(H / ss)) : canvas;
+  const finished =
+    ss > 1 ? downscaleLanczos(canvas, Math.trunc(W / ss), Math.trunc(H / ss)) : canvas;
+  if (options.title) drawTitle(finished, options.title);
+  // The view label and compass go on even in presentation mode: a PNG seen alone must say which view it is.
+  if (options.overlay ?? true) drawOverlay(finished, view, r, u);
+  return finished;
 }
 
-export type { Scene };
+export type { Canvas, Scene };

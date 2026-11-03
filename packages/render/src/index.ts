@@ -17,15 +17,18 @@ export {
   createCanvas,
   drawEllipse,
   drawLine,
+  drawLineAlpha,
   drawPolygon,
   drawRect,
+  drawRingAlpha,
+  fillRectAlpha,
   pasteRgb,
   type Rgb3,
   resizeNearest,
 } from "./draw.ts";
 export { buildFaceTextures } from "./fast.ts";
 export { drawText, textScale, textWidth } from "./font.ts";
-export type { RasterImage } from "./image.ts";
+export type { Canvas, RasterImage } from "./image.ts";
 export {
   type ModelApplication,
   modelApplications,
@@ -35,10 +38,11 @@ export {
   type Vec3,
 } from "./models.ts";
 export {
-  type Canvas,
   camera,
   downscaleLanczos,
+  drawOverlay,
   drawTexturedQuad,
+  drawTitle,
   PRESENTATION_LONGEST_PX,
   PRESENTATION_MARGIN,
   project,
@@ -59,6 +63,7 @@ export {
   quadAoLevels,
   quadCulledByNeighbour,
   type Scene,
+  untrustedBlocks,
 } from "./scene.ts";
 export {
   checkCap,

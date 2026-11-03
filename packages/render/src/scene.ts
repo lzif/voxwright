@@ -487,3 +487,27 @@ export function quadAoLevels(
 
 /** Re-exported for callers that need the axis-snapped normal. */
 export { snapNormal };
+
+/**
+ * Palette blocks that render as the magenta fallback cube (no usable model),
+ * with how many cells use each, by block name. Walls, fences and panes are
+ * skipped: they resolve per cell with inferred connections, so a
+ * position-blind check would flag them falsely.
+ */
+export function untrustedBlocks(
+  dense: DenseVolume,
+  assets: AssetSource | null,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  if (assets === null) return out;
+  const counts = new Map<number, number>();
+  for (const v of dense.data) if (v >= 0) counts.set(v, (counts.get(v) ?? 0) + 1);
+  dense.palette.forEach((block, idx) => {
+    if (block === AIR) return;
+    const [name] = splitBlockstate(block);
+    if (isWallBlock(name, assets) || isHorizConnectorBlock(name)) return;
+    if (blockQuads(block, assets, new Set()).isFallback)
+      out.set(name, (out.get(name) ?? 0) + (counts.get(idx) ?? 0));
+  });
+  return new Map([...out].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)));
+}

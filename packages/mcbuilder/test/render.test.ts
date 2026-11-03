@@ -66,7 +66,10 @@ describe.skipIf(!have)("rendered images against the Python renderer (vanilla ass
           EXAMPLES[name] as () => Promise<{ BUILD: { grid: { toDense(): DenseVolume } } }>
         )();
         const view = parseViews(label)[0] as ReturnType<typeof parseViews>[number];
-        const img = renderView(BUILD.grid.toDense(), assets, view, { longestPx: 512 });
+        const img = renderView(BUILD.grid.toDense(), assets, view, {
+          longestPx: 512,
+          overlay: false,
+        });
 
         // Same shape: aspect ratio within a pixel of rounding.
         expect(img.width / img.height).toBeCloseTo(want.size[0] / want.size[1], 2);

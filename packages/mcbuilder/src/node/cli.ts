@@ -27,7 +27,14 @@ import {
   readStructureNbt,
   writeStructureNbt,
 } from "@voxwright/core";
-import { renderView, resolveViews, type View, ViewError, withCount } from "@voxwright/render";
+import {
+  renderView,
+  resolveViews,
+  untrustedBlocks,
+  type View,
+  ViewError,
+  withCount,
+} from "@voxwright/render";
 import { directoryAssets, encodePng } from "@voxwright/render/node";
 import { Build } from "../build.ts";
 import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts";
@@ -381,11 +388,19 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
       throw new CliError(`--focus ${values.focus}: no blocks inside that box`);
     const dense = grid.toDense();
     const assets = haveAssets ? directoryAssets(root) : null;
+    for (const [name, n] of untrustedBlocks(dense, assets)) {
+      warnings.push({
+        message: `faithful preview: ${n} \`${name}\` rendered as magenta fallback cube — orientation not verified`,
+      });
+    }
     const dir = join(runDir, "previews_faithful");
     await mkdir(dir, { recursive: true });
     for (const view of viewList) {
       const file = `${view.label}.png`;
-      await writeFile(join(dir, file), encodePng(renderView(dense, assets, view)));
+      await writeFile(
+        join(dir, file),
+        encodePng(renderView(dense, assets, view, { title: titleCase(stem.replaceAll("_", " ")) })),
+      );
       viewEntries.push(
         viewEntry({
           file: `previews_faithful/${file}`,
