@@ -45,9 +45,29 @@ SCRIPTS = {
     "waystone-s5-argon": "waystones/waystone_s5_argon.py",
     "waystone-skystead": "waystones/waystone_skystead.py",
 }
-SKIPPED = {
-    "crystal_observatory": "uses BUILD.rng()",
-    "homestead-watchtower": "uses BUILD.rng()",
+# Examples that draw from BUILD.rng(). The TypeScript PRNG differs on purpose,
+# so which block lands in a randomly chosen cell cannot match. Positions can:
+# a cell is set (or not) regardless of what the RNG picks. Each entry lists the
+# blocks the RNG may place; every other block is compared exactly.
+RNG_EXAMPLES = {
+    "crystal_observatory": {
+        "script": "crystal_observatory/crystal_observatory.py",
+        "rng_blocks": [
+            "minecraft:deepslate", "minecraft:cobbled_deepslate", "minecraft:tuff",
+            "minecraft:stone", "minecraft:andesite", "minecraft:cobblestone",
+            "minecraft:moss_block", "minecraft:grass_block", "minecraft:rooted_dirt",
+            "minecraft:stone_bricks", "minecraft:mossy_stone_bricks",
+            "minecraft:cracked_stone_bricks", "minecraft:polished_andesite",
+            "minecraft:oxidized_cut_copper", "minecraft:weathered_cut_copper",
+            "minecraft:prismarine_bricks",
+        ],
+    },
+    "homestead-watchtower": {
+        "script": "homestead/watchtower.py",
+        "rng_blocks": [
+            "minecraft:stone_bricks", "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks",
+        ],
+    },
 }
 
 
@@ -85,7 +105,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dump")
     args = ap.parse_args()
-    out = {"SPDX-License-Identifier": "AGPL-3.0-only", "skipped": SKIPPED, "examples": {}}
+    out = {"SPDX-License-Identifier": "AGPL-3.0-only", "examples": {}, "rng_examples": {}}
     for name, rel in SCRIPTS.items():
         lines, d = digest(run_script(rel))
         out["examples"][name] = {"script": rel, **d}
@@ -99,6 +119,22 @@ def main() -> None:
             Path(args.dump).mkdir(parents=True, exist_ok=True)
             (Path(args.dump) / f"{name}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
         print(f"{name}: {d['cells']} cells, {d['sha256'][:12]}")
+    for name, spec in RNG_EXAMPLES.items():
+        build = run_script(spec["script"])
+        lines, d = digest(build)
+        positions = [ln.split(" ", 1)[0] for ln in lines]
+        fixed = {b: n for b, n in d["counts"].items() if b not in spec["rng_blocks"]}
+        out["rng_examples"][name] = {
+            "script": spec["script"],
+            "cells": d["cells"],
+            "bounds": d["bounds"],
+            "overwrites": d["overwrites"],
+            "rng_blocks": spec["rng_blocks"],
+            "rng_cells": d["cells"] - sum(fixed.values()),
+            "fixed_counts": dict(sorted(fixed.items())),
+            "positions_sha256": hashlib.sha256("\n".join(positions).encode("utf-8")).hexdigest(),
+        }
+        print(f"{name}: {d['cells']} cells (positions {out['rng_examples'][name]['positions_sha256'][:12]})")
     (OUT / "examples.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
 
 

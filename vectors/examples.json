@@ -1,9 +1,5 @@
 {
  "SPDX-License-Identifier": "AGPL-3.0-only",
- "skipped": {
-  "crystal_observatory": "uses BUILD.rng()",
-  "homestead-watchtower": "uses BUILD.rng()"
- },
  "examples": {
   "underwater_base": {
    "script": "underwater_base/underwater_base.py",
@@ -574,6 +570,141 @@
     "minecraft:sea_lantern": 9
    },
    "sha256": "7827140e840f774a9028da41e113a962b9940265ed34feaf2c7cffd049323647"
+  }
+ },
+ "rng_examples": {
+  "crystal_observatory": {
+   "script": "crystal_observatory/crystal_observatory.py",
+   "cells": 3086,
+   "bounds": [
+    [
+     -17,
+     -1,
+     -12
+    ],
+    [
+     17,
+     32,
+     10
+    ]
+   ],
+   "overwrites": 326,
+   "rng_blocks": [
+    "minecraft:deepslate",
+    "minecraft:cobbled_deepslate",
+    "minecraft:tuff",
+    "minecraft:stone",
+    "minecraft:andesite",
+    "minecraft:cobblestone",
+    "minecraft:moss_block",
+    "minecraft:grass_block",
+    "minecraft:rooted_dirt",
+    "minecraft:stone_bricks",
+    "minecraft:mossy_stone_bricks",
+    "minecraft:cracked_stone_bricks",
+    "minecraft:polished_andesite",
+    "minecraft:oxidized_cut_copper",
+    "minecraft:weathered_cut_copper",
+    "minecraft:prismarine_bricks"
+   ],
+   "rng_cells": 2148,
+   "fixed_counts": {
+    "minecraft:amethyst_block": 336,
+    "minecraft:amethyst_cluster[facing=down]": 5,
+    "minecraft:amethyst_cluster[facing=south]": 1,
+    "minecraft:amethyst_cluster[facing=up]": 14,
+    "minecraft:barrel[facing=up]": 1,
+    "minecraft:bookshelf": 8,
+    "minecraft:budding_amethyst": 13,
+    "minecraft:cartography_table": 1,
+    "minecraft:chiseled_deepslate": 10,
+    "minecraft:chiseled_stone_bricks": 47,
+    "minecraft:cobbled_deepslate_wall": 9,
+    "minecraft:copper_block": 5,
+    "minecraft:cut_copper": 21,
+    "minecraft:cut_copper_slab[type=bottom]": 1,
+    "minecraft:cut_copper_stairs[facing=north,half=bottom]": 8,
+    "minecraft:cut_copper_stairs[facing=south,half=top]": 7,
+    "minecraft:dark_oak_trapdoor[facing=east,half=bottom,open=true]": 3,
+    "minecraft:dark_oak_trapdoor[facing=west,half=bottom,open=true]": 3,
+    "minecraft:deepslate_brick_slab[type=top]": 3,
+    "minecraft:deepslate_brick_stairs[facing=east,half=bottom]": 4,
+    "minecraft:deepslate_brick_stairs[facing=east,half=top]": 6,
+    "minecraft:deepslate_brick_stairs[facing=north,half=top]": 8,
+    "minecraft:deepslate_brick_stairs[facing=south,half=top]": 5,
+    "minecraft:deepslate_brick_stairs[facing=west,half=top]": 6,
+    "minecraft:deepslate_brick_wall": 13,
+    "minecraft:deepslate_bricks": 79,
+    "minecraft:deepslate_tile_wall": 25,
+    "minecraft:deepslate_tiles": 3,
+    "minecraft:end_rod[facing=north]": 1,
+    "minecraft:end_rod[facing=south]": 1,
+    "minecraft:iron_chain[axis=y]": 8,
+    "minecraft:ladder[facing=east]": 6,
+    "minecraft:lantern": 10,
+    "minecraft:lectern[facing=south]": 1,
+    "minecraft:magenta_stained_glass": 14,
+    "minecraft:polished_deepslate": 57,
+    "minecraft:purple_stained_glass": 46,
+    "minecraft:sea_lantern": 4,
+    "minecraft:soul_lantern[hanging=true]": 4,
+    "minecraft:spruce_planks": 71,
+    "minecraft:spruce_slab[type=top]": 50,
+    "minecraft:tuff_wall": 2,
+    "minecraft:waxed_copper_block": 18
+   },
+   "positions_sha256": "18bfb3728f6c9d6efa8532ff3875e475d12d19ab8e6e278c3f8ca90eaa4cf182"
+  },
+  "homestead-watchtower": {
+   "script": "homestead/watchtower.py",
+   "cells": 510,
+   "bounds": [
+    [
+     -1,
+     0,
+     -1
+    ],
+    [
+     5,
+     26,
+     5
+    ]
+   ],
+   "overwrites": 17,
+   "rng_blocks": [
+    "minecraft:stone_bricks",
+    "minecraft:mossy_stone_bricks",
+    "minecraft:cracked_stone_bricks"
+   ],
+   "rng_cells": 252,
+   "fixed_counts": {
+    "minecraft:cobblestone": 28,
+    "minecraft:deepslate_tile_stairs[facing=east,half=bottom]": 9,
+    "minecraft:deepslate_tile_stairs[facing=north,half=bottom]": 9,
+    "minecraft:deepslate_tile_stairs[facing=south,half=bottom]": 9,
+    "minecraft:deepslate_tile_stairs[facing=west,half=bottom]": 9,
+    "minecraft:deepslate_tile_wall": 2,
+    "minecraft:deepslate_tiles": 13,
+    "minecraft:glass_pane": 14,
+    "minecraft:ladder[facing=south]": 15,
+    "minecraft:lantern": 4,
+    "minecraft:lightning_rod[facing=up]": 1,
+    "minecraft:mossy_cobblestone": 12,
+    "minecraft:polished_andesite": 48,
+    "minecraft:spruce_door[facing=south,half=lower,hinge=left]": 1,
+    "minecraft:spruce_door[facing=south,half=upper,hinge=left]": 1,
+    "minecraft:spruce_fence": 8,
+    "minecraft:spruce_planks": 9,
+    "minecraft:spruce_trapdoor[facing=south,half=top]": 1,
+    "minecraft:stone": 9,
+    "minecraft:stone_brick_slab[type=top]": 24,
+    "minecraft:stone_brick_stairs[facing=east,half=top]": 5,
+    "minecraft:stone_brick_stairs[facing=north,half=top]": 5,
+    "minecraft:stone_brick_stairs[facing=south,half=top]": 5,
+    "minecraft:stone_brick_stairs[facing=west,half=top]": 5,
+    "minecraft:stone_brick_wall": 12
+   },
+   "positions_sha256": "66e6de6bb73e9ca4f5ae780fec2a48f3121abd6f1576f1bb0761698f9e330bed"
   }
  }
 }

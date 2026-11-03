@@ -16,10 +16,7 @@ interface Expected {
   leaks?: { count: number; first: number[][][] };
 }
 
-const { examples, skipped } = loadVector<{
-  examples: Record<string, Expected>;
-  skipped: Record<string, string>;
-}>("examples.json");
+const { examples } = loadVector<{ examples: Record<string, Expected> }>("examples.json");
 
 /** Each example name maps to its TypeScript port. Ports are added as they are finished. */
 const PORTS: Record<string, () => Promise<{ BUILD: Build }>> = {
@@ -70,41 +67,54 @@ describe("example scripts against the Python oracle", () => {
     expect(found.length).toBe(want.count);
     expect(found.slice(0, 10)).toEqual(want.first);
   });
-
-  it("lists the examples left out because they use the RNG", () => {
-    expect(Object.keys(skipped).sort()).toEqual(["crystal_observatory", "homestead-watchtower"]);
-  });
 });
 
-describe("examples that use the RNG (no exact oracle)", () => {
-  it("homestead-watchtower has the original's structure; only the stone variants differ", async () => {
-    const { BUILD } = await import("../examples/homestead/watchtower.ts");
-    const got = digest(BUILD);
-    const stone = [
-      "minecraft:stone_bricks",
-      "minecraft:mossy_stone_bricks",
-      "minecraft:cracked_stone_bricks",
-    ];
-    const pick = (keep: boolean) =>
-      Object.entries(got.counts).filter(([k]) => stone.includes(k) === keep);
-    // From the Python run: bounds, 510 blocks, 252 of them stone-brick variants
-    // (49 mossy, 33 cracked, 170 plain). The PRNG differs, so only the sum is fixed.
-    expect(BUILD.bounds()).toEqual([
-      [-1, 0, -1],
-      [5, 26, 5],
-    ]);
-    expect(got.lines.length).toBe(510);
-    expect(pick(true).reduce((n, [, v]) => n + v, 0)).toBe(252);
-    const mossy = got.counts["minecraft:mossy_stone_bricks"] ?? 0;
-    const cracked = got.counts["minecraft:cracked_stone_bricks"] ?? 0;
-    expect(mossy).toBeGreaterThan(25);
-    expect(mossy).toBeLessThan(80);
-    expect(cracked).toBeGreaterThan(15);
-    expect(cracked).toBeLessThan(55);
-    // Everything that is not stone comes out identical to the original.
-    expect(Object.fromEntries(pick(false))).toMatchObject({
-      "minecraft:spruce_planks": 9,
-      "minecraft:lantern": 4,
+interface RngExpected {
+  script: string;
+  cells: number;
+  bounds: [number[], number[]];
+  rng_blocks: string[];
+  rng_cells: number;
+  fixed_counts: Record<string, number>;
+  positions_sha256: string;
+}
+
+const rngExamples = loadVector<{ rng_examples: Record<string, RngExpected> }>(
+  "examples.json",
+).rng_examples;
+
+const RNG_PORTS: Record<string, () => Promise<{ BUILD: Build }>> = {
+  "homestead-watchtower": () => import("../examples/homestead/watchtower.ts"),
+  crystal_observatory: () => import("../examples/crystal_observatory/crystal-observatory.ts"),
+};
+
+// These scripts pick blocks with the build's RNG, and the TypeScript PRNG differs
+// from Python's on purpose. A cell is set whatever the RNG picks, so every
+// position must match, and so must every block the RNG never places.
+describe("examples that use the RNG", () => {
+  for (const [name, want] of Object.entries(rngExamples)) {
+    it(`${name}: same cells, same bounds, same non-random blocks (${want.script})`, async () => {
+      const port = RNG_PORTS[name] as () => Promise<{ BUILD: Build }>;
+      const { BUILD } = await port();
+      const got = digest(BUILD);
+      expect(got.lines.length).toBe(want.cells);
+      expect(BUILD.bounds()).toEqual(want.bounds);
+      const positions = got.lines.map((l) => l.split(" ", 1)[0]).join("\n");
+      expect(createHash("sha256").update(positions).digest("hex")).toBe(want.positions_sha256);
+
+      const random = new Set(want.rng_blocks);
+      const fixed = Object.fromEntries(Object.entries(got.counts).filter(([b]) => !random.has(b)));
+      expect(fixed).toEqual(want.fixed_counts);
+      const randomCells = Object.entries(got.counts)
+        .filter(([b]) => random.has(b))
+        .reduce((n, [, c]) => n + c, 0);
+      expect(randomCells).toBe(want.rng_cells);
     });
+  }
+
+  it("is not accidentally identical to the Python RNG's picks", async () => {
+    // If the PRNGs ever matched bit for bit this suite could be tightened to an exact digest.
+    const { BUILD } = await import("../examples/crystal_observatory/crystal-observatory.ts");
+    expect(digest(BUILD).counts["minecraft:moss_block"]).toBeGreaterThan(0);
   });
 });
