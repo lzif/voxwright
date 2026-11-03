@@ -22,6 +22,23 @@ This is a private pnpm monorepo. Workspace members live under `packages/*` and
 
 Dependencies point one way only; `.dependency-cruiser.cjs` enforces this.
 
+## The web app
+
+`apps/web` is a static SvelteKit site: open a `.nbt`, `.schem`, `.litematic` or
+`.mcstructure`, turn it by dragging, limit it to a range of layers, and convert it
+to any of the four formats with a loss report. Everything runs in your browser
+(drawing happens in a worker); nothing is uploaded.
+
+```sh
+node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # Mojang's assets, once
+pnpm --filter @voxwright/web assets    # bundle blockstates, models and textures into a local pack
+pnpm --filter @voxwright/web dev       # or: build, then serve apps/web/build from any file host
+```
+
+The texture pack is built on your machine from Mojang's assets and is
+git-ignored; without it the page still works and draws flat colours.
+`node apps/web/test/e2e.ts` drives the built site in Chrome.
+
 ## Tooling
 
 - pnpm workspaces (`pnpm-workspace.yaml`)

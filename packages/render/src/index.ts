@@ -29,6 +29,7 @@ export {
 export { buildFaceTextures } from "./fast.ts";
 export { drawText, textScale, textWidth } from "./font.ts";
 export type { Canvas, RasterImage } from "./image.ts";
+export { crop, fromRgba } from "./image.ts";
 export {
   type ModelApplication,
   modelApplications,
@@ -65,6 +66,7 @@ export {
   type Scene,
   untrustedBlocks,
 } from "./scene.ts";
+export { sliceDense } from "./slice.ts";
 export {
   checkCap,
   defaultViews,

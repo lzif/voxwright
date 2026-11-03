@@ -4,3 +4,6 @@ node_modules/
 dist/
 coverage/
 .tmp/
+apps/web/static/pack/
+apps/web/.svelte-kit/
+apps/web/build/

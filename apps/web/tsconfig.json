@@ -1,0 +1,13 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+{
+  "extends": "$app/tsconfig",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node", "$app/types"]
+  },
+  "include": ["src", "test", "scripts", "*.ts"],
+  "exclude": ["src/service-worker"]
+}

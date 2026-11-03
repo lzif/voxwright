@@ -80,3 +80,26 @@ jobs:
             pnpm -r --if-present run typecheck
             pnpm -r --if-present run test
           fi
+
+  # The browser app, built with the real asset pack and driven in Chrome.
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mcbuilder
+          key: mcbuilder-assets-26.2
+      - name: Fetch vanilla assets and build the pack
+        run: |
+          node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2
+          node apps/web/scripts/build-pack.ts
+      - run: pnpm --filter @voxwright/web build
+      - name: Open a real schematic in Chrome
+        run: node apps/web/test/e2e.ts

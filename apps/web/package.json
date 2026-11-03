@@ -1,0 +1,29 @@
+{
+  "name": "@voxwright/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser viewer and converter for schematics.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "node scripts/build-pack.ts",
+    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@voxwright/core": "workspace:*",
+    "@voxwright/render": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^4.0.1",
+    "@sveltejs/kit": "^3.1.1",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "puppeteer-core": "^25.16.0",
+    "svelte": "^5.57.3",
+    "svelte-check": "^4.7.8",
+    "vite": "^8.3.5"
+  }
+}

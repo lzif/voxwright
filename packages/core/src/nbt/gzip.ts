@@ -13,7 +13,8 @@ async function pipe(
       controller.close();
     },
   });
-  const out = source.pipeThrough(stream);
+  // Cast: the DOM and Node typings disagree about the stream's chunk type; both are bytes.
+  const out = source.pipeThrough(stream as unknown as TransformStream<Uint8Array, Uint8Array>);
   return new Uint8Array(await new Response(out).arrayBuffer());
 }
 
