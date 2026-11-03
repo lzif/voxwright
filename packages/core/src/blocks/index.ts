@@ -7,3 +7,5 @@ export {
   parse as parseBlockString,
   suggest,
 } from "./blocks.ts";
+export { getCloseMatches, ratio } from "./difflib.ts";
+export { compareCodePoints, isPySpace, pyStrip } from "./pystr.ts";

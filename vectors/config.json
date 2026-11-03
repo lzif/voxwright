@@ -1,0 +1,96 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "cases": {
+  "empty": {
+   "text": "",
+   "ok": {
+    "mc_version": "26.2",
+    "max_dimensions": [
+     256,
+     256,
+     256
+    ],
+    "allowlist": [],
+    "assets_dir": null
+   }
+  },
+  "full": {
+   "text": "mc_version = \"1.21.4\"\nmax_dimensions = [64, 32, 64]\nallowlist = [\"lostqol:waystone\", \"x:y\"]\nassets_dir = \"~/assets\"\n",
+   "ok": {
+    "mc_version": "1.21.4",
+    "max_dimensions": [
+     64,
+     32,
+     64
+    ],
+    "allowlist": [
+     "lostqol:waystone",
+     "x:y"
+    ],
+    "assets_dir": "/home/test/assets"
+   }
+  },
+  "partial": {
+   "text": "max_dimensions = [10, 20, 30]\n",
+   "ok": {
+    "mc_version": "26.2",
+    "max_dimensions": [
+     10,
+     20,
+     30
+    ],
+    "allowlist": [],
+    "assets_dir": null
+   }
+  },
+  "dims-as-strings": {
+   "text": "max_dimensions = [\"7\", \"8\", \"9\"]\n",
+   "ok": {
+    "mc_version": "26.2",
+    "max_dimensions": [
+     7,
+     8,
+     9
+    ],
+    "allowlist": [],
+    "assets_dir": null
+   }
+  },
+  "bad-version-empty": {
+   "text": "mc_version = \"\"\n",
+   "error": "ValueError"
+  },
+  "bad-version-int": {
+   "text": "mc_version = 26\n",
+   "error": "ValueError"
+  },
+  "bad-dims-count": {
+   "text": "max_dimensions = [1, 2]\n",
+   "error": "ValueError"
+  },
+  "bad-dims-zero": {
+   "text": "max_dimensions = [1, 0, 3]\n",
+   "error": "ValueError"
+  },
+  "bad-dims-text": {
+   "text": "max_dimensions = [\"a\", \"b\", \"c\"]\n",
+   "error": "ValueError"
+  },
+  "bad-allowlist": {
+   "text": "allowlist = [1, 2]\n",
+   "error": "ValueError"
+  },
+  "bad-allowlist-type": {
+   "text": "allowlist = \"x\"\n",
+   "error": "ValueError"
+  },
+  "bad-assets": {
+   "text": "assets_dir = 5\n",
+   "error": "ValueError"
+  },
+  "bad-toml": {
+   "text": "this is = = not toml\n",
+   "error": "ValueError"
+  }
+ }
+}

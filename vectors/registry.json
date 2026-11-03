@@ -1,0 +1,913 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "raw": [
+  {
+   "name": "stone",
+   "states": []
+  },
+  {
+   "name": "oak_stairs",
+   "states": [
+    {
+     "name": "facing",
+     "type": "enum",
+     "values": [
+      "north",
+      "south",
+      "west",
+      "east"
+     ]
+    },
+    {
+     "name": "half",
+     "type": "enum",
+     "values": [
+      "top",
+      "bottom"
+     ]
+    },
+    {
+     "name": "shape",
+     "type": "enum",
+     "values": [
+      "straight",
+      "inner_left",
+      "inner_right",
+      "outer_left",
+      "outer_right"
+     ]
+    },
+    {
+     "name": "waterlogged",
+     "type": "bool"
+    }
+   ]
+  },
+  {
+   "name": "oak_log",
+   "states": [
+    {
+     "name": "axis",
+     "type": "enum",
+     "values": [
+      "x",
+      "y",
+      "z"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "oak_planks",
+   "states": []
+  },
+  {
+   "name": "chest",
+   "states": [
+    {
+     "name": "facing",
+     "type": "enum",
+     "values": [
+      "north",
+      "south",
+      "west",
+      "east"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "air",
+   "states": []
+  },
+  {
+   "name": "stone_bricks",
+   "states": []
+  },
+  {
+   "name": "stone_brick_stairs",
+   "states": []
+  },
+  {
+   "name": "lever",
+   "states": [
+    {
+     "name": "powered",
+     "type": "bool"
+    },
+    {
+     "name": "level",
+     "type": "int",
+     "values": [
+      0,
+      1,
+      2
+     ]
+    }
+   ]
+  }
+ ],
+ "normalized": {
+  "minecraft:stone": {
+   "properties": {}
+  },
+  "minecraft:oak_stairs": {
+   "properties": {
+    "facing": [
+     "north",
+     "south",
+     "west",
+     "east"
+    ],
+    "half": [
+     "top",
+     "bottom"
+    ],
+    "shape": [
+     "straight",
+     "inner_left",
+     "inner_right",
+     "outer_left",
+     "outer_right"
+    ],
+    "waterlogged": [
+     "true",
+     "false"
+    ]
+   }
+  },
+  "minecraft:oak_log": {
+   "properties": {
+    "axis": [
+     "x",
+     "y",
+     "z"
+    ]
+   }
+  },
+  "minecraft:oak_planks": {
+   "properties": {}
+  },
+  "minecraft:chest": {
+   "properties": {
+    "facing": [
+     "north",
+     "south",
+     "west",
+     "east"
+    ]
+   }
+  },
+  "minecraft:air": {
+   "properties": {}
+  },
+  "minecraft:stone_bricks": {
+   "properties": {}
+  },
+  "minecraft:stone_brick_stairs": {
+   "properties": {}
+  },
+  "minecraft:lever": {
+   "properties": {
+    "powered": [
+     "true",
+     "false"
+    ],
+    "level": [
+     "0",
+     "1",
+     "2"
+    ]
+   }
+  }
+ },
+ "normalized_input": {
+  "blocks": {
+   "minecraft:dirt": {
+    "properties": {
+     "snowy": [
+      "true",
+      "false"
+     ]
+    }
+   },
+   "minecraft:glass": {}
+  }
+ },
+ "normalized_from_mapping": {
+  "minecraft:dirt": {
+   "properties": {
+    "snowy": [
+     "true",
+     "false"
+    ]
+   }
+  },
+  "minecraft:glass": {
+   "properties": {}
+  }
+ },
+ "names": [
+  "minecraft:air",
+  "minecraft:chest",
+  "minecraft:lever",
+  "minecraft:oak_log",
+  "minecraft:oak_planks",
+  "minecraft:oak_stairs",
+  "minecraft:stone",
+  "minecraft:stone_brick_stairs",
+  "minecraft:stone_bricks"
+ ],
+ "validations": [
+  {
+   "palette": [
+    "minecraft:stone"
+   ],
+   "allowlist": [],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stone"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stone"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:air",
+    "minecraft:stone",
+    "minecraft:oak_planks"
+   ],
+   "allowlist": [],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:air",
+    "minecraft:stone",
+    "minecraft:oak_planks"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:air",
+    "minecraft:stone",
+    "minecraft:oak_planks"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stair"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:oak_stair",
+     "message": "unknown block 'minecraft:oak_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:oak_stairs"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stair"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stair",
+     "message": "unknown block 'minecraft:oak_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:oak_stairs"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stair"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stair",
+     "message": "unknown block 'minecraft:oak_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:oak_stairs"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stoen",
+    "minecraft:oak_log[axis=y]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:stoen",
+     "message": "unknown block 'minecraft:stoen' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stoen",
+    "minecraft:oak_log[axis=y]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:stoen",
+     "message": "unknown block 'minecraft:stoen' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stoen",
+    "minecraft:oak_log[axis=y]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:stoen",
+     "message": "unknown block 'minecraft:stoen' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=north,half=bottom]",
+    "minecraft:oak_stairs[facing=North]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=North]",
+     "message": "illegal value 'North' for property 'facing' on minecraft:oak_stairs (did you mean 'north'? values are case-sensitive); legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=north,half=bottom]",
+    "minecraft:oak_stairs[facing=North]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=North]",
+     "message": "illegal value 'North' for property 'facing' on minecraft:oak_stairs (did you mean 'north'? values are case-sensitive); legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=north,half=bottom]",
+    "minecraft:oak_stairs[facing=North]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=North]",
+     "message": "illegal value 'North' for property 'facing' on minecraft:oak_stairs (did you mean 'north'? values are case-sensitive); legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=up]",
+    "minecraft:oak_stairs[hafl=top]",
+    "minecraft:oak_stairs[waterlogged=maybe]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=up]",
+     "message": "illegal value 'up' for property 'facing' on minecraft:oak_stairs; legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:oak_stairs[hafl=top]",
+     "message": "unknown property 'hafl' on minecraft:oak_stairs; legal properties: ['facing', 'half', 'shape', 'waterlogged']",
+     "suggestions": [
+      "half"
+     ]
+    },
+    {
+     "block": "minecraft:oak_stairs[waterlogged=maybe]",
+     "message": "illegal value 'maybe' for property 'waterlogged' on minecraft:oak_stairs; legal values: ['true', 'false']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=up]",
+    "minecraft:oak_stairs[hafl=top]",
+    "minecraft:oak_stairs[waterlogged=maybe]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=up]",
+     "message": "illegal value 'up' for property 'facing' on minecraft:oak_stairs; legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:oak_stairs[hafl=top]",
+     "message": "unknown property 'hafl' on minecraft:oak_stairs; legal properties: ['facing', 'half', 'shape', 'waterlogged']",
+     "suggestions": [
+      "half"
+     ]
+    },
+    {
+     "block": "minecraft:oak_stairs[waterlogged=maybe]",
+     "message": "illegal value 'maybe' for property 'waterlogged' on minecraft:oak_stairs; legal values: ['true', 'false']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:oak_stairs[facing=up]",
+    "minecraft:oak_stairs[hafl=top]",
+    "minecraft:oak_stairs[waterlogged=maybe]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:oak_stairs[facing=up]",
+     "message": "illegal value 'up' for property 'facing' on minecraft:oak_stairs; legal values: ['north', 'south', 'west', 'east']",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:oak_stairs[hafl=top]",
+     "message": "unknown property 'hafl' on minecraft:oak_stairs; legal properties: ['facing', 'half', 'shape', 'waterlogged']",
+     "suggestions": [
+      "half"
+     ]
+    },
+    {
+     "block": "minecraft:oak_stairs[waterlogged=maybe]",
+     "message": "illegal value 'maybe' for property 'waterlogged' on minecraft:oak_stairs; legal values: ['true', 'false']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:chest{Items:[]}",
+    "minecraft:chest{Items:[}",
+    "minecraft:chest{Name:\"a}\"}",
+    "minecraft:chest{Name:'x'}"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:chest{Items:[}",
+     "message": "unbalanced braces/brackets in block-entity NBT of 'minecraft:chest{Items:[}'",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:chest{Items:[]}",
+    "minecraft:chest{Items:[}",
+    "minecraft:chest{Name:\"a}\"}",
+    "minecraft:chest{Name:'x'}"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:chest{Items:[}",
+     "message": "unbalanced braces/brackets in block-entity NBT of 'minecraft:chest{Items:[}'",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:chest{Items:[]}",
+    "minecraft:chest{Items:[}",
+    "minecraft:chest{Name:\"a}\"}",
+    "minecraft:chest{Name:'x'}"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:chest{Items:[}",
+     "message": "unbalanced braces/brackets in block-entity NBT of 'minecraft:chest{Items:[}'",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "lostqol:waystone",
+    "lostqol:other",
+    "modded:thing[a=b]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "lostqol:waystone",
+     "message": "unknown block 'lostqol:waystone' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    },
+    {
+     "block": "lostqol:other",
+     "message": "unknown block 'lostqol:other' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    },
+    {
+     "block": "modded:thing[a=b]",
+     "message": "unknown block 'modded:thing' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "lostqol:waystone",
+    "lostqol:other",
+    "modded:thing[a=b]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "lostqol:other",
+     "message": "unknown block 'lostqol:other' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    },
+    {
+     "block": "modded:thing[a=b]",
+     "message": "unknown block 'modded:thing' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    }
+   ],
+   "warnings": [
+    {
+     "block": "lostqol:waystone",
+     "message": "lostqol:waystone is allowlisted: unvalidated, build at own risk"
+    }
+   ]
+  },
+  {
+   "palette": [
+    "lostqol:waystone",
+    "lostqol:other",
+    "modded:thing[a=b]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "lostqol:other",
+     "message": "unknown block 'lostqol:other' (not in the test-1 registry); add it to `allowlist` in mcbuild.toml if it is a modded/custom block",
+     "suggestions": []
+    }
+   ],
+   "warnings": [
+    {
+     "block": "lostqol:waystone",
+     "message": "lostqol:waystone is allowlisted: unvalidated, build at own risk"
+    },
+    {
+     "block": "modded:thing[a=b]",
+     "message": "modded:thing is allowlisted: unvalidated, build at own risk"
+    }
+   ]
+  },
+  {
+   "palette": [
+    "minecraft:lever[powered=true,level=2]",
+    "minecraft:lever[level=9]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:lever[level=9]",
+     "message": "illegal value '9' for property 'level' on minecraft:lever; legal values: ['0', '1', '2']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:lever[powered=true,level=2]",
+    "minecraft:lever[level=9]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:lever[level=9]",
+     "message": "illegal value '9' for property 'level' on minecraft:lever; legal values: ['0', '1', '2']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:lever[powered=true,level=2]",
+    "minecraft:lever[level=9]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:lever[level=9]",
+     "message": "illegal value '9' for property 'level' on minecraft:lever; legal values: ['0', '1', '2']",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "notblock",
+    "minecraft:",
+    "[a=b]",
+    "minecraft:stone[a]"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "notblock",
+     "message": "unknown block 'notblock' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:",
+     "message": "unknown block 'minecraft:' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "[a=b]",
+     "message": "malformed block string: '[a=b]'",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:stone[a]",
+     "message": "malformed property 'a' in 'minecraft:stone[a]' (want name=value)",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "notblock",
+    "minecraft:",
+    "[a=b]",
+    "minecraft:stone[a]"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "notblock",
+     "message": "unknown block 'notblock' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:",
+     "message": "unknown block 'minecraft:' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "[a=b]",
+     "message": "malformed block string: '[a=b]'",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:stone[a]",
+     "message": "malformed property 'a' in 'minecraft:stone[a]' (want name=value)",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "notblock",
+    "minecraft:",
+    "[a=b]",
+    "minecraft:stone[a]"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "notblock",
+     "message": "unknown block 'notblock' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:",
+     "message": "unknown block 'minecraft:' (not in the test-1 registry)",
+     "suggestions": []
+    },
+    {
+     "block": "[a=b]",
+     "message": "malformed block string: '[a=b]'",
+     "suggestions": []
+    },
+    {
+     "block": "minecraft:stone[a]",
+     "message": "malformed property 'a' in 'minecraft:stone[a]' (want name=value)",
+     "suggestions": []
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stone_brick",
+    "minecraft:stone_brick_stair"
+   ],
+   "allowlist": [],
+   "errors": [
+    {
+     "block": "minecraft:stone_brick",
+     "message": "unknown block 'minecraft:stone_brick' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_bricks",
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone"
+     ]
+    },
+    {
+     "block": "minecraft:stone_brick_stair",
+     "message": "unknown block 'minecraft:stone_brick_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone_bricks"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stone_brick",
+    "minecraft:stone_brick_stair"
+   ],
+   "allowlist": [
+    "lostqol:waystone"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:stone_brick",
+     "message": "unknown block 'minecraft:stone_brick' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_bricks",
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone"
+     ]
+    },
+    {
+     "block": "minecraft:stone_brick_stair",
+     "message": "unknown block 'minecraft:stone_brick_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone_bricks"
+     ]
+    }
+   ],
+   "warnings": []
+  },
+  {
+   "palette": [
+    "minecraft:stone_brick",
+    "minecraft:stone_brick_stair"
+   ],
+   "allowlist": [
+    "lostqol:waystone[facing=north]",
+    "modded:thing"
+   ],
+   "errors": [
+    {
+     "block": "minecraft:stone_brick",
+     "message": "unknown block 'minecraft:stone_brick' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_bricks",
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone"
+     ]
+    },
+    {
+     "block": "minecraft:stone_brick_stair",
+     "message": "unknown block 'minecraft:stone_brick_stair' (not in the test-1 registry)",
+     "suggestions": [
+      "minecraft:stone_brick_stairs",
+      "minecraft:stone_bricks"
+     ]
+    }
+   ],
+   "warnings": []
+  }
+ ],
+ "bad_input": {
+  "error": "ValueError"
+ }
+}

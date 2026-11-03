@@ -1,0 +1,79 @@
+{
+ "SPDX-License-Identifier": "AGPL-3.0-only",
+ "view_entry": {
+  "file": "az135_el025.png",
+  "azimuth": 135.0,
+  "elevation": 25.0,
+  "label": "az135_el025",
+  "directions_untrusted": true,
+  "directions_trusted": false
+ },
+ "view_entry_trusted": {
+  "file": "a.png",
+  "azimuth": 135.0,
+  "elevation": 25.0,
+  "label": "az135_el025",
+  "directions_untrusted": false,
+  "directions_trusted": true
+ },
+ "full": {
+  "errors": [
+   {
+    "block": "x",
+    "message": "m",
+    "suggestions": [
+     "y"
+    ]
+   }
+  ],
+  "warnings": [
+   {
+    "block": "w",
+    "message": "careful"
+   }
+  ],
+  "block_counts": {
+   "minecraft:stone": 12,
+   "minecraft:dirt": 3
+  },
+  "dimensions": {
+   "x": 4,
+   "y": 5,
+   "z": 6
+  },
+  "origin": [
+   -1,
+   0,
+   2
+  ],
+  "views": [
+   {
+    "file": "a.png",
+    "azimuth": 135.0,
+    "elevation": 25.0,
+    "label": "az135_el025",
+    "directions_untrusted": true,
+    "directions_trusted": false
+   }
+  ],
+  "artifacts": [
+   {
+    "kind": "nbt",
+    "path": "build.nbt"
+   }
+  ],
+  "overwritten_placements": 4,
+  "run_dir": "dist/run-003"
+ },
+ "minimal": {
+  "errors": [],
+  "warnings": [],
+  "block_counts": {},
+  "dimensions": null,
+  "origin": null,
+  "views": [],
+  "artifacts": [],
+  "overwritten_placements": 0,
+  "run_dir": "dist/run-001"
+ }
+}

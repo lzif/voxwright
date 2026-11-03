@@ -405,8 +405,194 @@ def write(name: str, data: dict) -> None:
     print(f"wrote vectors/{name}")
 
 
+
+
+# --------------------------------------------------------------------------- registry, report, config, importer
+
+def registry_vectors():
+    from mcbuilder.registry import Registry, normalize_block_data
+
+    raw = [
+        {"name": "stone", "states": []},
+        {"name": "oak_stairs", "states": [
+            {"name": "facing", "type": "enum", "values": ["north", "south", "west", "east"]},
+            {"name": "half", "type": "enum", "values": ["top", "bottom"]},
+            {"name": "shape", "type": "enum", "values": ["straight", "inner_left", "inner_right", "outer_left", "outer_right"]},
+            {"name": "waterlogged", "type": "bool"},
+        ]},
+        {"name": "oak_log", "states": [{"name": "axis", "type": "enum", "values": ["x", "y", "z"]}]},
+        {"name": "oak_planks", "states": []},
+        {"name": "chest", "states": [{"name": "facing", "type": "enum", "values": ["north", "south", "west", "east"]}]},
+        {"name": "air", "states": []},
+        {"name": "stone_bricks", "states": []},
+        {"name": "stone_brick_stairs", "states": []},
+        {"name": "lever", "states": [{"name": "powered", "type": "bool"}, {"name": "level", "type": "int", "values": [0, 1, 2]}]},
+    ]
+    normalized_input = {"blocks": {"minecraft:dirt": {"properties": {"snowy": ["true", "false"]}}, "minecraft:glass": {}}}
+    reg = Registry(normalize_block_data(raw), "test-1")
+    palettes = [
+        ["minecraft:stone"],
+        ["minecraft:air", "minecraft:stone", "minecraft:oak_planks"],
+        ["minecraft:oak_stair"],
+        ["minecraft:stoen", "minecraft:oak_log[axis=y]"],
+        ["minecraft:oak_stairs[facing=north,half=bottom]", "minecraft:oak_stairs[facing=North]"],
+        ["minecraft:oak_stairs[facing=up]", "minecraft:oak_stairs[hafl=top]", "minecraft:oak_stairs[waterlogged=maybe]"],
+        ["minecraft:chest{Items:[]}", "minecraft:chest{Items:[}", 'minecraft:chest{Name:"a}"}', "minecraft:chest{Name:'x'}"],
+        ["lostqol:waystone", "lostqol:other", "modded:thing[a=b]"],
+        ["minecraft:lever[powered=true,level=2]", "minecraft:lever[level=9]"],
+        ["notblock", "minecraft:", "[a=b]", "minecraft:stone[a]"],
+        ["minecraft:stone_brick", "minecraft:stone_brick_stair"],
+    ]
+    allow = [["lostqol:waystone"], ["lostqol:waystone[facing=north]", "modded:thing"]]
+    validations = []
+    for pal in palettes:
+        for al in ([], *allow):
+            e, w = reg.validate(pal, allowlist=al)
+            validations.append({"palette": pal, "allowlist": al, "errors": e, "warnings": w})
+    norm = normalize_block_data(normalized_input)
+    return {
+        "raw": raw,
+        "normalized": normalize_block_data(raw),
+        "normalized_input": normalized_input,
+        "normalized_from_mapping": norm,
+        "names": reg.names(),
+        "validations": validations,
+        "bad_input": run(lambda: normalize_block_data(5)),
+    }
+
+
+def report_vectors():
+    from mcbuilder import report
+
+    class V:
+        azimuth, elevation, label = 135.0, 25.0, "az135_el025"
+
+    return {
+        "view_entry": report.view_entry(file="az135_el025.png", view=V()),
+        "view_entry_trusted": report.view_entry(file="a.png", view=V(), directions_untrusted=False, directions_trusted=True),
+        "full": report.build_report(
+            errors=[{"block": "x", "message": "m", "suggestions": ["y"]}],
+            warnings=[{"block": "w", "message": "careful"}],
+            block_counts={"minecraft:stone": 12, "minecraft:dirt": 3},
+            dimensions=(4, 5, 6),
+            views=[report.view_entry(file="a.png", view=V())],
+            run_dir="dist/run-003",
+            artifacts=[{"kind": "nbt", "path": "build.nbt"}],
+            overwritten_placements=4,
+            origin=(-1, 0, 2),
+        ),
+        "minimal": report.build_report(
+            errors=[], warnings=[], block_counts={}, dimensions=None, views=[], run_dir="dist/run-001"
+        ),
+    }
+
+
+def config_vectors():
+    import os
+
+    from mcbuilder.config import McbuildConfig
+
+    os.environ["HOME"] = "/home/test"  # so "~" expands the same everywhere
+    cases = {
+        "empty": "",
+        "full": 'mc_version = "1.21.4"\nmax_dimensions = [64, 32, 64]\nallowlist = ["lostqol:waystone", "x:y"]\nassets_dir = "~/assets"\n',
+        "partial": "max_dimensions = [10, 20, 30]\n",
+        "dims-as-strings": 'max_dimensions = ["7", "8", "9"]\n',
+        "bad-version-empty": 'mc_version = ""\n',
+        "bad-version-int": "mc_version = 26\n",
+        "bad-dims-count": "max_dimensions = [1, 2]\n",
+        "bad-dims-zero": "max_dimensions = [1, 0, 3]\n",
+        "bad-dims-text": 'max_dimensions = ["a", "b", "c"]\n',
+        "bad-allowlist": "allowlist = [1, 2]\n",
+        "bad-allowlist-type": 'allowlist = "x"\n',
+        "bad-assets": "assets_dir = 5\n",
+        "bad-toml": "this is = = not toml\n",
+    }
+    out = {}
+    for name, text in cases.items():
+        def load(text=text):
+            import tempfile
+            with tempfile.TemporaryDirectory() as d:
+                p = Path(d) / "mcbuild.toml"
+                p.write_text(text, encoding="utf-8")
+                c = McbuildConfig.load(p)
+                return {
+                    "mc_version": c.mc_version,
+                    "max_dimensions": list(c.max_dimensions),
+                    "allowlist": c.allowlist,
+                    "assets_dir": None if c.assets_dir is None else str(c.assets_dir),
+                }
+        out[name] = {"text": text, **run(load)}
+    return {"cases": out}
+
+
+def importer_vectors():
+    from mcbuilder import importer
+
+    def structure(cells, source="test.nbt", data_version=4903, dbe=0, de=0):
+        s = importer.Structure({(x, y, z): b for x, y, z, b in cells}, source, data_version=data_version,
+                               dropped_block_entities=dbe, dropped_entities=de)
+        return s
+
+    def box(c1, c2, block):
+        return [(x, y, z, block) for x in range(c1[0], c2[0] + 1) for y in range(c1[1], c2[1] + 1) for z in range(c1[2], c2[2] + 1)]
+
+    scenarios = {
+        "single": [(0, 0, 0, "minecraft:stone")],
+        "box": box((0, 0, 0), (3, 2, 4), "minecraft:stone_bricks"),
+        "mixed": (
+            box((0, 0, 0), (5, 0, 5), "minecraft:cobblestone")
+            + box((0, 1, 0), (5, 3, 0), "minecraft:oak_planks")
+            + [(2, 1, 2, "minecraft:oak_stairs[facing=north,half=bottom,shape=straight]"),
+               (3, 1, 2, "minecraft:oak_stairs[facing=south,half=top,shape=straight]"),
+               (4, 1, 2, "minecraft:oak_log[axis=x]"),
+               (1, 2, 3, "minecraft:lever[face=wall,facing=east,powered=true]"),
+               (0, 4, 0, "minecraft:class[x=1]"),
+               (5, 4, 5, "minecraft:air")]
+        ),
+        "ties": [(0, 0, 0, "minecraft:a"), (1, 0, 0, "minecraft:b"), (2, 0, 0, "minecraft:c"), (0, 1, 0, "minecraft:b")],
+        "l-shape": box((0, 0, 0), (4, 0, 0), "minecraft:stone") + box((0, 0, 1), (0, 0, 4), "minecraft:stone") + [(2, 2, 2, "minecraft:stone")],
+        "props-names": [(0, 0, 0, "minecraft:oak_door[facing=north,half=lower,hinge=left,open=false,powered=false]"),
+                        (1, 0, 0, "minecraft:oak_door[facing=north,half=lower,hinge=left,open=true,powered=false]"),
+                        (2, 0, 0, "minecraft:oak_leaves[distance=7,persistent=true,waterlogged=false]"),
+                        (3, 0, 0, "minecraft:123abc"),
+                        (4, 0, 0, "minecraft:oak_leaves[distance=7,persistent=true,waterlogged=true]")],
+        "big-percent": [(i % 10, i // 100, (i // 10) % 10, "minecraft:stone" if i % 8 else "minecraft:dirt") for i in range(400)],
+    }
+    out = {}
+    for name, cells in scenarios.items():
+        dbe, de = (2, 1) if name == "mixed" else (0, 0)
+        s = structure(cells, dbe=dbe, de=de)
+        taken: set = set()
+        counts = importer.Counter(s.blocks.values())
+        from collections import defaultdict
+        by_block = defaultdict(set)
+        for p, b in s.blocks.items():
+            by_block[b].add(p)
+        names = {b: importer._const_name(b, taken) for b in sorted(counts, key=lambda b: (-counts[b], b))}
+        calls = []
+        for block, cs in by_block.items():
+            for c1, c2 in importer._merge_boxes(cs):
+                calls.append([c1[1], c1[2], c1[0], list(c1), list(c2), block])
+        calls.sort(key=lambda c: (c[0], c[1], c[2]))
+        out[name] = {
+            "cells": [list(c) for c in cells],
+            "dropped_block_entities": dbe,
+            "dropped_entities": de,
+            "summary": importer.summary(s),
+            "summary_top3": importer.summary(s, top=3),
+            "names": names,
+            "calls": calls,
+        }
+    return {"scenarios": out}
+
+
 if __name__ == "__main__":
     write("materials.json", materials_vectors())
     write("shapes.json", shapes_vectors())
     write("geometry.json", geometry_vectors())
     write("build.json", build_vectors())
+    write("registry.json", registry_vectors())
+    write("report.json", report_vectors())
+    write("config.json", config_vectors())
+    write("importer.json", importer_vectors())
