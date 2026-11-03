@@ -14,6 +14,9 @@
       "!**/coverage",
       "!pnpm-lock.yaml",
       "!LICENSE",
+      "!**/.svelte-kit",
+      "!**/build",
+      "!**/*.svelte",
       "!vectors/*.json",
       "!fixtures/**/*.json"
     ]

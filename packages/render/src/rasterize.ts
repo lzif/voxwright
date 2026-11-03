@@ -534,23 +534,34 @@ function renderableBounds(
       ];
 }
 
-/** Render one view of a dense volume to an RGB canvas. */
-export function renderView(
+/** Where a view puts the structure on screen: shared by drawing and by picking. */
+export interface Frame {
+  crop: readonly [readonly [number, number], readonly [number, number], readonly [number, number]];
+  d: Vec3;
+  r: Vec3;
+  u: Vec3;
+  /** Screen-space left edge and top edge of the picture, in world projection units. */
+  minx: number;
+  maxy: number;
+  /** Pixels per projection unit, at the supersampled size. */
+  scale: number;
+  /** Supersampled canvas size. */
+  W: number;
+  H: number;
+  ss: number;
+}
+
+/** The camera, framing and canvas size for `dense` seen from `view`, or `null` when nothing is drawn. */
+export function frameFor(
   dense: DenseVolume,
-  assets: AssetSource | null,
   view: View,
   options: RenderOptions = {},
-): Canvas {
+): Frame | null {
   const ss = options.supersample ?? SUPERSAMPLE;
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const crop = renderableBounds(dense);
-  if (crop === null) {
-    const empty = newCanvas(512, 512, BG_PRESENTATION);
-    if (options.title) drawTitle(empty, options.title);
-    return empty;
-  }
-  const scene = prepareScene(dense, assets);
+  if (crop === null) return null;
   const { d, r, u } = camera(view);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop;
 
@@ -573,8 +584,26 @@ export function renderView(
   const w2d = Math.max(maxx - minx, 1e-9);
   const h2d = Math.max(maxy - miny, 1e-9);
   const scale = (longest / Math.max(w2d, h2d)) * ss;
-  const W = pyRound(w2d * scale);
-  const H = pyRound(h2d * scale);
+  return { crop, d, r, u, minx, maxy, scale, W: pyRound(w2d * scale), H: pyRound(h2d * scale), ss };
+}
+
+/** Render one view of a dense volume to an RGB canvas. */
+export function renderView(
+  dense: DenseVolume,
+  assets: AssetSource | null,
+  view: View,
+  options: RenderOptions = {},
+): Canvas {
+  const ss = options.supersample ?? SUPERSAMPLE;
+  const frame = frameFor(dense, view, options);
+  if (frame === null) {
+    const empty = newCanvas(512, 512, BG_PRESENTATION);
+    if (options.title) drawTitle(empty, options.title);
+    return empty;
+  }
+  const scene = prepareScene(dense, assets);
+  const { d, r, u, minx, maxy, scale, W, H } = frame;
+  const [[x0, x1], [y0, y1], [z0, z1]] = frame.crop;
   const toPx = (sx: number, sy: number): [number, number] => [
     pyRound((sx - minx) * scale),
     pyRound((maxy - sy) * scale),
@@ -657,3 +686,84 @@ export function renderView(
 }
 
 export type { Canvas, Scene };
+
+export interface Pick {
+  /** The cell that was hit, in dense-array coordinates. */
+  cell: [number, number, number];
+  /** The cell next to it on the face that was hit: where a new block would go. */
+  next: [number, number, number];
+  /** Unit normal of the face that was hit. */
+  normal: Vec3;
+}
+
+/**
+ * The block under a point of the picture. `px` and `py` are pixels in the
+ * output image (after any supersample downscale), as drawn with the same
+ * `options`. Casts an orthographic ray through the dense array and returns the
+ * first drawn cell and the face it entered by, or `null` when the point is empty.
+ */
+export function pickCell(
+  dense: DenseVolume,
+  view: View,
+  options: RenderOptions,
+  px: number,
+  py: number,
+): Pick | null {
+  const frame = frameFor(dense, view, options);
+  if (frame === null) return null;
+  const { d, r, u, minx, maxy, scale, ss } = frame;
+  // Screen position of the point, back to projection units, then to a ray through the volume.
+  const sxp = minx + (px * ss) / scale;
+  const syp = maxy - (py * ss) / scale;
+  const [sx, sy, sz] = dense.size;
+  const reach = Math.hypot(sx, sy, sz) + 2;
+  const origin: Vec3 = [
+    sxp * r[0] + syp * u[0] - reach * d[0],
+    sxp * r[1] + syp * u[1] - reach * d[1],
+    sxp * r[2] + syp * u[2] - reach * d[2],
+  ];
+  const air = dense.palette.indexOf("minecraft:air");
+  const filled = (x: number, y: number, z: number): boolean => {
+    if (x < 0 || y < 0 || z < 0 || x >= sx || y >= sy || z >= sz) return false;
+    const v = dense.data[(x * sy + y) * sz + z] as number;
+    return v >= 0 && v !== air;
+  };
+  // Amanatides and Woo voxel traversal.
+  const dir = [d[0], d[1], d[2]] as const;
+  const pos = [origin[0], origin[1], origin[2]] as const;
+  const cell: [number, number, number] = [
+    Math.floor(pos[0]),
+    Math.floor(pos[1]),
+    Math.floor(pos[2]),
+  ];
+  const step = dir.map((v) => (v > 0 ? 1 : v < 0 ? -1 : 0)) as [number, number, number];
+  const tDelta = dir.map((v) => (v === 0 ? Number.POSITIVE_INFINITY : Math.abs(1 / v)));
+  const tMax = [0, 1, 2].map((i) => {
+    const st = step[i] as number;
+    if (st === 0) return Number.POSITIVE_INFINITY;
+    const edge = st > 0 ? (cell[i] as number) + 1 : (cell[i] as number);
+    return (edge - (pos[i] as number)) / (dir[i] as number);
+  });
+  let axis = -1;
+  for (let n = 0; n < Math.ceil(reach * 3) + 8; n++) {
+    if (filled(cell[0], cell[1], cell[2])) {
+      if (axis === -1) return null; // the ray started inside a block; not a real hit
+      const normal: Vec3 = [0, 0, 0];
+      normal[axis] = -(step[axis] as number);
+      return {
+        cell: [cell[0], cell[1], cell[2]],
+        next: [cell[0] + normal[0], cell[1] + normal[1], cell[2] + normal[2]],
+        normal,
+      };
+    }
+    axis =
+      (tMax[0] as number) <= (tMax[1] as number) && (tMax[0] as number) <= (tMax[2] as number)
+        ? 0
+        : (tMax[1] as number) <= (tMax[2] as number)
+          ? 1
+          : 2;
+    cell[axis] = (cell[axis] as number) + (step[axis] as number);
+    tMax[axis] = (tMax[axis] as number) + (tDelta[axis] as number);
+  }
+  return null;
+}

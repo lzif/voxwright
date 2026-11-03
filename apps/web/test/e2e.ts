@@ -187,7 +187,105 @@ try {
   ok(Array.isArray(loss), "the loss report area is present");
   ok(errors.length === 0, `no console errors${errors.length ? `: ${errors.join(" | ")}` : ""}`);
 
-  // 5. A bad file is reported, not swallowed.
+  // 5. Edit: start a new build, place a block with a chosen state, undo, redo, erase, pick.
+  const blockCount = async (): Promise<number> => {
+    const text = (await page.$eval('[data-testid="status"]', (e) => e.textContent)) ?? "";
+    return Number(/(\d+) blocks/.exec(text)?.[1] ?? Number.NaN);
+  };
+  const clickCanvas = async (fx = 0.5, fy = 0.5): Promise<void> => {
+    const b = (await (await page.$('[data-testid="canvas"]'))?.boundingBox()) as { x: number; y: number; width: number; height: number };
+    await page.mouse.click(b.x + b.width * fx, b.y + b.height * fy);
+  };
+  const settle = (): Promise<void> => new Promise((r) => setTimeout(r, 3500));
+  await page.click('[data-testid="new"]');
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("81 blocks"), { timeout: 30000 });
+  await page.waitForFunction(() => (document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement).width > 100, { timeout: 30000 });
+  ok(true, "a new build starts with a 9 x 9 floor (81 blocks)");
+
+  await page.click('[data-testid="block-name"]', { clickCount: 3 });
+  await page.type('[data-testid="block-name"]', "oak_stairs");
+  await page.keyboard.press("Enter");
+  await page.waitForSelector('[data-testid="state-facing"]', { timeout: 10000 });
+  ok((await page.$$eval('[data-testid="state-facing"] option', (o) => o.length)) >= 5, "the state panel lists the properties of the chosen block");
+  await page.select('[data-testid="state-facing"]', "east");
+  await page.select('[data-testid="state-half"]', "top");
+  ok(
+    (await page.$eval('[data-testid="block-string"]', (e) => e.textContent)) === "minecraft:oak_stairs[facing=east,half=top]",
+    "the chosen state is written as a block string",
+  );
+
+  await page.click('[data-testid="tool-place"]');
+  await clickCanvas();
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("82 blocks"), { timeout: 30000 });
+  ok(await page.$$eval('[data-testid="counts"] li', (l) => l.some((x) => x.textContent?.includes("oak_stairs"))), "clicking places the block and the list shows it");
+  ok(!(await page.$eval('[data-testid="undo"]', (e) => (e as HTMLButtonElement).disabled)), "undo becomes available");
+
+  await page.click('[data-testid="undo"]');
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("81 blocks"), { timeout: 30000 });
+  ok(true, "undo removes the block");
+  await page.click('[data-testid="redo"]');
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("82 blocks"), { timeout: 30000 });
+  ok(true, "redo puts it back");
+  await page.keyboard.down("Control");
+  await page.keyboard.press("z");
+  await page.keyboard.up("Control");
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("81 blocks"), { timeout: 30000 });
+  ok(true, "Ctrl+Z undoes");
+  await page.keyboard.down("Control");
+  await page.keyboard.down("Shift");
+  await page.keyboard.press("z");
+  await page.keyboard.up("Shift");
+  await page.keyboard.up("Control");
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("82 blocks"), { timeout: 30000 });
+  ok(true, "Ctrl+Shift+Z redoes");
+  if (values.shots) {
+    await settle();
+    await page.screenshot({ path: join(values.shots, "editor.png") });
+  }
+
+  await page.click('[data-testid="tool-erase"]');
+  await settle();
+  await clickCanvas();
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("81 blocks"), { timeout: 30000 });
+  ok(true, "the erase tool removes the block that was clicked");
+
+  await page.click('[data-testid="tool-pick"]');
+  await settle();
+  await clickCanvas(0.5, 0.62);
+  await page.waitForFunction(() => document.querySelector('[data-testid="block-name"]') && (document.querySelector('[data-testid="block-name"]') as HTMLInputElement).value === "minecraft:stone", { timeout: 20000 });
+  ok(true, "the pick tool copies the clicked block into the panel");
+
+  // 6. The export contains the edit: place again, convert, and read the file back.
+  await page.click('[data-testid="tool-place"]');
+  await settle();
+  await clickCanvas();
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("82 blocks"), { timeout: 30000 });
+  await page.select('[data-testid="format"]', "nbt");
+  await page.click('[data-testid="convert"]');
+  const exported = "new-build.nbt";
+  const waitUntil = Date.now() + 20000;
+  while (!readdirSync(downloads).includes(exported) && Date.now() < waitUntil) await new Promise((r) => setTimeout(r, 200));
+  const { readStructureNbt } = await import("../../../packages/core/src/index.ts");
+  const back = await readStructureNbt(new Uint8Array(await readFile(join(downloads, exported))));
+  ok(back.volume.size === 82, "the exported file holds the edited build (82 blocks)");
+
+  // 7. Autosave: the work survives a reload.
+  await new Promise((r) => setTimeout(r, 1200));
+  await page.reload();
+  await page.waitForSelector('[data-testid="restore"]', { timeout: 30000 });
+  await page.click('[data-testid="restore"]');
+  await page.waitForFunction(() => document.querySelector('[data-testid="status"]')?.textContent?.includes("82 blocks"), { timeout: 30000 });
+  ok(true, "after a reload the last session can be restored");
+
+  // 8. Keyboard: arrow keys turn the focused picture.
+  await page.focus('[data-testid="canvas"]');
+  const az0 = Number(await page.$eval('[data-testid="azimuth"]', (e) => (e as HTMLInputElement).value));
+  await page.keyboard.press("ArrowRight");
+  await new Promise((r) => setTimeout(r, 500));
+  const az1 = Number(await page.$eval('[data-testid="azimuth"]', (e) => (e as HTMLInputElement).value));
+  ok(az1 === (az0 + 10) % 360, "the arrow keys turn the picture");
+
+  // 9. A bad file is reported, not swallowed.
   await (input as NonNullable<typeof input>).uploadFile(
     fileURLToPath(new URL("../package.json", import.meta.url)),
   );
