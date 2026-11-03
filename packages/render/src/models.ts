@@ -22,7 +22,7 @@
 // multipart contributes every case whose `when` matches, in file order.
 
 import type { AssetSource } from "./assets.ts";
-import { DEFAULT_PROPS, TINT_TABLE } from "./constants.ts";
+import { DEFAULT_PROPS, type Rgb, TINT_TABLE } from "./constants.ts";
 import {
   crop,
   flipLeftRight,
@@ -440,8 +440,6 @@ function faceUvRotation(img: RasterImage, rotation: number): RasterImage {
   if (r === 270) return rotate90Ccw(img);
   return img;
 }
-
-export type Rgb = readonly [number, number, number];
 
 /**
  * Resolve one blockstate to textured quads, or `null` when the caller should

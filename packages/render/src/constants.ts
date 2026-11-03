@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { Rgb } from "./models.ts";
+export type Rgb = readonly [number, number, number];
 
 /**
  * Default props for variant matching when the canonical blockstate omits them.
