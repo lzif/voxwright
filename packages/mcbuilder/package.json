@@ -17,7 +17,8 @@
   "dependencies": {
     "@voxwright/core": "workspace:*",
     "fflate": "^0.8.3",
-    "smol-toml": "^1.9.1"
+    "smol-toml": "^1.9.1",
+    "@voxwright/render": "workspace:*"
   },
   "bin": {
     "mcbuild": "./bin/mcbuild.ts"

@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readStructureNbt } from "@voxwright/core";
+import { decodePng } from "@voxwright/render/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HOUSE_TEMPLATE, runCli, scanDeterminism } from "../src/node/index.ts";
 
@@ -166,13 +167,76 @@ BUILD.scope(() => {
     expect(await runCli([], capture().io)).toBe(2);
   });
 
-  it("warns that previews are unavailable instead of silently ignoring them", async () => {
-    const c = capture();
-    await runCli(
-      ["run", join(root, "proj/house.ts"), "--out", join(root, "dist-prev"), "--preview"],
-      c.io,
+  it("writes faithful previews and lists them in the report", async () => {
+    const script = join(root, "tiny.ts");
+    await writeFile(
+      script,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1, views: "iso;top" });
+BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
+`,
     );
-    expect(c.out.join("\n")).toContain("previews are not available yet");
+    const c = capture();
+    expect(await runCli(["run", script, "--out", join(root, "dist-prev"), "--preview"], c.io)).toBe(
+      0,
+    );
+    const dir = join(root, "dist-prev/run-001");
+    expect(c.out.join("\n")).toContain("faithful previews: 2 in previews_faithful/");
+    // No vanilla assets in this test home, so the renderer says so and draws fallback cubes.
+    expect(c.out.join("\n")).toContain("vanilla client assets not found");
+    const report = JSON.parse(await readFile(join(dir, "report.json"), "utf8"));
+    expect(report.views.map((v: { file: string }) => v.file)).toEqual([
+      "previews_faithful/iso.png",
+      "previews_faithful/top.png",
+    ]);
+    expect(report.views[0]).toMatchObject({
+      label: "iso",
+      azimuth: 45,
+      elevation: 35,
+      directions_untrusted: false,
+      directions_trusted: true,
+    });
+    const png = decodePng(new Uint8Array(await readFile(join(dir, "previews_faithful/iso.png"))));
+    expect(Math.max(png.width, png.height)).toBe(2048);
+  });
+
+  it("takes --views, --count and --focus, and rejects what it cannot do", async () => {
+    const script = join(root, "tiny.ts");
+    const c = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-views"),
+          "--preview",
+          "--views",
+          "top",
+          "--focus",
+          "0,0,0:0,0,0",
+        ],
+        c.io,
+      ),
+    ).toBe(0);
+    const report = JSON.parse(await readFile(join(root, "dist-views/run-001/report.json"), "utf8"));
+    expect(report.views.map((v: { label: string }) => v.label)).toEqual(["top"]);
+
+    for (const [args, message] of [
+      [["--preview", "--views", "bogus"], "invalid views"],
+      [["--preview", "--focus", "1,2:3"], "--focus must look like"],
+      [["--preview", "--focus", "50,50,50:60,60,60"], "no blocks inside that box"],
+      [["--tier", "fast"], "not ported yet"],
+      [["--tier", "nope"], "--tier must be"],
+      [["--guide"], "--guide is not ported yet"],
+    ] as const) {
+      const e = capture();
+      expect(
+        await runCli(["run", script, "--out", join(root, "dist-bad2"), ...args], e.io),
+        args.join(" "),
+      ).toBe(1);
+      expect(e.err.join("\n"), args.join(" ")).toContain(message);
+    }
   });
 
   it("reads mcbuild.toml next to the script", async () => {

@@ -5,6 +5,7 @@
 //   mcbuild init [path] [--force]
 //   mcbuild check <script> [--config file]
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
+//                [--preview] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
 //   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
 //   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
 //   mcbuild assets fetch --version V [--cache-dir dir] [--force]
@@ -26,6 +27,8 @@ import {
   readStructureNbt,
   writeStructureNbt,
 } from "@voxwright/core";
+import { renderView, resolveViews, type View, ViewError, withCount } from "@voxwright/render";
+import { directoryAssets, encodePng } from "@voxwright/render/node";
 import { Build } from "../build.ts";
 import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts";
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
@@ -33,7 +36,7 @@ import { DiffError, formatDiff } from "../diff.ts";
 import { McbuilderError } from "../errors.ts";
 import { cleanProperties, structureFromVolume, summary, toScript } from "../importer.ts";
 import { Registry, RegistryError } from "../registry.ts";
-import { buildReport, reportToJson } from "../report.ts";
+import { buildReport, reportToJson, viewEntry } from "../report.ts";
 import { AssetError, fetchAssets, type HttpGet } from "./assets.ts";
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
 
@@ -138,6 +141,43 @@ async function loadRegistry(cfg: McbuildConfig, home: string): Promise<Registry>
     return Registry.fromData(JSON.parse(await readFile(path, "utf8")), cfg.mcVersion);
   } catch (e) {
     throw new CliError(`could not read registry file ${path}: ${(e as Error).message}`);
+  }
+}
+
+/** `"x0,y0,z0:x1,y1,z1"` gives two corners. */
+function parseFocus(spec: string): [[number, number, number], [number, number, number]] {
+  const bad = (): never => {
+    throw new CliError(`--focus must look like x0,y0,z0:x1,y1,z1, got '${spec}'`);
+  };
+  const parts = spec.split(":");
+  if (parts.length !== 2) return bad();
+  const corner = (t: string): [number, number, number] => {
+    const v = t.split(",").map((n) => (/^\s*-?\d+\s*$/.test(n) ? Number(n) : Number.NaN));
+    if (v.length !== 3 || v.some(Number.isNaN)) return bad();
+    return v as [number, number, number];
+  };
+  return [corner(parts[0] as string), corner(parts[1] as string)];
+}
+
+/** `--views` and `--count` beat the script's views, which beat the default set. Max 36. */
+function resolveCliViews(
+  spec: string | undefined,
+  count: string | undefined,
+  scripted: readonly string[] | null,
+): View[] {
+  try {
+    let views = spec
+      ? resolveViews(spec)
+      : scripted && scripted.length > 0
+        ? resolveViews(scripted)
+        : resolveViews(null);
+    if (count) views = withCount(views, Number(count));
+    if (views.length === 0) throw new CliError("no views configured");
+    return views;
+  } catch (e) {
+    if (e instanceof ViewError || e instanceof RangeError)
+      throw new CliError(`invalid views: ${e.message}`);
+    throw e;
   }
 }
 
@@ -260,12 +300,24 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
       out: { type: "string", default: "dist" },
       air: { type: "string", default: "none" },
       preview: { type: "boolean" },
-      tier: { type: "string" },
+      tier: { type: "string", default: "faithful" },
       focus: { type: "string" },
+      views: { type: "string" },
+      count: { type: "string" },
+      guide: { type: "boolean" },
     },
   });
   const [script] = positionals;
   if (script === undefined) throw new CliError("run: give a script");
+  if (values.tier !== "faithful") {
+    if (["fast", "trusted", "all"].includes(values.tier as string)) {
+      throw new CliError(
+        `--tier ${values.tier} is not ported yet; only faithful previews exist (the default)`,
+      );
+    }
+    throw new CliError(`--tier must be faithful, fast, trusted or all, got '${values.tier}'`);
+  }
+  if (values.guide) throw new CliError("--guide is not ported yet");
   const air = values.air as AirMode;
   if (!["none", "explicit", "all"].includes(air))
     throw new CliError("--air must be none, explicit or all");
@@ -274,12 +326,11 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
   const runDir = await nextRunDir(resolve(io.cwd, values.out as string));
   const stem = basename(script, extname(script));
   const warnings = [...ctx.warnings];
-  if (values.preview || values.tier || values.focus) {
-    warnings.push({
-      message:
-        "previews are not available yet: the renderer is not ported; exported the structure only",
-    });
-  }
+  let focus: [[number, number, number], [number, number, number]] | null = null;
+  if (values.focus) focus = parseFocus(values.focus);
+  const viewList = values.preview
+    ? resolveCliViews(values.views, values.count, ctx.build.viewsConfig)
+    : [];
 
   const artifacts: Record<string, unknown>[] = [];
   if (ctx.errors.length === 0) {
@@ -308,13 +359,51 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
     artifacts.push({ file: `${stem}.nbt`, format: "nbt", data_version: dataVersion });
   }
 
+  // Previews: the faithful tier, drawn from the whole build or the --focus box.
+  const viewEntries: ReturnType<typeof viewEntry>[] = [];
+  if (values.preview && ctx.errors.length === 0) {
+    const root = join(
+      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+      ctx.cfg.mcVersion,
+      "client",
+      "assets",
+      "minecraft",
+    );
+    const haveAssets = await exists(join(root, "blockstates"));
+    if (!haveAssets) {
+      warnings.push({
+        message:
+          "faithful preview: vanilla client assets not found — all blocks rendered as fallback cubes",
+      });
+    }
+    const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
+    if (focus !== null && grid.volume.countNonAir() === 0)
+      throw new CliError(`--focus ${values.focus}: no blocks inside that box`);
+    const dense = grid.toDense();
+    const assets = haveAssets ? directoryAssets(root) : null;
+    const dir = join(runDir, "previews_faithful");
+    await mkdir(dir, { recursive: true });
+    for (const view of viewList) {
+      const file = `${view.label}.png`;
+      await writeFile(join(dir, file), encodePng(renderView(dense, assets, view)));
+      viewEntries.push(
+        viewEntry({
+          file: `previews_faithful/${file}`,
+          view,
+          directionsUntrusted: false,
+          directionsTrusted: true,
+        }),
+      );
+    }
+  }
+
   const placed = ctx.build.grid.volume.placedBounds();
   const report = buildReport({
     errors: ctx.errors,
     warnings,
     blockCounts: blockCounts(ctx.dense),
     dimensions: dimensions(ctx.build, ctx.dense),
-    views: [],
+    views: viewEntries,
     runDir,
     artifacts,
     overwrittenPlacements: ctx.build.grid.overwriteCount,
@@ -328,6 +417,9 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
     line += `, ${ctx.build.grid.overwriteCount} placements overwritten`;
   io.out(`run dir: ${runDir}`);
   io.out(line);
+  if (viewEntries.length > 0) {
+    io.out(`  faithful previews: ${viewEntries.length} in previews_faithful/`);
+  }
   for (const a of artifacts)
     io.out(`  artifact: ${a.file} (${a.format}, DataVersion ${a.data_version})`);
   for (const e of ctx.errors) io.out(`  error: ${fmtIssue(e)}`);
@@ -540,7 +632,7 @@ const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
   mcbuild init [path] [--force]
   mcbuild check <script> [--config file]
-  mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
+  mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]\n                [--preview] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw]
   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
   mcbuild assets fetch --version V [--cache-dir dir] [--force]

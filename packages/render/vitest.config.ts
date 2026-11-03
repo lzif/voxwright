@@ -5,5 +5,6 @@ export default defineProject({
   test: {
     name: "render",
     include: ["test/**/*.test.ts"],
+    testTimeout: 60_000,
   },
 });

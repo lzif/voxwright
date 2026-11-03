@@ -49,3 +49,27 @@ export function directoryAssets(root: string): AssetSource {
     },
   };
 }
+
+/** Encode an RGB canvas as a PNG. */
+export function encodePng(canvas: { width: number; height: number; data: Uint8Array }): Uint8Array {
+  const png = new PNG({ width: canvas.width, height: canvas.height });
+  for (let i = 0; i < canvas.width * canvas.height; i++) {
+    png.data[i * 4] = canvas.data[i * 3] as number;
+    png.data[i * 4 + 1] = canvas.data[i * 3 + 1] as number;
+    png.data[i * 4 + 2] = canvas.data[i * 3 + 2] as number;
+    png.data[i * 4 + 3] = 255;
+  }
+  return new Uint8Array(PNG.sync.write(png));
+}
+
+/** Decode a PNG to an RGB canvas (alpha dropped). */
+export function decodePng(bytes: Uint8Array): { width: number; height: number; data: Uint8Array } {
+  const png = PNG.sync.read(Buffer.from(bytes));
+  const data = new Uint8Array(png.width * png.height * 3);
+  for (let i = 0; i < png.width * png.height; i++) {
+    data[i * 3] = png.data[i * 4] as number;
+    data[i * 3 + 1] = png.data[i * 4 + 1] as number;
+    data[i * 3 + 2] = png.data[i * 4 + 2] as number;
+  }
+  return { width: png.width, height: png.height, data };
+}

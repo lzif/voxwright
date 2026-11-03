@@ -22,6 +22,18 @@ export {
   type Vec3,
 } from "./models.ts";
 export {
+  type Canvas,
+  camera,
+  downscaleLanczos,
+  drawTexturedQuad,
+  PRESENTATION_LONGEST_PX,
+  PRESENTATION_MARGIN,
+  project,
+  type RenderOptions,
+  renderView,
+  SUPERSAMPLE,
+} from "./rasterize.ts";
+export {
   blockOccludesAo,
   cellQuads,
   effectiveBlock,
