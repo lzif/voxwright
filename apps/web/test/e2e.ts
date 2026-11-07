@@ -187,6 +187,53 @@ async function suite(webgl: boolean): Promise<void> {
         45,
       t("the turn slider follows the drag"),
     );
+    // Camera-only moves after the mesh scheduler is idle (no hover outline change, no re-mesh).
+    await page.$eval('[data-testid="azimuth"]', (e) => {
+      const el = e as HTMLInputElement;
+      el.value = "210";
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await settle();
+    const turned = await picture();
+    ok(turned.hash !== after.hash, t("the turn slider redraws the picture while idle"));
+    await page.$eval('[data-testid="elevation"]', (e) => {
+      const el = e as HTMLInputElement;
+      el.value = "35";
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await settle();
+    const tilted = await picture();
+    ok(tilted.hash !== turned.hash, t("the tilt slider redraws the picture while idle"));
+    if (webgl) {
+      await page.mouse.wheel({ deltaY: -120 });
+      await settle();
+      const zoomed = await picture();
+      ok(zoomed.hash !== tilted.hash, t("wheel zoom redraws the picture while idle"));
+      const [cx, cy] = [Math.round(box.x + box.width / 2), Math.round(box.y + box.height / 2)];
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [
+          { x: cx - 30, y: cy, id: 1 },
+          { x: cx + 90, y: cy, id: 2 },
+        ],
+      });
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [
+          { x: cx - 30, y: cy, id: 1 },
+          { x: cx + 30, y: cy, id: 2 },
+        ],
+      });
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      });
+      await settle();
+      const pinched = await picture();
+      ok(pinched.hash !== zoomed.hash, t("pinch zoom redraws the picture while idle"));
+    }
 
     // 3. Slice to the bottom layers.
     const full = await picture();
@@ -249,6 +296,8 @@ async function suite(webgl: boolean): Promise<void> {
         Math.hypot(...p3.position.map((v, i) => v - (p2.position[i] as number))) > 0.5,
         t("D strafes"),
       );
+      await settle();
+      const beforeLook = await picture();
       // Mouse look: a click takes the pointer (and where that is refused, dragging looks instead).
       await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
       await page.mouse.down();
@@ -264,7 +313,10 @@ async function suite(webgl: boolean): Promise<void> {
       );
       await settle();
       const flown = await picture();
-      ok(flown.hash !== flyView.hash && flown.distinct > 12, t("flying changes the picture"));
+      ok(
+        flown.hash !== flyView.hash && flown.hash !== beforeLook.hash && flown.distinct > 12,
+        t("flying and looking around change the picture"),
+      );
       if (values.shots) await page.screenshot({ path: join(values.shots, "fly-webgl.png") });
       await page.evaluate(() => document.exitPointerLock()); // what Esc does
       await page.click('[data-testid="mode-orbit"]');

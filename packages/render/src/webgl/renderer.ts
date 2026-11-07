@@ -560,6 +560,7 @@ export class WebglRenderer implements Renderer {
   }
 
   private requestFrame(): void {
+    this.needsRender = true;
     if (this.disposed || this.gl === null || this.raf !== 0) return;
     this.raf = requestAnimationFrame(this.frame);
   }
@@ -640,11 +641,11 @@ export class WebglRenderer implements Renderer {
     }
   }
 
-  /** Draw a frame now and copy it out, for tests and screenshots. */
+  /** Copy out the last frame drawn by the loop, for tests and screenshots. */
   capture(): { width: number; height: number; rgba: Uint8ClampedArray } | null {
     const canvas = this.canvas;
     if (canvas === null || this.gl === null) return null;
-    this.draw();
+    this.gl.render(this.scene, this.camera);
     const copy = document.createElement("canvas");
     copy.width = canvas.width;
     copy.height = canvas.height;
