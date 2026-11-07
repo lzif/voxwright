@@ -59,7 +59,7 @@ try {
   const problems: string[] = [];
   page.on("pageerror", (e) => problems.push(String(e)));
   page.on("console", (m) => m.type() === "error" && problems.push(m.text()));
-  await page.goto(values.query ? `${url}?${values.query}` : url);
+  await page.goto(values.query ? `${url}&${values.query}` : url);
   await page.waitForFunction(
     () =>
       document.querySelector('[data-testid="status"]')?.textContent?.startsWith("open a schematic"),

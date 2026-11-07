@@ -314,6 +314,33 @@ export function normalAxis(normal: Vec3): 0 | 1 | 2 | null {
 export const inSlice = (slice: { y0: number; y1: number } | null, y: number): boolean =>
   slice === null || (y >= slice.y0 && y <= slice.y1);
 
+/** The layer sliders: inclusive dense y values, 0 = the lowest layer of the placed blocks. */
+export interface LayerRange {
+  yMin: number;
+  yMax: number;
+}
+
+/**
+ * Carry the layer sliders over to the volume's new height after an edit. A slider range that
+ * spanned every layer keeps spanning every layer (so blocks built above the old top stay visible).
+ * A narrowed range keeps the same world layers: when the lowest placed block moved (`oldOrigin` to
+ * `newOrigin`, in world y) the values are shifted to match, then clamped to `0..newHeight - 1`.
+ */
+export function followLayerBounds(
+  range: LayerRange,
+  oldHeight: number,
+  oldOrigin: number,
+  newHeight: number,
+  newOrigin: number,
+): LayerRange {
+  const top = Math.max(0, newHeight - 1);
+  if (range.yMin === 0 && range.yMax === oldHeight - 1) return { yMin: 0, yMax: top };
+  const shift = newOrigin - oldOrigin;
+  const clamp = (y: number): number => Math.min(top, Math.max(0, y));
+  const yMin = clamp(range.yMin - shift);
+  return { yMin, yMax: Math.max(yMin, clamp(range.yMax - shift)) };
+}
+
 /** Corners as a box, in any order. */
 export const boxBetween = (a: Vec3, b: Vec3): Box => ({
   min: [Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.min(a[2], b[2])],

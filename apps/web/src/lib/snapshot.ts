@@ -11,6 +11,7 @@
 // unset cells included, with every block entity and entity untouched.
 
 import { type BlockEntity, UNSET, Volume, type VolumeEntity } from "@voxwright/core";
+import type { Carried } from "./formats.ts";
 
 export const SNAPSHOT_FORMAT = 1;
 
@@ -30,6 +31,8 @@ export interface Snapshot {
   dataVersion: number | null;
   /** The loss report of the file as it was opened, kept so the restored page can show it again. */
   loss: string[];
+  /** What the opened file carried for its own format to write back (older snapshots have none). */
+  carry?: Carried;
   /** `Date.now()` when taken. */
   savedAt: number;
   /** Edits made in the session, counting the ones already carried by an earlier restore. */
@@ -47,6 +50,7 @@ export interface SnapshotMeta {
   name: string;
   dataVersion: number | null;
   loss: string[];
+  carry?: Carried;
   edits: number;
   savedAt?: number;
 }
@@ -78,6 +82,7 @@ export function takeSnapshot(volume: Volume, meta: SnapshotMeta): Snapshot {
     name: meta.name,
     dataVersion: meta.dataVersion,
     loss: [...meta.loss],
+    ...(meta.carry === undefined ? {} : { carry: structuredClone(meta.carry) }),
     savedAt: meta.savedAt ?? Date.now(),
     edits: meta.edits,
     palette,

@@ -31,8 +31,12 @@ export function findChromium(explicit?: string): string {
   return found;
 }
 
-/** Serve `apps/web/build` (falling back to index.html, as a static host would). */
-export async function serveSite(): Promise<{ url: string; server: Server }> {
+/**
+ * Serve `apps/web/build` (falling back to index.html, as a static host would). `url` is the
+ * address the tests open: it carries `?e2e`, which makes the page install its `window.__voxwright`
+ * test hook (a normal visit does not). `plainUrl` is the address without it.
+ */
+export async function serveSite(): Promise<{ url: string; plainUrl: string; server: Server }> {
   if (!existsSync(join(site, "index.html")))
     throw new Error("build the site first: pnpm --filter @voxwright/web build");
   const server = createServer((req, res) => {
@@ -46,7 +50,8 @@ export async function serveSite(): Promise<{ url: string; server: Server }> {
     res.end(readFileSync(file));
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
-  return { url: `http://127.0.0.1:${(server.address() as { port: number }).port}/`, server };
+  const plainUrl = `http://127.0.0.1:${(server.address() as { port: number }).port}/`;
+  return { url: `${plainUrl}?e2e`, plainUrl, server };
 }
 
 /**

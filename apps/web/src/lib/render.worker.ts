@@ -7,7 +7,7 @@ import type { DenseVolume, Volume } from "@voxwright/core";
 import { type AssetSource, renderView, sliceDense, type View } from "@voxwright/render";
 import { assetsFromPack, fetchPack } from "./assets.ts";
 import { describeVolume } from "./describe.ts";
-import { type FormatId, openFile, saveAs } from "./formats.ts";
+import { type Carried, type FormatId, openFile, saveAs } from "./formats.ts";
 import { mergePacks, type Pack } from "./pack-extract.ts";
 import type { FromWorker, ToWorker } from "./protocol.ts";
 
@@ -17,6 +17,7 @@ let userPack: Pack | null = null;
 let volume: Volume | null = null;
 let dense: DenseVolume | null = null;
 let dataVersion: number | null = null;
+let carry: Carried | undefined;
 
 const post = (m: FromWorker, transfer: Transferable[] = []): void =>
   (self as unknown as Worker).postMessage(m, transfer);
@@ -47,6 +48,7 @@ self.onmessage = async (e: MessageEvent<ToWorker>) => {
         const opened = await openFile(new Uint8Array(m.bytes), m.name);
         volume = opened.volume;
         dataVersion = opened.dataVersion;
+        carry = opened.carry;
         dense = null; // made when a frame is first asked for
         post({
           id: m.id,
@@ -90,7 +92,7 @@ self.onmessage = async (e: MessageEvent<ToWorker>) => {
       }
       case "convert": {
         if (volume === null) throw new Error("open a file first");
-        const { bytes, warnings } = await saveAs(volume, m.format as FormatId, dataVersion);
+        const { bytes, warnings } = await saveAs(volume, m.format as FormatId, dataVersion, carry);
         const copy = bytes.slice().buffer;
         post({ id: m.id, type: "converted", bytes: copy, warnings }, [copy]);
         return;

@@ -3,6 +3,7 @@
 import type { Volume } from "@voxwright/core";
 import type { RendererStats, WebglRenderer } from "@voxwright/render/webgl";
 import { onMount, untrack } from "svelte";
+import { asset } from "$app/paths";
 import { decodePack, fetchPack } from "../lib/assets.ts";
 import { Autosave } from "../lib/autosave.svelte.ts";
 import BlockPalette from "../lib/components/BlockPalette.svelte";
@@ -13,9 +14,16 @@ import RestoreDialog from "../lib/components/RestoreDialog.svelte";
 import SelectionPanel from "../lib/components/SelectionPanel.svelte";
 import SiteFooter from "../lib/components/SiteFooter.svelte";
 import { describeVolume } from "../lib/describe.ts";
-import { packBlockIds } from "../lib/editing.ts";
+import { followLayerBounds, packBlockIds } from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
-import { FORMATS, type FormatId, type Opened, openFile, saveAs } from "../lib/formats.ts";
+import {
+  type Carried,
+  FORMATS,
+  type FormatId,
+  type Opened,
+  openFile,
+  saveAs,
+} from "../lib/formats.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import Worker from "../lib/render.worker.ts?worker";
@@ -37,6 +45,7 @@ let worker: Worker;
 let renderer: WebglRenderer | null = null;
 let volume: Volume | null = null;
 let dataVersion: number | null = null;
+let carry: Carried | undefined;
 let packBlocks: string[] = [];
 // Editing needs the GPU renderer (it supplies the picking ray) and a mouse and keyboard. A device whose
 // only pointer is a touch screen, or a browser without WebGL2, keeps the page a viewer. (Headless and
@@ -65,7 +74,8 @@ let elevation = $state(35);
 let yMin = $state(0);
 let yMax = $state(0);
 let format = $state<FormatId>("litematic");
-let conversionNotes = $state<string[]>([]);
+// What the last export could not carry over; `null` until a file has been exported.
+let conversionNotes = $state<string[] | null>(null);
 let dragging = false;
 
 // Autosave of the edited volume, and the offer to restore the last one.
@@ -128,7 +138,7 @@ const nextPaint = (): Promise<void> => new Promise((r) => setTimeout(r, 30));
 async function loadForGpu(file: File): Promise<void> {
   if (!confirmDiscard()) return;
   error = "";
-  conversionNotes = [];
+  conversionNotes = null;
   busy = true;
   status = `reading ${file.name}…`;
   try {
@@ -161,6 +171,7 @@ async function showVolume(
   if (described.blocks === 0) throw new Error("nothing to draw: the file has no blocks");
   volume = opened.volume;
   dataVersion = opened.dataVersion;
+  carry = opened.carry;
   info = described;
   yMin = 0;
   yMax = described.size[1] - 1;
@@ -223,6 +234,7 @@ $effect(() => {
               name: info?.name ?? "structure",
               dataVersion: s.dataVersion,
               loss: info?.loss ?? [],
+              carry,
             }),
           },
     ),
@@ -243,14 +255,14 @@ async function restoreSaved(): Promise<void> {
   offerBusy = true;
   offerError = "";
   error = "";
-  conversionNotes = [];
+  conversionNotes = null;
   try {
     status = `restoring ${snap.name}…`;
     await nextPaint();
     const t0 = performance.now();
     const v = restoreSnapshot(snap);
     await showVolume(
-      { volume: v, dataVersion: snap.dataVersion, loss: snap.loss },
+      { volume: v, dataVersion: snap.dataVersion, loss: snap.loss, carry: snap.carry },
       snap.name,
       snap.edits,
       performance.now() - t0,
@@ -351,10 +363,38 @@ $effect(() => {
   const timer = window.setTimeout(() => {
     if (info === null) return;
     const d = describeVolume(info.name, s.volume, s.dataVersion, info.loss);
-    info = { ...info, counts: d.counts, blocks: d.blocks };
+    followBounds(d);
   }, 250);
   return () => window.clearTimeout(timer);
 });
+
+/** Everything the open file and the last export could not carry over, each line once. */
+const lossLines = $derived([...new Set([...(info?.loss ?? []), ...(conversionNotes ?? [])])]);
+
+/**
+ * Take the counts and the size of the edited volume. The layer sliders follow its new height and
+ * keep the layers they showed; with an empty volume (no bounds) the old size stays.
+ */
+function followBounds(d: Info): void {
+  if (info === null) return;
+  const old = info;
+  if (d.size[1] === 0) {
+    info = { ...old, counts: d.counts, blocks: d.blocks };
+    return;
+  }
+  const wasFull = yMin === 0 && yMax === old.size[1] - 1;
+  const next = followLayerBounds(
+    { yMin, yMax },
+    old.size[1],
+    old.origin[1],
+    d.size[1],
+    d.origin[1],
+  );
+  info = { ...old, counts: d.counts, blocks: d.blocks, size: d.size, origin: d.origin };
+  yMin = next.yMin;
+  yMax = next.yMax;
+  if (!wasFull) applySlice();
+}
 
 function refreshStats(): void {
   if (renderer) stats = renderer.stats();
@@ -382,7 +422,7 @@ function setAngles(): void {
 async function load(file: File): Promise<void> {
   if (kind === "webgl") return loadForGpu(file);
   error = "";
-  conversionNotes = [];
+  conversionNotes = null;
   busy = true;
   status = `reading ${file.name}…`;
   const m = await call({ type: "open", bytes: await file.arrayBuffer(), name: file.name });
@@ -417,7 +457,7 @@ async function convert(): Promise<void> {
   if (kind === "webgl") {
     if (!volume) return;
     try {
-      const { bytes, warnings } = await saveAs(volume, format, dataVersion);
+      const { bytes, warnings } = await saveAs(volume, format, dataVersion, carry);
       conversionNotes = warnings;
       const edited = session !== null && session.editCount > 0;
       download(bytes, `${base}${edited ? "-edited" : ""}${ext}`);
@@ -526,11 +566,14 @@ function hasWebgl2(): boolean {
   }
 }
 
+/** Where the site's texture pack lives: under the base path the page was built for (or is served at). */
+const packUrl = (): string => new URL(asset("pack/pack.json"), document.baseURI).href;
+
 async function startGpu(): Promise<boolean> {
   try {
     const [{ createWebglRenderer }, site, user] = await Promise.all([
       import("@voxwright/render/webgl"),
-      fetchPack(new URL("pack/pack.json", document.baseURI).href),
+      fetchPack(packUrl()),
       loadUserPack(),
     ]);
     sitePack = site;
@@ -553,6 +596,37 @@ async function startGpu(): Promise<boolean> {
     renderer = null;
     return false;
   }
+}
+
+/**
+ * Test and measurement hook: the page's own state, and one way to change a block. Installed only when
+ * the address has `?e2e` (the browser tests add it), so a normal visit exposes nothing on `window`.
+ */
+function installTestHook(): void {
+  if (!new URLSearchParams(location.search).has("e2e")) return;
+  (window as unknown as { __voxwright: unknown }).__voxwright = {
+    renderer,
+    timings: () => $state.snapshot(timings),
+    volume: () => volume,
+    session: () => session,
+    /** Write the autosave now instead of waiting for its timer. */
+    flushAutosave: () => autosave.flush(),
+    /** Change one block through the editor; report ms until its mesh is swapped in and until a frame shows it. */
+    async edit(
+      x: number,
+      y: number,
+      z: number,
+      block: string,
+    ): Promise<{ appliedMs: number; visibleMs: number }> {
+      if (!volume || !renderer || !session) throw new Error("open a file first");
+      const t = performance.now();
+      if (!session.placeAt([x, y, z], block)) throw new Error(session.error || "no change");
+      await renderer.whenMeshed();
+      const appliedMs = performance.now() - t;
+      await renderer.whenIdle();
+      return { appliedMs, visibleMs: performance.now() - t };
+    },
+  };
 }
 
 onMount(() => {
@@ -583,30 +657,7 @@ onMount(() => {
       kind = "webgl";
       statsTimer = window.setInterval(refreshStats, 500);
       status = idleStatus();
-      // Test and measurement hook: the page's own state, and one way to change a block.
-      (window as unknown as { __voxwright: unknown }).__voxwright = {
-        renderer,
-        timings: () => $state.snapshot(timings),
-        volume: () => volume,
-        session: () => session,
-        /** Write the autosave now instead of waiting for its timer. */
-        flushAutosave: () => autosave.flush(),
-        /** Change one block through the editor; report ms until its mesh is swapped in and until a frame shows it. */
-        async edit(
-          x: number,
-          y: number,
-          z: number,
-          block: string,
-        ): Promise<{ appliedMs: number; visibleMs: number }> {
-          if (!volume || !renderer || !session) throw new Error("open a file first");
-          const t = performance.now();
-          if (!session.placeAt([x, y, z], block)) throw new Error(session.error || "no change");
-          await renderer.whenMeshed();
-          const appliedMs = performance.now() - t;
-          await renderer.whenIdle();
-          return { appliedMs, visibleMs: performance.now() - t };
-        },
-      };
+      installTestHook();
       await checkForSaved();
       return;
     }
@@ -614,7 +665,7 @@ onMount(() => {
     userPack = await loadUserPack();
     const m = await call({
       type: "init",
-      packUrl: new URL("pack/pack.json", document.baseURI).href,
+      packUrl: packUrl(),
     });
     if (m.type === "error") {
       error = m.message;
@@ -735,11 +786,13 @@ onMount(() => {
         <button onclick={convert} data-testid="convert">{session ? "Export and download" : "Convert and download"}</button>
         {#if session}<p class="hint" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
         <div aria-live="polite" data-testid="loss-region">
-          {#if info.loss.length || conversionNotes.length}
-            <h3>Loss report</h3>
+          <h3>Loss report</h3>
+          {#if lossLines.length}
             <ul data-testid="loss">
-              {#each [...new Set([...info.loss, ...conversionNotes])] as line}<li>{line}</li>{/each}
+              {#each lossLines as line}<li>{line}</li>{/each}
             </ul>
+          {:else}
+            <p class="hint" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
           {/if}
         </div>
         {#if session}

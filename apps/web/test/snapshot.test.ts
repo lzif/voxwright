@@ -109,6 +109,16 @@ describe("snapshots", () => {
     expect(isSnapshot(snap)).toBe(true);
   });
 
+  it("keeps what the opened file carried, and is still valid without it", () => {
+    const carry = { schemOffset: [1, 2, 3] as [number, number, number] };
+    const snap = takeSnapshot(sample(), { ...meta, carry });
+    expect(snap.carry).toEqual(carry);
+    expect(snap.carry).not.toBe(carry);
+    const none = takeSnapshot(sample(), meta);
+    expect(none.carry).toBeUndefined();
+    expect(isSnapshot(none)).toBe(true);
+  });
+
   it("uses wide sections once the palette no longer fits 16 bits", () => {
     const v = new Volume();
     for (let i = 0; i < 70_000; i++) v.intern(`minecraft:b${i}`);

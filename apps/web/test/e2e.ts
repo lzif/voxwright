@@ -14,11 +14,12 @@
 // falls back to flat colours and the checks that only need a picture still run.
 
 import { mkdirSync, readdirSync } from "node:fs";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { Volume, writeLitematic, writeSchem } from "@voxwright/core";
 import puppeteer, { type ElementHandle, type Page } from "puppeteer-core";
 import { editorSuite } from "./editor-suite.ts";
 import { m4Suite } from "./m4-suite.ts";
@@ -31,7 +32,7 @@ const { values } = parseArgs({
 const fixtures = fileURLToPath(new URL("../../../fixtures/real/rafeals-house/", import.meta.url));
 const chromium = findChromium(values.chromium);
 if (values.shots) mkdirSync(values.shots, { recursive: true });
-const { url, server } = await serveSite();
+const { url, plainUrl, server } = await serveSite();
 
 const checks: string[] = [];
 const ok = (cond: unknown, what: string): void => {
@@ -312,6 +313,103 @@ async function suite(webgl: boolean): Promise<void> {
       ok((await picture()).hash !== hashBefore, t("the edited block appears in the picture"));
     }
 
+    // Opening a file with nothing to report says so, instead of showing no report at all.
+    ok(
+      (await page.$('[data-testid="loss"]')) === null &&
+        (await page.$eval('[data-testid="loss-none"]', (e) => e.textContent)) ===
+          "Nothing was lost reading this file.",
+      t("a file that opens without warnings says nothing was lost reading it"),
+    );
+
+    if (webgl) {
+      // 5b. The layer sliders follow the height of the edited build and keep the layers shown.
+      const sliderMax = (id: string): Promise<number> =>
+        page.$eval(`[data-testid="${id}"]`, (e) => Number((e as HTMLInputElement).max));
+      const setSlider = (id: string, value: number): Promise<void> =>
+        page.$eval(
+          `[data-testid="${id}"]`,
+          (e, v) => {
+            const el = e as HTMLInputElement;
+            el.value = String(v);
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+          },
+          value,
+        );
+      const sliderValue = (id: string): Promise<number> =>
+        page.$eval(`[data-testid="${id}"]`, (e) => Number((e as HTMLInputElement).value));
+      const waitMax = async (want: number): Promise<void> => {
+        try {
+          await page.waitForFunction(
+            (w) =>
+              Number((document.querySelector('[data-testid="ymax"]') as HTMLInputElement).max) ===
+              w,
+            { timeout: 10000 },
+            want,
+          );
+        } catch {
+          throw new Error(
+            `FAILED: the layer sliders did not reach ${want} (they stand at ${await sliderMax("ymax")}; placed bounds ${JSON.stringify(await page.evaluate(() => (window.__voxwright as Vox).volume().placedBounds()))})`,
+          );
+        }
+      };
+      // (The sliders follow an edit a moment after it, so wait for them to catch up with step 5.)
+      const top0 = await page.evaluate(() => {
+        const [lo, hi] = (window.__voxwright as Vox).volume().placedBounds() as [
+          number[],
+          number[],
+        ];
+        return (hi[1] as number) - (lo[1] as number);
+      });
+      await waitMax(top0);
+      ok(
+        top0 === (await sliderMax("ymin")) && top0 > 3,
+        t(`the layer sliders cover the build (0 to ${top0})`),
+      );
+      // Full range: building above the top extends the range, and "every layer" stays every layer.
+      const rise = async (up: number): Promise<void> => {
+        await page.evaluate((n) => {
+          const v = window.__voxwright as Vox;
+          const [lo, hi] = v.volume().placedBounds() as [number[], number[]];
+          const x = Math.floor(((lo[0] as number) + (hi[0] as number)) / 2);
+          const z = Math.floor(((lo[2] as number) + (hi[2] as number)) / 2);
+          return v.edit(x, (hi[1] as number) + n, z, "minecraft:glowstone");
+        }, up);
+      };
+      await rise(3);
+      await waitMax(top0 + 3);
+      ok(
+        (await sliderMax("ymin")) === top0 + 3 && (await sliderValue("ymax")) === top0 + 3,
+        t(
+          `building 3 layers higher extends the sliders to ${top0 + 3} and keeps every layer shown`,
+        ),
+      );
+      // Narrowed range: it stays where it was, the top of the range still moves with the build.
+      await setSlider("ymin", 1);
+      await setSlider("ymax", 3);
+      await settle();
+      await rise(2);
+      await waitMax(top0 + 5);
+      ok(
+        (await sliderValue("ymin")) === 1 && (await sliderValue("ymax")) === 3,
+        t("a narrowed layer range keeps its layers when the build grows"),
+      );
+      // Undo takes the two blocks away again and the range follows it back down.
+      await page.focus('[data-testid="canvas"]');
+      await page.keyboard.down("Control");
+      await page.keyboard.press("z");
+      await page.keyboard.press("z");
+      await page.keyboard.up("Control");
+      await waitMax(top0);
+      ok(
+        (await sliderMax("ymin")) === top0 && (await sliderValue("ymax")) === 3,
+        t("undo shrinks the layer sliders back and clamps nothing it does not have to"),
+      );
+      await setSlider("ymin", 0);
+      await setSlider("ymax", top0);
+      await settle();
+    }
+
     // 6. Convert to every format and download.
     for (const [id, ext] of [
       ["litematic", ".litematic"],
@@ -330,8 +428,15 @@ async function suite(webgl: boolean): Promise<void> {
       ok(readdirSync(downloads).includes(want), t(`converting to ${id} downloads ${want}`));
       ok((await readFile(join(downloads, want))).length > 100, t(`${want} has content`));
     }
-    const loss = await page.$$eval('[data-testid="loss"] li', (l) => l.map((x) => x.textContent));
-    ok(Array.isArray(loss), t("the loss report area is present"));
+    // This fixture converts to every format without losing anything.
+    ok(
+      (await page.$('[data-testid="loss"]')) === null,
+      t("a conversion that loses nothing shows no loss list"),
+    );
+    ok(
+      (await page.$eval('[data-testid="loss-none"]', (e) => e.textContent)) === "Nothing was lost.",
+      t("...and says that nothing was lost"),
+    );
     ok(
       errors.length === 0,
       t(`no console errors${errors.length ? `: ${errors.join(" | ")}` : ""}`),
@@ -347,6 +452,68 @@ async function suite(webgl: boolean): Promise<void> {
       t("an unsupported file shows an error"),
     );
     await assertStillAlive(page, t);
+
+    // 8. Read errors come out as a readable sentence, not a stack, and the page keeps working.
+    const dir = await mkdtemp(join(tmpdir(), "voxwright-bad-"));
+    const bad = async (name: string, bytes: Uint8Array): Promise<string> => {
+      await writeFile(join(dir, name), bytes);
+      await (input as NonNullable<typeof input>).uploadFile(join(dir, name));
+      await page.waitForFunction(() => document.querySelector('[data-testid="error"]') !== null, {
+        timeout: 10000,
+      });
+      return (await page.$eval('[data-testid="error"]', (e) => e.textContent)) ?? "";
+    };
+    const readable = (m: string): boolean => m.length > 10 && m.length < 600 && !/\n\s+at /.test(m);
+    const legacy = await bad("old.schematic", new Uint8Array([0x1f, 0x8b, 8, 0]));
+    ok(
+      /legacy/.test(legacy) && /not supported/.test(legacy) && /\.schem\b/.test(legacy),
+      t("a .schematic file is refused with the legacy-format message"),
+    );
+    await assertStillAlive(page, t);
+    for (const ext of [".schem", ".litematic", ".nbt", ".mcstructure"]) {
+      const message = await bad(`broken${ext}`, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]));
+      ok(
+        readable(message),
+        t(`a corrupt ${ext} file shows a readable error ("${message.slice(0, 60)}")`),
+      );
+      await assertStillAlive(page, t);
+    }
+
+    // A build over 512 blocks on an axis is refused by core with its limit message, shown as is.
+    const wide = new Volume();
+    for (let x = 0; x < 600; x++) wide.set(x, 0, 0, "minecraft:stone");
+    for (const [ext, write] of [
+      [".schem", () => writeSchem(wide, { dataVersion: 4903, version: 3 })],
+      [".litematic", () => writeLitematic(wide, { dataVersion: 4903 })],
+    ] as const) {
+      const message = await bad(`wide${ext}`, (await write()).bytes);
+      ok(
+        /600 x 1 x 1/.test(message) &&
+          /limit is 512 blocks per axis/.test(message) &&
+          readable(message),
+        t(`a ${ext} build 600 blocks wide shows core's limit message ("${message.slice(0, 70)}")`),
+      );
+      await assertStillAlive(page, t);
+    }
+
+    // 9. A normal visit installs no test hook; only ?e2e does.
+    const plain = await browser.newPage();
+    try {
+      await plain.goto(plainUrl);
+      await plain.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      ok(
+        (await plain.evaluate(() => window.__voxwright)) === undefined,
+        t("a visit without ?e2e installs no window.__voxwright"),
+      );
+    } finally {
+      await plain.close();
+    }
   } finally {
     await browser.close();
   }

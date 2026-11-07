@@ -4,6 +4,7 @@ import {
   boxBetween,
   cellOnPlane,
   clipRayToBox,
+  followLayerBounds,
   inSlice,
   isTypingTarget,
   type KeyLike,
@@ -228,5 +229,31 @@ describe("rays and boxes", () => {
   it("builds and moves boxes", () => {
     expect(boxBetween([3, 1, 5], [1, 4, 2])).toEqual({ min: [1, 1, 2], max: [3, 4, 5] });
     expect(shiftBox(box, [1, -1, 2])).toEqual({ min: [1, -1, 2], max: [4, 2, 5] });
+  });
+});
+
+describe("followLayerBounds", () => {
+  it("keeps a full range full when the build grows upwards", () => {
+    expect(followLayerBounds({ yMin: 0, yMax: 9 }, 10, 0, 14, 0)).toEqual({ yMin: 0, yMax: 13 });
+  });
+
+  it("keeps a full range full when the build grows downwards or shrinks", () => {
+    expect(followLayerBounds({ yMin: 0, yMax: 9 }, 10, 0, 12, -2)).toEqual({ yMin: 0, yMax: 11 });
+    expect(followLayerBounds({ yMin: 0, yMax: 9 }, 10, 0, 6, 0)).toEqual({ yMin: 0, yMax: 5 });
+  });
+
+  it("leaves a narrowed range alone when the height grows above it", () => {
+    expect(followLayerBounds({ yMin: 2, yMax: 5 }, 10, 0, 14, 0)).toEqual({ yMin: 2, yMax: 5 });
+  });
+
+  it("keeps the same world layers when the lowest block moves down", () => {
+    // world layers 2..5 become dense 4..7 once the build reaches two layers lower
+    expect(followLayerBounds({ yMin: 2, yMax: 5 }, 10, 0, 12, -2)).toEqual({ yMin: 4, yMax: 7 });
+  });
+
+  it("clamps a narrowed range to a shorter build and never inverts it", () => {
+    expect(followLayerBounds({ yMin: 2, yMax: 8 }, 10, 0, 5, 0)).toEqual({ yMin: 2, yMax: 4 });
+    expect(followLayerBounds({ yMin: 6, yMax: 8 }, 10, 0, 5, 0)).toEqual({ yMin: 4, yMax: 4 });
+    expect(followLayerBounds({ yMin: 2, yMax: 5 }, 10, 0, 6, 3)).toEqual({ yMin: 0, yMax: 2 });
   });
 });

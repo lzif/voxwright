@@ -19,6 +19,18 @@ const git = (...args: string[]): string | null => {
   }
 };
 
+/** `VOXWRIGHT_BASE_PATH`: empty or unset means the site is served from the root of its host. */
+function resolveBasePath(value: string | undefined): "" | `/${string}` {
+  const base = value?.trim() ?? "";
+  if (base === "") return "";
+  if (!base.startsWith("/") || base.endsWith("/") || /[\s?#]/.test(base)) {
+    throw new Error(
+      `VOXWRIGHT_BASE_PATH must start with '/', must not end with '/' and must be a plain path (for example '/voxwright'), got '${base}'`,
+    );
+  }
+  return base as `/${string}`;
+}
+
 // The footer links to the source of the version that is running. Set VOXWRIGHT_SOURCE_URL (and, if
 // the commit cannot be read from git, VOXWRIGHT_COMMIT) when you build a modified copy.
 const info = resolveBuildInfo({
@@ -37,8 +49,10 @@ export default defineConfig({
     sveltekit({
       // A static site: it can be served from any file host, which is what self-hosting needs.
       adapter: adapter({ fallback: "200.html" }),
-      // The site may live under a sub-path when self-hosted; relative asset paths make that work.
-      paths: { relative: true },
+      // The site may live under a sub-path when self-hosted; relative asset paths make that work
+      // for index.html. The fallback page (200.html) can be served at any URL, so it cannot use
+      // relative paths: build with VOXWRIGHT_BASE_PATH set for it to point at the sub-path.
+      paths: { relative: true, base: resolveBasePath(process.env.VOXWRIGHT_BASE_PATH) },
     }),
   ],
   define: {
