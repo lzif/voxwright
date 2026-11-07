@@ -4,6 +4,7 @@ import type { Volume } from "@voxwright/core";
 import type { RendererStats, WebglRenderer } from "@voxwright/render/webgl";
 import { onMount, untrack } from "svelte";
 import { asset } from "$app/paths";
+import type { AssetPath } from "$app/types";
 import { decodePack, fetchPack } from "../lib/assets.ts";
 import { Autosave } from "../lib/autosave.svelte.ts";
 import BlockPalette from "../lib/components/BlockPalette.svelte";
@@ -566,8 +567,13 @@ function hasWebgl2(): boolean {
   }
 }
 
-/** Where the site's texture pack lives: under the base path the page was built for (or is served at). */
-const packUrl = (): string => new URL(asset("pack/pack.json"), document.baseURI).href;
+/**
+ * Where the site's texture pack lives: under the base path the page was built for (or is served at).
+ * `asset()` only accepts files found in `static/` when types are generated, and the pack is
+ * generated (gitignored, see the `assets` script), so without it the accepted set is empty and the
+ * path needs the cast.
+ */
+const packUrl = (): string => new URL(asset("pack/pack.json" as AssetPath), document.baseURI).href;
 
 async function startGpu(): Promise<boolean> {
   try {
