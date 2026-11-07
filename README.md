@@ -153,18 +153,23 @@ Built:
   self-hosting guides), and most of the mcbuilder port (M5).
 
 See [PLAN.md](PLAN.md) for what was checked and what was not, and for the places
-where the code differs from the v1 spec and nothing is decided yet.
+where the code differs from the v1 spec and what was decided about each.
 
 Not done yet:
 
 - `.schem` files saved by a real tool, a check of an edited file in Litematica
   itself, and a run on a real GPU and a real phone.
 - The 0.1.0 release: the version bump, tag and npm publish.
-- From the mcbuilder port: `mcbuild view`, the parts catalog (the spec names it,
-  nothing defines it), error positions (`at file:line`), the `diff` comparison
+- Deferred, not in 0.1.0: `mcbuild view` (after 0.1.0) and the parts catalog (the
+  spec names it, nothing defines it, so it needs a definition first).
+- From the mcbuilder port: error positions (`at file:line`), the `diff` comparison
   image, `Build.validate` and `Build.render`, user documentation and example
   `mcbuild.toml` files, and archiving the Python repository.
 
 ## License
 
 AGPL-3.0-only. See [LICENSE](LICENSE).
+
+Parts of this repository are derived from [mcbuilder](https://github.com/lzif/mcbuilder),
+which is MIT-licensed. [NOTICE](NOTICE) names those parts and carries the MIT
+license text.

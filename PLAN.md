@@ -8,19 +8,21 @@ voxwright is one AGPL-3.0 pnpm monorepo holding a browser schematic editor and a
 
 ## Decisions
 
-Everything in this table is settled. Where the code differs from the v1 spec and this table does not say so, the difference is listed in "Differences from the v1 spec (not yet decided)" below; those are not settled.
+Everything in this table is settled. Where the code differs from the v1 spec and this table does not say so, the difference is listed in "Differences from the v1 spec (decided 2026-11-07)" below, each with Luki's verdict; those are settled too.
 
-| Topic                | Choice                                                           | Note                                                                                                               |
-| -------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Name                 | voxwright                                                        | Unclaimed on npm and no Minecraft-related GitHub repo shares it in a name search; domain and trademark not checked |
-| License              | AGPL-3.0 for every package, one root `LICENSE`                   | A hosted modified copy must publish its source                                                                     |
-| Repository           | One pnpm monorepo, `lzif/voxwright`                              | Shared code changes land in every consumer at once                                                                 |
-| Renderer             | `Renderer` interface; our own mesher on the GPU with three.js    | Decided for M1 (spec option B), not deepslate; the CPU rasterizer stays as the fallback without WebGL2             |
-| mcbuilder renderers  | Faithful tier first; fast and trusted only if the CLI needs them | Faithful is the default tier since mcbuilder 0.2.0                                                                 |
-| RNG                  | A new portable PRNG in the TypeScript port (sfc32 suggested)     | Python's `random.Random` cannot be reproduced bit for bit, so seeded builds will differ from Python                |
-| Language and runtime | TypeScript, strict, ESM only; Node 25 locally, current LTS in CI | Node 25 runs `.ts` files directly                                                                                  |
-| Tooling              | pnpm, Biome (lint and format), Vitest, dependency-cruiser        |                                                                                                                    |
-| Contributions        | DCO sign-off; commit and PR text say what changed and why        | Relicensing later needs every contributor's consent                                                                |
+| Topic                | Choice                                                           | Note                                                                                                                           |
+| -------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Name                 | voxwright                                                        | Unclaimed on npm and no Minecraft-related GitHub repo shares it in a name search; domain and trademark not checked             |
+| License              | AGPL-3.0 for every package, one root `LICENSE`                   | A hosted modified copy must publish its source                                                                                 |
+| MIT notice           | Root `NOTICE` carries the MIT text of mcbuilder                  | Decided 2026-11-07. Covers the parts derived from the Python mcbuilder; nothing is relicensed, SPDX headers stay AGPL-3.0-only |
+| Out of 0.1.0         | Parts catalog and `mcbuild view`                                 | Decided 2026-11-07. See "Differences from the v1 spec", entry 14                                                               |
+| Repository           | One pnpm monorepo, `lzif/voxwright`                              | Shared code changes land in every consumer at once                                                                             |
+| Renderer             | `Renderer` interface; our own mesher on the GPU with three.js    | Decided for M1 (spec option B), not deepslate; the CPU rasterizer stays as the fallback without WebGL2                         |
+| mcbuilder renderers  | Faithful tier first; fast and trusted only if the CLI needs them | Faithful is the default tier since mcbuilder 0.2.0                                                                             |
+| RNG                  | A new portable PRNG in the TypeScript port (sfc32 suggested)     | Python's `random.Random` cannot be reproduced bit for bit, so seeded builds will differ from Python                            |
+| Language and runtime | TypeScript, strict, ESM only; Node 25 locally, current LTS in CI | Node 25 runs `.ts` files directly                                                                                              |
+| Tooling              | pnpm, Biome (lint and format), Vitest, dependency-cruiser        |                                                                                                                                |
+| Contributions        | DCO sign-off; commit and PR text say what changed and why        | Relicensing later needs every contributor's consent                                                                            |
 
 ## Repository layout
 
@@ -107,8 +109,8 @@ The port starts from the merged `main` (mcbuilder 0.2.0, about 8,400 lines of Py
 
 Not done:
 
-- **`mcbuild view`,** the spec's way to open a run in the editor. The command does not exist, and the web app has no entry point for a run directory.
-- **Parts catalog,** named in the spec. Nothing defines it, and the Python tool has no counterpart, so it is not built.
+- **`mcbuild view`: deferred to after 0.1.0 (decided 2026-11-07).** The spec's way to open a run in the editor. The command does not exist, and the web app has no entry point for a run directory. It is a small convenience and is not part of 0.1.0.
+- **Parts catalog: out of 0.1.0 (decided 2026-11-07).** Named in the spec, but nothing defines it and the Python tool has no counterpart. It needs a definition before it can be scoped or built.
 - **Error provenance.** Python's registry errors say `(at file:line)` of the script line that placed the block, and its script errors carry the script path and line. The port prints neither.
 - **`diff` comparison image** (`diff-<a>-<b>.png`).
 - **`Build.validate` and `Build.render`** in the library API. Validation is reachable through `Registry`, rendering through `renderView` in `@voxwright/render`.
@@ -182,7 +184,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 - No editing in Fly mode, with the software renderer or on touch. Mirror is east-west and north-south only (core has no vertical mirror), and a selection is a box: it is dragged between two blocks, or typed in, since a drag cannot choose cells in empty air.
 - Move takes typed offsets or the two up and down buttons; there is no drag-to-move. Selection actions work on hidden layers too if the box reaches them.
 - Export runs on the main thread, so a very large build pauses the page while it is encoded. A file that is more than 512 blocks along an axis is refused when it is read ("this build is W x H x L; the limit is 512 blocks per axis"; readers take a `maxExtent` option), and an edit that would grow a build past 512 is refused by core. For a `.litematic` the limit applies to the box that holds all its regions.
-- **Rotate on a non-square selection** writes every selected cell, loaded air included, into the turned footprint, which reaches past the box, so it can overwrite blocks beside the selection (undo restores them). Move and paste have a skip-air option; rotate does not. Mirror stays inside its box. Whether rotate should skip air is an open decision (see Open items).
+- **Rotate skips air (decided 2026-11-07).** Rotating a non-square selection turns the footprint, which reaches past the old box. Written in full, rotate would put loaded air over blocks beside the selection (undo restores them), so `rotateSelection` takes the same `skipAir` option as `moveSelection` and `pasteClipboard`, and the editor passes its skip-air setting (on by default). Mirror stays inside its box and is unchanged.
 - The palette lists names only (no block icons) and does not know which property values are legal for a block; core cannot tell either, so values other than booleans are suggestions.
 - Hover outlines were checked in screenshots, not by an automated test of the drawn pixels; the editor run checks that the picture changes with the edit.
 - Autosave was left for M4 and is done there (see M4 status).
@@ -214,7 +216,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 
 **Not done, or not verified.**
 
-- **CI is red on GitHub.** The last run (commit d3a7ef6) failed in the `repo` job at `pnpm run check` (Biome's format check); the `packages` and `web` jobs passed (that run: 45 files, 907 passed, 4 skipped). The format fix to `scripts/licenses.ts` is in the working tree and not pushed. `pnpm run check` still fails locally on one file, `docs/mobile-editor-plan.md`, which is not formatted for Biome. `docs/` is not committed yet.
+- **CI is red on GitHub.** The last run (commit d3a7ef6) failed in the `repo` job at `pnpm run check` (Biome's format check); the `packages` and `web` jobs passed (that run: 45 files, 907 passed, 4 skipped). The format fix to `scripts/licenses.ts` is in the working tree and not pushed. `docs/mobile-editor-plan.md`, the one file `pnpm run check` still failed on locally, is now formatted for Biome (2026-11-07). `docs/` is not committed yet.
 - `pnpm licenses` (without `run`) hits pnpm's built-in command and fails. Use `pnpm run licenses` or `node scripts/licenses.ts`.
 - The licence check covers the production dependencies of `apps/web` only, not the other packages, and CI does not run it.
 - The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and the rest). MIT asks for the notice with every copy.
@@ -226,24 +228,24 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 - Hosting under a sub-path: build with `VOXWRIGHT_BASE_PATH=/sub-path` (starts with `/`, no trailing slash). `index.html` uses relative links; `200.html`, the fallback page the static adapter writes, can be served at any address, so it uses the base path. Without the variable the build is for the site root, and its `200.html` is only right there. Checked in the build output (`200.html` links start with the base path, a value with a trailing slash stops the build); not opened in a browser under a sub-path, and no test covers it.
 - The main JavaScript chunk is about 556 kB and Vite warns about its size.
 
-## Differences from the v1 spec (not yet decided)
+## Differences from the v1 spec (decided 2026-11-07)
 
-The code differs from the v1 spec in the ways below, and the Decisions table does not record them. Each is listed without a verdict; none is decided.
+The code differs from the v1 spec in the ways below. Luki decided all fourteen on 2026-11-07; each entry ends with its verdict. No code changes with these decisions.
 
-- **Volume shape:** the spec has an interface with `origin`, `size`, `palette: BlockState[]` (index 0 is air), `sections` as `Uint16Array` (absent means all air), `dataVersion` and `meta`. The code has a `Volume` class: the palette is a list of block strings, sections hold `Int32` indices where -1 means "never set" (kept apart from explicit air), `origin` and `size` are not stored (they come from the set cells, `placedBounds()`), and `dataVersion` and the file's name, author and description travel in each codec's `meta` result, not on the `Volume`.
-- **Report shape:** the spec's codecs return a report of the form `{ lost: Loss[] }`; the code returns `warnings: string[]`, one line per kind of loss.
-- **Quad generation:** the spec puts it in `core`; the code has it in `packages/render`.
-- **Renderer interface:** the spec has the web app talk only to `core` and the `Renderer` interface; the app uses the concrete `WebglRenderer` and members outside the interface, and the CPU fallback is a separate worker path.
-- **CLI previews:** the spec proposes Canvas 2D through `@napi-rs/canvas` behind a `PreviewSurface` interface, with a pure TypeScript rasterizer as the fallback; the code has only the rasterizer (the spec's own fallback), and no interface.
-- **Browser checks:** the spec asks for Playwright screenshots of three fixtures with a loose tolerance, in CI only; the code has a Puppeteer run (`puppeteer-core`) on one fixture, `Rafeals_house`, that checks pictures by hash and colour counts and keeps no reference images, and it also runs locally.
-- **Styling:** the spec lists Tailwind; the app has hand-written `<style>` blocks and no Tailwind.
-- **Hosting:** the spec lists Cloudflare Pages; the code has no Cloudflare configuration and no deploy workflow, only a static build (`adapter-static`) for any file host.
-- **Asset fetch:** the spec names one `pnpm assets:fetch`; the code has two commands, `node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2` and `pnpm --filter @voxwright/web assets`, and no `assets:fetch` script.
-- **Bedrock names and states:** the spec asks for a mapping from an open-source table with its licence checked; the code translates block states by hand-written rules (`packages/core/src/codecs/bedrock.ts`), has two renames, passes unknown names through unchanged, and the table item under Open items is unresolved.
-- **`core` package:** the spec describes a reusable library; `@voxwright/core` is `private` at version `0.0.0`, and `exports` points at `.ts` source with no build output, so it is reusable inside this monorepo only.
-- **Guide and `--focus`:** the Python guide covers the whole build; the port's `mcbuild run --guide` crops it to the `--focus` box.
-- **Fast-tier textures:** for `glass_pane`, `lever` and `flower_pot` the Python code picks "any usable texture" in hash order; the port takes the first in model order, which can change the guide's top texture for those blocks. The test for the four affected cases is skipped.
-- **Parts catalog and `mcbuild view`:** the spec names both for M5; neither is built (see the M5 status).
+- **Volume shape:** the spec has an interface with `origin`, `size`, `palette: BlockState[]` (index 0 is air), `sections` as `Uint16Array` (absent means all air), `dataVersion` and `meta`. The code has a `Volume` class: the palette is a list of block strings, sections hold `Int32` indices where -1 means "never set" (kept apart from explicit air), `origin` and `size` are not stored (they come from the set cells, `placedBounds()`), and `dataVersion` and the file's name, author and description travel in each codec's `meta` result, not on the `Volume`. **Verdict: keep the `Volume` class.**
+- **Report shape:** the spec's codecs return a report of the form `{ lost: Loss[] }`; the code returns `warnings: string[]`, one line per kind of loss. **Verdict: keep `warnings: string[]`.**
+- **Quad generation:** the spec puts it in `core`; the code has it in `packages/render`. **Verdict: keep it in `packages/render`, not `core`.**
+- **Renderer interface:** the spec has the web app talk only to `core` and the `Renderer` interface; the app uses the concrete `WebglRenderer` and members outside the interface, and the CPU fallback is a separate worker path. **Verdict: keep the app using the concrete `WebglRenderer`.**
+- **CLI previews:** the spec proposes Canvas 2D through `@napi-rs/canvas` behind a `PreviewSurface` interface, with a pure TypeScript rasterizer as the fallback; the code has only the rasterizer (the spec's own fallback), and no interface. **Verdict: keep the pure-TypeScript rasterizer only.**
+- **Browser checks:** the spec asks for Playwright screenshots of three fixtures with a loose tolerance, in CI only; the code has a Puppeteer run (`puppeteer-core`) on one fixture, `Rafeals_house`, that checks pictures by hash and colour counts and keeps no reference images, and it also runs locally. **Verdict: keep the Puppeteer run on Rafeals_house.**
+- **Styling:** the spec lists Tailwind; the app has hand-written `<style>` blocks and no Tailwind. **Verdict: keep hand-written CSS, no Tailwind.**
+- **Hosting:** the spec lists Cloudflare Pages; the code has no Cloudflare configuration and no deploy workflow, only a static build (`adapter-static`) for any file host. **Verdict: keep the static build for any host, no Cloudflare configuration.**
+- **Asset fetch:** the spec names one `pnpm assets:fetch`; the code has two commands, `node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2` and `pnpm --filter @voxwright/web assets`, and no `assets:fetch` script. **Verdict: keep the two commands.**
+- **Bedrock names and states:** the spec asks for a mapping from an open-source table with its licence checked; the code translates block states by hand-written rules (`packages/core/src/codecs/bedrock.ts`), has two renames, passes unknown names through unchanged, and the table item under Open items is unresolved. **Verdict: keep the hand-written rules.** Which mapping table to adopt, if any, is a separate decision and stays open (see Open items).
+- **`core` package:** the spec describes a reusable library; `@voxwright/core` is `private` at version `0.0.0`, and `exports` points at `.ts` source with no build output, so it is reusable inside this monorepo only. **Verdict: keep it private at 0.0.0 for 0.1.0.**
+- **Guide and `--focus`:** the Python guide covers the whole build; the port's `mcbuild run --guide` crops it to the `--focus` box. **Verdict: keep cropping the guide to the focus box.**
+- **Fast-tier textures:** for `glass_pane`, `lever` and `flower_pot` the Python code picks "any usable texture" in hash order; the port takes the first in model order, which can change the guide's top texture for those blocks. The test for the four affected cases is skipped. **Verdict: keep first-in-model-order (deterministic).**
+- **Parts catalog and `mcbuild view`:** the spec names both for M5; neither is built (see the M5 status). **Verdict: defer both; neither is in 0.1.0.** The parts catalog was never defined (the spec names it, nothing else does) and needs a definition before it can be scoped or built. `mcbuild view` is deferred to after 0.1.0. See the M5 status.
 
 ## Open items
 
@@ -252,9 +254,9 @@ The code differs from the v1 spec in the ways below, and the Decisions table doe
 - [ ] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit (`.nbt`, `.litematic` and `.mcstructure` of one build are in `fixtures/real/`, saved by bloxelizer.com, not Litematica or Bedrock). M2 was built without them, so this is late
 - [ ] Reserve the `@voxwright` npm organization and check the domain and trademark
 - [ ] Pick the open source Bedrock to Java block-mapping table and confirm its license is AGPL-compatible (needed by M2; the code uses hand-written rules meanwhile)
-- [ ] Decide each entry under "Differences from the v1 spec (not yet decided)"
-- [ ] MIT notice for the code derived from the MIT-licensed Python mcbuilder (`packages/mcbuilder/src`, `examples`, `vectors/export_*.py`). No notice exists in the repository; every header says AGPL only. Luki's call
-- [ ] Rotate on a non-square selection: skip air or not (see M3 status)
+- [x] Decide each entry under "Differences from the v1 spec" (all 14 decided 2026-11-07; see that section)
+- [x] MIT notice for the code derived from the MIT-licensed Python mcbuilder. Luki said yes (2026-11-07): the root `NOTICE` carries the MIT text, names the derived parts (`packages/mcbuilder/src`, `examples`, `vectors/export_*.py`, and the other ported parts it lists) and is mentioned in the README. Nothing is relicensed; SPDX headers stay `AGPL-3.0-only`
+- [x] Rotate on a non-square selection: skip air or not. Decided 2026-11-07: skip air, with the same `skipAir` option as move and paste (the editor passes its setting, on by default); mirror is unchanged (see M3 status)
 - [ ] Performance targets: set them after a run on a machine with a GPU (the M1 numbers are SwiftShader only)
 
 What is still missing and is not a decision:
@@ -270,7 +272,7 @@ What is still missing and is not a decision:
 - [ ] DCO: the Decisions table asks for sign-off, but no document tells contributors and no CI check enforces it; none of the commits so far carries a `Signed-off-by`
 - [ ] The licence check (`scripts/licenses.ts`) covers the production dependencies of `apps/web` only, has no test, and is not run in CI
 - [ ] CI is per path only in the `packages` job; `repo` and `web` run every time
-- [ ] CI is red on GitHub until the `scripts/licenses.ts` format fix is pushed and `docs/mobile-editor-plan.md` is formatted
+- [ ] CI is red on GitHub until the `scripts/licenses.ts` format fix and the formatted `docs/mobile-editor-plan.md` are pushed
 - [ ] Bedrock is offered without a "beta" label (the spec's risk table says to ship it as beta)
 
 Sources: the [v1 spec](https://claude.ai/artifact/GRd8qFWt6qZD7AyDE3ZPU5) and the [mcbuilder repository](https://github.com/lzif/mcbuilder) at the PR #5 merge.
