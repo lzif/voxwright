@@ -181,7 +181,8 @@ export function collect(appDir: string): Row[] {
   };
   const app = readJson(join(appDir, "package.json"));
   for (const dep of Object.keys(app.dependencies ?? {})) visit(dep, appDir, "apps/web");
-  for (const dep of BUNDLED) if (app.devDependencies?.[dep]) visit(dep, appDir, "apps/web (bundled)");
+  for (const dep of BUNDLED)
+    if (app.devDependencies?.[dep]) visit(dep, appDir, "apps/web (bundled)");
   return [...rows.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
