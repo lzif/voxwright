@@ -17,11 +17,11 @@
   },
   "dependencies": {
     "@voxwright/core": "workspace:*",
+    "pngjs": "^7.0.0",
     "three": "^0.187.0"
   },
   "devDependencies": {
     "@types/pngjs": "^6.0.5",
-    "@types/three": "^0.187.0",
-    "pngjs": "^7.0.0"
+    "@types/three": "^0.187.0"
   }
 }

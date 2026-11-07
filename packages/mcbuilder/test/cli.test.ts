@@ -334,6 +334,54 @@ describe("mcbuild import", () => {
   });
 });
 
+describe("DataVersion from the fetched version.json", () => {
+  const DISTINCT = 7654321;
+  const fakeVersionJson = JSON.stringify({ id: "26.2", world_version: DISTINCT });
+
+  async function dataVersionOf(cwdHome: string, script: string, outDir: string) {
+    const c = capture();
+    c.io.home = cwdHome;
+    expect(await runCli(["run", script, "--out", outDir], c.io)).toBe(0);
+    const report = JSON.parse(await readFile(join(outDir, "run-001/report.json"), "utf8"));
+    expect(c.out.join("\n")).toContain(`DataVersion ${DISTINCT}`);
+    return report.artifacts[0].data_version as number;
+  }
+
+  it("reads <home>/.cache/mcbuilder/<ver>/version.json by default", async () => {
+    const h = join(root, "dv-home");
+    await mkdir(join(h, ".cache/mcbuilder/26.2"), { recursive: true });
+    await writeFile(join(h, ".cache/mcbuilder/26.2/minecraft-data.json"), JSON.stringify(REGISTRY));
+    await writeFile(join(h, ".cache/mcbuilder/26.2/version.json"), fakeVersionJson);
+    const proj = join(root, "dv-default");
+    await mkdir(proj, { recursive: true });
+    await writeFile(join(proj, "house.ts"), HOUSE_TEMPLATE);
+    expect(await dataVersionOf(h, join(proj, "house.ts"), join(root, "dv-default-out"))).toBe(
+      DISTINCT,
+    );
+  });
+
+  it("reads version.json under an explicit assets_dir (version dir or cache root)", async () => {
+    for (const layout of ["direct", "fetched"]) {
+      const assets = join(root, `dv-assets-${layout}`);
+      const versionDir = layout === "direct" ? assets : join(assets, "26.2");
+      await mkdir(join(assets, "26.2"), { recursive: true });
+      await writeFile(join(assets, "26.2/minecraft-data.json"), JSON.stringify(REGISTRY));
+      await writeFile(join(versionDir, "version.json"), fakeVersionJson);
+      const proj = join(root, `dv-explicit-${layout}`);
+      await mkdir(proj, { recursive: true });
+      await writeFile(join(proj, "house.ts"), HOUSE_TEMPLATE);
+      await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(assets)}\n`);
+      expect(
+        await dataVersionOf(
+          join(root, "empty-home"),
+          join(proj, "house.ts"),
+          join(root, `dv-explicit-out-${layout}`),
+        ),
+      ).toBe(DISTINCT);
+    }
+  });
+});
+
 describe("determinism scan", () => {
   it("flags time and randomness, and passes clean scripts", () => {
     expect(scanDeterminism("const a = 1;", "s.ts")).toEqual([]);

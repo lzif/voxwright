@@ -11,8 +11,7 @@
 //   mcbuild assets fetch --version V [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
-// `Build` as `BUILD`. Previews, `diff` and the guide need the renderer, which
-// is not ported yet.
+// `Build` as `BUILD`. `diff` does not write its comparison image yet.
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -341,13 +340,20 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
 
   const artifacts: Record<string, unknown>[] = [];
   if (ctx.errors.length === 0) {
-    const versionDir = join(resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, ""));
+    // `resolveAssetsDir` is already the version directory (`<cache>/<ver>/` by
+    // default, as `assets fetch` lays it out; as given for an explicit
+    // `assets_dir`, like the Python CLI). An explicit `assets_dir` that is the
+    // unversioned cache root also works: `<assets_dir>/<ver>/version.json`.
+    const versionDir = resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, "");
+    const candidates = [join(versionDir, "version.json")];
+    if (ctx.cfg.assetsDir) candidates.push(join(versionDir, ctx.cfg.mcVersion, "version.json"));
     let versionJson: unknown;
-    const vj = join(
-      ctx.cfg.assetsDir ? versionDir : join(versionDir, ctx.cfg.mcVersion),
-      "version.json",
-    );
-    if (await exists(vj)) versionJson = JSON.parse(await readFile(vj, "utf8"));
+    for (const vj of candidates) {
+      if (await exists(vj)) {
+        versionJson = JSON.parse(await readFile(vj, "utf8"));
+        break;
+      }
+    }
     let dataVersion: number;
     try {
       dataVersion = resolveDataVersion(ctx.cfg.mcVersion, versionJson);
@@ -603,7 +609,7 @@ async function cmdDiff(args: string[], io: Required<Io>): Promise<number> {
   const bDir = await resolveRunDir(runsDir, runB);
   const diff = await diffRunDirs(aDir, bDir);
   io.out(formatDiff(diff, basename(aDir), basename(bDir), { maxEntries: max }));
-  io.out("  comparison: image skipped (previews need the renderer, which is not ported yet)");
+  io.out("  comparison: image not ported yet");
   return diff.added.length + diff.removed.length + diff.changed.length === 0 ? 0 : 1;
 }
 
@@ -678,7 +684,7 @@ const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
   mcbuild assets fetch --version V [--cache-dir dir] [--force]
 
-Previews and guide need the renderer, which is not ported yet.`;
+mcbuild diff does not write its comparison image yet (not ported).`;
 
 /** Run the CLI. Returns the exit code; never calls `process.exit`. */
 export async function runCli(
@@ -712,9 +718,6 @@ export async function runCli(
         return command === undefined ? 2 : 0;
       case "diff":
         return await cmdDiff(rest, full);
-      case "guide":
-        full.err(`mcbuild: '${command}' needs the renderer, which is not ported yet`);
-        return 2;
       default:
         full.err(`mcbuild: unknown command '${command}'\n${USAGE}`);
         return 2;

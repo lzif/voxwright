@@ -241,6 +241,9 @@ importers:
       '@voxwright/core':
         specifier: workspace:*
         version: link:../core
+      pngjs:
+        specifier: ^7.0.0
+        version: 7.0.0
       three:
         specifier: ^0.187.0
         version: 0.187.0
@@ -251,9 +254,6 @@ importers:
       '@types/three':
         specifier: ^0.187.0
         version: 0.187.0
-      pngjs:
-        specifier: ^7.0.0
-        version: 7.0.0
 
 packages:
 
