@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import adapter from "@sveltejs/adapter-static";
 import { sveltekit } from "@sveltejs/kit/vite";
+import { searchForWorkspaceRoot } from "vite";
 import { defineConfig } from "vitest/config";
 import { resolveBuildInfo } from "./build-info-config.ts";
 
@@ -62,6 +63,9 @@ export default defineConfig({
     __VOXWRIGHT_MODIFIED__: JSON.stringify(info.modified),
     __VOXWRIGHT_VERSION__: JSON.stringify(info.version),
   },
+  // Dev server only: the workspace packages (packages/render holds the mesh worker) live outside
+  // the app root, so Vite must be allowed to serve them. The build ignores `server`.
+  server: { fs: { allow: [searchForWorkspaceRoot(process.cwd())] } },
   worker: { format: "es" },
   test: { name: "web", include: ["test/**/*.test.ts"] },
 });
