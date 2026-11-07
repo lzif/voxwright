@@ -196,7 +196,7 @@ How the project helps you do that:
 
 `pnpm run licenses` (or `node scripts/licenses.ts`; plain `pnpm licenses` is pnpm's own command and fails) lists the production dependencies of `apps/web` with the license each declares and fails if one is not on the project's AGPL-compatible allowlist. It reads `node_modules` only. It covers `apps/web` only, and the project's CI does not run it.
 
-The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and others); the project does not add them yet (see `PLAN.md`). The MIT license asks for its notice to travel with copies, so if you serve a build, add them yourself.
+The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and others); the project does not add them yet (see `PLAN.md`). The MIT license asks for its notice to travel with copies, so if you serve a build, add them yourself. The MIT notice for the parts of voxwright derived from the Python mcbuilder is a separate matter: it is in `NOTICE` in the repository root, and stays with any copy of the source.
 
 ## 8. Mojang's assets on a public site: an open question
 
