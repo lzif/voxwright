@@ -911,7 +911,10 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     await sleep(200);
     const postRotate = await snapshot();
     const rotateModel = toVolume(preRotate);
-    applyCommand(rotateModel, rotateSelection(rotateModel, house, "CLOCKWISE_90"));
+    applyCommand(
+      rotateModel,
+      rotateSelection(rotateModel, house, "CLOCKWISE_90", { skipAir: true }),
+    );
     ok(
       diff(postRotate, cellsOf(rotateModel)).length === 0 &&
         diff(preRotate, postRotate).length > 200,

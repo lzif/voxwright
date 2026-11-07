@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyCommand,
   boxSize,
+  Editor,
   makeBox,
   mirrorSelection,
   type Rotation,
@@ -10,7 +11,7 @@ import {
   rotateSelection,
   Volume,
 } from "../src/index.ts";
-import { loadVector } from "./helpers.ts";
+import { CHEST, chestEntity, loadVector } from "./helpers.ts";
 
 // The editor's rotate and mirror must reproduce mcbuilder's golden vectors.
 // These are the same vectors rotation.test.ts uses for the bare functions.
@@ -160,6 +161,132 @@ describe("selection rotate and mirror, general behaviour", () => {
     const none = rotateSelection(vol, box, "NONE");
     expect(none.before).toHaveLength(0);
     expect(none.sections).toHaveLength(0);
+  });
+});
+
+describe("rotate with skipAir", () => {
+  const STONE = "minecraft:stone";
+  const AIR = "minecraft:air";
+  const OAK = "minecraft:oak_planks";
+
+  /**
+   * The audited case: a 6x1x2 selection (x 0..5, z 0..1) whose cells from
+   * x=2 on are air, with a stone wall where the turned footprint reaches
+   * past the box (x 0..1, z 2..5), and a bystander block beyond it.
+   */
+  function audited(): { vol: Volume; box: ReturnType<typeof makeBox> } {
+    const vol = new Volume();
+    for (let x = 0; x < 6; x++) {
+      for (let z = 0; z < 2; z++) vol.set(x, 0, z, x < 2 ? OAK : AIR);
+    }
+    for (let x = 0; x < 2; x++) {
+      for (let z = 2; z < 6; z++) vol.set(x, 0, z, STONE);
+    }
+    vol.set(0, 0, 6, STONE);
+    return { vol, box: makeBox([0, 0, 0], [5, 0, 1]) };
+  }
+
+  it("keeps the wall beside a non-square box when air is skipped", () => {
+    const { vol, box } = audited();
+    run(vol, rotateSelection(vol, box, "CLOCKWISE_90", { skipAir: true }));
+    for (let x = 0; x < 2; x++) {
+      for (let z = 2; z < 6; z++) expect(vol.get(x, 0, z)).toBe(STONE);
+    }
+    expect(vol.get(0, 0, 6)).toBe(STONE);
+    // The two oak columns land on (1-z, x) for x 0..1: x 1 and 0 at z 0..1.
+    for (let x = 0; x < 2; x++) {
+      for (let z = 0; z < 2; z++) expect(vol.get(x, 0, z)).toBe(OAK);
+    }
+    // Vacated source cells are cleared, as for a move: no cell past the box holds air.
+    expect(vol.get(2, 0, 0)).toBeUndefined();
+    expect(vol.get(5, 0, 1)).toBeUndefined();
+    let air = 0;
+    vol.eachCell((_x, _y, _z, i) => {
+      if (vol.palette[i] === AIR) air++;
+    });
+    expect(air).toBe(0);
+    expect(vol.size).toBe(4 + 8 + 1);
+  });
+
+  it("without skipAir the air overwrites the wall, as before", () => {
+    for (const options of [undefined, {}, { skipAir: false }]) {
+      const { vol, box } = audited();
+      run(vol, rotateSelection(vol, box, "CLOCKWISE_90", options));
+      for (let x = 0; x < 2; x++) {
+        for (let z = 2; z < 6; z++) expect(vol.get(x, 0, z)).toBe(AIR);
+      }
+      expect(vol.get(0, 0, 6)).toBe(STONE);
+    }
+  });
+
+  it("skipAir only changes the air cells: the rest matches the plain rotation", () => {
+    const a = audited();
+    run(a.vol, rotateSelection(a.vol, a.box, "COUNTERCLOCKWISE_90", { skipAir: true }));
+    const b = audited();
+    run(b.vol, rotateSelection(b.vol, b.box, "COUNTERCLOCKWISE_90"));
+    const nonAir = (v: Volume): string[] => snap(v).filter((s) => !s.endsWith(`=${AIR}`));
+    // Wherever the plain rotation put air over stone the skip run keeps the stone; elsewhere equal.
+    const kept = new Set(nonAir(b.vol));
+    for (const s of nonAir(a.vol)) {
+      if (!kept.has(s)) expect(s.endsWith(`=${STONE}`)).toBe(true);
+    }
+    for (const s of kept) expect(nonAir(a.vol)).toContain(s);
+  });
+
+  it("undo restores the original exactly, redo repeats the rotation", () => {
+    const { vol, box } = audited();
+    const before = snap(vol);
+    const ed = new Editor(vol);
+    ed.run(rotateSelection(vol, box, "CLOCKWISE_90", { skipAir: true }));
+    const after = snap(vol);
+    expect(after).not.toEqual(before);
+    expect(ed.undo()).toBe(true);
+    expect(snap(vol)).toEqual(before);
+    expect(vol.size).toBe(before.length);
+    expect(ed.redo()).toBe(true);
+    expect(snap(vol)).toEqual(after);
+    expect(ed.undo()).toBe(true);
+    expect(snap(vol)).toEqual(before);
+  });
+
+  it("carries block entities and leaves a block entity under skipped air alone", () => {
+    const vol = new Volume();
+    // 4x1x2 box: a chest at (0,0,0), air elsewhere; a second chest sits where an air cell turns to.
+    for (let x = 0; x < 4; x++) for (let z = 0; z < 2; z++) vol.set(x, 0, z, AIR);
+    vol.set(0, 0, 0, CHEST);
+    vol.setBlockEntity(0, 0, 0, chestEntity());
+    // (x, z) -> (1 - z, x): the air cell (1,0,1) turns to (0,0,1), and (3,0,0) to (1,0,3).
+    vol.set(1, 0, 3, CHEST);
+    vol.setBlockEntity(1, 0, 3, chestEntity(7));
+    const box = makeBox([0, 0, 0], [3, 0, 1]);
+    const ed = new Editor(vol);
+    ed.run(rotateSelection(vol, box, "CLOCKWISE_90", { skipAir: true }));
+    // The carried chest: (0,0,0) -> (1,0,0) with its contents.
+    expect(vol.get(1, 0, 0)?.startsWith("minecraft:chest[facing=east")).toBe(true);
+    expect(vol.blockEntityAt(1, 0, 0)).toEqual(chestEntity());
+    // The neighbour under a skipped air cell keeps block and contents.
+    expect(vol.get(1, 0, 3)).toBe(CHEST);
+    expect(vol.blockEntityAt(1, 0, 3)).toEqual(chestEntity(7));
+    expect(vol.blockEntityCount).toBe(2);
+    ed.undo();
+    expect(vol.get(0, 0, 0)).toBe(CHEST);
+    expect(vol.blockEntityAt(0, 0, 0)).toEqual(chestEntity());
+    expect(vol.get(1, 0, 3)).toBe(CHEST);
+    expect(vol.blockEntityAt(1, 0, 3)).toEqual(chestEntity(7));
+    expect(vol.blockEntityCount).toBe(2);
+  });
+
+  it("mirror stays inside its box, so it takes no skipAir", () => {
+    const vol = new Volume();
+    for (let x = 0; x < 4; x++) vol.set(x, 0, 0, x === 0 ? STONE : AIR);
+    vol.set(4, 0, 0, OAK);
+    vol.set(-1, 0, 0, OAK);
+    const box = makeBox([0, 0, 0], [3, 0, 0]);
+    const cmd = mirrorSelection(vol, box, "x");
+    run(vol, cmd);
+    expect(vol.get(4, 0, 0)).toBe(OAK);
+    expect(vol.get(-1, 0, 0)).toBe(OAK);
+    expect(vol.get(3, 0, 0)).toBe(STONE);
   });
 });
 

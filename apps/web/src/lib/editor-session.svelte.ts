@@ -683,7 +683,9 @@ export class EditSession {
   rotate(rotation: "CLOCKWISE_90" | "COUNTERCLOCKWISE_90"): boolean {
     const box = this.selection;
     if (box === null) return this.needSelection();
-    const done = this.attempt(() => rotateSelection(this.volume, box, rotation));
+    const done = this.attempt(() =>
+      rotateSelection(this.volume, box, rotation, { skipAir: this.skipAir }),
+    );
     if (done) this.selection = rotatedBox(box, rotation);
     this.refreshHighlight();
     return true;

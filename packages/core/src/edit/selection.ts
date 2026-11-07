@@ -166,8 +166,18 @@ export function rotatedBox(box: Box, rotation: Rotation): Box {
  * Rotate the selection about the vertical axis. The result keeps the box's
  * minimum corner (see {@link rotatedBox}). Facing, axis, connection and
  * rotation properties turn with the blocks.
+ *
+ * The box is cleared first, then the turned cells are written, which can
+ * reach past the box when it is not square. With `skipAir`, air cells of
+ * the selection are cleared but not written, so whatever lies at their
+ * turned place (a wall beside the box, say) is kept, as for a move.
  */
-export function rotateSelection(volume: Volume, box: Box, rotation: Rotation): Command {
+export function rotateSelection(
+  volume: Volume,
+  box: Box,
+  rotation: Rotation,
+  options: PasteOptions = {},
+): Command {
   const b = new CommandBuilder(volume, `rotate ${rotation}`);
   const [w, , l] = boxSize(box);
   // rotatePosition turns a square footprint; use the square that holds the
@@ -190,6 +200,7 @@ export function rotateSelection(volume: Volume, box: Box, rotation: Rotation): C
       return [rx - shiftX, rz - shiftZ];
     },
     (block) => rotateBlockstate(block, rotation),
+    options.skipAir === true,
   );
 }
 
@@ -207,13 +218,17 @@ export function mirrorSelection(volume: Volume, box: Box, axis: "x" | "z"): Comm
   );
 }
 
-/** Clear the box, then write each cell at its transformed place. Y is unchanged. */
+/**
+ * Clear the box, then write each cell at its transformed place. Y is
+ * unchanged. With `skipAir`, air cells are cleared but not written.
+ */
 function transformSelection(
   volume: Volume,
   box: Box,
   b: CommandBuilder,
   movePos: (lx: number, lz: number) => [number, number],
   mapBlock: (block: string) => string,
+  skipAir = false,
 ): Command {
   const cells: number[] = [];
   const carried: (BlockEntity | undefined)[] = [];
@@ -227,6 +242,7 @@ function transformSelection(
   const mapped = new Map<number, number>();
   for (let i = 0; i < cells.length; i += 4) {
     const idx = cells[i + 3] as number;
+    if (skipAir && AIR_BLOCKS.has(baseState(volume.palette[idx] as string))) continue;
     let next = mapped.get(idx);
     if (next === undefined) {
       next = volume.intern(mapBlock(volume.palette[idx] as string));
