@@ -32,15 +32,14 @@ import {
   shiftEntity,
   Volume,
 } from "../volume/index.ts";
-import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
+import { BlockTally, entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
-  AIR_BLOCKS,
   asCompound,
   asNumber,
   CodecError,
   type CodecReadOptions,
+  checkExtent,
   child,
-  SKIP_BLOCKS,
   type WriteResult,
 } from "./common.ts";
 
@@ -105,11 +104,19 @@ export async function readStructureNbt(
   if (paletteTag?.type !== "list" || blocksTag?.type !== "list") {
     throw new CodecError("not a structure .nbt (no palette/blocks)");
   }
+  const declared = child(tag, "size");
+  if (declared?.type === "list" && declared.value.length === 3) {
+    checkExtent(
+      declared.value.map((v, i) => asNumber(v, `size[${i}]`)) as [number, number, number],
+      options,
+    );
+  }
   const states = paletteTag.value.map(paletteState);
 
   const kept: [number, number, number, string][] = [];
   const pendingBlockEntities = new Map<string, CompoundTag>();
   const lost = new Tally();
+  const dropped = new BlockTally();
   for (const b of blocksTag.value) {
     const block = asCompound(b, "block");
     const pos = child(block, "pos");
@@ -125,13 +132,14 @@ export async function readStructureNbt(
     if (state === undefined) throw new CodecError(`block state ${stateIdx} is outside the palette`);
     const nbt = child(block, "nbt");
     const name = state.split("[", 1)[0] as string;
-    const skipped = SKIP_BLOCKS.has(name) || (AIR_BLOCKS.has(name) && !options.keepAir);
+    const kind = dropped.note(name);
+    const skipped = kind === "skip" || (kind === "air" && !options.keepAir);
     if (nbt !== undefined) {
       if (nbt.type === "compound" && !skipped) pendingBlockEntities.set(`${x},${y},${z}`, nbt);
       else lost.addBlockEntity(kindOf(nbt.type === "compound" ? nbt.value.get("id") : undefined));
     }
-    if (SKIP_BLOCKS.has(name)) continue;
-    if (AIR_BLOCKS.has(name)) {
+    if (kind === "skip") continue;
+    if (kind === "air") {
       if (options.keepAir) kept.push([x, y, z, AIR]);
       continue;
     }
@@ -142,11 +150,20 @@ export async function readStructureNbt(
   let [mx, my, mz] = [0, 0, 0];
   if (kept.length > 0) {
     mx = my = mz = Number.POSITIVE_INFINITY;
+    let [hx, hy, hz] = [
+      Number.NEGATIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ];
     for (const [x, y, z] of kept) {
       if (x < mx) mx = x;
       if (y < my) my = y;
       if (z < mz) mz = z;
+      if (x > hx) hx = x;
+      if (y > hy) hy = y;
+      if (z > hz) hz = z;
     }
+    checkExtent([hx - mx + 1, hy - my + 1, hz - mz + 1], options);
     for (const [x, y, z, s] of kept) volume.set(x - mx, y - my, z - mz, s);
   }
   for (const [key, nbt] of pendingBlockEntities) {
@@ -183,7 +200,10 @@ export async function readStructureNbt(
       droppedBlockEntities: lost.blockEntityCount,
       droppedEntities: lost.entityCount,
     },
-    warnings: lost.lines("their position holds no block, or is missing or malformed"),
+    warnings: [
+      ...lost.lines("their position holds no block, or is missing or malformed"),
+      ...dropped.lines(),
+    ],
   };
 }
 

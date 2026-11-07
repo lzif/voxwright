@@ -20,10 +20,7 @@
 // No codec produces such strings; they are for callers that build a Volume
 // by hand, such as mcbuilder, and edits treat them as a separate state.
 
-import { type BlockEntity, blockIdOf, UNSET, type Volume } from "../volume/index.ts";
-
-/** Per-axis size limit for a volume grown by editing. */
-export const MAX_EXTENT = 512;
+import { type BlockEntity, blockIdOf, MAX_EXTENT, UNSET, type Volume } from "../volume/index.ts";
 
 export class EditError extends Error {
   constructor(message: string) {
@@ -471,7 +468,11 @@ export class CommandBuilder {
       if (before === UNSET && after !== UNSET) grows = true;
     });
     if (!grows) return;
-    // Bounds of the volume as it will be: untouched cells plus staged ones.
+    // Bounds of the volume as it will be. The current bounds are cached on
+    // the volume, so the common case is a union of them with the staged
+    // cells. That union is exact unless a staged unset removes a cell on a
+    // face of the current bounds (then the box may shrink): scan in that case.
+    const now = this.volume.placedBounds();
     const lo = [Infinity, Infinity, Infinity];
     const hi = [-Infinity, -Infinity, -Infinity];
     const note = (x: number, y: number, z: number): void => {
@@ -482,13 +483,36 @@ export class CommandBuilder {
       if (y > (hi[1] as number)) hi[1] = y;
       if (z > (hi[2] as number)) hi[2] = z;
     };
+    let shrinks = false;
     this.staging.eachChanged((x, y, z, after) => {
-      if (after !== UNSET) note(x, y, z);
+      if (after !== UNSET) {
+        note(x, y, z);
+      } else if (
+        now !== null &&
+        this.volume.indexAt(x, y, z) !== UNSET &&
+        (x === now[0][0] ||
+          x === now[1][0] ||
+          y === now[0][1] ||
+          y === now[1][1] ||
+          z === now[0][2] ||
+          z === now[1][2])
+      ) {
+        shrinks = true;
+      }
     });
-    this.volume.eachCell((x, y, z) => {
-      if (this.staging.peek(x, y, z) === undefined) note(x, y, z);
-    });
-    const now = this.volume.placedBounds();
+    if (shrinks) {
+      lo.fill(Infinity);
+      hi.fill(-Infinity);
+      this.staging.eachChanged((x, y, z, after) => {
+        if (after !== UNSET) note(x, y, z);
+      });
+      this.volume.eachCell((x, y, z) => {
+        if (this.staging.peek(x, y, z) === undefined) note(x, y, z);
+      });
+    } else if (now !== null) {
+      note(now[0][0], now[0][1], now[0][2]);
+      note(now[1][0], now[1][1], now[1][2]);
+    }
     const names = ["x", "y", "z"] as const;
     for (let a = 0; a < 3; a++) {
       const next = (hi[a] as number) - (lo[a] as number) + 1;

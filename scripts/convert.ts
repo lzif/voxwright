@@ -18,12 +18,15 @@ import { extname } from "node:path";
 import { parseArgs } from "node:util";
 import {
   type AirMode,
+  carriedOffset,
+  LEGACY_SCHEMATIC_MESSAGE,
   readLitematic,
   readMcstructure,
   readSchem,
   readStructureNbt,
   type SchemVersion,
   type Volume,
+  type WriteLitematicOptions,
   writeLitematic,
   writeMcstructure,
   writeSchem,
@@ -52,6 +55,10 @@ interface Loaded {
   dataVersion: number | null;
   /** Everything the source format carried that this conversion drops. */
   loss: string[];
+  /** The source's `.schem` `Offset`, when it is a `.schem`. */
+  offset?: [number, number, number];
+  /** The source's litematic name, author and description, when it is a `.litematic` that has them. */
+  litematic?: Pick<WriteLitematicOptions, "name" | "author" | "description">;
 }
 
 async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promise<Loaded> {
@@ -62,6 +69,7 @@ async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promis
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
         loss: r.warnings,
+        offset: r.meta.offset,
       };
     }
     case ".nbt": {
@@ -74,10 +82,16 @@ async function load(format: Format, bytes: Uint8Array, keepAir: boolean): Promis
     }
     case ".litematic": {
       const r = await readLitematic(bytes, { keepAir });
+      const { name, author, description } = r.meta;
       return {
         volume: r.volume,
         dataVersion: r.meta.dataVersion,
         loss: r.warnings,
+        litematic: {
+          ...(name === null ? {} : { name }),
+          ...(author === null ? {} : { author }),
+          ...(description === null ? {} : { description }),
+        },
       };
     }
     case ".mcstructure": {
@@ -113,6 +127,7 @@ async function main(): Promise<void> {
 
   const inExt = extname(input).toLowerCase();
   const outExt = extname(output).toLowerCase();
+  if (inExt === ".schematic") fail(LEGACY_SCHEMATIC_MESSAGE);
   if (!FORMATS.includes(inExt as Format)) fail(`unsupported input format '${inExt}'`);
   if (!FORMATS.includes(outExt as Format)) fail(`unsupported output format '${outExt}'`);
 
@@ -126,7 +141,11 @@ async function main(): Promise<void> {
   const bytes = new Uint8Array(await readFile(input));
   // Carved air has to survive a conversion into a format that can express it.
   const keepAir = outExt !== ".nbt" || air !== "none";
-  const { volume, dataVersion, loss } = await load(inExt as Format, bytes, keepAir);
+  const { volume, dataVersion, loss, offset, litematic } = await load(
+    inExt as Format,
+    bytes,
+    keepAir,
+  );
 
   if (volume.size === 0) fail(`${input} contains no blocks`);
   const dv = override ?? dataVersion ?? DEFAULT_DATA_VERSION;
@@ -137,10 +156,14 @@ async function main(): Promise<void> {
       result = await writeStructureNbt(volume, { dataVersion: dv, air });
       break;
     case ".schem":
-      result = await writeSchem(volume, { dataVersion: dv, version: version as SchemVersion });
+      result = await writeSchem(volume, {
+        dataVersion: dv,
+        version: version as SchemVersion,
+        ...(offset === undefined ? {} : { offset: carriedOffset(volume, offset) }),
+      });
       break;
     case ".litematic":
-      result = await writeLitematic(volume, { dataVersion: dv });
+      result = await writeLitematic(volume, { dataVersion: dv, ...litematic });
       break;
     case ".mcstructure":
       result = writeMcstructure(volume);

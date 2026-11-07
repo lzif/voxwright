@@ -624,7 +624,7 @@ describe(".litematic regions", () => {
       },
     ]);
     const r = await readLitematic(bytes);
-    expect(r.warnings).toEqual([]);
+    expect(r.warnings).toEqual(["2 regions flattened into one"]);
     // Absolute cells: A at (10,5,20) stone, (12,6,21) chest; B at (4,5,20) stone, (3,5,22) chest.
     // The smallest corner is (3, 5, 20).
     expect(r.volume.get(7, 0, 0)).toBe("minecraft:stone");
@@ -698,6 +698,8 @@ describe(".litematic regions", () => {
     expect(r.volume.blockEntityCount).toBe(0);
     expect(r.warnings).toEqual([
       "1 block entity not carried over (their position holds no block, or is missing or malformed): chest x1",
+      "2 regions flattened into one",
+      "1 cell overwritten where regions overlap (the later region wins)",
     ]);
   });
 

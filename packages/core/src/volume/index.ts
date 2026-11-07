@@ -13,6 +13,7 @@ export {
   type Bounds,
   blockEntityKey,
   type DenseVolume,
+  MAX_EXTENT,
   parseBlockEntityKey,
   UNSET,
   type Vec3,

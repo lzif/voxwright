@@ -26,7 +26,6 @@ export {
   EditError,
   forEachChange,
   isEmptyCommand,
-  MAX_EXTENT,
   mergeCommands,
   revertCommand,
   type SectionDiff,

@@ -31,6 +31,7 @@ import {
 import { AIR, entityPosition, shiftEntity, Volume, type VolumeEntity } from "../volume/index.ts";
 import {
   attachBlockEntity,
+  BlockTally,
   entriesWithout,
   foreignLines,
   kindOf,
@@ -38,13 +39,12 @@ import {
   Tally,
 } from "./carry.ts";
 import {
-  AIR_BLOCKS,
   asCompound,
   asNumber,
   CodecError,
   type CodecReadOptions,
+  checkExtent,
   child,
-  SKIP_BLOCKS,
   type WriteResult,
 } from "./common.ts";
 
@@ -73,6 +73,17 @@ export interface SchemRead {
   meta: SchemMeta;
   /** What the file held that the volume does not, one line each. */
   warnings: string[];
+}
+
+/** The error for a legacy `.schematic`; also what `scripts/convert.ts` says for that extension. */
+export const LEGACY_SCHEMATIC_MESSAGE =
+  "this is a legacy .schematic file (the pre-1.13 MCEdit format with numeric block IDs), which is not supported; re-save it as .schem (for example with WorldEdit in Minecraft 1.13 or later) and open that";
+
+/** Whether a root compound is a legacy MCEdit `.schematic`: `Blocks`/`Data` byte arrays or `Materials`, and no Sponge layout. */
+function isLegacySchematic(top: CompoundTag): boolean {
+  if (child(top, "Version") !== undefined || child(top, "Palette") !== undefined) return false;
+  if (child(top, "Schematic")?.type === "compound") return false;
+  return child(top, "Materials")?.type === "string" || child(top, "Blocks")?.type === "byteArray";
 }
 
 function readVarint(data: Uint8Array, pos: number): [value: number, next: number] {
@@ -208,6 +219,8 @@ export async function readSchem(
     throw new CodecError(`not a readable NBT file (${e instanceof Error ? e.message : String(e)})`);
   }
 
+  if (isLegacySchematic(top)) throw new CodecError(LEGACY_SCHEMATIC_MESSAGE);
+
   const nested = child(top, "Schematic");
   const isV3 = nested?.type === "compound";
   const schem = isV3 ? nested : top;
@@ -222,6 +235,7 @@ export async function readSchem(
   const width = dimension(schem, "Width");
   const height = dimension(schem, "Height");
   const length = dimension(schem, "Length");
+  checkExtent([width, height, length], options);
 
   let paletteTag: NbtTag | undefined;
   let dataTag: NbtTag | undefined;
@@ -269,6 +283,7 @@ export async function readSchem(
   }
 
   const volume = new Volume();
+  const dropped = new BlockTally();
   let pos = 0;
   for (let i = 0; i < total; i++) {
     let id: number;
@@ -277,19 +292,28 @@ export async function readSchem(
     if (state === undefined)
       throw new CodecError(`block data uses palette id ${id} which is not defined`);
     const name = state.split("[", 1)[0] as string;
-    if (SKIP_BLOCKS.has(name)) continue;
-    if (AIR_BLOCKS.has(name)) {
-      if (!options.keepAir) continue;
-    }
+    const kind = dropped.note(name);
+    if (kind === "skip" || (kind === "air" && !options.keepAir)) continue;
     const x = i % width;
     const z = Math.floor(i / width) % length;
     const y = Math.floor(i / (width * length));
-    volume.set(x, y, z, AIR_BLOCKS.has(name) ? AIR : state);
+    volume.set(x, y, z, kind === "air" ? AIR : state);
   }
 
   const lost = new Tally();
   readBlockEntities(volume, compoundList(blockEntities), version, lost);
   readEntities(volume, compoundList(child(schem, "Entities")), version, lost);
+
+  const warnings = [...lost.lines("their position holds no block, or is missing or malformed")];
+  warnings.push(...dropped.lines());
+  const metadata = child(schem, "Metadata");
+  if (metadata?.type === "compound" && metadata.value.size > 0) {
+    warnings.push(`Metadata not carried over (${[...metadata.value.keys()].join(", ")})`);
+  }
+  // v3 keeps biomes in a "Biomes" compound; v2 in "BiomeData" with a "BiomePalette".
+  if (child(schem, version === 3 ? "Biomes" : "BiomeData") !== undefined) {
+    warnings.push("biomes not carried over (a volume holds no biomes)");
+  }
 
   const dv = child(schem, "DataVersion");
   return {
@@ -304,8 +328,23 @@ export async function readSchem(
       droppedBlockEntities: lost.blockEntityCount,
       droppedEntities: lost.entityCount,
     },
-    warnings: lost.lines("their position holds no block, or is missing or malformed"),
+    warnings,
   };
+}
+
+/**
+ * The `Offset` to write for a volume read from a file whose `Offset` was
+ * `offset` (`SchemMeta.offset`). A writer starts the file at the volume's
+ * placed corner, which moves where the file's origin sits, so that corner is
+ * added; a volume read with its air kept starts at 0 and gets `offset` back.
+ */
+export function carriedOffset(
+  volume: Volume,
+  offset: readonly [number, number, number],
+): [number, number, number] {
+  const bounds = volume.placedBounds();
+  const corner = bounds === null ? [0, 0, 0] : bounds[0];
+  return [offset[0] + corner[0], offset[1] + corner[1], offset[2] + corner[2]];
 }
 
 export interface WriteSchemOptions {

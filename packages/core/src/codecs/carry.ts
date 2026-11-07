@@ -6,6 +6,7 @@
 
 import type { CompoundTag, NbtTag } from "../nbt/index.ts";
 import type { BlockEntity, Edition, Volume, VolumeEntity } from "../volume/index.ts";
+import { AIR_BLOCKS, SKIP_BLOCKS } from "./common.ts";
 
 /** Keys that hold a block entity's position in the file formats that embed it in the NBT. */
 export const POSITION_KEYS: ReadonlySet<string> = new Set(["x", "y", "z"]);
@@ -61,6 +62,59 @@ export class Tally {
     };
     describe(this.blocks, "block entity", "block entities");
     describe(this.mobs, "entity", "entities");
+    return out;
+  }
+}
+
+const bareName = (name: string): string => (name.startsWith("minecraft:") ? name.slice(10) : name);
+
+/** Names with counts, most frequent first: `jigsaw x3, structure_void x1`. */
+export function describeCounts(counts: ReadonlyMap<string, number>): string {
+  return [...counts]
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+    .map(([k, c]) => `${k} x${c}`)
+    .join(", ");
+}
+
+/** `"skip"` for editor leftovers, `"air"` for any kind of air and `"block"` otherwise; `name` has no properties. */
+export function classifyBlock(name: string): "skip" | "air" | "block" {
+  if (SKIP_BLOCKS.has(name)) return "skip";
+  return AIR_BLOCKS.has(name) ? "air" : "block";
+}
+
+/** Blocks a reader drops or rewrites on purpose, counted by kind for the loss report. */
+export class BlockTally {
+  private readonly skipped = new Map<string, number>();
+  private readonly air = new Map<string, number>();
+
+  /**
+   * Classify a block read from a file by its name (no properties) and count
+   * it if it is dropped or rewritten. Nothing is counted for plain
+   * `minecraft:air`.
+   */
+  note(name: string): "skip" | "air" | "block" {
+    const kind = classifyBlock(name);
+    const bare = bareName(name);
+    if (kind === "skip") this.skipped.set(bare, (this.skipped.get(bare) ?? 0) + 1);
+    else if (kind === "air" && name !== "minecraft:air") {
+      this.air.set(bare, (this.air.get(bare) ?? 0) + 1);
+    }
+    return kind;
+  }
+
+  /** One line per non-empty count. */
+  lines(): string[] {
+    const out: string[] = [];
+    const describe = (counts: Map<string, number>, why: string, verb: string): void => {
+      let total = 0;
+      for (const c of counts.values()) total += c;
+      if (total === 0) return;
+      out.push(
+        `${total} ${total === 1 ? "block" : "blocks"} ${verb} (${why}): ${describeCounts(counts)}`,
+      );
+    };
+    describe(this.skipped, "editor leftovers that are not part of a build", "not carried over");
+    describe(this.air, "cave_air and void_air are not kept", "turned into air");
     return out;
   }
 }

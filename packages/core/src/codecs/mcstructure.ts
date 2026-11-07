@@ -44,15 +44,22 @@ import {
   type VolumeEntity,
 } from "../volume/index.ts";
 import { type BedrockScalar, type BedrockValue, bedrockToJava, javaToBedrock } from "./bedrock.ts";
-import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
-  AIR_BLOCKS,
+  BlockTally,
+  describeCounts,
+  entriesWithout,
+  foreignLines,
+  kindOf,
+  POSITION_KEYS,
+  Tally,
+} from "./carry.ts";
+import {
   asCompound,
   asNumber,
   CodecError,
   type CodecReadOptions,
+  checkExtent,
   child,
-  SKIP_BLOCKS,
   type WriteResult,
 } from "./common.ts";
 
@@ -104,10 +111,20 @@ function scalar(tag: NbtTag): BedrockScalar {
   throw new CodecError(`unexpected ${tag.type} tag in block states`);
 }
 
+export interface McstructureReadOptions extends CodecReadOptions {
+  /**
+   * Every Java block name (with `minecraft:`) the caller knows. When given,
+   * a block whose translated name is not in it is reported as not
+   * translated and kept as it is. Without it nothing can tell a name that
+   * is the same in both editions from one that is not, and none is reported.
+   */
+  knownBlocks?: ReadonlySet<string>;
+}
+
 /** Read a `.mcstructure` into a {@link Volume} of Java block states. */
 export async function readMcstructure(
   bytes: Uint8Array,
-  options: CodecReadOptions = {},
+  options: McstructureReadOptions = {},
 ): Promise<McstructureRead> {
   let root: CompoundTag;
   try {
@@ -124,6 +141,7 @@ export async function readMcstructure(
     number,
     number,
   ];
+  checkExtent([sx, sy, sz], options);
   const structure = asCompound(child(root, "structure"), "structure");
   const indicesTag = child(structure, "block_indices");
   const paletteRoot = child(asCompound(child(structure, "palette"), "palette"), "default");
@@ -202,6 +220,8 @@ export async function readMcstructure(
   const second = layers[1];
 
   const kept: [number, number, number, string][] = [];
+  const dropped = new BlockTally();
+  const unknown = new Map<string, number>();
   let i = 0;
   for (let x = 0; x < sx; x++) {
     for (let y = 0; y < sy; y++) {
@@ -210,10 +230,14 @@ export async function readMcstructure(
         if (idx < 0) continue;
         let state = javaOf(idx, bedColor.get(i));
         const base = state.split("[", 1)[0] as string;
-        if (SKIP_BLOCKS.has(base)) continue;
-        if (AIR_BLOCKS.has(base)) {
+        const kind = dropped.note(base);
+        if (kind === "skip") continue;
+        if (kind === "air") {
           if (options.keepAir) kept.push([x, y, z, AIR]);
           continue;
+        }
+        if (options.knownBlocks !== undefined && !options.knownBlocks.has(base)) {
+          unknown.set(base, (unknown.get(base) ?? 0) + 1);
         }
         const layer2 = second?.[i];
         if (layer2 !== undefined && water.has(layer2)) {
@@ -264,6 +288,14 @@ export async function readMcstructure(
   }
   for (const line of lost.lines("their position holds no block, or is missing or malformed")) {
     warnings.add(line);
+  }
+  for (const line of dropped.lines()) warnings.add(line);
+  if (unknown.size > 0) {
+    let total = 0;
+    for (const c of unknown.values()) total += c;
+    warnings.add(
+      `${total} ${total === 1 ? "block" : "blocks"} not translated, kept as is (the name is not a known Java block): ${describeCounts(unknown)}`,
+    );
   }
   if (ticks > 0) warnings.add(`${ticks} pending block ticks not carried over`);
   const fv = child(root, "format_version");

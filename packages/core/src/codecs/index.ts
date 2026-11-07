@@ -14,11 +14,14 @@ export {
   buildMcstructure,
   type McstructureMeta,
   type McstructureRead,
+  type McstructureReadOptions,
   readMcstructure,
   writeMcstructure,
 } from "./mcstructure.ts";
 export {
   buildSchem,
+  carriedOffset,
+  LEGACY_SCHEMATIC_MESSAGE,
   readSchem,
   type SchemMeta,
   type SchemRead,

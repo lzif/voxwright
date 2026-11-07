@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import type { CompoundTag, NbtTag } from "../nbt/index.ts";
+import { MAX_EXTENT } from "../volume/index.ts";
 
 export class CodecError extends Error {
   constructor(message: string) {
@@ -24,6 +25,24 @@ export const SKIP_BLOCKS: ReadonlySet<string> = new Set([
 export interface CodecReadOptions {
   /** Keep air cells, returned as `minecraft:air`. Default `false`. */
   keepAir?: boolean;
+  /**
+   * Largest size a file may have along any axis; a bigger one is refused
+   * before any cell is read. Default {@link MAX_EXTENT} (512).
+   */
+  maxExtent?: number;
+}
+
+/** Refuse a build bigger than `options.maxExtent` (default 512) on any axis. */
+export function checkExtent(
+  size: readonly [number, number, number],
+  options: CodecReadOptions,
+): void {
+  const limit = options.maxExtent ?? MAX_EXTENT;
+  if (size.some((n) => n > limit)) {
+    throw new CodecError(
+      `this build is ${size[0]} x ${size[1]} x ${size[2]}; the limit is ${limit} blocks per axis`,
+    );
+  }
 }
 
 export interface WriteResult {

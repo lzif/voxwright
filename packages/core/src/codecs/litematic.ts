@@ -30,15 +30,22 @@ import {
   writeNbtGzip,
 } from "../nbt/index.ts";
 import { AIR, entityPosition, shiftEntity, Volume, type VolumeEntity } from "../volume/index.ts";
-import { entriesWithout, foreignLines, kindOf, POSITION_KEYS, Tally } from "./carry.ts";
 import {
-  AIR_BLOCKS,
+  BlockTally,
+  classifyBlock,
+  entriesWithout,
+  foreignLines,
+  kindOf,
+  POSITION_KEYS,
+  Tally,
+} from "./carry.ts";
+import {
   asCompound,
   asNumber,
   CodecError,
   type CodecReadOptions,
+  checkExtent,
   child,
-  SKIP_BLOCKS,
   type WriteResult,
 } from "./common.ts";
 
@@ -46,6 +53,12 @@ export interface LitematicMeta {
   version: number;
   dataVersion: number | null;
   regionCount: number;
+  /** `Metadata.Name`, or `null` when the file has none. */
+  name: string | null;
+  /** `Metadata.Author`, or `null` when the file has none. */
+  author: string | null;
+  /** `Metadata.Description`, or `null` when the file has none. */
+  description: string | null;
   /** Block entities in the file that could not be placed in the volume. */
   droppedBlockEntities: number;
   /** Entities in the file that could not be placed in the volume. */
@@ -130,6 +143,30 @@ function paletteState(entry: NbtTag): string {
   return canonicalize(joinBlockString(nameTag.value, props));
 }
 
+/** Where a region sits: its lowest corner and its size along each axis. */
+function regionBox(
+  name: string,
+  regionTag: NbtTag,
+): { min: [number, number, number]; abs: [number, number, number]; region: CompoundTag } {
+  const region = asCompound(regionTag, `region ${name}`);
+  const pos = xyz(child(region, "Position"), "Position");
+  const size = xyz(child(region, "Size"), "Size");
+  const abs = size.map(Math.abs) as [number, number, number];
+  // A negative size grows backwards from Position.
+  const min = pos.map((p, i) => p + Math.min(0, (size[i] as number) + 1)) as [
+    number,
+    number,
+    number,
+  ];
+  return { min, abs, region };
+}
+
+function metadataString(root: CompoundTag, key: string): string | null {
+  const meta = child(root, "Metadata");
+  const v = meta?.type === "compound" ? child(meta, key) : undefined;
+  return v?.type === "string" ? v.value : null;
+}
+
 interface RegionRead {
   blocks: [number, number, number, string][];
   blockEntities: { pos: [number, number, number]; nbt: CompoundTag }[];
@@ -155,21 +192,31 @@ export async function readLitematic(
   }
   const regions = asCompound(child(root, "Regions"), "Regions");
 
+  // The regions are flattened into one volume, so the limit applies to the box that holds
+  // all of them, checked before any block is unpacked.
+  let lo: [number, number, number] | null = null;
+  let hi: [number, number, number] | null = null;
+  for (const [name, regionTag] of regions.value) {
+    const { min, abs } = regionBox(name, regionTag);
+    if (abs[0] * abs[1] * abs[2] === 0) continue;
+    lo ??= [...min];
+    hi ??= [...min];
+    for (let a = 0; a < 3; a++) {
+      lo[a] = Math.min(lo[a] as number, min[a] as number);
+      hi[a] = Math.max(hi[a] as number, (min[a] as number) + (abs[a] as number) - 1);
+    }
+  }
+  if (lo !== null && hi !== null) {
+    checkExtent([hi[0] - lo[0] + 1, hi[1] - lo[1] + 1, hi[2] - lo[2] + 1], options);
+  }
+
   const lost = new Tally();
+  const dropped = new BlockTally();
   const warnings: string[] = [];
   let ticks = 0;
   const read: RegionRead[] = [];
   for (const [name, regionTag] of regions.value) {
-    const region = asCompound(regionTag, `region ${name}`);
-    const pos = xyz(child(region, "Position"), "Position");
-    const size = xyz(child(region, "Size"), "Size");
-    const abs = size.map(Math.abs) as [number, number, number];
-    // A negative size grows backwards from Position.
-    const min = pos.map((p, i) => p + Math.min(0, (size[i] as number) + 1)) as [
-      number,
-      number,
-      number,
-    ];
+    const { min, abs, region } = regionBox(name, regionTag);
     const total = abs[0] * abs[1] * abs[2];
     const tileEntities = child(region, "TileEntities");
     const entities = child(region, "Entities");
@@ -199,19 +246,19 @@ export async function readLitematic(
 
     const [w, , l] = abs;
     /** The block kept at a cell of this region, or `undefined` for air that is dropped and editor leftovers. */
-    const kept = (i: number): string | undefined => {
+    const kept = (i: number, count = false): string | undefined => {
       const state = palette[idx[i] as number];
       if (state === undefined)
         throw new CodecError(`region ${name} uses palette index ${idx[i]} outside its palette`);
       const base = state.split("[", 1)[0] as string;
-      if (SKIP_BLOCKS.has(base)) return undefined;
-      const isAir = AIR_BLOCKS.has(base);
-      if (isAir && !options.keepAir) return undefined;
-      return isAir ? AIR : state;
+      const kind = count ? dropped.note(base) : classifyBlock(base);
+      if (kind === "skip") return undefined;
+      if (kind === "air" && !options.keepAir) return undefined;
+      return kind === "air" ? AIR : state;
     };
     const r: RegionRead = { blocks: [], blockEntities: [], entities: [], min };
     for (let i = 0; i < total; i++) {
-      const state = kept(i);
+      const state = kept(i, true);
       if (state === undefined) continue;
       const x = i % w;
       const z = Math.floor(i / w) % l;
@@ -265,8 +312,10 @@ export async function readLitematic(
     }
   }
   // Later regions are placed over earlier ones, block entities included.
+  let overwritten = 0;
   for (const r of read) {
     for (const [x, y, z, s] of r.blocks) {
+      if (volume.indexAt(x - mx, y - my, z - mz) >= 0) overwritten++;
       volume.set(x - mx, y - my, z - mz, s);
       volume.deleteBlockEntity(x - mx, y - my, z - mz);
     }
@@ -279,6 +328,15 @@ export async function readLitematic(
   }
 
   warnings.push(...lost.lines("their position holds no block, or is missing or malformed"));
+  warnings.push(...dropped.lines());
+  if (regions.value.size > 1) {
+    warnings.push(`${regions.value.size} regions flattened into one`);
+    if (overwritten > 0) {
+      warnings.push(
+        `${overwritten} ${overwritten === 1 ? "cell" : "cells"} overwritten where regions overlap (the later region wins)`,
+      );
+    }
+  }
   if (ticks > 0) warnings.push(`${ticks} pending block and fluid ticks not carried over`);
   const dv = child(root, "MinecraftDataVersion");
   return {
@@ -287,6 +345,9 @@ export async function readLitematic(
       version,
       dataVersion: dv === undefined ? null : asNumber(dv, "MinecraftDataVersion"),
       regionCount: regions.value.size,
+      name: metadataString(root, "Name"),
+      author: metadataString(root, "Author"),
+      description: metadataString(root, "Description"),
       droppedBlockEntities: lost.blockEntityCount,
       droppedEntities: lost.entityCount,
     },

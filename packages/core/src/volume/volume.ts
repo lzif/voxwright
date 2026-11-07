@@ -15,6 +15,12 @@ import { type BlockEntity, blockIdOf, shiftEntity, type VolumeEntity } from "./e
 
 export const AIR = "minecraft:air";
 
+/**
+ * Largest size of a build along any axis. Readers refuse a file bigger than
+ * this and edits refuse to grow a volume past it.
+ */
+export const MAX_EXTENT = 512;
+
 /** Dense-array value for cells that were never set. */
 export const UNSET = -1;
 
@@ -77,6 +83,18 @@ export class Volume {
   private readonly paletteList: string[] = [];
   private readonly paletteIndex = new Map<string, number>();
   private cellCount = 0;
+  // Cached bounding box of the set cells (air included). Exact whenever
+  // `boundsStale` is false and cellCount > 0. A set that adds a cell widens
+  // it; an unset of a cell on one of its faces may shrink it, so that marks
+  // it stale and the next placedBounds() rescans. Every path that changes
+  // which cells are set goes through put(), unset() or translate().
+  private minX = 0;
+  private minY = 0;
+  private minZ = 0;
+  private maxX = 0;
+  private maxY = 0;
+  private maxZ = 0;
+  private boundsStale = false;
   private readonly blockEntityMap = new Map<string, BlockEntity>();
   private entityList: VolumeEntity[] = [];
 
@@ -197,6 +215,19 @@ export class Volume {
     const i = cellIndex(x, y, z);
     const prev = entry.s.data[i] as number;
     if (prev === UNSET) {
+      if (this.cellCount === 0) {
+        this.minX = this.maxX = x;
+        this.minY = this.maxY = y;
+        this.minZ = this.maxZ = z;
+        this.boundsStale = false;
+      } else if (!this.boundsStale) {
+        if (x < this.minX) this.minX = x;
+        else if (x > this.maxX) this.maxX = x;
+        if (y < this.minY) this.minY = y;
+        else if (y > this.maxY) this.maxY = y;
+        if (z < this.minZ) this.minZ = z;
+        else if (z > this.maxZ) this.maxZ = z;
+      }
       entry.s.count++;
       this.cellCount++;
     } else if (prev !== idx && this.blockEntityMap.size > 0) {
@@ -223,6 +254,19 @@ export class Volume {
     entry.s.data[i] = UNSET;
     entry.s.count--;
     this.cellCount--;
+    if (this.cellCount === 0) {
+      this.boundsStale = false;
+    } else if (
+      !this.boundsStale &&
+      (x === this.minX ||
+        x === this.maxX ||
+        y === this.minY ||
+        y === this.maxY ||
+        z === this.minZ ||
+        z === this.maxZ)
+    ) {
+      this.boundsStale = true;
+    }
     if (this.blockEntityMap.size > 0) this.blockEntityMap.delete(blockEntityKey(x, y, z));
     return true;
   }
@@ -244,6 +288,7 @@ export class Volume {
     this.sections.clear();
     this.blockEntityMap.clear();
     this.cellCount = 0;
+    this.boundsStale = false;
     for (const [x, y, z, idx] of cells) this.set(x, y, z, this.paletteList[idx] as string);
     for (const [x, y, z, e] of entities) this.blockEntityMap.set(blockEntityKey(x, y, z), e);
     this.entityList = this.entityList.map((e) => shiftEntity(e, dx, dy, dz));
@@ -302,7 +347,18 @@ export class Volume {
 
   /** Inclusive bounding box over every set cell, air included, or `null` when empty. */
   placedBounds(): Bounds | null {
-    return this.boundsWhere(() => true);
+    if (this.cellCount === 0) return null;
+    if (this.boundsStale) {
+      const b = this.boundsWhere(() => true);
+      if (b === null) return null;
+      [this.minX, this.minY, this.minZ] = b[0];
+      [this.maxX, this.maxY, this.maxZ] = b[1];
+      this.boundsStale = false;
+    }
+    return [
+      [this.minX, this.minY, this.minZ],
+      [this.maxX, this.maxY, this.maxZ],
+    ];
   }
 
   /** Inclusive bounding box over non-air cells, or `null` when there are none. */
