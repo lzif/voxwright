@@ -59,6 +59,17 @@ import {
 } from "../lib/hotbar.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
+import {
+  antialiasChangesOnReload,
+  DynamicResolution,
+  parseQuality,
+  QUALITY_KEY,
+  QUALITY_MODES,
+  type QualityMode,
+  rendererOptionsFor,
+  TOUCH_HISTORY_BYTES,
+  touchWorkerCount,
+} from "../lib/quality.ts";
 import Worker from "../lib/render.worker.ts?worker";
 import { restoreSnapshot, type Snapshot } from "../lib/snapshot.ts";
 import { TouchRouter } from "../lib/touch-router.ts";
@@ -97,6 +108,14 @@ let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
 let confirmPlacement = $state(false);
 /** Does a two-finger twist turn the view? On unless the user turned it off; read by the gesture handler as it happens. */
 let twistEnabled = $state(true);
+/** The Quality setting: how sharp the picture is drawn, and whether it gets less sharp while a gesture moves it. */
+let quality = $state<QualityMode>("auto");
+/** The Quality the renderer was created with: antialiasing is fixed then, so a change to or from Low waits for a reload. */
+let createdQuality = $state<QualityMode>("auto");
+/** Is this a touch-only device? It runs two mesher workers at most and keeps a smaller undo history. */
+let touchOnly = $state(false);
+/** Dynamic resolution for touch gestures; `null` before the GPU renderer exists. */
+let resolution: DynamicResolution | null = null;
 let activeSheet = $state<SheetType>("none");
 /** The blocks the user chose last and the ones they starred; kept in this browser (decision 9). */
 let recentBlocks = $state.raw<readonly string[]>([]);
@@ -162,6 +181,16 @@ function setTwistEnabled(on: boolean): void {
   twistEnabled = on;
   try {
     localStorage.setItem(TWIST_KEY, String(on));
+  } catch {}
+}
+
+const QUALITY_LABELS: Record<QualityMode, string> = { auto: "Auto", high: "High", low: "Low" };
+
+function setQuality(mode: QualityMode): void {
+  quality = mode;
+  resolution?.setMode(mode); // the resolution follows at once; antialiasing waits for the next load
+  try {
+    localStorage.setItem(QUALITY_KEY, mode);
   } catch {}
 }
 
@@ -318,6 +347,7 @@ function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits:
     baseEdits,
     cursorOffsetPx: cursorOffset,
     confirmPlacement,
+    historyBytes: touchOnly ? TOUCH_HISTORY_BYTES : undefined,
   });
   s.onBlockChosen = recordRecent;
   stopSession = s.attach();
@@ -704,6 +734,8 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
   let flushMicrotaskScheduled = false;
 
   function flushTwoFinger(): void {
+    // The view is about to move: in Auto, draw at a lower resolution until it has been still a moment.
+    if (pendingPan || pendingPinch || pendingTwist !== 0) resolution?.moving();
     if (pendingPan && pendingPinch) {
       const currentDist = r.getPose().distance;
       const targetDist = Math.max(1, Math.min(200, currentDist * pendingPinch.factor));
@@ -740,6 +772,7 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
     switch (intent.type) {
       case "oneFingerDragMove":
         flushTwoFinger();
+        resolution?.moving();
         r.orbitBy(intent.dx, intent.dy);
         break;
       case "twoFingerPan":
@@ -814,7 +847,7 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
 
 async function startGpu(): Promise<boolean> {
   try {
-    const [{ createWebglRenderer }, site, user] = await Promise.all([
+    const [{ createWebglRenderer, defaultWorkerCount }, site, user] = await Promise.all([
       import("@voxwright/render/webgl"),
       fetchPack(packUrl()),
       loadUserPack(),
@@ -829,10 +862,24 @@ async function startGpu(): Promise<boolean> {
     const fine = window.matchMedia("(any-pointer: fine)");
     const isTouch = coarse.matches && !fine.matches;
 
+    // Quality fixes the first pixel ratio and, for Low, antialiasing (a context attribute that cannot
+    // change afterwards). A touch-only device also runs at most two mesher workers.
+    const dpr = window.devicePixelRatio || 1;
     const r = createWebglRenderer({
       pack: decoded,
       input: isTouch ? "external" : "builtin",
+      ...rendererOptionsFor(quality, dpr),
+      ...(isTouch ? { workers: touchWorkerCount(defaultWorkerCount()) } : {}),
     });
+    touchOnly = isTouch;
+    createdQuality = quality;
+    resolution?.dispose();
+    resolution = new DynamicResolution({
+      apply: (ratio) => r.setPixelRatio(ratio),
+      dpr: () => window.devicePixelRatio || 1,
+      mode: quality,
+    });
+    resolution.refresh();
     r.onCamera = (p) => {
       azimuth = p.azimuth;
       elevation = p.elevation;
@@ -899,6 +946,7 @@ onMount(() => {
     cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
     confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
     twistEnabled = parseTwist(localStorage.getItem(TWIST_KEY));
+    quality = parseQuality(localStorage.getItem(QUALITY_KEY));
   } catch {}
   recentBlocks = loadBlockList(blockStore(), RECENT_KEY, RECENT_LIMIT);
   favoriteBlocks = loadBlockList(blockStore(), FAVORITE_KEY, FAVORITE_LIMIT);
@@ -962,6 +1010,7 @@ onMount(() => {
     mqCoarse.removeEventListener("change", syncMq);
     endSession();
     gestureCleanup?.();
+    resolution?.dispose();
     renderer?.dispose();
     worker.terminate();
   };
@@ -1327,6 +1376,18 @@ onMount(() => {
             <span>Twist with two fingers to turn</span>
           </label>
           <p class="menu-hint">Turn two fingers like a dial to turn the view. Moving two fingers up and down still pans; tilt stays on the Tilt slider.</p>
+          <div class="menu-field" data-testid="quality-setting">
+            <span class="field-label" id="quality-label">Quality</span>
+            <div class="menu-seg" role="group" aria-labelledby="quality-label" data-testid="quality-seg">
+              {#each QUALITY_MODES as mode (mode)}
+                <button type="button" class:on={quality === mode} aria-pressed={quality === mode} onclick={() => setQuality(mode)} data-testid={`quality-${mode}`}>{QUALITY_LABELS[mode]}</button>
+              {/each}
+            </div>
+            <p class="menu-hint" data-testid="quality-hint">Auto draws sharp when the picture is still and at a lower resolution while you turn, pan or zoom it. High always draws sharp. Low always draws at a lower resolution and without anti-aliasing, for a slow phone. Anti-aliasing is set when the page loads, so turning it on or off takes effect the next time you open the page.</p>
+            {#if antialiasChangesOnReload(createdQuality, quality)}
+              <p class="menu-hint" role="status" data-testid="quality-reload-hint">Anti-aliasing changes the next time the page loads. The resolution has changed already.</p>
+            {/if}
+          </div>
           <div class="menu-field menu-range" data-testid="cursor-offset">
             <div class="menu-range-head">
               <span class="field-label">Cursor distance</span>
@@ -1381,7 +1442,7 @@ onMount(() => {
   ondiscard={() => void discardSaved()}
 />
 
-<PerfOverlay {renderer} />
+<PerfOverlay {renderer} {quality} historyBytes={session?.historyBytes ?? null} />
 
 <style>
   :global(body) { margin: 0; font: 15px/1.45 system-ui, sans-serif; color: #2b2925; background: #f4f1eb; min-height: 100vh; overscroll-behavior: none; }

@@ -7,6 +7,8 @@
 export {
   type BenchmarkResult,
   createWebglRenderer,
+  defaultPixelRatio,
+  defaultWorkerCount,
   type RendererStats,
   WebglRenderer,
   type WebglRendererOptions,

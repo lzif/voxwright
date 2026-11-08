@@ -13,10 +13,12 @@
 // edit session by touch whose exported file equals the same edits made through the desktop path.
 // The fifth suite (camera conveniences) checks double tap to focus, Zoom in here on the nudge pad, and
 // the two-finger twist with its setting.
+// The sixth suite (MB7) checks the Quality setting, dynamic resolution while a gesture moves the view,
+// and the limits of a touch-only device (two mesher workers, a 16 MB undo history).
 // Run after `pnpm --filter @voxwright/web build`:
 //
 //   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
-//     [--only viewer|placement|two-point|selection-state|camera]
+//     [--only viewer|placement|two-point|selection-state|camera|quality]
 
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
@@ -51,7 +53,7 @@ const { values } = parseArgs({
   options: {
     shots: { type: "string" },
     chromium: { type: "string" },
-    /** Run one suite only while working on it: viewer, placement, two-point, selection-state or camera. */
+    /** Run one suite only while working on it: viewer, placement, two-point, selection-state, camera or quality. */
     only: { type: "string" },
   },
 });
@@ -5480,6 +5482,483 @@ export async function touchCameraSuite(): Promise<void> {
   }
 }
 
+/**
+ * MB7, the phone performance pass: the Quality setting (Auto / High / Low) and what it does to the
+ * pixel ratio, dynamic resolution while a touch gesture moves the view, and the limits of a touch-only
+ * device (two mesher workers, a 16 MB undo history), read from the `?perf=1` overlay and from the
+ * renderer. The desktop page keeps its defaults. Antialiasing cannot be told apart here: the VM's
+ * software WebGL starts without it in every mode.
+ */
+export async function touchQualitySuite(): Promise<void> {
+  const t = (what: string): string => `[touch-quality] ${what}`;
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  const KEY = "voxwright.quality";
+  const MB = 1024 * 1024;
+  try {
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    page.on("dialog", (d) => void d.accept());
+    const cdp = await page.createCDPSession();
+
+    // -- helpers that talk to the page (as in the other suites) ---------------------------------
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "center" });
+      }, selector);
+      const el = await page.$(selector);
+      let box = el === null ? null : await el.boundingBox();
+      for (let i = 0; el !== null && i < 30; i++) {
+        await sleep(40);
+        const next = await el.boundingBox();
+        const still = next !== null && box !== null && next.x === box.x && next.y === box.y;
+        box = next;
+        if (still) break;
+      }
+      if (box === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(150);
+    };
+    const startUp = async (p: typeof page): Promise<void> => {
+      await p.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600);
+      if ((await p.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await p.click('[data-testid="discard"]');
+        await p.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (p: typeof page): Promise<void> => {
+      const file = (await p.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await p.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await p.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    /** The renderer's pixel ratio and the canvas's drawing buffer against its CSS width. */
+    const buffer = (p: typeof page): Promise<{ ratio: number; width: number; css: number }> =>
+      p.evaluate(() => {
+        const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
+        return {
+          ratio: (window.__voxwright as Vox).renderer.getPixelRatio(),
+          width: c.width,
+          css: c.clientWidth,
+        };
+      });
+    const overlay = (p: typeof page, id: string): Promise<string> =>
+      p.$eval(`[data-testid="${id}"]`, (el) => el.textContent?.trim() ?? "");
+    const overlayIs = async (p: typeof page, id: string, text: string): Promise<boolean> => {
+      try {
+        await p.waitForFunction(
+          (sel, want) =>
+            document.querySelector(sel)?.textContent?.trim().replace(/\s+/g, " ") === want,
+          { timeout: 3000 },
+          `[data-testid="${id}"]`,
+          text,
+        );
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    /** Record every call of renderer.setPixelRatio from now on. */
+    const watchRatio = (p: typeof page): Promise<void> =>
+      p.evaluate(() => {
+        const r = (window.__voxwright as Vox).renderer;
+        const w = window as unknown as { __ratios: number[]; __orig?: (v: number) => void };
+        w.__ratios = [];
+        if (w.__orig === undefined) w.__orig = r.setPixelRatio.bind(r);
+        const orig = w.__orig;
+        r.setPixelRatio = (v: number) => {
+          w.__ratios.push(v);
+          orig(v);
+        };
+      });
+    const ratioLog = (p: typeof page): Promise<number[]> =>
+      p.evaluate(() => (window as unknown as { __ratios: number[] }).__ratios.slice());
+    const resetLog = (p: typeof page): Promise<void> =>
+      p.evaluate(() => {
+        (window as unknown as { __ratios: number[] }).__ratios = [];
+      });
+    const stored = (p: typeof page): Promise<string | null> =>
+      p.evaluate((k) => localStorage.getItem(k), KEY);
+    /** After a multi-finger gesture Chromium turns the next tap into a click only after a moment. */
+    const calm = (): Promise<void> => sleep(700);
+    const openMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector('[data-testid="quality-seg"]', { timeout: 5000 });
+      await page.$eval('[data-testid="quality-seg"]', (el) =>
+        el.scrollIntoView({ block: "center" }),
+      );
+      await sleep(300);
+    };
+    const closeSheet = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    const choose = async (mode: "auto" | "high" | "low"): Promise<void> => {
+      await openMenu();
+      await tapButton(`[data-testid="quality-${mode}"]`);
+    };
+    const pressed = (mode: string): Promise<boolean> =>
+      page.$eval(
+        `[data-testid="quality-${mode}"]`,
+        (el) => el.getAttribute("aria-pressed") === "true",
+      );
+    const reloadHint = async (): Promise<boolean> =>
+      (await page.$('[data-testid="quality-reload-hint"]')) !== null;
+    const centre = async (): Promise<{ x: number; y: number }> => {
+      const box = await (await page.$('[data-testid="canvas"]'))?.boundingBox();
+      if (!box) throw new Error("no canvas");
+      return { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + box.height / 2) };
+    };
+    /** Two fingers go down, spread apart for a while, and `during` runs with them still down. */
+    const heldPinch = async (during: () => Promise<void>): Promise<void> => {
+      const c = await centre();
+      const at = (spread: number) => [
+        { x: c.x - spread / 2, y: c.y, id: 1 },
+        { x: c.x + spread / 2, y: c.y, id: 2 },
+      ];
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: at(100) });
+      for (let i = 1; i <= 6; i++) {
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: at(100 + i * 12),
+        });
+      }
+      await during();
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await calm();
+    };
+
+    // -- a touch-only phone: Auto by default ---------------------------------------------------
+    await page.goto(`${url}&perf=1`);
+    await startUp(page);
+    await openFixture(page);
+    const start = await buffer(page);
+    ok(
+      start.ratio === 2 && start.width === start.css * 2,
+      t(
+        `at DPR 3 the idle ratio is 2 (renderer ${start.ratio}, buffer ${start.width} px for ${start.css} CSS px)`,
+      ),
+    );
+    ok((await stored(page)) === null, t("nothing is stored until the setting is changed"));
+    ok(
+      (await overlayIs(page, "perf-dpr", "3.00")) &&
+        (await overlayIs(page, "perf-ratio", "2.00")) &&
+        (await overlayIs(page, "perf-quality", "auto")),
+      t("the perf overlay shows DPR 3.00, ratio 2.00 and quality auto"),
+    );
+    const facts = await page.evaluate(() => {
+      const v = window.__voxwright as Vox;
+      return {
+        workers: v.renderer.getWorkerCount(),
+        cores: navigator.hardwareConcurrency,
+        history: (v.session() as NonNullable<ReturnType<Vox["session"]>>).historyBytes,
+        maxBytes: (v.session() as unknown as { editor: { history: { maxBytes: number } } }).editor
+          .history.maxBytes,
+      };
+    });
+    const defaultWorkers = Math.max(1, Math.min(4, facts.cores - 1));
+    ok(
+      facts.workers === Math.min(2, defaultWorkers) && facts.workers === 2,
+      t(`a touch-only page runs 2 mesher workers (the default here would be ${defaultWorkers})`),
+    );
+    ok(
+      facts.history === 16 * MB && facts.maxBytes === 16 * MB,
+      t(`and keeps an undo history of 16 MB (${facts.history / MB} MB)`),
+    );
+    ok(
+      (await overlayIs(page, "perf-workers", "2")) &&
+        (await overlayIs(page, "perf-history", "16 MB")),
+      t("the overlay shows 2 workers and a 16 MB history cap"),
+    );
+
+    // The menu: three segments of at least 44 px, Auto pressed, the hint, no reload note
+    await openMenu();
+    const seg = await page.evaluate(() =>
+      ["auto", "high", "low"].map((m) => {
+        const el = document.querySelector(`[data-testid="quality-${m}"]`) as HTMLElement;
+        const r = el.getBoundingClientRect();
+        return {
+          m,
+          w: r.width,
+          h: r.height,
+          text: el.textContent?.trim(),
+          on: el.getAttribute("aria-pressed"),
+        };
+      }),
+    );
+    ok(
+      seg.every((s) => s.h >= 43.99 && s.w >= 43.99) &&
+        seg.map((s) => s.text).join() === "Auto,High,Low",
+      t(
+        `Menu, Settings has Auto, High and Low, each at least 44 px (${seg.map((s) => `${s.m} ${s.w}x${s.h}`).join(", ")})`,
+      ),
+    );
+    ok(
+      seg[0]?.on === "true" && seg[1]?.on === "false" && seg[2]?.on === "false",
+      t("Auto is pressed at the start"),
+    );
+    const hint = await page.$eval('[data-testid="quality-hint"]', (el) => el.textContent ?? "");
+    ok(
+      /anti-aliasing/i.test(hint) && /next time/i.test(hint) && !(await reloadHint()),
+      t(
+        "the hint says anti-aliasing takes effect the next time the page loads, and no reload note shows yet",
+      ),
+    );
+    await closeSheet();
+
+    // -- Auto: the ratio drops while a gesture moves the view and comes back 200 ms after it stops
+    await watchRatio(page);
+    await heldPinch(async () => {
+      const mid = await buffer(page);
+      ok(
+        mid.ratio === 1 && mid.width === mid.css,
+        t(`Auto: during a pinch the ratio is 1 (buffer ${mid.width} px for ${mid.css} CSS px)`),
+      );
+      await sleep(500); // the fingers stay down and still
+      const settled = await buffer(page);
+      ok(
+        settled.ratio === 2 && settled.width === settled.css * 2,
+        t("and 200 ms after the last movement it is back to 2, with the fingers still down"),
+      );
+    });
+    ok(
+      JSON.stringify(await ratioLog(page)) === "[1,2]",
+      t(
+        `one resize when the pinch started and one when it settled (${JSON.stringify(await ratioLog(page))})`,
+      ),
+    );
+
+    await resetLog(page);
+    const c0 = await centre();
+    const finger = await page.touchscreen.touchStart(c0.x, c0.y);
+    for (let i = 1; i <= 6; i++) {
+      await finger.move(c0.x + i * 15, c0.y + i * 5);
+      await sleep(20);
+    }
+    ok((await buffer(page)).ratio === 1, t("Auto: during a one-finger orbit the ratio is 1"));
+    await finger.end();
+    await sleep(450);
+    ok(
+      (await buffer(page)).ratio === 2 && JSON.stringify(await ratioLog(page)) === "[1,2]",
+      t(
+        `and back to 2 after it, with one resize each way (${JSON.stringify(await ratioLog(page))})`,
+      ),
+    );
+
+    for (const [what, run] of [
+      ["a two-finger pan", () => cdpTwoFingerPan(cdp, c0, { dx: 40, dy: -30 })],
+      ["a twist", () => cdpTwist(cdp, c0, 50, 40)],
+    ] as const) {
+      await resetLog(page);
+      await run();
+      await sleep(450);
+      ok(
+        JSON.stringify(await ratioLog(page)) === "[1,2]" && (await buffer(page)).ratio === 2,
+        t(`Auto: ${what} drops the ratio to 1 once and brings it back once`),
+      );
+      await calm();
+    }
+
+    await resetLog(page);
+    await tapButton('[data-testid="tool-navigate"]');
+    const tapAt = await centre();
+    await page.touchscreen.tap(tapAt.x, tapAt.y);
+    await sleep(450);
+    ok((await ratioLog(page)).length === 0, t("a tap does not move the view and changes nothing"));
+
+    // -- High: always sharp ---------------------------------------------------------------------
+    await choose("high");
+    ok(
+      (await pressed("high")) && !(await pressed("auto")) && (await stored(page)) === "high",
+      t("High is pressed and stored"),
+    );
+    ok(
+      !(await reloadHint()),
+      t("going from Auto to High needs no reload note: antialiasing is the same"),
+    );
+    await closeSheet();
+    await resetLog(page);
+    await heldPinch(async () => {
+      const mid = await buffer(page);
+      ok(mid.ratio === 2 && mid.width === mid.css * 2, t("High: the ratio stays 2 during a pinch"));
+    });
+    ok((await ratioLog(page)).length === 0, t("and is never resized by a gesture"));
+    ok(await overlayIs(page, "perf-quality", "high"), t("the overlay shows quality high"));
+
+    // -- Low: ratio 1 at once, antialiasing waits for a reload -----------------------------------
+    await resetLog(page);
+    await choose("low");
+    const low = await buffer(page);
+    ok(
+      low.ratio === 1 && low.width === low.css && JSON.stringify(await ratioLog(page)) === "[1]",
+      t(`Low: the ratio is 1 at once (buffer ${low.width} px for ${low.css} CSS px), one resize`),
+    );
+    ok((await pressed("low")) && (await stored(page)) === "low", t("Low is pressed and stored"));
+    ok(
+      await reloadHint(),
+      t("and the menu says anti-aliasing changes the next time the page loads"),
+    );
+    const hintText = await page.$eval(
+      '[data-testid="quality-reload-hint"]',
+      (el) => el.textContent ?? "",
+    );
+    ok(/next time the page loads/.test(hintText), t(`(${hintText.trim()})`));
+    await closeSheet();
+    ok(
+      (await overlayIs(page, "perf-ratio", "1.00")) &&
+        (await overlayIs(page, "perf-quality", "low")),
+      t("the overlay shows ratio 1.00 and quality low"),
+    );
+    await resetLog(page);
+    await heldPinch(async () => {
+      ok((await buffer(page)).ratio === 1, t("Low: the ratio stays 1 during a pinch"));
+    });
+    ok((await ratioLog(page)).length === 0, t("and is never resized by a gesture"));
+
+    // Back to Auto: the hint goes (the renderer was created with the default antialiasing)
+    await resetLog(page);
+    await choose("auto");
+    ok(
+      (await buffer(page)).ratio === 2 &&
+        JSON.stringify(await ratioLog(page)) === "[2]" &&
+        !(await reloadHint()),
+      t("Auto again: the ratio is 2 at once and the reload note is gone"),
+    );
+    await closeSheet();
+
+    // -- Low survives a reload, and from then on antialiasing is the page's own -------------------
+    await choose("low");
+    await closeSheet();
+    await page.reload();
+    await startUp(page);
+    await openFixture(page);
+    const afterReload = await buffer(page);
+    ok(
+      afterReload.ratio === 1 && afterReload.width === afterReload.css,
+      t("after a reload Low is in force from the first frame (ratio 1)"),
+    );
+    ok(
+      (await overlayIs(page, "perf-quality", "low")) &&
+        (await overlayIs(page, "perf-ratio", "1.00")),
+      t("and the overlay shows it"),
+    );
+    await openMenu();
+    ok(
+      (await pressed("low")) && !(await reloadHint()),
+      t("the menu shows Low pressed and no reload note: the page was created with it"),
+    );
+    await tapButton('[data-testid="quality-high"]');
+    ok(
+      (await reloadHint()) && (await buffer(page)).ratio === 2,
+      t(
+        "choosing High now shows the reload note (antialiasing was off) and the ratio is 2 at once",
+      ),
+    );
+    await closeSheet();
+    await page.reload();
+    await startUp(page);
+    await openFixture(page);
+    const high = await buffer(page);
+    ok(
+      high.ratio === 2 &&
+        (await stored(page)) === "high" &&
+        (await overlayIs(page, "perf-quality", "high")),
+      t("High survives a reload too (ratio 2)"),
+    );
+    await page.evaluate((k) => localStorage.setItem(k, "bogus"), KEY);
+    await page.reload();
+    await startUp(page);
+    await openFixture(page);
+    ok(
+      (await overlayIs(page, "perf-quality", "auto")) && (await buffer(page)).ratio === 2,
+      t("a stored value that is not auto, high or low reads as Auto"),
+    );
+
+    // -- the desktop page keeps the defaults ------------------------------------------------------
+    const desk = await browser.newPage();
+    try {
+      desk.on("pageerror", (e) => errors.push(String(e)));
+      await desk.setViewport({ width: 1280, height: 800, deviceScaleFactor: 3 });
+      await desk.goto(`${url}&perf=1`);
+      await startUp(desk);
+      await openFixture(desk);
+      const d = await desk.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
+        return {
+          ratio: v.renderer.getPixelRatio(),
+          workers: v.renderer.getWorkerCount(),
+          cores: navigator.hardwareConcurrency,
+          history: (v.session() as NonNullable<ReturnType<Vox["session"]>>).historyBytes,
+          width: c.width,
+          css: c.clientWidth,
+        };
+      });
+      ok(
+        d.workers === Math.max(1, Math.min(4, d.cores - 1)),
+        t(`the desktop page keeps the default worker count (${d.workers} for ${d.cores} cores)`),
+      );
+      ok(d.history === 64 * MB, t(`and the 64 MB undo history (${d.history / MB} MB)`));
+      ok(
+        d.ratio === 2 && d.width === d.css * 2,
+        t(`and the device's ratio, at most 2 (DPR 3 gives ${d.ratio})`),
+      );
+      ok(
+        (await overlayIs(desk, "perf-workers", String(d.workers))) &&
+          (await overlayIs(desk, "perf-history", "64 MB")) &&
+          (await overlayIs(desk, "perf-quality", "auto")),
+        t("the overlay shows them on the desktop page"),
+      );
+      ok(
+        (await desk.$('[data-testid="quality-setting"]')) === null,
+        t("the desktop layout has no Quality setting"),
+      );
+      await watchRatio(desk);
+      const box = await (await desk.$('[data-testid="canvas"]'))?.boundingBox();
+      if (!box) throw new Error("no desktop canvas");
+      await desk.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await desk.mouse.down();
+      await desk.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 40, { steps: 8 });
+      await desk.mouse.up();
+      await sleep(450);
+      ok(
+        (await ratioLog(desk)).length === 0 && (await buffer(desk)).ratio === 2,
+        t("a mouse orbit never changes the ratio"),
+      );
+    } finally {
+      await desk.close();
+    }
+
+    ok(
+      errors.length === 0,
+      t(`no console errors${errors.length ? `: ${errors.join(" | ")}` : ""}`),
+    );
+  } finally {
+    await browser.close();
+  }
+}
+
 try {
   if (values.only === undefined || values.only === "viewer") await touchViewerSuite();
   if (values.only === undefined || values.only === "placement") await touchPlacementSuite();
@@ -5487,6 +5966,7 @@ try {
   if (values.only === undefined || values.only === "selection-state")
     await touchSelectionStateSuite();
   if (values.only === undefined || values.only === "camera") await touchCameraSuite();
+  if (values.only === undefined || values.only === "quality") await touchQualitySuite();
 } finally {
   server.close();
 }

@@ -75,6 +75,11 @@ export interface WebglRendererOptions {
   background?: number;
   /** Multisample antialiasing. Default: on, unless WebGL is software-rendered, where it is far too slow. */
   antialias?: boolean;
+  /**
+   * Drawing-buffer pixels per CSS pixel to start with (default: the device's, at most 2). Change it
+   * later with `setPixelRatio`.
+   */
+  pixelRatio?: number;
 }
 
 export interface RendererStats {
@@ -109,6 +114,16 @@ interface SectionObjects {
 }
 
 const BUCKET_NAMES = ["opaque", "cutout", "translucent"] as const;
+
+/** How many mesher workers a renderer starts when `workers` is not given: cores minus one, between 1 and 4. */
+export function defaultWorkerCount(): number {
+  return Math.max(1, Math.min(4, (globalThis.navigator?.hardwareConcurrency ?? 2) - 1));
+}
+
+/** The pixel ratio a renderer starts with when `pixelRatio` is not given: the device's, at most 2. */
+export function defaultPixelRatio(): number {
+  return Math.min(globalThis.devicePixelRatio ?? 1, 2);
+}
 
 export function webgl2Available(): boolean {
   try {
@@ -173,6 +188,9 @@ export class WebglRenderer implements Renderer {
   private last = 0;
   private needsRender = true;
   private disposed = false;
+  /** `null` until set: the device's ratio is then read when the canvas is mounted, as it always was. */
+  private pixelRatio: number | null;
+  private readonly workerCount: number;
 
   private frameTimes: number[] = [];
   private frameMs = 0;
@@ -217,9 +235,9 @@ export class WebglRenderer implements Renderer {
       LinearSRGBColorSpace,
     );
 
-    const n =
-      options.workers ??
-      Math.max(1, Math.min(4, (globalThis.navigator?.hardwareConcurrency ?? 2) - 1));
+    const n = options.workers ?? defaultWorkerCount();
+    this.workerCount = n;
+    this.pixelRatio = validRatio(options.pixelRatio);
     const make = options.createWorker ?? defaultWorker;
     this.scheduler = new MeshScheduler({
       workers: Array.from({ length: n }, make),
@@ -265,7 +283,8 @@ export class WebglRenderer implements Renderer {
       powerPreference: "high-performance",
     });
     this.gl.outputColorSpace = LinearSRGBColorSpace;
-    this.gl.setPixelRatio(Math.min(globalThis.devicePixelRatio ?? 1, 2));
+    this.pixelRatio ??= defaultPixelRatio();
+    this.gl.setPixelRatio(this.pixelRatio);
     this.gl.clippingPlanes = [];
     const ctx = this.gl.getContext();
     const ext = ctx.getExtension("WEBGL_debug_renderer_info");
@@ -411,6 +430,32 @@ export class WebglRenderer implements Renderer {
   }
 
   // -- Beyond the interface: for the app, tests and measurements ----------------------------
+
+  /**
+   * Draw with this many drawing-buffer pixels per CSS pixel. The buffer is resized now and a frame
+   * is requested; nothing else changes (not the camera, not the canvas's CSS size). A value that is
+   * not a positive finite number is ignored. The same ratio as now does nothing, so a caller may
+   * call this on every change of mode without causing a resize each time.
+   */
+  setPixelRatio(ratio: number): void {
+    const next = validRatio(ratio);
+    if (next === null || next === this.pixelRatio) return;
+    this.pixelRatio = next;
+    if (this.gl === null) return; // `mount` uses it
+    this.gl.setPixelRatio(next);
+    this.needsRender = true;
+    this.requestFrame();
+  }
+
+  /** The drawing-buffer pixels per CSS pixel in use now. */
+  getPixelRatio(): number {
+    return this.pixelRatio ?? defaultPixelRatio();
+  }
+
+  /** How many mesher workers this renderer runs. */
+  getWorkerCount(): number {
+    return this.workerCount;
+  }
 
   /** Orbit camera state; also used to put the camera at a known place. */
   setOrbit(p: {
@@ -1011,6 +1056,11 @@ function summarise(times: number[], cpu: number[]): BenchmarkResult {
     cpuMedianMs: [...cpu].sort((a, b) => a - b)[Math.floor(cpu.length / 2)] ?? 0,
     cpuP95Ms: [...cpu].sort((a, b) => a - b)[Math.floor(cpu.length * 0.95)] ?? 0,
   };
+}
+
+/** A usable pixel ratio (positive and finite), else `null`. */
+function validRatio(ratio: number | undefined): number | null {
+  return typeof ratio === "number" && Number.isFinite(ratio) && ratio > 0 ? ratio : null;
 }
 
 export function createWebglRenderer(options: WebglRendererOptions): WebglRenderer {

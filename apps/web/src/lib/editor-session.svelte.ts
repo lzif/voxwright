@@ -13,6 +13,7 @@ import {
   clipboardCellCount,
   commandCellCount,
   copySelection,
+  DEFAULT_HISTORY_BYTES,
   drawLine,
   drawRectangle,
   Editor,
@@ -92,6 +93,8 @@ export interface SessionOptions {
    * touch stroke is cancelled when the finger leaves the canvas. Default: `elementFromPoint`.
    */
   isOverCanvas?: (clientX: number, clientY: number) => boolean;
+  /** The most memory the undo history may hold, bytes; default core's `DEFAULT_HISTORY_BYTES` (64 MB). */
+  historyBytes?: number;
 }
 
 /** What the pointer is over. */
@@ -144,6 +147,8 @@ export class EditSession {
   packBlocks = $state.raw<readonly string[]>([]);
   /** Edits already in the volume when the session began: a restored autosave carries some, with no undo history. */
   readonly baseEdits: number;
+  /** The most memory the undo history may hold, bytes. */
+  readonly historyBytes: number;
 
   tool = $state<ToolId>("navigate");
   /** The block the drawing tools use: a block id, optionally with `[properties]`. */
@@ -211,7 +216,8 @@ export class EditSession {
     this.overCanvas =
       options.isOverCanvas ??
       ((x, y) => options.canvas.ownerDocument.elementFromPoint(x, y) === options.canvas);
-    this.editor = new Editor(options.volume);
+    this.historyBytes = options.historyBytes ?? DEFAULT_HISTORY_BYTES;
+    this.editor = new Editor(options.volume, { maxBytes: this.historyBytes });
     if (this.baseEdits > 0) this.savedRevision = -1;
     const bb = options.volume.placedBounds();
     this.bounds = bb === null ? null : { min: bb[0], max: bb[1] };

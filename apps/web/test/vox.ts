@@ -60,6 +60,8 @@ export interface SessionView {
   hollow: boolean;
   /** The block string at the inspected cell, or `null`. */
   inspectedBlock: string | null;
+  /** The most memory the undo history may hold, bytes. */
+  historyBytes: number;
   pick(x: number, y: number): PickedBlock | null;
   setTool(tool: string): void;
   setSlice(range: { y0: number; y1: number } | null): void;
@@ -81,6 +83,10 @@ export interface Vox {
     capture(): { width: number; height: number; rgba: Uint8ClampedArray } | null;
     getPose(): Pose;
     getMode(): "orbit" | "fly";
+    /** Drawing-buffer pixels per CSS pixel in use now, and the mesher workers running. */
+    getPixelRatio(): number;
+    getWorkerCount(): number;
+    setPixelRatio(ratio: number): void;
     whenIdle(): Promise<void>;
     whenMeshed(): Promise<void>;
     highlight(boxes: { min: number[]; max: number[]; style?: string }[]): void;

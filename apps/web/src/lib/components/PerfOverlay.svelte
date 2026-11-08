@@ -5,9 +5,13 @@ import { onDestroy, onMount } from "svelte";
 
 interface Props {
   renderer: WebglRenderer | null;
+  /** The Quality setting in use: "auto", "high" or "low". */
+  quality?: string;
+  /** The undo history cap of the open session in bytes, or `null` before a file is open. */
+  historyBytes?: number | null;
 }
 
-let { renderer }: Props = $props();
+let { renderer, quality = "auto", historyBytes = null }: Props = $props();
 
 let active = $state(false);
 
@@ -19,6 +23,13 @@ let firstFullFrameMs = $state<number | null>(null);
 let heapUsedMb = $state<number | null>(null);
 let heapTotalMb = $state<number | null>(null);
 let dpr = $state(1);
+/** The drawing-buffer pixels per CSS pixel the renderer uses right now (dynamic resolution changes it). */
+let ratio = $state<number | null>(null);
+let workers = $state<number | null>(null);
+
+const historyText = $derived(
+  historyBytes === null ? "—" : `${Math.round((historyBytes / (1024 * 1024)) * 10) / 10} MB`,
+);
 
 interface ChromeMemory {
   usedJSHeapSize: number;
@@ -37,12 +48,16 @@ function sampleMetrics(): void {
       const s = renderer.stats();
       triangles = s.triangles;
       firstFullFrameMs = s.firstFullFrameMs;
+      ratio = renderer.getPixelRatio();
+      workers = renderer.getWorkerCount();
     } catch {
       // Safe guard during renderer teardown
     }
   } else {
     triangles = 0;
     firstFullFrameMs = null;
+    ratio = null;
+    workers = null;
   }
 
   // 2. JS Heap from performance.memory (Chromium-only)
@@ -123,6 +138,22 @@ onDestroy(() => {
     <div class="row">
       <span class="label">DPR:</span>
       <span class="val" data-testid="perf-dpr">{dpr.toFixed(2)}</span>
+    </div>
+    <div class="row">
+      <span class="label">Ratio:</span>
+      <span class="val" data-testid="perf-ratio">{ratio !== null ? ratio.toFixed(2) : "—"}</span>
+    </div>
+    <div class="row">
+      <span class="label">Quality:</span>
+      <span class="val" data-testid="perf-quality">{quality}</span>
+    </div>
+    <div class="row">
+      <span class="label">Workers:</span>
+      <span class="val" data-testid="perf-workers">{workers ?? "—"}</span>
+    </div>
+    <div class="row">
+      <span class="label">History cap:</span>
+      <span class="val" data-testid="perf-history">{historyText}</span>
     </div>
   </aside>
 {/if}

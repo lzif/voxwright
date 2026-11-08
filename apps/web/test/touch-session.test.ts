@@ -10,6 +10,7 @@ import {
   type Box,
   cloneVolume,
   copySelection,
+  DEFAULT_HISTORY_BYTES,
   drawLine,
   drawRectangle,
   pasteClipboard,
@@ -71,6 +72,8 @@ function makeSession(
     volume?: Volume;
     /** The orbit distance the fake camera reports (default 40). */
     distance?: number;
+    /** The undo history cap in bytes (default: core's). */
+    historyBytes?: number;
   } = {},
 ) {
   const volume = options.volume ?? makeVolume();
@@ -110,6 +113,7 @@ function makeSession(
     isOverCanvas: options.overCanvas ?? (() => true),
     cursorOffsetPx: options.cursorOffsetPx,
     confirmPlacement: options.confirmPlacement,
+    historyBytes: options.historyBytes,
   });
   return { session, volume, highlights, focuses };
 }
@@ -2551,5 +2555,37 @@ describe("camera focus: a double tap in View and Zoom in here", () => {
       h.tap(f.x, f.y);
       expect(h.focuses).toEqual([]);
     });
+  });
+});
+
+describe("the undo history cap (SessionOptions.historyBytes)", () => {
+  it("is core's default when nothing is asked", () => {
+    const { session } = makeSession();
+    expect(session.historyBytes).toBe(DEFAULT_HISTORY_BYTES);
+    expect(session.editor.history.maxBytes).toBe(DEFAULT_HISTORY_BYTES);
+  });
+
+  it("is the value given, 16 MB for a touch-only device", () => {
+    const { session } = makeSession({ historyBytes: 16 * 1024 * 1024 });
+    expect(session.historyBytes).toBe(16 * 1024 * 1024);
+    expect(session.editor.history.maxBytes).toBe(16 * 1024 * 1024);
+  });
+
+  it("a smaller cap keeps fewer steps: the oldest go first, the latest always stays", () => {
+    const edit = (session: EditSession): void => {
+      for (let i = 0; i < 5; i++) expect(session.placeAt([i, 1, 0], GOLD)).toBe(true);
+    };
+    const roomy = makeSession();
+    edit(roomy.session);
+    expect(roomy.session.undoCount).toBe(5);
+
+    const tight = makeSession({ historyBytes: 1 });
+    edit(tight.session);
+    expect(tight.session.undoCount).toBe(1);
+    // The blocks stay; only the steps that could undo them are gone.
+    expect(tight.volume.get(0, 1, 0)).toBe(GOLD);
+    tight.session.undo();
+    expect(tight.volume.get(4, 1, 0)).toBeUndefined();
+    expect(tight.volume.get(3, 1, 0)).toBe(GOLD);
   });
 });

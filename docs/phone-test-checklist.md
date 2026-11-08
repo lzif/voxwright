@@ -297,6 +297,47 @@ Questions to answer while testing (write the answers into the log):
 
 ---
 
+## 3f. Manual Test Checklist (MB7: the performance pass, and the numbers it needs)
+
+MB7 was built and checked in the VM only (software WebGL), where it cannot show whether it helps. **Nothing in MB7 is proven until these numbers come back from a real phone.** Please open every page below with `?perf=1` added to the address, so the overlay shows FPS, JS heap, DPR, Ratio, Quality, Workers and History cap.
+
+**The 256-wide build.** Make the file on the dev machine, from the repository's `apps/web` folder (it takes a few seconds and writes `synthetic-256.schem`, 118 KB; the file is not part of the repository, so delete it afterwards), then copy it to the phone as for the fixture:
+
+```sh
+node --input-type=module -e "import {writeSchem} from '@voxwright/core'; import {generateTerrain} from './scripts/synthetic.ts'; import {writeFileSync} from 'node:fs'; const v=generateTerrain({size:256,height:64}); const {bytes}=await writeSchem(v,{dataVersion:4903,version:3}); writeFileSync('synthetic-256.schem',bytes)"
+```
+
+**Quick checks**
+
+| Step           | Action                                                                             | Expected Result                                                                                                                                                        | Verified (✓) |
+| :------------- | :--------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------: |
+| **1. Overlay** | Open `Rafeals_house.nbt` with `?perf=1`                                            | **Workers** reads 2 and **History cap** 16 MB. **DPR** is the phone's ratio (for example 2.63 or 3.00) and **Ratio** is the same, but never above 2.00 (Auto, idle).   |      []      |
+| **2. Auto**    | Turn the build with one finger, pinch, pan and twist with two, and watch **Ratio** | **Ratio** drops to 1.00 while the picture moves and is back at its idle value a moment after you stop, even with a finger still down. The picture is sharp when still. |      []      |
+| **3. High**    | **Menu**, **Settings**, **Quality**: High. Turn, pinch and pan                     | **Ratio** stays at its idle value (never 1.00 while moving). No note about anti-aliasing (Auto to High changes nothing there).                                         |      []      |
+| **4. Low**     | Choose Low                                                                         | **Ratio** is 1.00 at once and the picture is softer. A note says anti-aliasing changes the next time the page loads. Reload: Low is on from the first frame, no note.  |      []      |
+| **5. Back**    | Choose Auto or High after Low                                                      | The resolution is back at once. The note shows until you reload (anti-aliasing was off when the page loaded).                                                          |      []      |
+| **6. Looks**   | Compare edges of the roof and the fence in Auto (still), High and Low              | Auto still equals High. Low is visibly rougher (jagged edges, lower resolution). Is Low still acceptable for editing a block?                                          |      []      |
+
+**The numbers.** For each row, open the file, wait for the picture to settle, and read the overlay. Write a number in every cell (or "n/a" with the reason).
+
+- **Idle FPS:** the FPS value while nothing moves and nothing is meshing. The overlay counts the browser's animation frames, so it shows the display rate while the page is free and falls when drawing or meshing keeps the page busy.
+- **Orbit FPS (avg, min):** turn the build with one finger in big circles for about ten seconds, watching the FPS value; note the lowest value you see and a typical one.
+- **JS heap:** the heap value after opening the file, and after ten Place strokes and ten Undos.
+- **Stroke latency (finger move to block shown):** the time from moving the finger to the new block being visible while painting with Place. Choose the way that works for you: (a) record the screen at 60 fps and count the frames between the finger moving and the block appearing (frames x 16.7 ms); or (b) with the phone on USB debugging (`chrome://inspect` on the dev machine), open the page with `?e2e&perf=1` and in the console run `await __voxwright.edit(x, y, z, "minecraft:glowstone")` for a surface block, which prints `{ appliedMs, visibleMs }`; `visibleMs` is the time until the block is on screen, without the finger. Say which you used.
+
+| File                                 | Quality | Idle FPS | Orbit FPS (avg / min) | JS heap (open / after edits) | Stroke latency | Notes |
+| :----------------------------------- | :-----: | :------: | :-------------------: | :--------------------------: | :------------: | :---- |
+| **Rafeals_house.nbt**                |  Auto   |          |                       |                              |                |       |
+| **Rafeals_house.nbt**                |  High   |          |                       |                              |                |       |
+| **Rafeals_house.nbt**                |   Low   |          |                       |                              |                |       |
+| **synthetic-256.schem** (256x64x256) |  Auto   |          |                       |                              |                |       |
+| **synthetic-256.schem** (256x64x256) |  High   |          |                       |                              |                |       |
+| **synthetic-256.schem** (256x64x256) |   Low   |          |                       |                              |                |       |
+
+**Targets (proposed in the plan, MB7):** Rafeals_house orbits at the display's refresh rate or at least 30 fps; the 256-wide build stays at 30 fps; stroke latency under 100 ms. If the phone cannot reach them with any Quality, say which build size does (this sets decision 4, the largest smooth build). Also note: how long the page is frozen while the 256-wide file is read (a freeze over about 1 s would justify moving parsing into a worker, which MB7 deliberately did not do), whether Auto's drop in resolution is noticeable, and whether two workers and a 16 MB undo history ever get in the way (for example, a very large Fill that cannot be undone more than once).
+
+---
+
 ## 4. Baseline Telemetry Log & Decision 4 Template (FEAT-MB1-04)
 
 ### Background & Objective (Decision 4)
