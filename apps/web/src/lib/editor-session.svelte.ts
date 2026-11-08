@@ -52,6 +52,19 @@ import {
   toolInfo,
   withoutNbt,
 } from "./editing.ts";
+import { GestureArbiter, type GestureIntent, pointerEventToSample } from "./gestures.ts";
+
+export interface ReticleState {
+  active: boolean;
+  touchX: number;
+  touchY: number;
+  reticleX: number;
+  reticleY: number;
+  hit: Hover | null;
+}
+
+export const DEFAULT_CURSOR_OFFSET_PX = 64;
+export const RETICLE_OFFSET_Y = DEFAULT_CURSOR_OFFSET_PX;
 
 export interface SessionOptions {
   renderer: WebglRenderer;
@@ -116,6 +129,15 @@ export class EditSession {
   /** Bumped by every change to the volume or its history; reads of derived values depend on it. */
   revision = $state(0);
   cameraMode = $state<"orbit" | "fly">("orbit");
+  cursorOffsetPx = DEFAULT_CURSOR_OFFSET_PX;
+  reticle = $state.raw<ReticleState | null>(null);
+
+  private readonly touchArbiter: GestureArbiter;
+  private touchAborted = false;
+  private activeTouchPointers = new Set<number>();
+  private pendingPan: { dx: number; dy: number } | null = null;
+  private pendingPinch: { factor: number } | null = null;
+  private flushScheduled = false;
 
   private readonly renderer: WebglRenderer;
   private readonly canvas: HTMLCanvasElement;
@@ -136,6 +158,9 @@ export class EditSession {
     this.packBlocks = options.packBlocks;
     this.baseEdits = options.baseEdits ?? 0;
     this.editor = new Editor(options.volume);
+    this.touchArbiter = new GestureArbiter({
+      onIntent: (intent: GestureIntent) => this.handleGestureIntent(intent),
+    });
     if (this.baseEdits > 0) this.savedRevision = -1;
     const bb = options.volume.placedBounds();
     this.bounds = bb === null ? null : { min: bb[0], max: bb[1] };
@@ -201,6 +226,7 @@ export class EditSession {
     const down = (e: PointerEvent): void => this.onPointerDown(e);
     const move = (e: PointerEvent): void => this.onPointerMove(e);
     const up = (e: PointerEvent): void => this.onPointerUp(e);
+    const cancel = (e: PointerEvent): void => this.onPointerCancel(e);
     const leave = (): void => this.onPointerLeave();
     const wheel = (): void => this.schedule(); // zooming moves the scene under a still pointer
     const key = (e: KeyboardEvent): void => this.onKey(e);
@@ -209,7 +235,7 @@ export class EditSession {
     host.addEventListener("pointerdown", down, true);
     this.canvas.addEventListener("pointermove", move);
     this.canvas.addEventListener("pointerup", up);
-    this.canvas.addEventListener("pointercancel", up);
+    this.canvas.addEventListener("pointercancel", cancel);
     this.canvas.addEventListener("pointerleave", leave);
     this.canvas.addEventListener("wheel", wheel, { passive: true });
     window.addEventListener("keydown", key);
@@ -217,7 +243,7 @@ export class EditSession {
       host.removeEventListener("pointerdown", down, true);
       this.canvas.removeEventListener("pointermove", move);
       this.canvas.removeEventListener("pointerup", up);
-      this.canvas.removeEventListener("pointercancel", up);
+      this.canvas.removeEventListener("pointercancel", cancel);
       this.canvas.removeEventListener("pointerleave", leave);
       this.canvas.removeEventListener("wheel", wheel);
       window.removeEventListener("keydown", key);
@@ -227,9 +253,16 @@ export class EditSession {
 
   dispose(): void {
     this.cancelDrag();
+    this.touchArbiter.reset();
+    this.activeTouchPointers.clear();
     this.detach?.();
     this.detach = null;
-    cancelAnimationFrame(this.frame);
+    if (typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(this.frame);
+    } else {
+      clearTimeout(this.frame);
+    }
+    this.frame = 0;
     this.renderer.highlight([]);
   }
 

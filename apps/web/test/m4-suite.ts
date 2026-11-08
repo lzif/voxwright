@@ -1095,8 +1095,11 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       console.log(
         `  phone: any-pointer coarse=${m.coarse} fine=${m.fine}; editor shown=${m.toolbar}`,
       );
-      if (m.coarse && !m.fine)
-        ok(!m.toolbar, t("a touch-only device gets the viewer without the editor"));
+      if (m.coarse && !m.fine) {
+        ok(m.toolbar, t("a touch-only device with WebGL2 gets the mobile editor toolbar"));
+        const lockout = await page.$('[data-testid="edit-note"]');
+        ok(lockout === null, t("no lockout message is shown on coarse touch device"));
+      }
       if (ctx.shots) await page.screenshot({ path: join(ctx.shots, "phone.png"), fullPage: true });
       await page.close();
     }

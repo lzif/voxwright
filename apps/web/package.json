@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "assets": "node scripts/build-pack.ts",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:touch": "node test/touch-e2e.ts"
   },
   "dependencies": {
     "@voxwright/core": "workspace:*",

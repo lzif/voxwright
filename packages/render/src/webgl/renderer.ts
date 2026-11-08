@@ -46,12 +46,25 @@ import {
   parseSectionKey,
   type SectionMesh,
 } from "../mesh/section.ts";
-import { FlyController, lookDirection, OrbitController, type Pose, pickRay } from "./controls.ts";
+import {
+  FlyController,
+  lookDirection,
+  OrbitController,
+  type Pose,
+  pickRay,
+  type Vec3,
+} from "./controls.ts";
 import type { Box, CameraMode, Renderer, SliceRange } from "./types.ts";
 
 export interface WebglRendererOptions {
   /** Models and textures; `null` draws every block as the magenta fallback cube. */
   pack: DecodedPack | null;
+  /**
+   * Input handling mode: "builtin" attaches canvas pointer/wheel/key listeners;
+   * "external" skips them so an external gesture arbiter has full ownership of input.
+   * Default: "builtin".
+   */
+  input?: "builtin" | "external";
   /** Mesher workers (default: cores minus one, between 1 and 4). */
   workers?: number;
   /** How to start a worker; the default starts this package's own `mesh.worker.ts`. */
@@ -261,17 +274,19 @@ export class WebglRenderer implements Renderer {
     canvas.tabIndex = 0;
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
-    this.listen(canvas, "pointerdown", this.onPointerDown);
-    this.listen(canvas, "pointermove", this.onPointerMove);
-    this.listen(canvas, "pointerup", this.onPointerUp);
-    this.listen(canvas, "pointercancel", this.onPointerUp);
-    this.listen(canvas, "wheel", this.onWheel, { passive: false });
     this.listen(canvas, "contextmenu", (e) => e.preventDefault());
     this.listen(canvas, "webglcontextlost", (e) => e.preventDefault());
     this.listen(canvas, "webglcontextrestored", () => this.requestFrame());
-    this.listen(window, "keydown", this.onKey);
-    this.listen(window, "keyup", this.onKey);
-    this.listen(window, "blur", () => this.fly.keys.clear());
+    if (this.options.input !== "external") {
+      this.listen(canvas, "pointerdown", this.onPointerDown);
+      this.listen(canvas, "pointermove", this.onPointerMove);
+      this.listen(canvas, "pointerup", this.onPointerUp);
+      this.listen(canvas, "pointercancel", this.onPointerUp);
+      this.listen(canvas, "wheel", this.onWheel, { passive: false });
+      this.listen(window, "keydown", this.onKey);
+      this.listen(window, "keyup", this.onKey);
+      this.listen(window, "blur", () => this.fly.keys.clear());
+    }
     this.resize();
     this.requestFrame();
   }
@@ -408,6 +423,42 @@ export class WebglRenderer implements Renderer {
     if (p.elevation !== undefined) this.orbit.elevation = Math.max(-89, Math.min(89, p.elevation));
     if (p.distance !== undefined) this.orbit.distance = p.distance;
     if (p.target !== undefined) this.orbit.target = [...p.target];
+    this.requestFrame();
+  }
+
+  /** Orbit the camera around its target by screen pixel deltas. */
+  orbitBy(dxPx: number, dyPx: number): void {
+    if (!Number.isFinite(dxPx) || !Number.isFinite(dyPx)) return;
+    this.orbit.rotate(dxPx, dyPx);
+    this.requestFrame();
+  }
+
+  /** Pan the camera target in the screen plane by screen pixel deltas. */
+  panBy(dxPx: number, dyPx: number): void {
+    if (!Number.isFinite(dxPx) || !Number.isFinite(dyPx)) return;
+    this.orbit.pan(dxPx, dyPx);
+    this.requestFrame();
+  }
+
+  /** Zoom the orbit camera by scaling the distance by factor (>1 zooms out, <1 zooms in). */
+  zoomBy(factor: number): void {
+    if (!Number.isFinite(factor) || factor <= 0) return;
+    this.orbit.zoom(factor);
+    this.requestFrame();
+  }
+
+  /** Focus the orbit camera on a target cell/world position, optionally setting the distance. */
+  focusOn(target: Vec3, distance?: number): void {
+    if (this.mode === "fly") {
+      this.setCamera("orbit");
+    }
+    this.orbit.target = [target[0], target[1], target[2]];
+    if (distance !== undefined && Number.isFinite(distance)) {
+      this.orbit.distance = Math.max(
+        this.orbit.minDistance,
+        Math.min(this.orbit.maxDistance, distance),
+      );
+    }
     this.requestFrame();
   }
 

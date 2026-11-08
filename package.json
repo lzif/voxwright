@@ -19,6 +19,7 @@
     "check": "biome check .",
     "typecheck": "pnpm -r --if-present run typecheck && tsc -p scripts/tsconfig.json",
     "test": "vitest run",
+    "test:touch": "pnpm --filter @voxwright/web test:touch",
     "depcheck": "depcruise --config .dependency-cruiser.cjs .",
     "convert": "node scripts/convert.ts",
     "licenses": "node scripts/licenses.ts"

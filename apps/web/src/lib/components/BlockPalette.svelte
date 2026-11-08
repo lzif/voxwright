@@ -65,7 +65,7 @@ function onSearchKey(e: KeyboardEvent): void {
 }
 </script>
 
-<section data-testid="palette">
+<section class="palette" data-testid="palette">
   <h2>Block</h2>
   <label class="current">
     <span class="sr">Chosen block</span>
@@ -132,4 +132,18 @@ function onSearchKey(e: KeyboardEvent): void {
   .entry.typed { font-style: italic; }
   .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
   .bad { color: #7a1f16; }
+
+  @media (pointer: coarse) {
+    input[type="search"] {
+      min-height: 44px;
+    }
+    .entry {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+  }
 </style>
