@@ -191,7 +191,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 
 ## M4 status
 
-**Status:** M4's features are built. The 0.1.0 release itself is not: the version bump, tag and npm publish are not done, and Luki decides those. CI on GitHub is red for the last pushed commit (see "Not done, or not verified"). Whether a public site may serve Mojang's textures and models is open (see below).
+**Status:** M4's features are built. The 0.1.0 release itself is not: the version bump, tag and npm publish are not done, and Luki decides those. CI on GitHub is green on 6a5933d (run 42401199133, all four jobs). Whether a public site may serve Mojang's textures and models is open (see below).
 
 **What is there.**
 
@@ -212,11 +212,12 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 - The web app says "Nothing was lost reading this file." or, after an export, "Nothing was lost." when the report is empty. The layer sliders follow the build's height after edits, undo and redo. `window.__voxwright` exists only when the address has `?e2e`.
 - `VOXWRIGHT_BASE_PATH` is a build variable for hosting under a sub-path (see "Not done, or not verified").
 - `mcbuild run` reads the DataVersion from the fetched `version.json` (the path was wrong before). `pngjs` is a runtime dependency of `render`. The CLI help no longer says the renderer is unported. `packages/render/src/node/index.ts` has its SPDX header.
+- Camera freeze fixed (commit 6a5933d, found by Luki on his phone): once meshing went idle, the Turn and Tilt sliders, orbit drag, wheel zoom and pinch zoom did nothing. `requestFrame()` in `packages/render/src/webgl/renderer.ts` scheduled a frame but never set `needsRender`, so camera-only changes drew nothing after the mesh scheduler was idle. Edits still redrew because they re-mesh, which is why the edit and undo checks in the e2e run missed it. `requestFrame()` now sets `needsRender`. `apps/web/test/e2e.ts` gained camera-only regression checks (Turn slider, Tilt slider, wheel zoom and pinch zoom each change the picture while idle; the fly check also compares against the view before looking around), and `capture()` now copies out the last frame drawn by the loop instead of calling `draw()` itself, so tests see only frames the loop drew.
 - The editor core caches the volume's bounding box (`Volume.placedBounds`). The growth check for the 512 limit uses it and scans every cell only when a staged removal touches a face of the current bounds. This change is new and its tests are new.
 
 **Not done, or not verified.**
 
-- **CI is red on GitHub.** The last run (commit d3a7ef6) failed in the `repo` job at `pnpm run check` (Biome's format check); the `packages` and `web` jobs passed (that run: 45 files, 907 passed, 4 skipped). The format fix to `scripts/licenses.ts` is in the working tree and not pushed. `docs/mobile-editor-plan.md`, the one file `pnpm run check` still failed on locally, is now formatted for Biome (2026-11-07). `docs/` is not committed yet.
+- **CI is green on GitHub.** Run 42401199133 on commit 6a5933d completed with success, all four jobs. The earlier run (commit d3a7ef6) had failed in the `repo` job at `pnpm run check` (Biome's format check); the format fixes to `scripts/licenses.ts` and `docs/mobile-editor-plan.md` are pushed since.
 - `pnpm licenses` (without `run`) hits pnpm's built-in command and fails. Use `pnpm run licenses` or `node scripts/licenses.ts`.
 - The licence check covers the production dependencies of `apps/web` only, not the other packages, and CI does not run it.
 - The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and the rest). MIT asks for the notice with every copy.
@@ -224,7 +225,7 @@ Full definitions and exit criteria live in the [v1 spec](https://claude.ai/artif
 - Open: whether a public site may serve Mojang's textures and models. The site pack is built from Mojang's assets; this has not been decided.
 - The default source link points at `github.com/lzif/voxwright`, which is private, so it gives a 404 until the repository is public.
 - axe-core leaves colour-contrast "needs review" items in some states; a person has to check those.
-- No real GPU and no real phone were tested; the browser runs used SwiftShader and device emulation. No browser test drives touch gestures (one-finger turn, pinch zoom), and Fly mode has no touch input although its button is shown.
+- No real GPU and no real phone were tested; the browser runs used SwiftShader and device emulation. The only browser test that drives touch is the pinch-zoom regression check (CDP touch events, WebGL run); none drives the one-finger turn, and Fly mode has no touch input although its button is shown. Two-finger pan is not implemented: with two pointers down, `onPointerMove` in `packages/render/src/webgl/renderer.ts` (the `pointers.size === 2` branch) only reads the pinch spread for zoom and returns, and `orbit.pan()` is reached only by a drag that is not a plain button-0 drag (mouse right-drag, Shift+drag). After a two-finger gesture, lifting the finger that went down last sets `drag` to null in `onPointerUp`, so the remaining finger cannot orbit until it is lifted and put down again.
 - Hosting under a sub-path: build with `VOXWRIGHT_BASE_PATH=/sub-path` (starts with `/`, no trailing slash). `index.html` uses relative links; `200.html`, the fallback page the static adapter writes, can be served at any address, so it uses the base path. Without the variable the build is for the site root, and its `200.html` is only right there. Checked in the build output (`200.html` links start with the base path, a value with a trailing slash stops the build); not opened in a browser under a sub-path, and no test covers it.
 - The main JavaScript chunk is about 556 kB and Vite warns about its size.
 
@@ -267,12 +268,13 @@ What is still missing and is not a decision:
 - [ ] Expected losses per fixture (the spec asks for a list per fixture that the test compares; today the tests assert the lines for each behaviour)
 - [ ] A report line for a truncated region. Short block data makes a reader throw instead
 - [ ] A report line for a Bedrock block name that was renamed or unknown (it is passed through unchanged; `readMcstructure` can report such names when given `knownBlocks`, and nothing passes it). Bedrock round trips also strip Java default properties such as `waterlogged=false` without a report line
-- [ ] A browser test that drives touch gestures
+- [ ] A browser test that drives touch gestures (only pinch zoom is covered; not the one-finger turn)
+- [ ] Two-finger pan in the viewer, and one-finger orbit continuing after a two-finger gesture when one finger is lifted (known gap, not implemented)
 - [ ] Third-party licence notices in the built site (three.js, Svelte, fflate and the other MIT dependencies)
 - [ ] DCO: the Decisions table asks for sign-off, but no document tells contributors and no CI check enforces it; none of the commits so far carries a `Signed-off-by`
 - [ ] The licence check (`scripts/licenses.ts`) covers the production dependencies of `apps/web` only, has no test, and is not run in CI
 - [ ] CI is per path only in the `packages` job; `repo` and `web` run every time
-- [ ] CI is red on GitHub until the `scripts/licenses.ts` format fix and the formatted `docs/mobile-editor-plan.md` are pushed
+- [x] CI was red on GitHub until the `scripts/licenses.ts` format fix and the formatted `docs/mobile-editor-plan.md` were pushed. Fixed; CI is green on 6a5933d (run 42401199133)
 - [ ] Bedrock is offered without a "beta" label (the spec's risk table says to ship it as beta)
 
 Sources: the [v1 spec](https://claude.ai/artifact/GRd8qFWt6qZD7AyDE3ZPU5) and the [mcbuilder repository](https://github.com/lzif/mcbuilder) at the PR #5 merge.
