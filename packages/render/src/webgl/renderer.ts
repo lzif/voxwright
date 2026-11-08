@@ -179,8 +179,9 @@ export class WebglRenderer implements Renderer {
   /** Called after a frame whose camera differs from the last one reported. */
   onCamera: ((pose: Pose & { mode: CameraMode; distance: number }) => void) | null = null;
   private drag: { id: number; x: number; y: number; button: number; shift: boolean } | null = null;
-  private pointers = new Map<number, { x: number; y: number }>();
+  private pointers = new Map<number, { x: number; y: number; button: number; shift: boolean }>();
   private pinch = 0;
+  private pinchMid: { x: number; y: number } | null = null;
   private cleanup: (() => void)[] = [];
 
   constructor(options: WebglRendererOptions) {
@@ -807,8 +808,16 @@ export class WebglRenderer implements Renderer {
     const c = this.canvas;
     if (c === null) return;
     c.focus({ preventScroll: true });
-    this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (this.pointers.size === 2) this.pinch = this.pointerSpread();
+    this.pointers.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY,
+      button: e.button,
+      shift: e.shiftKey,
+    });
+    if (this.pointers.size === 2) {
+      this.pinch = this.pointerSpread();
+      this.pinchMid = this.pointerMidpoint();
+    }
     this.drag = {
       id: e.pointerId,
       x: e.clientX,
@@ -846,6 +855,11 @@ export class WebglRenderer implements Renderer {
       const spread = this.pointerSpread();
       if (this.pinch > 0 && spread > 0) this.orbit.zoom(this.pinch / spread);
       this.pinch = spread;
+      // Moving both fingers together drags the build, like a Shift+drag.
+      const mid = this.pointerMidpoint();
+      if (this.pinchMid !== null && mid !== null)
+        this.orbit.pan(mid.x - this.pinchMid.x, mid.y - this.pinchMid.y);
+      this.pinchMid = mid;
       this.requestFrame();
       return;
     }
@@ -864,7 +878,19 @@ export class WebglRenderer implements Renderer {
     this.pointers.delete(e.pointerId);
     if (this.drag?.id === e.pointerId) this.drag = null;
     this.pinch = 0;
+    this.pinchMid = null;
+    // After a two-finger gesture the finger still down carries on as a one-finger drag, from where
+    // it is now, so the view does not jump.
+    if (this.pointers.size === 1) {
+      for (const [id, p] of this.pointers)
+        this.drag = { id, x: p.x, y: p.y, button: p.button, shift: p.shift };
+    }
   };
+
+  private pointerMidpoint(): { x: number; y: number } | null {
+    const [a, b] = [...this.pointers.values()];
+    return a === undefined || b === undefined ? null : { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  }
 
   private pointerSpread(): number {
     const [a, b] = [...this.pointers.values()];

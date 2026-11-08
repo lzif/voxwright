@@ -90,7 +90,7 @@ In that mode:
 
 A device whose only pointer is a touch screen also keeps the page a viewer. The page says "Editing needs a mouse and keyboard; on this device the page is a viewer."
 
-On a touch screen in Orbit, one finger turns the build and pinching with two fingers zooms. There is no two-finger move (two-finger pan is not available), and after a two-finger gesture the remaining finger turns the build again only once you lift it and put it down again. The **Turn**, **Tilt** and zoom controls in the side panel work too. The **Fly** button is shown, but touch has no way to move in Fly; dragging only looks around. The project has not tested these gestures in a browser run or on a real phone, only a phone-sized window.
+On a touch screen in Orbit, one finger turns the build, pinching with two fingers zooms, and moving two fingers together moves the build across the screen. If you lift one finger after a two-finger gesture, the other keeps turning the build. The **Turn**, **Tilt** and zoom controls in the side panel work too. The **Fly** button is shown, but touch has no way to move in Fly; dragging only looks around. The project has not tested these gestures in a browser run or on a real phone, only a phone-sized window.
 
 ## 3. Converting and the loss report
 

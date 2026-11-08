@@ -233,6 +233,49 @@ async function suite(webgl: boolean): Promise<void> {
       await settle();
       const pinched = await picture();
       ok(pinched.hash !== zoomed.hash, t("pinch zoom redraws the picture while idle"));
+      // Two fingers moving together, spread unchanged, must pan.
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [
+          { x: cx - 30, y: cy, id: 1 },
+          { x: cx + 30, y: cy, id: 2 },
+        ],
+      });
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [
+          { x: cx + 10, y: cy + 20, id: 1 },
+          { x: cx + 70, y: cy + 20, id: 2 },
+        ],
+      });
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await settle();
+      const panned = await picture();
+      ok(panned.hash !== pinched.hash, t("two-finger pan redraws the picture while idle"));
+      // Lift one finger of two: the other must go on turning the view.
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [
+          { x: cx - 30, y: cy, id: 1 },
+          { x: cx + 30, y: cy, id: 2 },
+        ],
+      });
+      await cdp.send("Input.dispatchTouchEvent", {
+        // Lift finger 2, the one that went down last and so the one the old code tracked as the drag.
+        type: "touchEnd",
+        touchPoints: [{ x: cx + 30, y: cy, id: 2 }],
+      });
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchMove",
+        touchPoints: [{ x: cx + 30, y: cy + 25, id: 1 }],
+      });
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await settle();
+      const resumed = await picture();
+      ok(
+        resumed.hash !== panned.hash,
+        t("the remaining finger turns the view after one of two is lifted"),
+      );
     }
 
     // 3. Slice to the bottom layers.
