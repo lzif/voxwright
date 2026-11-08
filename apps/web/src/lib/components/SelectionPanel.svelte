@@ -3,8 +3,10 @@
 import { makeBox, type Vec3 } from "@voxwright/core";
 import { FILL_KEY, ROTATE_KEYS, withoutNbt } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
+import { FACES } from "../nudge.ts";
 
-let { session }: { session: EditSession } = $props();
+// `touch` adds what the mobile layout needs: the face steppers, and the hint worded for taps.
+let { session, touch = false }: { session: EditSession; touch?: boolean } = $props();
 
 const sel = $derived(session.selection);
 const size = $derived(
@@ -51,6 +53,8 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
 };
 </script>
 
+<!-- On touch the selection comes first: its size and the face steppers are what the sheet is opened for. -->
+<div class="panels" class:touch>
 <section data-testid="coords-panel" aria-labelledby="coords-title">
   <h2 id="coords-title">Block at coordinates</h2>
   <div class="move">
@@ -68,9 +72,27 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
 <section data-testid="selection-panel">
   <h2>Selection</h2>
   {#if sel === null || size === null}
-    <p class="hint">Choose the Select tool and drag from one block to another, or <button class="link" onclick={() => session.selectAll()} data-testid="select-all">select everything</button>.</p>
+    {#if touch}
+      <p class="hint">Choose the Select tool and tap two blocks, then confirm with the check mark, or <button class="link" onclick={() => session.selectAll()} data-testid="select-all">select everything</button>.</p>
+    {:else}
+      <p class="hint">Choose the Select tool and drag from one block to another, or <button class="link" onclick={() => session.selectAll()} data-testid="select-all">select everything</button>.</p>
+    {/if}
   {:else}
     <p class="size" data-testid="selection-size">{size.join(" × ")} blocks</p>
+    {#if touch}
+      <!-- One block per press, on one face at a time. Growing adds a layer on that side; shrinking takes one away. -->
+      <div class="faces" role="group" aria-label="Resize the selection by one block" data-testid="face-steppers">
+        {#each FACES as f (f.name)}
+          {@const name = f.name.toLowerCase()}
+          <div class="face" role="group" aria-label={`${f.name} face`}>
+            <span class="face-name">{f.name}</span>
+            <button type="button" class="step" aria-label={`Grow the ${name} face by one block`} title={`${f.name} +1: one more layer on the ${name} side`} data-testid={`face-${name}-grow`} onclick={() => session.stepSelectionFace(f.axis, f.side, true)}>+1</button>
+            <button type="button" class="step" aria-label={`Shrink the ${name} face by one block`} title={`${f.name} −1: take one layer off the ${name} side`} data-testid={`face-${name}-shrink`} onclick={() => session.stepSelectionFace(f.axis, f.side, false)}>−1</button>
+          </div>
+        {/each}
+      </div>
+      <p class="hint">+1 adds a layer on that side, −1 takes one away. West and East are x, Bottom and Top are y, North and South are z.</p>
+    {/if}
     <div class="coords" role="group" aria-label="Selection corners">
       {#each AXES as a}
         <span class="axis">{"xyz"[a]}</span>
@@ -122,10 +144,17 @@ const nudge = (axis: 0 | 1 | 2, by: number): void => {
     </div>
   {/if}
 </section>
+</div>
 
 <style>
+  .panels.touch { display: flex; flex-direction: column; }
+  .panels.touch > [data-testid="coords-panel"] { order: 2; }
   h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #5f594f; }
   .size { margin: 0 0 0.3rem; font-weight: 600; }
+  .faces { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.6rem; margin: 0.4rem 0; }
+  .face { display: grid; grid-template-columns: 1fr 48px 48px; gap: 0.3rem; align-items: center; }
+  .face-name { font-size: 0.85rem; font-weight: 600; }
+  .step { width: 48px; height: 48px; min-width: 48px; min-height: 48px; padding: 0; font-size: 0.95rem; font-weight: 600; touch-action: manipulation; }
   .coords { display: grid; grid-template-columns: 1rem 1fr 1fr; gap: 0.25rem 0.3rem; align-items: center; }
   .axis { color: #5f594f; font-size: 0.8rem; }
   input[type="number"], input[type="text"] { box-sizing: border-box; min-width: 0; width: 100%; padding: 0.25rem 0.4rem; font: inherit; font-size: 0.85rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }

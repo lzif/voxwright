@@ -52,31 +52,39 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     aria-atomic="true"
     aria-label="Target cell readout"
   >
-    <div class="readout-cell" data-testid="cell-readout">
-      <span class="readout-coord" data-testid="hover">
-        {#if session.hover}
-          [{session.hover.position.join(", ")}]
-        {:else if session.inspected}
-          [{session.inspected.join(", ")}]
-        {:else}
-          [—, —, —]
+    <div class="readout-cell" class:pending={session.pending !== null} data-testid="cell-readout">
+      {#if session.pending}
+        <!-- The armed cell and its block, or the corners and the size: it follows every nudge. A refusal
+             takes the whole line while it shows, so that it reads in full. -->
+        {#if !session.error}
+          <span class="readout-coord" data-testid="pending-readout">{session.pendingReadout}</span>
         {/if}
-      </span>
-      <span class="readout-sep" aria-hidden="true">·</span>
-      <span class="readout-block" data-testid="cell-block">
-        {#if session.hover}
-          {session.hover.block.replace("minecraft:", "")}
-        {:else if session.inspectedBlock}
-          {session.inspectedBlock.replace("minecraft:", "")}
-        {:else}
-          {session.block.replace("minecraft:", "")}
-        {/if}
-      </span>
+      {:else}
+        <span class="readout-coord" data-testid="hover">
+          {#if session.hover}
+            [{session.hover.position.join(", ")}]
+          {:else if session.inspected}
+            [{session.inspected.join(", ")}]
+          {:else}
+            [—, —, —]
+          {/if}
+        </span>
+        <span class="readout-sep" aria-hidden="true">·</span>
+        <span class="readout-block" data-testid="cell-block">
+          {#if session.hover}
+            {session.hover.block.replace("minecraft:", "")}
+          {:else if session.inspectedBlock}
+            {session.inspectedBlock.replace("minecraft:", "")}
+          {:else}
+            {session.block.replace("minecraft:", "")}
+          {/if}
+        </span>
+      {/if}
     </div>
     {#if session.message}
       <span class="readout-msg" data-testid="edit-message">{session.message}</span>
     {:else if session.error}
-      <span class="readout-error" data-testid="edit-error">{session.error}</span>
+      <span class="readout-error" class:wide={session.pending !== null} data-testid="edit-error">{session.error}</span>
     {/if}
   </div>
 
@@ -301,6 +309,12 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     color: #f4f1eb;
   }
 
+  /* While something is pending the readout keeps its width and the message takes the rest. */
+  .readout-cell.pending {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
   .readout-msg {
     font-size: 0.74rem;
     color: #a8a29e;
@@ -308,6 +322,9 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-left: 8px;
+    min-width: 0;
+    flex: 1 1 0;
+    text-align: right;
   }
 
   .readout-error {
@@ -317,5 +334,10 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-left: 8px;
+  }
+
+  .readout-error.wide {
+    margin-left: 0;
+    flex: 1 1 auto;
   }
 </style>

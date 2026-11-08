@@ -234,7 +234,13 @@ function handleBackdropClick(): void {
     </header>
 
     <!-- Sheet Scrollable Content Area -->
-    <div class="sheet-content" data-testid="bottom-sheet-content">
+    <!-- The sheet is as tall as its full snap and moved down for the lower ones, so the part below the
+         screen is padding too: the last controls can then be scrolled up into sight. -->
+    <div
+      class="sheet-content"
+      style="padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px) + {targetOffset}px)"
+      data-testid="bottom-sheet-content"
+    >
       {#if children}
         {@render children()}
       {/if}

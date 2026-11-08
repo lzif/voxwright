@@ -44,6 +44,7 @@ import {
   DEFAULT_CURSOR_OFFSET_PX,
   inSlice,
   isTouchTool,
+  isTwoPointTool,
   isTypingTarget,
   type KeyAction,
   keyAction,
@@ -54,6 +55,22 @@ import {
   toolInfo,
   withoutNbt,
 } from "./editing.ts";
+import { checkNudge, type FaceSide, stepFace } from "./nudge.ts";
+import {
+  type CellPending,
+  cornerB,
+  cornersBox,
+  describePending,
+  isTwoPoint,
+  nudgeCells,
+  type Pending,
+  type PendingCorner,
+  pendingSize,
+  shiftPending,
+  type TwoPointPending,
+  type TwoPointTool,
+  withCorner,
+} from "./pending.ts";
 
 export interface SessionOptions {
   renderer: WebglRenderer;
@@ -66,6 +83,8 @@ export interface SessionOptions {
   baseEdits?: number;
   /** How far above the fingertip the touch cursor sits, in px; default `DEFAULT_CURSOR_OFFSET_PX`. */
   cursorOffsetPx?: number;
+  /** Do Place, Replace and Erase wait for a confirm on touch instead of applying at once? Default false. */
+  confirmPlacement?: boolean;
   /**
    * Is a page point over the canvas itself and not over a toolbar or sheet drawn on top of it? A
    * touch stroke is cancelled when the finger leaves the canvas. Default: `elementFromPoint`.
@@ -106,6 +125,12 @@ type Drag =
 
 const AXIS_NAMES = ["x", "y", "z"] as const;
 const keyOf = (c: Vec3): string => `${c[0]},${c[1]},${c[2]}`;
+const cellText = (c: Vec3): string => c.join(", ");
+const boxSizeOf = (b: Box): Vec3 => [
+  b.max[0] - b.min[0] + 1,
+  b.max[1] - b.min[1] + 1,
+  b.max[2] - b.min[2] + 1,
+];
 const errorText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 const blocksText = (n: number): string => `${n} block${n === 1 ? "" : "s"}`;
 
@@ -137,6 +162,16 @@ export class EditSession {
   /** How far above the fingertip the touch cursor sits, in px. Read on every touch event, so a change applies at once. */
   cursorOffsetPx = DEFAULT_CURSOR_OFFSET_PX;
   reticle = $state.raw<ReticleState | null>(null);
+  /**
+   * On touch: do Place, Replace and Erase only arm a cell on a tap or the end of a drag, and wait
+   * for `confirmPending` (the Confirm setting)? Change it with `setConfirmPlacement`.
+   */
+  confirmPlacement = $state(false);
+  /**
+   * The edit touch has begun and the user has not confirmed: the corners of a line, rectangle or
+   * selection, an armed cell, or a paste origin. `null` when nothing waits. Replaced, never changed.
+   */
+  pending = $state.raw<Pending | null>(null);
 
   private readonly renderer: WebglRenderer;
   private readonly canvas: HTMLCanvasElement;
@@ -148,6 +183,10 @@ export class EditSession {
   private pointer: { x: number; y: number } | null = null;
   /** Where the finger of a touch gesture is, while the tool owns the gesture. */
   private touchFinger: { x: number; y: number } | null = null;
+  /** A corner drag in progress: the pending value to go back to if the drag is cancelled. */
+  private cornerDrag: { before: TwoPointPending } | null = null;
+  /** A drag of an arming tool began and has not ended: its lift arms a cell, unless the drag was cancelled. */
+  private touchDragging = false;
   private readonly overCanvas: (clientX: number, clientY: number) => boolean;
   private frame = 0;
   private detach: (() => void) | null = null;
@@ -160,6 +199,7 @@ export class EditSession {
     this.packBlocks = options.packBlocks;
     this.baseEdits = options.baseEdits ?? 0;
     this.cursorOffsetPx = options.cursorOffsetPx ?? DEFAULT_CURSOR_OFFSET_PX;
+    this.confirmPlacement = options.confirmPlacement ?? false;
     this.overCanvas =
       options.isOverCanvas ??
       ((x, y) => options.canvas.ownerDocument.elementFromPoint(x, y) === options.canvas);
@@ -226,6 +266,33 @@ export class EditSession {
     return this.cameraMode === "orbit" && isTouchTool(this.tool);
   }
 
+  /**
+   * Does a tap with the current tool arm something to confirm, rather than apply at once? True for
+   * the two-corner tools and Paste always, and for Place, Replace and Erase with `confirmPlacement`.
+   */
+  private get touchArms(): boolean {
+    const tool = this.tool;
+    if (isTwoPointTool(tool) || tool === "paste") return true;
+    return this.confirmPlacement && (tool === "place" || tool === "paint" || tool === "erase");
+  }
+
+  /** The size of the copied box, or `null` when nothing was copied. */
+  private get clipSize(): Vec3 | null {
+    return this.editor.clipboard?.size ?? null;
+  }
+
+  /** The line above the toolbar while something is pending: the armed cell and its block, or the corners and the size. */
+  get pendingReadout(): string {
+    void this.revision;
+    const p = this.pending;
+    if (p === null) return "";
+    return describePending(p, {
+      block: this.block,
+      blockAt: (c) => this.volume.get(c[0], c[1], c[2]),
+      clipSize: this.clipSize,
+    });
+  }
+
   // -- Wiring -----------------------------------------------------------------------------------
 
   /** Listen for the mouse on the canvas and the keyboard on the page. Returns the way to stop. */
@@ -261,6 +328,7 @@ export class EditSession {
   dispose(): void {
     this.touchIdle();
     this.cancelDrag();
+    this.pending = null;
     this.detach?.();
     this.detach = null;
     cancelAnimationFrame(this.frame);
@@ -281,7 +349,10 @@ export class EditSession {
 
   setCameraMode(mode: "orbit" | "fly"): void {
     this.cameraMode = mode;
-    if (mode === "fly") this.cancelDrag();
+    if (mode === "fly") {
+      this.cancelDrag();
+      this.clearPending(true);
+    }
     this.hover = null;
     this.refreshHighlight();
   }
@@ -292,6 +363,8 @@ export class EditSession {
       return;
     }
     this.cancelDrag();
+    // Choosing the tool that is already armed keeps what it has begun; any other tool drops it.
+    if (tool !== this.tool) this.clearPending(true);
     this.tool = tool;
     this.error = "";
     this.message = "";
@@ -472,7 +545,11 @@ export class EditSession {
   }
 
   private updateHover(x: number, y: number): void {
-    const hit = this.pick(x, y);
+    this.applyHover(this.pick(x, y));
+  }
+
+  /** Make a pick the hover, redrawing only if it names another cell. */
+  private applyHover(hit: Hover | null): void {
     const same =
       hit === null
         ? this.hover === null
@@ -621,15 +698,19 @@ export class EditSession {
     this.touchIdle();
     if (live) {
       const ry = y - this.cursorOffsetPx;
-      const hit = this.pick(x, ry);
-      if (hit !== null) {
-        this.error = "";
-        this.inspected = hit.position;
-        this.begin(hit, x, ry);
-        const drag = this.drag;
-        if (drag !== null && drag.kind === "brush") {
-          this.drag = null;
-          this.commitDrag(drag, true);
+      if (this.touchArms) {
+        this.touchArm(x, ry);
+      } else {
+        const hit = this.pick(x, ry);
+        if (hit !== null) {
+          this.error = "";
+          this.inspected = hit.position;
+          this.begin(hit, x, ry);
+          const drag = this.drag;
+          if (drag !== null && drag.kind === "brush") {
+            this.drag = null;
+            this.commitDrag(drag, true);
+          }
         }
       }
     }
@@ -640,6 +721,18 @@ export class EditSession {
   touchStrokeBegin(x: number, y: number): void {
     // Pick only moves the cursor. As with a mouse press on empty space, no hit means no stroke.
     if (!this.touchToolActive || this.tool === "eyedropper" || this.drag !== null) return;
+    if (this.touchArms) {
+      // Nothing is painted. The drag moves the cursor, or the active corner of a two-corner tool
+      // that already has one; where the finger lifts, the cursor arms a cell (see `touchStrokeEnd`).
+      this.touchDragging = true;
+      const p = this.pending;
+      if (p !== null && isTwoPoint(p) && p.kind === this.tool && this.cornerDrag === null) {
+        this.cornerDrag = { before: p };
+      }
+      this.error = "";
+      this.schedule();
+      return;
+    }
     const ry = y - this.cursorOffsetPx;
     const hit = this.pick(x, ry);
     if (hit === null) return;
@@ -650,6 +743,10 @@ export class EditSession {
 
   /** The finger lifted after a drag: apply the last position and commit the stroke as one undo step. */
   touchStrokeEnd(x: number, y: number): void {
+    if (this.touchArms) {
+      this.touchArmedDragEnd(x, y);
+      return;
+    }
     const drag = this.drag;
     if (drag === null || drag.kind !== "brush") {
       this.touchStop(); // Pick's drag, or the stroke is already gone (undo from the thumb cluster)
@@ -718,6 +815,8 @@ export class EditSession {
 
   private touchStop(): void {
     this.touchIdle();
+    this.touchDragging = false;
+    this.revertCornerDrag();
     if (this.drag !== null) this.cancelDrag();
     else this.refreshHighlight();
   }
@@ -727,7 +826,8 @@ export class EditSession {
     if (!this.touchToolActive) return;
     const rx = finger.x;
     const ry = finger.y - this.cursorOffsetPx;
-    if (this.drag !== null) this.updateDrag(rx, ry);
+    if (this.cornerDrag !== null) this.dragCorner(rx, ry);
+    else if (this.drag !== null) this.updateDrag(rx, ry);
     else this.updateHover(rx, ry);
     this.reticle = {
       active: true,
@@ -739,7 +839,385 @@ export class EditSession {
     };
   }
 
+  // -- Pending edits (touch) ---------------------------------------------------------------------
+  //
+  // Line, Rectangle and Select take two taps on touch, Paste one, and Place, Replace and Erase one
+  // when `confirmPlacement` is on. A tap does not change the volume: it sets `pending`, which the
+  // nudge pad moves and the thumb cluster's confirm or cancel finishes. `confirmPending` runs the
+  // same command the mouse builds for those cells.
+
+  /** A tap, or the lift at the end of a drag, with an arming tool: set the pending value from the cursor. */
+  private touchArm(x: number, ry: number): void {
+    this.error = "";
+    const tool = this.tool;
+    if (isTwoPointTool(tool)) {
+      this.tapCorner(tool as TwoPointTool, x, ry);
+      return;
+    }
+    const hit = this.pick(x, ry);
+    if (hit === null) return;
+    if (tool === "paste") {
+      if (!inSlice(this.slice, hit.adjacent[1])) return;
+      this.setPending({ kind: "paste", at: hit.adjacent });
+      this.say(`Paste origin set at ${cellText(hit.adjacent)}`);
+    } else if (tool === "place" || tool === "paint" || tool === "erase") {
+      this.armCell(tool, hit);
+    }
+  }
+
+  private armCell(tool: CellPending["tool"], hit: Hover): void {
+    const cell = tool === "place" ? hit.adjacent : hit.position;
+    if (!inSlice(this.slice, cell[1])) return;
+    if (tool !== "erase") {
+      try {
+        canonicalize(this.block); // fail before anything is armed
+      } catch (err) {
+        this.refuse(errorText(err));
+        return;
+      }
+    }
+    this.inspected = hit.position;
+    this.setPending({ kind: "cell", tool, cell });
+    this.say(`Armed ${cellText(cell)}`);
+  }
+
+  /** A tap with a two-corner tool: the first sets A, the second sets B, later ones move the active corner. */
+  private tapCorner(tool: TwoPointTool, x: number, ry: number): void {
+    const p = this.pending;
+    const current = p !== null && p.kind === tool ? (p as TwoPointPending) : null;
+    const hit = this.pick(x, ry);
+    if (current === null) {
+      const first = this.firstCorner(tool, hit, null);
+      if (first === null) return;
+      this.setPending(first);
+      this.say(`Corner A set at ${cellText(first.a)}`);
+      return;
+    }
+    const which: PendingCorner = current.b === null ? "b" : current.active;
+    const next = this.moveCorner(current, which, x, ry, hit);
+    if (next === null) return;
+    this.setPending(next);
+    const cell = which === "a" ? next.a : cornerB(next);
+    const verb = current.b === null ? "set at" : "moved to";
+    this.say(`Corner ${which.toUpperCase()} ${verb} ${cellText(cell)}`);
+  }
+
+  /** The first corner of a tool from what the cursor is over, as the mouse's press starts the drag; `null` for a miss. */
+  private firstCorner(
+    tool: TwoPointTool,
+    hit: Hover | null,
+    prev: TwoPointPending | null,
+  ): TwoPointPending | null {
+    if (hit === null) return null;
+    if (tool === "select") {
+      const before = prev !== null && prev.kind === "select" ? prev.before : this.selection;
+      return { kind: "select", a: hit.position, b: null, active: "a", before };
+    }
+    if (!inSlice(this.slice, hit.adjacent[1])) return null;
+    try {
+      canonicalize(this.block); // fail before anything is armed
+    } catch (err) {
+      this.refuse(errorText(err));
+      return null;
+    }
+    if (tool === "line") return { kind: "line", a: hit.adjacent, b: null, active: "a" };
+    const axis = normalAxis(hit.normal) ?? 1;
+    // The plane of the face that was tapped, so the cell under the cursor is the one the cursor shows.
+    const at = (hit.normal[axis] as number) < 0 ? 1 : 0;
+    return { kind: "rectangle", a: hit.adjacent, b: null, active: "a", axis, at };
+  }
+
+  /**
+   * `p` with corner `which` moved to what the cursor at (x, y) is over, by the rules of the mouse's
+   * drag of the second corner for that tool; `null` when the cursor is over nothing usable (the
+   * corner stays). Moving A while B is not set yet places A again, as a first tap would.
+   */
+  private moveCorner(
+    p: TwoPointPending,
+    which: PendingCorner,
+    x: number,
+    y: number,
+    hit: Hover | null,
+  ): TwoPointPending | null {
+    if (which === "a" && p.b === null) return this.firstCorner(p.kind, hit, p);
+    switch (p.kind) {
+      case "line":
+        if (hit === null || !inSlice(this.slice, hit.adjacent[1])) return null;
+        return withCorner(p, which, hit.adjacent);
+      case "rectangle": {
+        const ray = this.renderer.rayFromClient(x, y);
+        if (ray === null) return null;
+        // The plane the rectangle lies in, so the corner can be over empty space as long as the ray meets it.
+        const cell = cellOnPlane(ray, p.axis, p.a[p.axis] as number, p.at);
+        if (cell === null) return null;
+        const anchor = which === "a" ? cornerB(p) : p.a;
+        const next = [0, 1, 2].map(
+          (i) =>
+            (anchor[i] as number) +
+            Math.max(-256, Math.min(256, (cell[i] as number) - (anchor[i] as number))),
+        ) as unknown as Vec3;
+        if (!inSlice(this.slice, next[1])) return null;
+        return withCorner(p, which, next);
+      }
+      case "select":
+        return hit === null ? null : withCorner(p, which, hit.position);
+    }
+  }
+
+  /** The once-per-frame work of a corner drag: the active corner follows the cursor. */
+  private dragCorner(rx: number, ry: number): void {
+    const hit = this.pick(rx, ry);
+    this.hover = hit; // the cursor ring shows whether it is over a block; no outline is drawn for it
+    const p = this.pending;
+    if (p === null || !isTwoPoint(p)) {
+      this.refreshHighlight();
+      return;
+    }
+    const next = this.moveCorner(p, p.active, rx, ry, hit);
+    if (next === null) {
+      this.refreshHighlight();
+      return;
+    }
+    const was = p.active === "a" ? p.a : cornerB(p);
+    const now = next.active === "a" ? next.a : cornerB(next);
+    if (keyOf(was) !== keyOf(now)) this.setPending(next);
+    else this.refreshHighlight();
+  }
+
+  /** The lift at the end of a drag of an arming tool: the corner stays where the cursor is, or the cursor arms a cell. */
+  private touchArmedDragEnd(x: number, y: number): void {
+    // The drag is already gone if it was cancelled under the finger (undo, or the second finger).
+    if (!this.touchDragging || !this.touchToolActive || !this.touchInBounds(x, y)) {
+      this.touchStop();
+      return;
+    }
+    const ry = y - this.cursorOffsetPx;
+    this.touchIdle();
+    this.touchDragging = false;
+    const drag = this.cornerDrag;
+    this.cornerDrag = null;
+    const p = this.pending;
+    if (drag !== null && p !== null && isTwoPoint(p)) {
+      const next = this.moveCorner(p, p.active, x, ry, this.pick(x, ry));
+      if (next !== null) {
+        this.setPending(next);
+        const cell = next.active === "a" ? next.a : cornerB(next);
+        this.say(`Corner ${next.active.toUpperCase()} moved to ${cellText(cell)}`);
+      }
+    } else if (drag === null) {
+      this.touchArm(x, ry);
+    }
+    this.refreshHighlight();
+  }
+
+  /** Put a corner drag back to where it began (the second finger, or the cursor left the canvas). */
+  private revertCornerDrag(): void {
+    const drag = this.cornerDrag;
+    if (drag === null) return;
+    this.cornerDrag = null;
+    this.setPending(drag.before);
+  }
+
+  /** Let a corner drag in progress end where it is: a nudge, a confirm or a corner switch happened under the finger. */
+  private endCornerDrag(): void {
+    this.cornerDrag = null;
+    this.touchDragging = false;
+  }
+
+  /** Replace the pending value, keeping the live selection of a Select in step, and redraw. */
+  private setPending(next: Pending | null): void {
+    this.pending = next;
+    if (next !== null && next.kind === "select") this.selection = cornersBox(next);
+    this.refreshHighlight();
+  }
+
+  /** Drop the pending value. Select puts back the selection it replaced when `restore` is true. */
+  private clearPending(restore: boolean): void {
+    this.endCornerDrag();
+    const p = this.pending;
+    if (p === null) return;
+    this.pending = null;
+    if (restore && p.kind === "select") this.selection = p.before;
+    this.refreshHighlight();
+  }
+
+  private say(text: string): void {
+    this.message = text;
+    this.error = "";
+  }
+
+  private refuse(text: string): void {
+    this.error = text;
+    this.message = "";
+  }
+
+  /** Turn the Confirm each placement setting on or off. Turning it off drops an armed cell. */
+  setConfirmPlacement(on: boolean): void {
+    this.confirmPlacement = on;
+    if (!on && this.pending !== null && this.pending.kind === "cell") this.clearPending(true);
+  }
+
+  /** Choose which corner of a two-corner tool the pad and the next tap move. Switching to B before B exists copies A. */
+  setActiveCorner(corner: PendingCorner): void {
+    const p = this.pending;
+    if (p === null || !isTwoPoint(p)) return;
+    this.endCornerDrag();
+    const next: TwoPointPending =
+      corner === "b" && p.b === null ? { ...p, b: p.a, active: "b" } : { ...p, active: corner };
+    this.setPending(next);
+    this.say(`Corner ${corner.toUpperCase()} is active`);
+  }
+
+  /**
+   * Move the pending cell, paste origin or active corner one step along a world axis (0 = x, 1 = y,
+   * 2 = z). A rectangle moved along its normal moves whole, one layer. A step the commands would
+   * not allow (outside the visible layers, or making the build longer than 512) is refused with a
+   * message and nothing moves. Returns whether it moved.
+   */
+  nudge(axis: 0 | 1 | 2, step: number): boolean {
+    const p = this.pending;
+    if (p === null) return false;
+    this.endCornerDrag();
+    const bounds = this.volume.placedBounds();
+    const verdict = checkNudge(nudgeCells(p, axis, this.clipSize), axis, step, {
+      slice: this.slice,
+      // A selection edits nothing, so only its own size is limited.
+      build: p.kind === "select" || bounds === null ? null : { min: bounds[0], max: bounds[1] },
+    });
+    if (!verdict.ok) {
+      this.refuse(verdict.reason);
+      return false;
+    }
+    const next = shiftPending(p, axis, step);
+    this.setPending(next);
+    this.say(this.nudgeText(next, axis));
+    return true;
+  }
+
+  private nudgeText(p: Pending, axis: 0 | 1 | 2): string {
+    if (p.kind === "cell") return `Moved to ${cellText(p.cell)}`;
+    if (p.kind === "paste") return `Paste origin moved to ${cellText(p.at)}`;
+    if (p.kind === "rectangle" && axis === p.axis) {
+      return `Rectangle moved to ${AXIS_NAMES[axis]} ${p.a[axis]}`;
+    }
+    const cell = p.active === "a" ? p.a : cornerB(p);
+    return `Corner ${p.active.toUpperCase()} moved to ${cellText(cell)}`;
+  }
+
+  /** Run what is pending: the same command the mouse builds for those cells, as one undo step. */
+  confirmPending(): boolean {
+    const p = this.pending;
+    if (p === null) return false;
+    this.endCornerDrag();
+    this.error = "";
+    let finished: boolean;
+    switch (p.kind) {
+      case "line":
+        finished = this.finishCommand(() => drawLine(this.volume, p.a, cornerB(p), this.block));
+        break;
+      case "rectangle":
+        finished = this.finishCommand(() =>
+          drawRectangle(this.volume, p.a, cornerB(p), this.block, {
+            normal: AXIS_NAMES[p.axis],
+            hollow: this.hollow,
+          }),
+        );
+        break;
+      case "select": {
+        const box = cornersBox(p);
+        this.selection = box;
+        const [w, h, l] = pendingSize(p, null) as Vec3;
+        this.say(`Selected ${w} × ${h} × ${l}`);
+        finished = true;
+        break;
+      }
+      case "cell":
+        finished = this.applyCell(p);
+        break;
+      case "paste":
+        finished = this.pasteAt(p.at);
+        break;
+    }
+    // A command that failed (a bad block, the size limit) leaves the pending value for a nudge to fix,
+    // and its error is the one thing the message line shows.
+    if (finished) this.pending = null;
+    else if (this.error !== "") this.message = "";
+    this.refreshHighlight();
+    return finished;
+  }
+
+  /** Throw away what is pending and change nothing. A Select goes back to the selection it had before corner A. */
+  cancelPending(): void {
+    if (this.pending === null) return;
+    this.clearPending(true);
+    this.say("Cancelled");
+  }
+
+  /** Run a freshly built command as one undo step. False only when it failed; "nothing to change" counts as finished. */
+  private finishCommand(make: () => Command): boolean {
+    this.attempt(make);
+    return this.error === "";
+  }
+
+  /** Place, replace or erase the one pending cell as one undo step, with the message of a tap. */
+  private applyCell(p: CellPending): boolean {
+    const label = p.tool === "place" ? "place" : p.tool === "paint" ? "replace block" : "erase";
+    const stroke = this.editor.beginStroke(label);
+    try {
+      const command =
+        p.tool === "erase"
+          ? eraseCells(this.volume, [p.cell], { toAir: true }, "erase")
+          : placeCells(this.volume, [p.cell], this.block, label);
+      stroke.apply(command);
+      this.afterChange(command);
+    } catch (err) {
+      stroke.cancel();
+      this.flush();
+      this.refuse(errorText(err));
+      return false;
+    }
+    if (stroke.commit()) {
+      this.revision++;
+      this.say(`${label} done`);
+    } else {
+      this.say("That would not change anything.");
+    }
+    return true;
+  }
+
+  /**
+   * Move one face of the selection box by one block: `grow` adds a layer on that side, otherwise a
+   * layer is taken away. Not an edit, so no undo step. A refused step (past the opposite face,
+   * outside the visible layers, longer than 512) says why and changes nothing. A selection still
+   * waiting for its confirm is taken as it is first.
+   */
+  stepSelectionFace(axis: 0 | 1 | 2, side: FaceSide, grow: boolean): boolean {
+    const box = this.selection;
+    if (box === null) return this.needSelection();
+    const result = stepFace(box, axis, side, grow, { slice: this.slice });
+    if (!result.ok) {
+      this.refuse(result.reason);
+      return false;
+    }
+    this.adoptSelection(result.box);
+    this.refreshHighlight();
+    const [w, h, l] = boxSizeOf(result.box);
+    this.say(`Selected ${w} × ${h} × ${l}`);
+    return true;
+  }
+
+  /** Write the selection from something other than the pending Select, which then no longer applies. */
+  private adoptSelection(box: Box | null): void {
+    if (this.pending !== null && this.pending.kind === "select") {
+      this.endCornerDrag();
+      this.pending = null;
+    }
+    this.selection = box;
+  }
+
   private cancelDrag(): void {
+    this.touchDragging = false;
+    this.revertCornerDrag();
     const drag = this.drag;
     if (drag === null) return;
     this.drag = null;
@@ -782,6 +1260,7 @@ export class EditSession {
         return this.rotate(action.direction === "cw" ? "CLOCKWISE_90" : "COUNTERCLOCKWISE_90");
       case "escape":
         if (this.drag !== null) this.cancelDrag();
+        else if (this.pending !== null) this.cancelPending();
         else if (this.selection !== null) this.clearSelection();
         else if (this.tool !== "navigate") this.setTool("navigate");
         else return false;
@@ -793,6 +1272,7 @@ export class EditSession {
 
   undo(): void {
     this.cancelDrag();
+    this.clearPending(true);
     if (this.editor.undo()) {
       this.message = "Undone";
       this.afterHistory();
@@ -801,6 +1281,7 @@ export class EditSession {
 
   redo(): void {
     this.cancelDrag();
+    this.clearPending(true);
     if (this.editor.redo()) {
       this.message = "Redone";
       this.afterHistory();
@@ -889,7 +1370,7 @@ export class EditSession {
     const done = this.attempt(() =>
       rotateSelection(this.volume, box, rotation, { skipAir: this.skipAir }),
     );
-    if (done) this.selection = rotatedBox(box, rotation);
+    if (done) this.adoptSelection(rotatedBox(box, rotation));
     this.refreshHighlight();
     return true;
   }
@@ -907,7 +1388,7 @@ export class EditSession {
     const done = this.attempt(() =>
       moveSelection(this.volume, box, delta, { skipAir: this.skipAir }),
     );
-    if (done) this.selection = shiftBox(box, delta);
+    if (done) this.adoptSelection(shiftBox(box, delta));
     this.refreshHighlight();
     return true;
   }
@@ -922,19 +1403,21 @@ export class EditSession {
     return true;
   }
 
-  private pasteAt(at: Vec3): void {
+  /** Paste the clipboard with its corner at `at`. False only when the paste failed; a paste that changes nothing counts as done. */
+  private pasteAt(at: Vec3): boolean {
     const clip = this.editor.clipboard;
-    if (clip === null) return;
+    if (clip === null) return true;
     const done = this.attempt(() =>
       pasteClipboard(this.volume, clip, at, { skipAir: this.skipAir }),
     );
-    if (!done) return;
+    if (!done) return this.error === "";
     this.selection = {
       min: at,
       max: [at[0] + clip.size[0] - 1, at[1] + clip.size[1] - 1, at[2] + clip.size[2] - 1],
     };
     this.tool = "select";
     this.refreshHighlight();
+    return true;
   }
 
   /** Put a block at a cell, as one undo step. */
@@ -970,12 +1453,12 @@ export class EditSession {
   selectAll(): void {
     const bb = this.volume.placedBounds();
     if (bb === null) return;
-    this.selection = { min: bb[0], max: bb[1] };
+    this.adoptSelection({ min: bb[0], max: bb[1] });
     this.refreshHighlight();
   }
 
   setSelection(box: Box | null): void {
-    this.selection = box;
+    this.adoptSelection(box);
     this.refreshHighlight();
   }
 
@@ -997,6 +1480,17 @@ export class EditSession {
     if (sel !== null) boxes.push({ ...sel, style: "selection" });
     const drag = this.drag;
     const hover = this.hover;
+    const pending = this.pending;
+    if (pending !== null) {
+      // What touch has armed: the corners and the box between them, the cell, or the pasted box.
+      this.pendingBoxes(pending, boxes);
+      // Where the cursor is while a finger is down; a corner drag shows the corner itself instead.
+      if (hover !== null && this.cornerDrag === null) {
+        boxes.push({ min: hover.position, max: hover.position, style: "hover" });
+      }
+      this.renderer.highlight(boxes);
+      return;
+    }
     if (drag === null || drag.kind === "brush") {
       const at = hover?.position ?? (this.inspectedBlock === null ? null : this.inspected);
       if (at !== null) boxes.push({ min: at, max: at, style: "hover" });
@@ -1020,6 +1514,40 @@ export class EditSession {
       }
     }
     this.renderer.highlight(boxes);
+  }
+
+  /** The outlines of a pending value: the active corner or armed cell in the hover colour, the preview in the ghost colour. */
+  private pendingBoxes(p: Pending, boxes: MarkBox[]): void {
+    const cell = (c: Vec3, style: MarkBox["style"]): void => {
+      boxes.push({ min: c, max: c, style });
+    };
+    switch (p.kind) {
+      case "cell":
+        if (p.tool === "place") cell(p.cell, "ghost");
+        cell(p.cell, "hover");
+        return;
+      case "paste": {
+        const size = this.clipSize;
+        if (size !== null) {
+          boxes.push({
+            min: p.at,
+            max: [p.at[0] + size[0] - 1, p.at[1] + size[1] - 1, p.at[2] + size[2] - 1],
+            style: "ghost",
+          });
+        }
+        return;
+      }
+      case "select":
+        // The box itself is the selection, drawn with the rest above.
+        cell(p.active === "a" ? p.a : cornerB(p), "hover");
+        return;
+      default: {
+        boxes.push({ ...cornersBox(p), style: "ghost" });
+        const other = p.active === "a" ? p.b : p.a;
+        if (other !== null) cell(other, "selection");
+        cell(p.active === "a" ? p.a : cornerB(p), "hover");
+      }
+    }
   }
 
   /** The help line for the active tool. */

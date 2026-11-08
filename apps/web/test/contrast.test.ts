@@ -36,6 +36,9 @@ const PAIRS: [string, string, string][] = [
   ["#7a1f16", "#fffdf8", "inline errors in the panels"],
   ["#4d483f", "#fffdf8", "restore dialog labels"],
   ["#f4f1eb", "#2b2925", "the skip link"],
+  ["#f4f1eb", "#3d3a34", "the nudge pad's Up and Down buttons"],
+  ["#a8a194", "#2b2925", "the corner letter A or B that is not active on the nudge pad"],
+  ["#24221f", "#f4f1eb", "the active corner letter, and the Hollow toggle when on"],
   ["#1d4ed8", "#f4f1eb", "focus ring against the page (3:1 needed)"],
   ["#1d4ed8", "#fffdf8", "focus ring against the panels (3:1 needed)"],
 ];

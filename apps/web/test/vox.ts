@@ -42,7 +42,25 @@ export interface SessionView {
   } | null;
   /** How far above the finger the cursor sits, in CSS pixels. */
   cursorOffsetPx: number;
+  /** What touch has begun and not confirmed (corners, an armed cell, a paste origin), else `null`. */
+  pending: {
+    kind: "line" | "rectangle" | "select" | "cell" | "paste";
+    a?: [number, number, number];
+    b?: [number, number, number] | null;
+    active?: "a" | "b";
+    axis?: 0 | 1 | 2;
+    tool?: string;
+    cell?: [number, number, number];
+    at?: [number, number, number];
+  } | null;
+  /** The line above the toolbar while something is pending. */
+  pendingReadout: string;
+  /** Do Place, Replace and Erase wait for a confirm on touch? */
+  confirmPlacement: boolean;
+  hollow: boolean;
   pick(x: number, y: number): PickedBlock | null;
+  setTool(tool: string): void;
+  setSlice(range: { y0: number; y1: number } | null): void;
 }
 
 export interface Vox {

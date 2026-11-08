@@ -2,12 +2,15 @@
 import { describe, expect, it } from "vitest";
 import {
   boxBetween,
+  CONFIRM_PLACE_KEY,
   CURSOR_OFFSET_STEP_PX,
   cellOnPlane,
   clipRayToBox,
   DEFAULT_CURSOR_OFFSET_PX,
   followLayerBounds,
   inSlice,
+  isTouchTool,
+  isTwoPointTool,
   isTypingTarget,
   type KeyLike,
   keyAction,
@@ -18,6 +21,7 @@ import {
   normalizeCursorOffset,
   packBlockIds,
   paletteEntries,
+  parseConfirmPlacement,
   parseCursorOffset,
   searchPalette,
   shiftBox,
@@ -325,6 +329,31 @@ describe("cursor distance setting", () => {
     it("gives the default for a value that is not a number", () => {
       expect(normalizeCursorOffset(Number.NaN)).toBe(64);
       expect(normalizeCursorOffset(Number.POSITIVE_INFINITY)).toBe(64);
+    });
+  });
+  describe("touch tools (MB5)", () => {
+    it("Place, Replace, Erase, Pick, Line, Rectangle, Select and Paste take a finger; View does not", () => {
+      for (const tool of TOOLS) {
+        expect(isTouchTool(tool.id), tool.id).toBe(tool.id !== "navigate");
+      }
+    });
+
+    it("Line, Rectangle and Select are the two-corner tools", () => {
+      expect(TOOLS.filter((t) => isTwoPointTool(t.id)).map((t) => t.id)).toEqual([
+        "line",
+        "rectangle",
+        "select",
+      ]);
+    });
+  });
+
+  describe("parseConfirmPlacement (the setting kept from an earlier visit)", () => {
+    it("is on only for the exact text true", () => {
+      expect(CONFIRM_PLACE_KEY).toBe("voxwright.confirmplace");
+      expect(parseConfirmPlacement("true")).toBe(true);
+      for (const stored of [null, undefined, "", "false", "TRUE", "1", "yes", " true", "on"]) {
+        expect(parseConfirmPlacement(stored), String(stored)).toBe(false);
+      }
     });
   });
 });

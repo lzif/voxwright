@@ -85,8 +85,22 @@ export const TOOLS: readonly ToolInfo[] = [
 
 export const toolInfo = (id: ToolId): ToolInfo => TOOLS.find((t) => t.id === id) as ToolInfo;
 
-/** The tools a finger drives through the offset cursor; with the others one finger still turns the view. */
-export const TOUCH_TOOLS: readonly ToolId[] = ["place", "paint", "erase", "eyedropper"];
+/** The tools a finger drives through the offset cursor; with View one finger still turns the view. */
+export const TOUCH_TOOLS: readonly ToolId[] = [
+  "place",
+  "paint",
+  "erase",
+  "eyedropper",
+  "line",
+  "rectangle",
+  "select",
+  "paste",
+];
+
+/** The tools that take two corners on touch: a tap sets a corner, the nudge pad and a drag move it. */
+export const TWO_POINT_TOOLS: readonly ToolId[] = ["line", "rectangle", "select"];
+
+export const isTwoPointTool = (id: ToolId): boolean => TWO_POINT_TOOLS.includes(id);
 
 export const isTouchTool = (id: ToolId): boolean => TOUCH_TOOLS.includes(id);
 
@@ -115,6 +129,13 @@ export function parseCursorOffset(stored: string | null | undefined): number {
   if (px < MIN_CURSOR_OFFSET_PX || px > MAX_CURSOR_OFFSET_PX) return DEFAULT_CURSOR_OFFSET_PX;
   return normalizeCursorOffset(px);
 }
+
+/** Where the "Confirm each placement" setting is kept in the browser. */
+export const CONFIRM_PLACE_KEY = "voxwright.confirmplace";
+
+/** The setting a browser kept from an earlier visit: only the exact text "true" turns it on. */
+export const parseConfirmPlacement = (stored: string | null | undefined): boolean =>
+  stored === "true";
 
 /** The tooltip for a tool: its help line and its shortcut. */
 export function toolTitle(tool: ToolInfo): string {

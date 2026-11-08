@@ -5,45 +5,20 @@ import type { EditSession } from "../editor-session.svelte.ts";
 let {
   session,
   leftHanded = false,
-  canConfirm = false,
+  canConfirm,
+  canCancel,
   onconfirm,
   oncancel,
 }: {
   session: EditSession;
   leftHanded?: boolean;
-  canConfirm?: boolean;
-  onconfirm?: () => void;
-  oncancel?: () => void;
+  /** Is something pending that Confirm would run? */
+  canConfirm: boolean;
+  /** Is something pending that Cancel would drop? */
+  canCancel: boolean;
+  onconfirm: () => void;
+  oncancel: () => void;
 } = $props();
-
-interface ModalSession {
-  confirm?(): void;
-  cancel?(): void;
-}
-
-function handleConfirm(): void {
-  if (onconfirm) {
-    onconfirm();
-  } else {
-    const s = session as unknown as ModalSession;
-    if (typeof s.confirm === "function") {
-      s.confirm();
-    }
-  }
-}
-
-function handleCancel(): void {
-  if (oncancel) {
-    oncancel();
-  } else {
-    const s = session as unknown as ModalSession;
-    if (typeof s.cancel === "function") {
-      s.cancel();
-    } else {
-      session.clearSelection();
-    }
-  }
-}
 </script>
 
 <div
@@ -80,7 +55,8 @@ function handleCancel(): void {
   <button
     type="button"
     class="cluster-btn cancel-btn"
-    onclick={handleCancel}
+    disabled={!canCancel}
+    onclick={oncancel}
     aria-label="Cancel"
     title="Cancel"
     data-testid="cancel"
@@ -92,7 +68,7 @@ function handleCancel(): void {
     type="button"
     class="cluster-btn confirm-btn"
     disabled={!canConfirm}
-    onclick={handleConfirm}
+    onclick={onconfirm}
     aria-label="Confirm"
     title="Confirm"
     data-testid="confirm"
@@ -105,7 +81,8 @@ function handleCancel(): void {
   .thumb-cluster {
     position: fixed;
     z-index: 35;
-    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    /* Clear of the readout line and the toolbar below (28 + 56 px and a border), so neither is covered. */
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
     right: calc(12px + env(safe-area-inset-right, 0px));
     display: grid;
     grid-template-columns: repeat(2, 48px);

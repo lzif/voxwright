@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from "vitest";
+import { isTouchTool } from "../src/lib/editing.ts";
 import type { GestureIntent, PointerPhase } from "../src/lib/gestures.ts";
 import { TouchRouter, type TouchTarget } from "../src/lib/touch-router.ts";
 
@@ -361,6 +362,62 @@ describe("TouchRouter", () => {
       h.feed(1, "up", 180, 260, 700);
       expect(h.log).toEqual(["pickAt 100,200"]);
       expect(types(h.camera)).toEqual(["longPress"]);
+    });
+  });
+
+  describe("the two-corner tools and Paste are touch tools like Place", () => {
+    for (const tool of [
+      "place",
+      "paint",
+      "erase",
+      "eyedropper",
+      "line",
+      "rectangle",
+      "select",
+      "paste",
+    ] as const) {
+      it(`${tool}: the tool owns the gesture (tap, stroke, long press), and a second finger cancels it once`, () => {
+        // The harness asks the same list the session does.
+        const h = createHarness({ toolActive: isTouchTool(tool) });
+        expect(h.state.toolActive).toBe(true);
+        h.feed(1, "down", 100, 200, 0);
+        expect(h.router.currentOwner).toBe("tool");
+        h.feed(1, "up", 100, 200, 80);
+        expect(h.log).toEqual(["move 100,200", "tap 100,200", "end"]);
+
+        const g = createHarness({ toolActive: true });
+        g.feed(1, "down", 100, 200, 0);
+        g.feed(1, "move", 130, 200, 30);
+        g.feed(2, "down", 220, 200, 60);
+        g.feed(1, "move", 140, 210, 90);
+        g.feed(2, "move", 230, 210, 90);
+        g.feed(2, "up", 230, 210, 120);
+        g.feed(1, "up", 140, 210, 150);
+        // The router asks the target for exactly one cancel, then nothing until every finger is up.
+        expect(g.log.filter((l) => l === "cancel")).toHaveLength(1);
+        expect(g.log.some((l) => l.startsWith("strokeEnd") || l.startsWith("tap"))).toBe(false);
+        expect(g.log.at(-1)).toBe("cancel"); // and the router never calls the target again
+      });
+    }
+
+    it("View is the one touch-device tool that leaves one finger to the camera", () => {
+      expect(isTouchTool("navigate")).toBe(false);
+      const h = createHarness({ toolActive: isTouchTool("navigate") });
+      h.feed(1, "down", 100, 200, 0);
+      expect(h.router.currentOwner).toBe("camera");
+    });
+
+    it("the next gesture after a camera gesture is the tool's again (the pending action is the target's, not the router's)", () => {
+      const h = createHarness();
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(2, "down", 220, 200, 30);
+      h.feed(2, "up", 220, 200, 100);
+      h.feed(1, "up", 100, 200, 130);
+      expect(h.router.currentOwner).toBe("none");
+      h.log.length = 0;
+      h.feed(1, "down", 100, 200, 500);
+      h.feed(1, "up", 100, 200, 560);
+      expect(h.log).toEqual(["move 100,200", "tap 100,200", "end"]);
     });
   });
 

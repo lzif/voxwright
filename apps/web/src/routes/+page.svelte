@@ -12,6 +12,7 @@ import BlockStatePanel from "../lib/components/BlockStatePanel.svelte";
 import BottomSheet from "../lib/components/BottomSheet.svelte";
 import BottomToolbar, { type SheetType } from "../lib/components/BottomToolbar.svelte";
 import EditToolbar from "../lib/components/EditToolbar.svelte";
+import NudgePad from "../lib/components/NudgePad.svelte";
 import PackPanel from "../lib/components/PackPanel.svelte";
 import PerfOverlay from "../lib/components/PerfOverlay.svelte";
 import RestoreDialog from "../lib/components/RestoreDialog.svelte";
@@ -21,6 +22,7 @@ import ThumbCluster from "../lib/components/ThumbCluster.svelte";
 import TouchReticle from "../lib/components/TouchReticle.svelte";
 import { describeVolume } from "../lib/describe.ts";
 import {
+  CONFIRM_PLACE_KEY,
   CURSOR_OFFSET_STEP_PX,
   DEFAULT_CURSOR_OFFSET_PX,
   followLayerBounds,
@@ -28,6 +30,7 @@ import {
   MIN_CURSOR_OFFSET_PX,
   normalizeCursorOffset,
   packBlockIds,
+  parseConfirmPlacement,
   parseCursorOffset,
 } from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
@@ -76,6 +79,8 @@ let mqDesktop = $state(false);
 let leftHanded = $state(false);
 /** How far above the fingertip the touch cursor sits (px); every session the page creates starts with it. */
 let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
+/** Do Place, Replace and Erase wait for the check mark on touch? Every session the page creates starts with it. */
+let confirmPlacement = $state(false);
 let activeSheet = $state<SheetType>("none");
 
 const isMobileLayout = $derived.by(() => {
@@ -103,6 +108,14 @@ function setCursorOffset(px: number): void {
   if (session) session.cursorOffsetPx = cursorOffset;
   try {
     localStorage.setItem("voxwright.cursoroffset", String(cursorOffset));
+  } catch {}
+}
+
+function setConfirmPlacement(on: boolean): void {
+  confirmPlacement = on;
+  session?.setConfirmPlacement(on);
+  try {
+    localStorage.setItem(CONFIRM_PLACE_KEY, String(on));
   } catch {}
 }
 
@@ -258,6 +271,7 @@ function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits:
     packBlocks,
     baseEdits,
     cursorOffsetPx: cursorOffset,
+    confirmPlacement,
   });
   stopSession = s.attach();
   session = s;
@@ -823,6 +837,7 @@ onMount(() => {
       leftHanded = savedLh === "true";
     }
     cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
+    confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
   } catch {}
 
   const mqWidth = window.matchMedia("(min-width: 1000px)");
@@ -1111,7 +1126,15 @@ onMount(() => {
 
 <!-- Mobile floating thumb controls and docked toolbar -->
 {#if isMobileLayout && session}
-  <ThumbCluster {session} {leftHanded} />
+  <ThumbCluster
+    {session}
+    {leftHanded}
+    canConfirm={session.pending !== null}
+    canCancel={session.pending !== null}
+    onconfirm={() => session?.confirmPending()}
+    oncancel={() => session?.cancelPending()}
+  />
+  <NudgePad {session} {leftHanded} {azimuth} />
   <BottomToolbar
     {session}
     {activeSheet}
@@ -1131,7 +1154,7 @@ onMount(() => {
     </BottomSheet>
   {:else if activeSheet === "selection" && session}
     <BottomSheet snap="half" title="Selection" onclose={() => (activeSheet = "none")}>
-      <SelectionPanel {session} />
+      <SelectionPanel {session} touch />
     </BottomSheet>
   {:else if activeSheet === "menu"}
     <BottomSheet snap="half" title="Menu" onclose={() => (activeSheet = "none")}>
@@ -1227,6 +1250,11 @@ onMount(() => {
             <input type="checkbox" checked={leftHanded} onchange={(e) => setLeftHanded(e.currentTarget.checked)} />
             <span>Left-handed controls (mirror thumb cluster)</span>
           </label>
+          <label class="menu-checkbox" data-testid="confirm-place-toggle">
+            <input type="checkbox" checked={confirmPlacement} onchange={(e) => setConfirmPlacement(e.currentTarget.checked)} />
+            <span>Confirm each placement</span>
+          </label>
+          <p class="menu-hint">Place, Replace and Erase then wait for the check mark: a tap or the end of a drag arms the cell, the nudge pad moves it, and nothing changes until you confirm.</p>
           <div class="menu-field menu-range" data-testid="cursor-offset">
             <div class="menu-range-head">
               <span class="field-label">Cursor distance</span>

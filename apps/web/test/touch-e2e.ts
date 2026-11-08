@@ -6,9 +6,11 @@
 // and asserts ?perf=1 telemetry overlay presence and metrics (FEAT-MB1-02).
 // The second suite (MB4) edits the same fixture with real touch events: Place, Replace, Erase and
 // Pick through the offset cursor, strokes, second-finger and drag-off cancels, long press.
+// The third suite (MB5) makes lines, rectangles and selections by touch alone: two taps and the check
+// mark, the nudge pad, the selection's face steppers, the confirm setting and the paste ghost.
 // Run after `pnpm --filter @voxwright/web build`:
 //
-//   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
+//   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>] [--only viewer|placement|two-point]
 
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -36,7 +38,12 @@ export interface TouchPose extends Pose {
 }
 
 const { values } = parseArgs({
-  options: { shots: { type: "string" }, chromium: { type: "string" } },
+  options: {
+    shots: { type: "string" },
+    chromium: { type: "string" },
+    /** Run one suite only while working on it: viewer, placement or two-point. */
+    only: { type: "string" },
+  },
 });
 
 const fixtures = fileURLToPath(new URL("../../../fixtures/real/rafeals-house/", import.meta.url));
@@ -1503,9 +1510,10 @@ export async function touchPlacementSuite(): Promise<void> {
     );
 
     // =========================================================================
-    // Tools that keep one-finger orbit
+    // The one tool that keeps one-finger orbit: View (Line, Rectangle, Select and Paste took a
+    // finger in MB5; their checks are in touchTwoPointSuite)
     // =========================================================================
-    for (const id of ["navigate", "line"]) {
+    for (const id of ["navigate"]) {
       await armTool(id);
       const p0 = await pose();
       const orbitFinger = await dragThrough(line({ x: 200, y: 300 }, { x: 290, y: 340 }, 4));
@@ -1515,14 +1523,14 @@ export async function touchPlacementSuite(): Promise<void> {
       ok(
         Math.abs(p1.azimuth - p0.azimuth) > 5 || Math.abs(p1.elevation - p0.elevation) > 5,
         t(
-          `with ${id === "navigate" ? "View" : "Line"} one finger still orbits (azimuth ${p0.azimuth.toFixed(1)} -> ${p1.azimuth.toFixed(1)})`,
+          `with View one finger still orbits (azimuth ${p0.azimuth.toFixed(1)} -> ${p1.azimuth.toFixed(1)})`,
         ),
       );
       ok(
         (await changed(original)).length === 0 &&
           (await state()).undoCount === 0 &&
           (await state()).reticle === null,
-        t(`${id === "navigate" ? "View" : "Line"} drag edits nothing and shows no cursor`),
+        t("View drag edits nothing and shows no cursor"),
       );
     }
 
@@ -1902,9 +1910,1207 @@ export async function touchPlacementSuite(): Promise<void> {
   }
 }
 
+/**
+ * MB5: the armed cell, the nudge pad and the two-corner tools, by touch alone. A line, a hollow
+ * rectangle and a selection are made with taps, the pad, the check mark and the face steppers; the
+ * cells are judged by reading the page's volume. A fresh browser, so the settings the earlier suite
+ * left in local storage do not matter.
+ */
+export async function touchTwoPointSuite(): Promise<void> {
+  const t = (what: string): string => `[touch-mb5] ${what}`;
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    page.on("dialog", (d) => void d.accept()); // the unsaved-edits prompts of the reloads below
+
+    // -- helpers that talk to the page (as in the placement suite) -------------------------------
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        // The middle of its scroller: a half-height sheet is taller than the screen, so "nearest" may leave it below the fold.
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "center" });
+      }, selector);
+      const el = await page.$(selector);
+      const box = el === null ? null : await el.boundingBox();
+      if (box === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(120);
+    };
+    const startUp = async (): Promise<void> => {
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600); // a returning visit's restore prompt comes a moment after the viewer is ready
+      if ((await page.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await tapButton('[data-testid="discard"]');
+        await page.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (): Promise<void> => {
+      const file = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const cells = async (): Promise<Map<string, string>> =>
+      new Map(
+        await page.evaluate(() => {
+          const v = (window.__voxwright as Vox).volume();
+          const [lo, hi] = v.placedBounds() as [number[], number[]];
+          const out: [string, string][] = [];
+          for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+            for (let y = lo[1] as number; y <= (hi[1] as number); y++)
+              for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+                const b = v.get(x, y, z);
+                if (b !== undefined && b !== "minecraft:air") out.push([`${x},${y},${z}`, b]);
+              }
+          return out;
+        }),
+      );
+    const changed = async (before: Map<string, string>): Promise<string[]> => {
+      const now = await cells();
+      const keys = new Set([...before.keys(), ...now.keys()]);
+      return [...keys].filter((k) => before.get(k) !== now.get(k)).sort();
+    };
+    const tops = (): Promise<Top[]> =>
+      page.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const vol = v.volume();
+        const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
+        const [lo, hi] = vol.bounds() as [number[], number[]];
+        const out: Top[] = [];
+        for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+          for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+            for (let y = hi[1] as number; y >= (lo[1] as number); y--) {
+              const b = vol.get(x, y, z);
+              if (b === undefined || b === "minecraft:air") continue;
+              const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+              const hit = pt === null ? null : s.pick(pt.x, pt.y);
+              if (
+                pt !== null &&
+                hit !== null &&
+                hit.position[0] === x &&
+                hit.position[1] === y &&
+                hit.position[2] === z &&
+                hit.normal[1] === 1
+              )
+                out.push({ pos: [x, y, z], pt, block: b });
+              break;
+            }
+          }
+        return out;
+      });
+    const pose = (): Promise<TouchPose> =>
+      page.evaluate(() =>
+        (
+          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
+        ).renderer.getPose(),
+      );
+    const worldToPage = (x: number, y: number, z: number): Promise<{ x: number; y: number }> =>
+      page.evaluate(
+        (a, b, c) => {
+          const pt = (window.__voxwright as Vox).renderer.clientFromWorld(a, b, c);
+          if (pt === null) throw new Error("point is behind the camera");
+          return pt;
+        },
+        x,
+        y,
+        z,
+      );
+    const setBlock = (block: string): Promise<void> =>
+      page.evaluate((b) => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        s.block = b;
+      }, block);
+    const settleFrames = async (): Promise<void> => {
+      await sleep(120);
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const tapAt = async (x: number, y: number): Promise<void> => {
+      const finger = await page.touchscreen.touchStart(x, y);
+      await sleep(50);
+      await finger.end();
+      await sleep(200);
+    };
+    const dragThrough = async (path: { x: number; y: number }[]) => {
+      const [first, ...rest] = path as [{ x: number; y: number }, ...{ x: number; y: number }[]];
+      const finger = await page.touchscreen.touchStart(first.x, first.y);
+      await sleep(80);
+      for (const p of rest) {
+        await finger.move(p.x, p.y);
+        await sleep(90);
+      }
+      return finger;
+    };
+    const line = (a: { x: number; y: number }, b: { x: number; y: number }, steps: number) =>
+      Array.from({ length: steps + 1 }, (_, i) => ({
+        x: Math.round(a.x + ((b.x - a.x) * i) / steps),
+        y: Math.round(a.y + ((b.y - a.y) * i) / steps),
+      }));
+    const below = (p: { x: number; y: number }): { x: number; y: number } => ({
+      x: Math.round(p.x),
+      y: Math.round(p.y + OFFSET),
+    });
+    const key = (p: readonly number[]): string => p.join(",");
+
+    /** What the session holds, as the tests read it. */
+    const mb = (): Promise<{
+      tool: string;
+      pending: NonNullable<SessionView["pending"]> | null;
+      selection: SessionView["selection"];
+      message: string;
+      error: string;
+      readout: string;
+      undoCount: number;
+      hollow: boolean;
+      confirmPlacement: boolean;
+      block: string;
+      reticle: SessionView["reticle"];
+    }> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        return JSON.parse(
+          JSON.stringify({
+            tool: s.tool,
+            pending: s.pending,
+            selection: s.selection,
+            message: s.message,
+            error: s.error,
+            readout: s.pendingReadout,
+            undoCount: s.undoCount,
+            hollow: s.hollow,
+            confirmPlacement: s.confirmPlacement,
+            block: s.block,
+            reticle: s.reticle,
+          }),
+        );
+      });
+    const armTool = async (id: string): Promise<void> => {
+      await tapButton(`[data-testid="tool-${id}"]`);
+      ok((await mb()).tool === id, t(`the ${id} tool is armed from the bottom toolbar`));
+    };
+    /** A tap whose cursor lands on a page point; the finger must be over the canvas, not under the pad or the toolbar. */
+    const tapCursorAt = async (pt: { x: number; y: number }): Promise<void> => {
+      const f = below(pt);
+      const over = await page.evaluate(
+        (x, y) => document.elementFromPoint(x, y)?.getAttribute("data-testid") ?? null,
+        f.x,
+        f.y,
+      );
+      if (over !== "canvas") throw new Error(`the finger point ${f.x},${f.y} is over ${over}`);
+      await tapAt(f.x, f.y);
+    };
+    const tapTop = (c: Top): Promise<void> => tapCursorAt(c.pt);
+    const disabled = (sel: string): Promise<boolean> =>
+      page.$eval(sel, (el) => (el as HTMLButtonElement).disabled);
+    const padVisible = async (): Promise<boolean> =>
+      (await page.$('[data-testid="nudge-pad"]')) !== null;
+    const confirm = (): Promise<void> => tapButton('[data-testid="confirm"]');
+    const cancel = (): Promise<void> => tapButton('[data-testid="cancel"]');
+    const undo = (): Promise<void> => tapButton('[data-testid="undo"]');
+    /** The pad's arrows as the page draws them: the world axis each moves along and its box. */
+    const pad = (): Promise<
+      Record<
+        string,
+        { axis: number; step: number; x: number; y: number; w: number; h: number; name: string }
+      >
+    > =>
+      page.evaluate(() =>
+        Object.fromEntries(
+          ["away", "toward", "left", "right", "up", "down"].map((id) => {
+            const el = document.querySelector(`[data-testid="nudge-${id}"]`) as HTMLElement;
+            const r = el.getBoundingClientRect();
+            return [
+              id,
+              {
+                axis: Number(el.dataset.axis),
+                step: Number(el.dataset.step),
+                x: r.x,
+                y: r.y,
+                w: r.width,
+                h: r.height,
+                name: el.getAttribute("aria-label") ?? "",
+              },
+            ];
+          }),
+        ),
+      );
+    /** The arrow that moves along an axis in a direction, by the page's own data. */
+    const arrowFor = async (axis: 0 | 1 | 2, step: 1 | -1): Promise<string> => {
+      const found = Object.entries(await pad()).find(([, v]) => v.axis === axis && v.step === step);
+      if (found === undefined) throw new Error(`no arrow moves along axis ${axis} by ${step}`);
+      return found[0];
+    };
+    const nudge = async (axis: 0 | 1 | 2, step: 1 | -1): Promise<void> => {
+      await tapButton(`[data-testid="nudge-${await arrowFor(axis, step)}"]`);
+    };
+    const openSheet = async (toggle: string): Promise<void> => {
+      await tapButton(`[data-testid="${toggle}"]`);
+      await page.waitForSelector('[data-testid="bottom-sheet"]', { timeout: 5000 });
+      await sleep(350);
+    };
+    const closeSheet = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    const uiMessage = (): Promise<string> =>
+      page.evaluate(
+        () =>
+          (
+            document.querySelector('[data-testid="edit-message"]') ??
+            document.querySelector('[data-testid="edit-error"]')
+          )?.textContent?.trim() ?? "",
+      );
+    const readoutText = (): Promise<string> =>
+      page.evaluate(
+        () => document.querySelector('[data-testid="pending-readout"]')?.textContent?.trim() ?? "",
+      );
+
+    // -- setup ----------------------------------------------------------------------------------
+    await page.goto(url);
+    await startUp();
+    await openFixture();
+    const home = await pose();
+    const restoreCamera = async (): Promise<void> => {
+      await page.evaluate(
+        (p, target) => {
+          (window.__voxwright as Vox).renderer.setOrbit({
+            azimuth: p.azimuth,
+            elevation: p.elevation,
+            distance: p.distance,
+            target,
+          });
+        },
+        home,
+        computeTarget(home),
+      );
+      await settleFrames();
+    };
+    const original = await cells();
+    const all = await tops();
+    const topAt = (x: number, y: number, z: number): Top => {
+      const found = all.find((c) => c.pos[0] === x && c.pos[1] === y && c.pos[2] === z);
+      if (found === undefined) throw new Error(`no reachable top face at ${x},${y},${z}`);
+      return found;
+    };
+    await setBlock(GOLD); // a block no cell of the fixture holds, so every drawn cell shows as changed
+    ok(home.azimuth === 45, t("the camera starts at azimuth 45"));
+
+    // ✓ and ✕ do nothing while nothing is pending, and say so
+    ok(
+      (await disabled('[data-testid="confirm"]')) && (await disabled('[data-testid="cancel"]')),
+      t("with nothing pending the check mark and the cross are disabled"),
+    );
+    ok(!(await padVisible()), t("and the nudge pad is not shown"));
+
+    // =========================================================================
+    // A 5-block line by touch alone: two taps, the check mark, one Undo
+    // =========================================================================
+    await armTool("line");
+    const lineA = topAt(6, 7, 3);
+    const lineB = topAt(6, 7, 7);
+    await tapTop(lineA);
+    const afterA = await mb();
+    ok(
+      afterA.pending?.kind === "line" &&
+        key(afterA.pending.a ?? []) === "6,8,3" &&
+        afterA.pending.b === null &&
+        afterA.pending.active === "a",
+      t(`the first tap sets corner A next to the face (${JSON.stringify(afterA.pending)})`),
+    );
+    ok(
+      (await changed(original)).length === 0 && afterA.undoCount === 0,
+      t("a tap changes no cell and adds no history entry"),
+    );
+    ok(await padVisible(), t("the nudge pad appears once something is pending"));
+    ok(
+      !(await disabled('[data-testid="confirm"]')) && !(await disabled('[data-testid="cancel"]')),
+      t("and the check mark and the cross are enabled"),
+    );
+    ok(
+      (await readoutText()).startsWith("▸A 6,8,3"),
+      t(`the readout above the toolbar names corner A (${await readoutText()})`),
+    );
+    ok(
+      (await uiMessage()) === "Corner A set at 6, 8, 3",
+      t(`the message line announces it (${await uiMessage()})`),
+    );
+    await tapTop(lineB);
+    const afterB = await mb();
+    ok(
+      afterB.pending?.kind === "line" &&
+        key(afterB.pending.b ?? []) === "6,8,7" &&
+        afterB.pending.active === "b",
+      t(`the second tap sets corner B (${JSON.stringify(afterB.pending)})`),
+    );
+    ok(
+      (await readoutText()) === "A 6,8,3 ▸B 6,8,7 · 1×1×5",
+      t(`the readout shows both corners and the size (${await readoutText()})`),
+    );
+    ok((await changed(original)).length === 0, t("still no cell has changed"));
+    await confirm();
+    const lineCells = await changed(original);
+    const lineAfter = await cells();
+    ok(
+      lineCells.join(" ") === "6,8,3 6,8,4 6,8,5 6,8,6 6,8,7" &&
+        lineCells.every((k) => lineAfter.get(k) === GOLD),
+      t(`the check mark draws the 5-block line, z = 3 to 7 (${lineCells.join(" ")})`),
+    );
+    const afterLine = await mb();
+    ok(afterLine.undoCount === 1, t("the line is one undo step"));
+    ok(
+      afterLine.pending === null && !(await padVisible()),
+      t("the pending action and the pad are gone"),
+    );
+    ok(
+      afterLine.message === "line: 5 blocks changed",
+      t(`the message line says what happened (${afterLine.message})`),
+    );
+    await undo();
+    ok(
+      (await changed(original)).length === 0 && (await mb()).undoCount === 0,
+      t("one tap on Undo removes the whole line"),
+    );
+
+    // =========================================================================
+    // The nudge pad: the arrows' meaning, 48px targets, names, nudging B by one, hold to repeat
+    // =========================================================================
+    await tapTop(lineA);
+    await tapTop(lineB);
+    const arrows = await pad();
+    ok(
+      Object.values(arrows).every((a) => a.w >= 47.99 && a.h >= 47.99),
+      t(
+        `the six arrows are at least 48 x 48 px (${Object.entries(arrows)
+          .map(([n, a]) => `${n} ${a.w}x${a.h}`)
+          .join(", ")})`,
+      ),
+    );
+    ok(
+      Object.values(arrows).every((a) => a.name.length > 3) &&
+        new Set(Object.values(arrows).map((a) => a.name)).size === 6,
+      t("each has its own accessible name"),
+    );
+    const corner = await page.$eval('[data-testid="nudge-corner"]', (el) => {
+      const r = el.getBoundingClientRect();
+      return { w: r.width, h: r.height, name: el.getAttribute("aria-label") };
+    });
+    ok(
+      corner.w >= 47.99 && corner.h >= 47.99 && /Corner B is active/.test(corner.name ?? ""),
+      t(`so does the A / B toggle (${corner.name})`),
+    );
+    // At azimuth 45 (a tie) away is +z and right is -x; the other four follow.
+    const mapped = Object.fromEntries(
+      Object.entries(arrows).map(([n, a]) => [n, `${a.axis}${a.step > 0 ? "+" : "-"}`]),
+    );
+    ok(
+      JSON.stringify(mapped) ===
+        JSON.stringify({
+          away: "2+",
+          toward: "2-",
+          left: "0+",
+          right: "0-",
+          up: "1+",
+          down: "1-",
+        }),
+      t(`at azimuth 45 the arrows are away +z, right -x, up +y (${JSON.stringify(mapped)})`),
+    );
+    // Turn the camera: the mapping follows it live, with the pad still open.
+    await page.evaluate(() => (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 90 }));
+    await settleFrames();
+    const turned90 = await pad();
+    ok(
+      turned90.away?.axis === 0 &&
+        turned90.away.step === -1 &&
+        turned90.right?.axis === 2 &&
+        turned90.right.step === -1,
+      t("with the camera turned to azimuth 90, away is -x and right is -z"),
+    );
+    await page.evaluate(() => (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 200 }));
+    await settleFrames();
+    const turned200 = await pad();
+    ok(
+      turned200.away?.axis === 2 &&
+        turned200.away.step === -1 &&
+        turned200.right?.axis === 0 &&
+        turned200.right.step === 1,
+      t("and at azimuth 200 away is -z and right is +x"),
+    );
+    await restoreCamera();
+
+    // Nudge B one cell further along the line: exactly one more cell
+    await nudge(2, 1);
+    const nudged = await mb();
+    ok(
+      key(nudged.pending?.b ?? []) === "6,8,8" && key(nudged.pending?.a ?? []) === "6,8,3",
+      t(`the arrow moves corner B by one cell (${JSON.stringify(nudged.pending?.b)})`),
+    );
+    ok(
+      (await readoutText()) === "A 6,8,3 ▸B 6,8,8 · 1×1×6" &&
+        nudged.message === "Corner B moved to 6, 8, 8" &&
+        (await uiMessage()) === nudged.message,
+      t(`the readout and the message line follow the nudge (${await readoutText()})`),
+    );
+    ok((await changed(original)).length === 0, t("a nudge changes no cell"));
+    await confirm();
+    ok(
+      (await changed(original)).length === 6 && (await mb()).undoCount === 1,
+      t("nudging B by +1 makes the line 6 blocks instead of 5, still one undo step"),
+    );
+    await undo();
+    await tapTop(lineA);
+    await tapTop(lineB);
+    await nudge(2, -1);
+    await confirm();
+    ok((await changed(original)).length === 4, t("nudging B by -1 makes it 4 blocks"));
+    await undo();
+    ok((await changed(original)).length === 0, t("and Undo removes it"));
+
+    // The A / B toggle: the arrows then move corner A
+    await tapTop(lineA);
+    await tapTop(lineB);
+    await tapButton('[data-testid="nudge-corner"]');
+    ok(
+      (await mb()).pending?.active === "a" &&
+        (await page.$eval('[data-testid="nudge-corner"]', (el) =>
+          el.getAttribute("data-corner"),
+        )) === "a",
+      t("the A / B toggle makes A the corner the pad moves"),
+    );
+    await nudge(2, -1);
+    const movedA = await mb();
+    ok(
+      key(movedA.pending?.a ?? []) === "6,8,2" && key(movedA.pending?.b ?? []) === "6,8,7",
+      t(`the arrow moves A and leaves B (${JSON.stringify(movedA.pending)})`),
+    );
+    await confirm();
+    ok((await changed(original)).length === 6, t("A moved one cell out: the line is 6 blocks"));
+    await undo();
+
+    // Holding an arrow repeats: once at once, then after 400 ms every 100 ms, and stops on release
+    await tapTop(lineA);
+    await tapTop(lineB);
+    const holdBox = await page.$eval(`[data-testid="nudge-${await arrowFor(2, 1)}"]`, (el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    });
+    const bZ = (): Promise<number> => mb().then((s) => (s.pending?.b ?? [0, 0, -1])[2] as number);
+    const held = await page.touchscreen.touchStart(holdBox.x, holdBox.y);
+    await sleep(250);
+    ok((await bZ()) === 8, t("a press moves the corner once at once, and not again before 400 ms"));
+    await sleep(1150); // about 1400 ms held: one step, then about (1400 - 400) / 100 more
+    const whileHeld = await bZ();
+    ok(
+      whileHeld >= 12 && whileHeld <= 19,
+      t(`held on it keeps moving, about every 100 ms after the first 400 (z = ${whileHeld})`),
+    );
+    await held.end();
+    await sleep(100);
+    const atRelease = await bZ();
+    await sleep(500);
+    ok((await bZ()) === atRelease, t("and stops when the finger lifts"));
+    await cancel();
+    ok((await mb()).pending === null, t("the cross cancels it"));
+    ok((await changed(original)).length === 0, t("and nothing was drawn"));
+
+    // =========================================================================
+    // Dragging a corner, and a second finger during the drag
+    // =========================================================================
+    await tapTop(lineA);
+    await tapTop(lineB);
+    const p0 = await pose();
+    const dragPath = line(below(lineB.pt), below(topAt(6, 7, 11).pt), 4);
+    const dragger = await dragThrough(dragPath.slice(0, 4));
+    const midDrag = await mb();
+    ok(
+      key(midDrag.pending?.b ?? []) !== "6,8,7" &&
+        midDrag.reticle !== null &&
+        key(midDrag.pending?.a ?? []) === "6,8,3",
+      t(
+        `a one-finger drag moves corner B live with the cursor (${JSON.stringify(midDrag.pending?.b)})`,
+      ),
+    );
+    ok(
+      Math.abs((await pose()).azimuth - p0.azimuth) < 0.01,
+      t("and the view does not turn while it does"),
+    );
+    // A second finger: the corner goes back, the pending action stays, the camera takes the gesture
+    const second = await page.touchscreen.touchStart(300, 560);
+    await sleep(250);
+    const afterSecond = await mb();
+    ok(
+      afterSecond.pending?.kind === "line" &&
+        key(afterSecond.pending.b ?? []) === "6,8,7" &&
+        key(afterSecond.pending.a ?? []) === "6,8,3",
+      t(
+        `a second finger puts corner B back where it was before the drag (${JSON.stringify(afterSecond.pending?.b)})`,
+      ),
+    );
+    ok(await padVisible(), t("and the pending action, with its pad, stays"));
+    await second.end();
+    await dragger.end();
+    await sleep(300);
+    const afterBoth = await mb();
+    ok(
+      key(afterBoth.pending?.b ?? []) === "6,8,7" && (await changed(original)).length === 0,
+      t("lifting both fingers adds nothing: no corner moved, no cell drawn"),
+    );
+    await restoreCamera();
+    // A drag that is allowed to finish leaves the corner where the finger lifted
+    const dragger2 = await dragThrough(dragPath);
+    await dragger2.end();
+    await sleep(300);
+    const dragged = await mb();
+    ok(
+      key(dragged.pending?.b ?? []) === "6,8,11" &&
+        key(dragged.pending?.a ?? []) === "6,8,3" &&
+        dragged.reticle === null,
+      t(`lifting leaves corner B where the cursor was (${JSON.stringify(dragged.pending?.b)})`),
+    );
+    await cancel();
+
+    // A drag with nothing pending sets A where the finger lifts, and the view does not orbit
+    const p1 = await pose();
+    const startDrag = await dragThrough(line(below(lineA.pt), below(topAt(6, 7, 5).pt), 4));
+    ok(
+      (await mb()).pending === null,
+      t("a drag before corner A exists arms nothing while it runs"),
+    );
+    await startDrag.end();
+    await sleep(300);
+    const lifted = await mb();
+    ok(
+      key(lifted.pending?.a ?? []) === "6,8,5" && lifted.pending?.b === null,
+      t(`and sets A where the finger lifts (${JSON.stringify(lifted.pending?.a)})`),
+    );
+    ok(
+      Math.abs((await pose()).azimuth - p1.azimuth) < 0.01 &&
+        Math.abs((await pose()).elevation - p1.elevation) < 0.01,
+      t("with Line armed one finger no longer orbits the view"),
+    );
+    await cancel();
+
+    // =========================================================================
+    // The pending action survives camera gestures
+    // =========================================================================
+    await tapTop(lineA);
+    await tapTop(lineB);
+    const pendingBefore = (await mb()).pending;
+    const dist0 = (await pose()).distance;
+    const g1 = await page.touchscreen.touchStart(140, 420);
+    const g2 = await page.touchscreen.touchStart(250, 420);
+    await sleep(100);
+    for (let i = 1; i <= 4; i++) {
+      await g1.move(140 - i * 15, 420);
+      await g2.move(250 + i * 15, 420);
+      await sleep(90);
+    }
+    ok((await pose()).distance < dist0 * 0.8, t("a pinch zooms the view while a line is pending"));
+    await g2.end();
+    await sleep(150);
+    // The finger left down orbits (from where it is) and still leaves the pending action alone
+    const azBefore = (await pose()).azimuth;
+    await g1.move(140 - 60 + 40, 420 + 30);
+    await sleep(120);
+    await g1.move(140 - 60 + 90, 420 + 40);
+    await sleep(150);
+    await g1.end();
+    await sleep(250);
+    ok(
+      Math.abs((await pose()).azimuth - azBefore) > 2,
+      t("the finger left down after the pinch turns the view"),
+    );
+    const afterPinch = await mb();
+    ok(
+      JSON.stringify(afterPinch.pending) === JSON.stringify(pendingBefore) &&
+        (await padVisible()) &&
+        !(await disabled('[data-testid="confirm"]')),
+      t("the pinch and the orbit left the pending action, the pad and the check mark as they were"),
+    );
+    const t1 = await page.touchscreen.touchStart(140, 420);
+    const t2 = await page.touchscreen.touchStart(250, 420);
+    await sleep(100);
+    const panPose = await pose();
+    for (let i = 1; i <= 4; i++) {
+      await t1.move(140, 420 + i * 12);
+      await t2.move(250, 420 + i * 12);
+      await sleep(90);
+    }
+    await t2.end();
+    await t1.end();
+    await sleep(250);
+    const panned = await pose();
+    ok(
+      Math.hypot(...(panned.position.map((v, i) => v - (panPose.position[i] as number)) as Vec3)) >
+        0.1,
+      t("a two-finger pan moves the view"),
+    );
+    ok(
+      JSON.stringify((await mb()).pending) === JSON.stringify(pendingBefore),
+      t("and the pending action is still the same"),
+    );
+    await restoreCamera();
+    // The corners are the same cells after the camera came back: the confirm draws the same line
+    await confirm();
+    ok(
+      (await changed(original)).length === 5 && (await mb()).undoCount === 1,
+      t("and its confirm still draws the 5-block line"),
+    );
+    await undo();
+
+    // Switching tool clears it
+    await tapTop(lineA);
+    await armTool("rectangle");
+    ok(
+      (await mb()).pending === null && !(await padVisible()),
+      t("switching tool clears the pending action"),
+    );
+
+    // =========================================================================
+    // A hollow 4 x 3 rectangle: taps, the Hollow toggle, the check mark
+    // =========================================================================
+    await tapTop(lineA); // corner A next to the ridge: (6, 8, 3), plane y = 8
+    const rectState = await mb();
+    ok(
+      rectState.pending?.kind === "rectangle" &&
+        key(rectState.pending.a ?? []) === "6,8,3" &&
+        rectState.pending.axis === 1,
+      t(`the first tap sets corner A and the plane (${JSON.stringify(rectState.pending)})`),
+    );
+    const hollowOn = (): Promise<boolean> =>
+      page.$eval(
+        '[data-testid="nudge-hollow"]',
+        (el) => el.getAttribute("aria-pressed") === "true",
+      );
+    ok(
+      (await page.$('[data-testid="nudge-hollow"]')) !== null,
+      t("a rectangle's pad has a Hollow toggle"),
+    );
+    ok(!(await hollowOn()), t("which starts off"));
+    await tapButton('[data-testid="nudge-hollow"]');
+    ok((await mb()).hollow && (await hollowOn()), t("and turns the hollow setting on"));
+    // B over empty space on A's plane: cell (9, 8, 5), the far corner of a 4 x 3 rectangle
+    const rectBPt = await worldToPage(9.5, 8, 5.5);
+    await tapCursorAt(rectBPt);
+    const rectB = await mb();
+    ok(
+      key(rectB.pending?.b ?? []) === "9,8,5",
+      t(
+        `the second tap sets B on A's plane, over empty space (${JSON.stringify(rectB.pending?.b)})`,
+      ),
+    );
+    ok(
+      (await readoutText()) === "A 6,8,3 ▸B 9,8,5 · 4×1×3",
+      t(`the readout says 4 x 1 x 3 (${await readoutText()})`),
+    );
+    await confirm();
+    const rectCells = await changed(original);
+    const outline = new Set<string>();
+    for (let x = 6; x <= 9; x++)
+      for (let z = 3; z <= 5; z++)
+        if (x === 6 || x === 9 || z === 3 || z === 5) outline.add(`${x},8,${z}`);
+    ok(
+      outline.size === 10 && rectCells.length === 10 && rectCells.every((k) => outline.has(k)),
+      t(`the hollow 4 x 3 rectangle is its 10-cell outline (${rectCells.join(" ")})`),
+    );
+    const hollowCells = await cells();
+    ok(!hollowCells.has("7,8,4") && !hollowCells.has("8,8,4"), t("and its inside is empty"));
+    ok((await mb()).undoCount === 1, t("it is one undo step"));
+    await undo();
+    ok((await changed(original)).length === 0, t("one tap on Undo removes it"));
+
+    // Nudging the whole rectangle along its normal: one layer up
+    await tapTop(lineA);
+    await tapCursorAt(rectBPt);
+    await nudge(1, 1);
+    const lifted2 = await mb();
+    ok(
+      key(lifted2.pending?.a ?? []) === "6,9,3" && key(lifted2.pending?.b ?? []) === "9,9,5",
+      t(
+        `an Up nudge moves both corners one layer (${JSON.stringify([lifted2.pending?.a, lifted2.pending?.b])})`,
+      ),
+    );
+    await nudge(0, 1);
+    ok(
+      key((await mb()).pending?.b ?? []) === "10,9,5" &&
+        key((await mb()).pending?.a ?? []) === "6,9,3",
+      t("a sideways nudge moves one corner only: the rectangle stays flat"),
+    );
+    await confirm();
+    const risen = await changed(original);
+    ok(
+      risen.length === 12 && risen.every((k) => k.split(",")[1] === "9"),
+      t(`the hollow 5 x 3 rectangle is on layer 9: its 12-cell outline (${risen.length} cells)`),
+    );
+    await undo();
+    // Hollow off: a filled rectangle
+    await tapTop(lineA);
+    await tapButton('[data-testid="nudge-hollow"]');
+    ok(!(await mb()).hollow, t("the Hollow toggle turns it off again"));
+    await tapCursorAt(rectBPt);
+    await confirm();
+    ok(
+      (await changed(original)).length === 12,
+      t("with Hollow off the rectangle is filled: 12 cells"),
+    );
+    await undo();
+
+    // =========================================================================
+    // A 3 x 3 x 3 selection: two taps, then the face steppers
+    // =========================================================================
+    await armTool("select");
+    await tapTop(topAt(6, 7, 3));
+    const selA = await mb();
+    ok(
+      selA.pending?.kind === "select" && key(selA.pending.a ?? []) === "6,7,3",
+      t(`Select's first tap uses the block itself (${JSON.stringify(selA.pending?.a)})`),
+    );
+    await tapTop(topAt(6, 7, 5));
+    const selB = await mb();
+    ok(
+      key(selB.pending?.b ?? []) === "6,7,5" &&
+        key(selB.selection?.min ?? []) === "6,7,3" &&
+        key(selB.selection?.max ?? []) === "6,7,5",
+      t("the second tap sets B and the selection box is drawn between them"),
+    );
+    await confirm();
+    ok(
+      (await mb()).message === "Selected 1 × 1 × 3" && (await mb()).pending === null,
+      t(`the check mark selects them (${(await mb()).message})`),
+    );
+    ok((await mb()).undoCount === 0, t("a selection is not an edit: no undo step"));
+    await openSheet("mobile-selection-toggle");
+    const sizeText = (): Promise<string> =>
+      page.$eval('[data-testid="selection-size"]', (el) => el.textContent?.trim() ?? "");
+    ok(
+      (await sizeText()) === "1 × 1 × 3 blocks",
+      t(`the selection sheet reads the size (${await sizeText()})`),
+    );
+    const stepper = await page.$$eval('[data-testid="face-steppers"] button', (els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { w: r.width, h: r.height, name: el.getAttribute("aria-label") ?? "" };
+      }),
+    );
+    ok(
+      stepper.length === 12 && stepper.every((b) => b.w >= 47.99 && b.h >= 47.99 && b.name !== ""),
+      t(`there are 12 steppers, two per face, each 48px with a name (${stepper.length})`),
+    );
+    const stepperNames = new Set(stepper.map((b) => b.name));
+    ok(
+      ["west", "east", "bottom", "top", "north", "south"].every(
+        (f) =>
+          stepperNames.has(`Grow the ${f} face by one block`) &&
+          stepperNames.has(`Shrink the ${f} face by one block`),
+      ),
+      t("named Grow / Shrink for West, East, Bottom, Top, North and South"),
+    );
+    const tapStep = (id: string): Promise<void> => tapButton(`[data-testid="${id}"]`);
+    await tapStep("face-west-grow");
+    await tapStep("face-east-grow");
+    ok(
+      (await sizeText()) === "3 × 1 × 3 blocks",
+      t(`West +1 and East +1 make it 3 wide (${await sizeText()})`),
+    );
+    await tapStep("face-top-grow");
+    ok((await sizeText()) === "3 × 2 × 3 blocks", t("Top +1 adds a layer above"));
+    await tapStep("face-top-grow");
+    ok((await sizeText()) === "3 × 3 × 3 blocks", t("and another: 3 x 3 x 3"));
+    const sel3 = (await mb()).selection;
+    ok(
+      sel3 !== null && key(sel3.min) === "5,7,3" && key(sel3.max) === "7,9,5",
+      t(`the selection box is x 5-7, y 7-9, z 3-5 (${JSON.stringify(sel3)})`),
+    );
+    ok(
+      (await mb()).undoCount === 0 && (await changed(original)).length === 0,
+      t("the steppers are not undo steps and change no cell"),
+    );
+    await tapStep("face-bottom-shrink");
+    await tapStep("face-north-shrink");
+    ok(
+      (await sizeText()) === "3 × 2 × 2 blocks",
+      t(`-1 takes a layer off a face (${await sizeText()}; ${(await mb()).error})`),
+    );
+    await tapStep("face-bottom-grow");
+    await tapStep("face-north-grow");
+    ok((await sizeText()) === "3 × 3 × 3 blocks", t("and +1 puts it back: 3 x 3 x 3 again"));
+    // A face cannot pass the opposite one
+    await tapStep("face-south-shrink");
+    await tapStep("face-south-shrink");
+    ok((await sizeText()) === "3 × 3 × 1 blocks", t("two Shrinks leave one layer"));
+    await tapStep("face-south-shrink");
+    ok(
+      (await sizeText()) === "3 × 3 × 1 blocks" && /at least one block/.test((await mb()).error),
+      t(`and no further: a face cannot pass the opposite one (${(await mb()).error})`),
+    );
+    await tapStep("face-south-grow");
+    await tapStep("face-south-grow");
+    ok((await sizeText()) === "3 × 3 × 3 blocks", t("back to 3 x 3 x 3"));
+
+    // Copy it and paste it: the paste ghost
+    await tapButton('[data-testid="copy"]');
+    ok(
+      (await mb()).message.startsWith("Copied"),
+      t(`Copy takes the selection (${(await mb()).message})`),
+    );
+    await tapButton('[data-testid="paste"]');
+    ok((await mb()).tool === "paste", t("Paste arms the paste tool"));
+    await closeSheet();
+    const clipCells = await page.evaluate(
+      () => (window.__voxwright as Vox).session()?.clipboardCells ?? 0,
+    );
+    ok(clipCells > 0, t(`the clipboard holds ${clipCells} blocks`));
+    const source = new Map<string, string>();
+    for (const [k, v] of await cells()) {
+      const [x, y, z] = k.split(",").map(Number) as Vec3;
+      if (x >= 5 && x <= 7 && y >= 7 && y <= 9 && z >= 3 && z <= 5)
+        source.set(`${x - 5},${y - 7},${z - 3}`, v);
+    }
+    ok(source.size === clipCells, t(`it is the non-air blocks of that box (${source.size})`));
+    await tapTop(topAt(11, 7, 6)); // the paste origin is the cell next to the face: (11, 8, 6)
+    const pasteState = await mb();
+    ok(
+      pasteState.pending?.kind === "paste" && key(pasteState.pending.at ?? []) === "11,8,6",
+      t(`a tap arms the paste origin (${JSON.stringify(pasteState.pending)})`),
+    );
+    ok(
+      (await readoutText()) === "Paste at 11,8,6 · 3×3×3" && (await padVisible()),
+      t(`the readout names the origin and the size, and the pad is shown (${await readoutText()})`),
+    );
+    ok((await changed(original)).length === 0, t("nothing is pasted yet"));
+    await nudge(1, 1);
+    await nudge(2, 1);
+    const pasteMoved = await mb();
+    ok(
+      key(pasteMoved.pending?.at ?? []) === "11,9,7",
+      t(`the pad moves the origin (${JSON.stringify(pasteMoved.pending?.at)})`),
+    );
+    await confirm();
+    const pasted = await changed(original);
+    const nowCells = await cells();
+    const expectedPaste = new Set(
+      [...source.keys()].map((k) => {
+        const [x, y, z] = k.split(",").map(Number) as Vec3;
+        return `${x + 11},${y + 9},${z + 7}`;
+      }),
+    );
+    ok(
+      pasted.length === expectedPaste.size &&
+        pasted.every((k) => expectedPaste.has(k)) &&
+        [...source].every(([k, v]) => {
+          const [x, y, z] = k.split(",").map(Number) as Vec3;
+          return nowCells.get(`${x + 11},${y + 9},${z + 7}`) === v;
+        }),
+      t(`the check mark pastes the copied blocks at the nudged origin (${pasted.length} cells)`),
+    );
+    ok(
+      (await mb()).undoCount === 1 && (await mb()).pending === null,
+      t("the paste is one undo step"),
+    );
+    await undo();
+    ok((await changed(original)).length === 0, t("and one Undo removes it"));
+    // Cancel pastes nothing
+    await page.evaluate(() => (window.__voxwright as Vox).session()?.setTool("paste"));
+    await tapTop(topAt(11, 7, 6));
+    ok((await mb()).pending?.kind === "paste", t("a tap arms the paste origin again"));
+    await cancel();
+    ok(
+      (await changed(original)).length === 0 && (await mb()).pending === null,
+      t("the cross pastes nothing"),
+    );
+
+    // =========================================================================
+    // Limits: a nudge outside the visible layers is refused with a message
+    // =========================================================================
+    await armTool("line");
+    await tapTop(lineA);
+    await page.evaluate(() => (window.__voxwright as Vox).session()?.setSlice({ y0: 0, y1: 8 }));
+    await nudge(1, 1);
+    const refused = await mb();
+    ok(
+      key(refused.pending?.a ?? []) === "6,8,3" && /Layer 9.*0 to 8/.test(refused.error),
+      t(`a step above the top visible layer is refused, nothing moves (${refused.error})`),
+    );
+    ok((await uiMessage()) === refused.error, t("and the message line shows why"));
+    await page.evaluate(() => (window.__voxwright as Vox).session()?.setSlice(null));
+    await cancel();
+
+    // =========================================================================
+    // Left-handed: the pad mirrors with the thumb cluster
+    // =========================================================================
+    await tapTop(lineA);
+    const clusterBox = (): Promise<{ x: number; right: number; y: number }> =>
+      page.$eval('[data-testid="thumb-cluster"]', (el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, right: r.right, y: r.y };
+      });
+    const padBox = (): Promise<{ x: number; right: number; y: number; bottom: number }> =>
+      page.$eval('[data-testid="nudge-pad"]', (el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, right: r.right, y: r.y, bottom: r.bottom };
+      });
+    const rh = { cluster: await clusterBox(), pad: await padBox() };
+    ok(
+      rh.pad.right <= rh.cluster.x && rh.cluster.x > 195,
+      t(
+        `right-handed: the pad is left of the thumb cluster, not overlapping it (pad ${Math.round(rh.pad.x)}-${Math.round(rh.pad.right)}, cluster from ${Math.round(rh.cluster.x)})`,
+      ),
+    );
+    await cancel();
+    const toggleLeftHanded = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector('[data-testid="left-handed-toggle"] input', { timeout: 5000 });
+      await page.$eval('[data-testid="left-handed-toggle"] input', (el) =>
+        el.scrollIntoView({ block: "center" }),
+      );
+      await sleep(300);
+      await tapButton('[data-testid="left-handed-toggle"] input');
+      await closeSheet();
+    };
+    await toggleLeftHanded();
+    await tapTop(lineA);
+    const lh = { cluster: await clusterBox(), pad: await padBox() };
+    ok(
+      lh.pad.x >= lh.cluster.right && lh.cluster.right < 195 && lh.pad.right < 390,
+      t(
+        `left-handed: the pad is right of the thumb cluster on the left (pad ${Math.round(lh.pad.x)}-${Math.round(lh.pad.right)}, cluster to ${Math.round(lh.cluster.right)})`,
+      ),
+    );
+    const lhArrows = await pad();
+    ok(
+      Object.values(lhArrows).every((a) => a.w >= 47.99 && a.h >= 47.99),
+      t("and the arrows are still at least 48 x 48 px"),
+    );
+    // Neither the pad nor the thumb cluster covers the readout line or the toolbar
+    const toolbarTop = await page.$eval(
+      '[data-testid="bottom-toolbar"]',
+      (el) => el.getBoundingClientRect().top,
+    );
+    ok(
+      lh.pad.bottom <= toolbarTop && lh.cluster.y + 104 <= toolbarTop,
+      t("and neither the pad nor the thumb cluster covers the readout line above the toolbar"),
+    );
+    await cancel();
+    await toggleLeftHanded();
+
+    // =========================================================================
+    // Confirm each placement (Menu > Settings): off by default, kept per browser
+    // =========================================================================
+    const CONFIRM_KEY = "voxwright.confirmplace";
+    const confirmBox = '[data-testid="confirm-place-toggle"] input';
+    const stored = (): Promise<string | null> =>
+      page.evaluate((k) => localStorage.getItem(k), CONFIRM_KEY);
+    const openMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector(confirmBox, { timeout: 5000 });
+      await page.$eval(confirmBox, (el) => el.scrollIntoView({ block: "center" }));
+      await sleep(300);
+    };
+    await openMenu();
+    const label = await page.$eval('[data-testid="confirm-place-toggle"]', (el) =>
+      el.textContent?.trim(),
+    );
+    const checkBoxHeight = await page.$eval(
+      '[data-testid="confirm-place-toggle"]',
+      (el) => el.getBoundingClientRect().height,
+    );
+    ok(
+      label === "Confirm each placement",
+      t(`the Settings section has a "Confirm each placement" checkbox (${label})`),
+    );
+    ok(checkBoxHeight >= 43.99, t(`it is at least 44px tall (${checkBoxHeight})`));
+    ok(
+      !(await page.$eval(confirmBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await stored()) === null &&
+        !(await mb()).confirmPlacement,
+      t("it starts off, and nothing is stored until it is changed"),
+    );
+    await tapButton(confirmBox);
+    ok(
+      (await page.$eval(confirmBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await stored()) === "true" &&
+        (await mb()).confirmPlacement,
+      t("turning it on stores it and the open session follows at once"),
+    );
+    await closeSheet();
+
+    // Place: a tap arms the cell, the pad nudges it, the check mark places exactly one block
+    await armTool("place");
+    await setBlock(GOLD);
+    const placeTarget = topAt(6, 7, 6);
+    await tapTop(placeTarget);
+    const armed = await mb();
+    ok(
+      armed.pending?.kind === "cell" &&
+        armed.pending.tool === "place" &&
+        key(armed.pending.cell ?? []) === "6,8,6",
+      t(`with the setting on a Place tap only arms the cell (${JSON.stringify(armed.pending)})`),
+    );
+    ok(
+      (await changed(original)).length === 0 && armed.undoCount === 0 && (await padVisible()),
+      t("nothing is placed, and the pad is shown"),
+    );
+    ok(
+      (await readoutText()) === "Place 6,8,6 gold_block",
+      t(`the readout names the cell and the block (${await readoutText()})`),
+    );
+    ok(
+      (await page.$('[data-testid="nudge-corner"]')) === null,
+      t("a single cell has no A / B toggle"),
+    );
+    await nudge(1, 1);
+    await confirm();
+    ok(
+      (await changed(original)).join(" ") === "6,9,6" && (await cells()).get("6,9,6") === GOLD,
+      t(
+        `the check mark places one block, at the nudged cell (${(await changed(original)).join(" ")})`,
+      ),
+    );
+    ok((await mb()).undoCount === 1, t("as one undo step"));
+    await undo();
+    // The cross places none
+    await tapTop(placeTarget);
+    await cancel();
+    ok(
+      (await changed(original)).length === 0 &&
+        (await mb()).pending === null &&
+        (await mb()).undoCount === 0,
+      t("the cross places none"),
+    );
+    // A drag paints nothing; the lift arms the cell under the cursor
+    const sweep = await dragThrough(line(below(topAt(6, 7, 3).pt), below(topAt(6, 7, 7).pt), 4));
+    ok(
+      (await changed(original)).length === 0,
+      t("a drag in confirm mode paints nothing while it runs"),
+    );
+    await sweep.end();
+    await sleep(300);
+    const lifted3 = await mb();
+    ok(
+      (await changed(original)).length === 0 &&
+        lifted3.pending?.kind === "cell" &&
+        key(lifted3.pending.cell ?? []) === "6,8,7",
+      t(`and the lift arms the cell under the cursor (${JSON.stringify(lifted3.pending)})`),
+    );
+    await cancel();
+    // Replace and Erase wait too
+    await armTool("paint");
+    await tapTop(placeTarget);
+    ok(
+      (await changed(original)).length === 0 &&
+        (await readoutText()).startsWith("Replace 6,7,6 stone_bricks"),
+      t(`Replace arms the block under the cursor (${await readoutText()})`),
+    );
+    await confirm();
+    ok(
+      (await changed(original)).join(" ") === "6,7,6" && (await cells()).get("6,7,6") === GOLD,
+      t("and the check mark replaces it"),
+    );
+    await undo();
+    await armTool("erase");
+    await tapTop(placeTarget);
+    await confirm();
+    ok(
+      (await changed(original)).join(" ") === "6,7,6" && !(await cells()).has("6,7,6"),
+      t("Erase waits for the check mark, then removes the block"),
+    );
+    await undo();
+    // Long press still picks without touching the armed cell
+    await armTool("place");
+    await tapTop(placeTarget);
+    const armedBefore = (await mb()).pending;
+    const f = below(topAt(6, 7, 4).pt);
+    const hold = await page.touchscreen.touchStart(f.x, f.y);
+    await sleep(750);
+    await hold.end();
+    await sleep(250);
+    const afterHold = await mb();
+    ok(
+      afterHold.block === topAt(6, 7, 4).block &&
+        JSON.stringify(afterHold.pending) === JSON.stringify(armedBefore),
+      t(`a long press picks the block (${afterHold.block}) and leaves the armed cell`),
+    );
+    await cancel();
+    await setBlock(GOLD);
+
+    // The setting survives a reload and reaches a new session
+    await page.reload();
+    await startUp();
+    await openFixture();
+    ok(
+      (await mb()).confirmPlacement,
+      t("after a reload a new session starts with Confirm each placement on"),
+    );
+    await openMenu();
+    ok(
+      await page.$eval(confirmBox, (el) => (el as HTMLInputElement).checked),
+      t("and the checkbox shows it"),
+    );
+    // Off again: back to MB4's behaviour (a tap places at once)
+    await tapButton(confirmBox);
+    ok(
+      !(await page.$eval(confirmBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await stored()) === "false" &&
+        !(await mb()).confirmPlacement,
+      t("turning it off stores false and the session follows"),
+    );
+    await closeSheet();
+    await restoreCamera();
+    const fresh = await cells();
+    await armTool("place");
+    await setBlock(GOLD);
+    await tapTop(placeTarget);
+    ok(
+      (await changed(fresh)).join(" ") === "6,8,6" &&
+        (await mb()).pending === null &&
+        (await mb()).undoCount === 1,
+      t("with it off a tap places at once, as in MB4"),
+    );
+    await undo();
+    await page.reload();
+    await startUp();
+    await openFixture();
+    ok(!(await mb()).confirmPlacement, t("and after a reload it stays off"));
+
+    if (values.shots) {
+      await page.screenshot({ path: join(values.shots, "mobile-two-point-final.png") });
+    }
+    ok(
+      errors.length === 0,
+      t(
+        `no console errors throughout the two-corner run${errors.length ? `: ${errors.join(" | ")}` : ""}`,
+      ),
+    );
+  } finally {
+    await browser.close();
+  }
+}
+
 try {
-  await touchViewerSuite();
-  await touchPlacementSuite();
+  if (values.only === undefined || values.only === "viewer") await touchViewerSuite();
+  if (values.only === undefined || values.only === "placement") await touchPlacementSuite();
+  if (values.only === undefined || values.only === "two-point") await touchTwoPointSuite();
 } finally {
   server.close();
 }
