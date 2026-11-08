@@ -130,7 +130,10 @@ try {
     const swatch = await page.$('[data-testid="active-block-swatch"]');
     check("Viewport-300px", "Active block swatch exists on bottom toolbar", swatch !== null);
     const swatchBox = (await swatch?.boundingBox())!;
-    await page.touchscreen.tap(swatchBox.x + swatchBox.width / 2, swatchBox.y + swatchBox.height / 2);
+    await page.touchscreen.tap(
+      swatchBox.x + swatchBox.width / 2,
+      swatchBox.y + swatchBox.height / 2,
+    );
 
     await page.waitForSelector('[data-testid="palette-search"]', { timeout: 5000 });
     check("Viewport-300px", "Palette sheet opened with search input", true);
@@ -180,7 +183,9 @@ try {
     await page.waitForFunction(
       () => {
         const s = document.querySelector('[data-testid="palette-search"]')?.getBoundingClientRect();
-        const first = document.querySelector('[data-testid="palette-list"] li button')?.getBoundingClientRect();
+        const first = document
+          .querySelector('[data-testid="palette-list"] li button')
+          ?.getBoundingClientRect();
         const vh = window.visualViewport?.height ?? window.innerHeight;
         return (
           s !== undefined &&
@@ -197,7 +202,9 @@ try {
     // Evaluate visibility and bounds within visualViewport height 300px
     const bounds300 = await page.evaluate(() => {
       const s = document.querySelector('[data-testid="palette-search"]')?.getBoundingClientRect();
-      const first = document.querySelector('[data-testid="palette-list"] li button')?.getBoundingClientRect();
+      const first = document
+        .querySelector('[data-testid="palette-list"] li button')
+        ?.getBoundingClientRect();
       const vh = window.visualViewport?.height ?? window.innerHeight;
       return {
         vh,
@@ -240,7 +247,10 @@ try {
     );
 
     // Tap the item via touchscreen
-    await page.touchscreen.tap(stoneBtnBox.x + stoneBtnBox.width / 2, stoneBtnBox.y + stoneBtnBox.height / 2);
+    await page.touchscreen.tap(
+      stoneBtnBox.x + stoneBtnBox.width / 2,
+      stoneBtnBox.y + stoneBtnBox.height / 2,
+    );
     const chosenBlock = await page.evaluate(
       () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.block,
     );
@@ -268,7 +278,9 @@ try {
 
     const bounds280 = await page.evaluate(() => {
       const s = document.querySelector('[data-testid="palette-search"]')?.getBoundingClientRect();
-      const first = document.querySelector('[data-testid="palette-list"] li button')?.getBoundingClientRect();
+      const first = document
+        .querySelector('[data-testid="palette-list"] li button')
+        ?.getBoundingClientRect();
       const vh = window.visualViewport?.height ?? window.innerHeight;
       return {
         vh,
@@ -310,7 +322,11 @@ try {
       const vv = window.visualViewport;
       return { supported: true, vvHeight: vv.height, innerHeight: window.innerHeight };
     });
-    check("Viewport-300px", "window.visualViewport is supported in mobile emulation", overlayRes.supported);
+    check(
+      "Viewport-300px",
+      "window.visualViewport is supported in mobile emulation",
+      overlayRes.supported,
+    );
 
     // Restore to standard 844px
     await cdp.send("Emulation.setDeviceMetricsOverride", {
@@ -337,7 +353,12 @@ try {
     );
     check("Viewport-300px", "Palette sheet closed cleanly after viewport stress", true);
 
-    check("Viewport-300px", "Zero console errors during Viewport-300px stress", errors.length === 0, errors.join("; "));
+    check(
+      "Viewport-300px",
+      "Zero console errors during Viewport-300px stress",
+      errors.length === 0,
+      errors.join("; "),
+    );
     await page.close();
   }
 
@@ -450,7 +471,9 @@ try {
     for (let i = 0; i < SWITCH_CYCLES; i++) {
       // 1. Swatch -> Palette
       await page.evaluate(() => {
-        document.querySelector('[data-testid="active-block-swatch"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+        document
+          .querySelector('[data-testid="active-block-swatch"]')
+          ?.scrollIntoView({ inline: "center", block: "nearest" });
       });
       const swatch = (await page.$('[data-testid="active-block-swatch"]'))!;
       const sBox = (await swatch.boundingBox())!;
@@ -468,7 +491,9 @@ try {
 
       // 2. State toggle -> Block State
       await page.evaluate(() => {
-        document.querySelector('[data-testid="mobile-state-toggle"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+        document
+          .querySelector('[data-testid="mobile-state-toggle"]')
+          ?.scrollIntoView({ inline: "center", block: "nearest" });
       });
       const stateToggle = (await page.$('[data-testid="mobile-state-toggle"]'))!;
       const stBox = (await stateToggle.boundingBox())!;
@@ -486,7 +511,9 @@ try {
 
       // 3. Selection toggle -> Selection panel
       await page.evaluate(() => {
-        document.querySelector('[data-testid="mobile-selection-toggle"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+        document
+          .querySelector('[data-testid="mobile-selection-toggle"]')
+          ?.scrollIntoView({ inline: "center", block: "nearest" });
       });
       const selToggle = (await page.$('[data-testid="mobile-selection-toggle"]'))!;
       const selBox = (await selToggle.boundingBox())!;
@@ -682,7 +709,9 @@ try {
     // 3C: Tool switching while Palette sheet is open
     // Open palette sheet
     await page.evaluate(() => {
-      document.querySelector('[data-testid="active-block-swatch"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+      document
+        .querySelector('[data-testid="active-block-swatch"]')
+        ?.scrollIntoView({ inline: "center", block: "nearest" });
     });
     const swatch = (await page.$('[data-testid="active-block-swatch"]'))!;
     const sBox = (await swatch.boundingBox())!;
@@ -698,7 +727,9 @@ try {
     );
 
     await page.evaluate(() => {
-      document.querySelector('[data-testid="tool-place"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+      document
+        .querySelector('[data-testid="tool-place"]')
+        ?.scrollIntoView({ inline: "center", block: "nearest" });
     });
     const placeBtn = (await page.$('[data-testid="tool-place"]'))!;
     const pbBox = (await placeBtn.boundingBox())!;
@@ -716,7 +747,9 @@ try {
 
     // 3D: Switch back to navigate and confirm camera orbit remains active
     await page.evaluate(() => {
-      document.querySelector('[data-testid="tool-navigate"]')?.scrollIntoView({ inline: "center", block: "nearest" });
+      document
+        .querySelector('[data-testid="tool-navigate"]')
+        ?.scrollIntoView({ inline: "center", block: "nearest" });
     });
     const navBtn = (await page.$('[data-testid="tool-navigate"]'))!;
     const nbBox = (await navBtn.boundingBox())!;
@@ -753,7 +786,6 @@ try {
 
     await page.close();
   }
-
 } finally {
   await browser.close();
   await new Promise<void>((r) => server.close(() => r()));
@@ -762,7 +794,9 @@ try {
 console.log("\n=======================================================");
 const passCount = results.filter((r) => r.status === "PASS").length;
 const failCount = results.filter((r) => r.status === "FAIL").length;
-console.log(`Milestone MB3 Adversarial Stress Summary: ${passCount} PASSED, ${failCount} FAILED (Total: ${results.length})`);
+console.log(
+  `Milestone MB3 Adversarial Stress Summary: ${passCount} PASSED, ${failCount} FAILED (Total: ${results.length})`,
+);
 console.log("=======================================================\n");
 
 if (failCount > 0) {

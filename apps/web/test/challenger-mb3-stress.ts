@@ -88,7 +88,14 @@ async function cdpTouchDrag(
 
 const VIEWPORTS = [
   { name: "iPhone SE (1st gen)", width: 320, height: 568, dpr: 2, touch: true, mobile: true },
-  { name: "Galaxy S5 / Budget Android", width: 360, height: 640, dpr: 3, touch: true, mobile: true },
+  {
+    name: "Galaxy S5 / Budget Android",
+    width: 360,
+    height: 640,
+    dpr: 3,
+    touch: true,
+    mobile: true,
+  },
   { name: "iPhone 12/13/14", width: 390, height: 844, dpr: 3, touch: true, mobile: true },
   { name: "Pixel 7", width: 412, height: 915, dpr: 2.625, touch: true, mobile: true },
   { name: "iPad Portrait", width: 768, height: 1024, dpr: 2, touch: true, mobile: true },
@@ -146,7 +153,9 @@ try {
         scrollY: window.scrollY,
         innerWidth: window.innerWidth,
         innerHeight: window.innerHeight,
-        isMobile: document.querySelector(".mobile-top-bar") !== null || document.querySelector(".mobile-welcome-card") !== null,
+        isMobile:
+          document.querySelector(".mobile-top-bar") !== null ||
+          document.querySelector(".mobile-welcome-card") !== null,
       };
     });
 
@@ -191,7 +200,9 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     // Active editor state: check page overflow after loading schematic
     const editorMetrics = await page.evaluate(() => {
@@ -263,18 +274,74 @@ try {
   console.log("\n=== SUITE 2: WCAG 2.5.5 Touch Target Size Enforcement ===");
 
   const touchTargetsToCheck = [
-    { id: "mobile-menu-btn", sel: '[data-testid="mobile-menu-btn"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "tool-navigate", sel: '[data-testid="tool-navigate"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
+    {
+      id: "mobile-menu-btn",
+      sel: '[data-testid="mobile-menu-btn"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
+    {
+      id: "tool-navigate",
+      sel: '[data-testid="tool-navigate"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
     { id: "tool-place", sel: '[data-testid="tool-place"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
     { id: "tool-paint", sel: '[data-testid="tool-paint"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
     { id: "tool-erase", sel: '[data-testid="tool-erase"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "tool-eyedropper", sel: '[data-testid="tool-eyedropper"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
+    {
+      id: "tool-eyedropper",
+      sel: '[data-testid="tool-eyedropper"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
     { id: "tool-line", sel: '[data-testid="tool-line"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "tool-rectangle", sel: '[data-testid="tool-rectangle"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "tool-select", sel: '[data-testid="tool-select"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "active-block-swatch", sel: '[data-testid="active-block-swatch"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "mobile-state-toggle", sel: '[data-testid="mobile-state-toggle"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
-    { id: "mobile-selection-toggle", sel: '[data-testid="mobile-selection-toggle"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
+    {
+      id: "tool-rectangle",
+      sel: '[data-testid="tool-rectangle"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
+    {
+      id: "tool-select",
+      sel: '[data-testid="tool-select"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
+    {
+      id: "active-block-swatch",
+      sel: '[data-testid="active-block-swatch"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
+    {
+      id: "mobile-state-toggle",
+      sel: '[data-testid="mobile-state-toggle"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
+    {
+      id: "mobile-selection-toggle",
+      sel: '[data-testid="mobile-selection-toggle"]',
+      minW: 44,
+      minH: 44,
+      reqW: 48,
+      reqH: 48,
+    },
     { id: "undo", sel: '[data-testid="undo"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
     { id: "redo", sel: '[data-testid="redo"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
     { id: "cancel", sel: '[data-testid="cancel"]', minW: 44, minH: 44, reqW: 48, reqH: 48 },
@@ -292,7 +359,8 @@ try {
     });
     await page.goto(url);
     await page.waitForFunction(
-      () => document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
+      () =>
+        document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
       { timeout: 30000 },
     );
     const fileInput = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
@@ -301,7 +369,9 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     for (const target of touchTargetsToCheck) {
       const el = await page.$(target.sel);
@@ -357,7 +427,8 @@ try {
     });
     await page.goto(url);
     await page.waitForFunction(
-      () => document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
+      () =>
+        document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
       { timeout: 30000 },
     );
     const fileInput = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
@@ -366,12 +437,16 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     // Setup canvas tracking and webglcontextlost listener
     await page.evaluate(() => {
       const c = document.querySelector('canvas[data-testid="canvas"]') as HTMLCanvasElement;
-      (window as unknown as { __initialCanvas: HTMLCanvasElement; __contextLostFired: boolean }).__initialCanvas = c;
+      (
+        window as unknown as { __initialCanvas: HTMLCanvasElement; __contextLostFired: boolean }
+      ).__initialCanvas = c;
       (window as unknown as { __contextLostFired: boolean }).__contextLostFired = false;
       c.addEventListener("webglcontextlost", () => {
         (window as unknown as { __contextLostFired: boolean }).__contextLostFired = true;
@@ -397,7 +472,9 @@ try {
       await page.evaluate((m) => {
         localStorage.setItem("voxwright.layout", m);
         window.dispatchEvent(new StorageEvent("storage", { key: "voxwright.layout", newValue: m }));
-        const overrideBtns = Array.from(document.querySelectorAll('[data-testid="layout-override"] button'));
+        const overrideBtns = Array.from(
+          document.querySelectorAll('[data-testid="layout-override"] button'),
+        );
         const btn = overrideBtns.find((b) => b.textContent?.trim().toLowerCase() === m);
         if (btn instanceof HTMLElement) {
           btn.click();
@@ -407,7 +484,8 @@ try {
       await new Promise((r) => setTimeout(r, 40));
 
       const status = await page.evaluate(() => {
-        const initial = (window as unknown as { __initialCanvas: HTMLCanvasElement }).__initialCanvas;
+        const initial = (window as unknown as { __initialCanvas: HTMLCanvasElement })
+          .__initialCanvas;
         const current = document.querySelector('canvas[data-testid="canvas"]') as HTMLCanvasElement;
         const lost = (window as unknown as { __contextLostFired: boolean }).__contextLostFired;
         const gl = current.getContext("webgl2");
@@ -437,7 +515,9 @@ try {
       localStorage.setItem("voxwright.layout", "mobile");
     });
     await new Promise((r) => setTimeout(r, 100));
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     const cdp = await page.createCDPSession();
     const canvasEl = await page.$('[data-testid="canvas"]');
@@ -452,7 +532,9 @@ try {
 
     // Dispatch 1-finger orbit gesture
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx + 100, y: cy + 40 }, 6, 1);
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     const poseAfter = await page.evaluate(() => {
       const r = (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer;
@@ -498,7 +580,8 @@ try {
     });
     await page.goto(url);
     await page.waitForFunction(
-      () => document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
+      () =>
+        document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
       { timeout: 30000 },
     );
     const fileInput = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
@@ -507,7 +590,9 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     const cdp = await page.createCDPSession();
 
@@ -657,11 +742,7 @@ try {
     await new Promise((r) => setTimeout(r, 350));
 
     const sheetAfterEsc = await page.$('[data-testid="bottom-sheet"]');
-    check(
-      "Sheet-Physics",
-      "Pressing Escape key closes the bottom sheet",
-      sheetAfterEsc === null,
-    );
+    check("Sheet-Physics", "Pressing Escape key closes the bottom sheet", sheetAfterEsc === null);
 
     // 4H: Test visualViewport virtual keyboard resize behavior
     await (await page.$('[data-testid="active-block-swatch"]'))!.click();
@@ -681,7 +762,9 @@ try {
     await new Promise((r) => setTimeout(r, 200));
 
     const searchVisibleUnderKeyboard = await page.evaluate(() => {
-      const searchBox = document.querySelector('[data-testid="palette-search"]')?.getBoundingClientRect();
+      const searchBox = document
+        .querySelector('[data-testid="palette-search"]')
+        ?.getBoundingClientRect();
       const vh = window.visualViewport?.height ?? window.innerHeight;
       return searchBox !== undefined && searchBox.top >= 0 && searchBox.bottom <= vh;
     });
@@ -729,7 +812,8 @@ try {
     });
     await page.goto(url);
     await page.waitForFunction(
-      () => document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
+      () =>
+        document.querySelector('[data-testid="renderer"]')?.getAttribute("data-kind") === "webgl",
       { timeout: 30000 },
     );
     const fileInput = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
@@ -738,7 +822,9 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle());
+    await page.evaluate(() =>
+      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+    );
 
     // 5A: Thumb cluster default right-handed positioning
     const rightThumbBox = (await (await page.$('[data-testid="thumb-cluster"]'))!.boundingBox())!;
@@ -808,7 +894,9 @@ try {
 console.log("\n=======================================================");
 const passCount = results.filter((r) => r.status === "PASS").length;
 const failCount = results.filter((r) => r.status === "FAIL").length;
-console.log(`Milestone MB3 Stress Test Summary: ${passCount} PASSED, ${failCount} FAILED (Total: ${results.length})`);
+console.log(
+  `Milestone MB3 Stress Test Summary: ${passCount} PASSED, ${failCount} FAILED (Total: ${results.length})`,
+);
 if (failCount > 0) {
   process.exit(1);
 }

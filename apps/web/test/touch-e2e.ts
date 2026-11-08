@@ -511,7 +511,9 @@ export async function touchViewerSuite(): Promise<void> {
     if (searchBox) {
       ok(
         searchBox.height >= 44,
-        t(`palette search input meets WCAG 2.5.5 >= 44px (height: ${searchBox.height.toFixed(1)}px)`),
+        t(
+          `palette search input meets WCAG 2.5.5 >= 44px (height: ${searchBox.height.toFixed(1)}px)`,
+        ),
       );
     }
 
@@ -544,7 +546,9 @@ export async function touchViewerSuite(): Promise<void> {
       if (entryBox) {
         ok(
           entryBox.height >= 48,
-          t(`palette entry meets ergonomics spec >= 48px (height: ${entryBox.height.toFixed(1)}px)`),
+          t(
+            `palette entry meets ergonomics spec >= 48px (height: ${entryBox.height.toFixed(1)}px)`,
+          ),
         );
       }
     }

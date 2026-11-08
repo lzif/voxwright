@@ -88,9 +88,9 @@ In that mode:
 
 ### Touch-only devices
 
-A device whose only pointer is a touch screen also keeps the page a viewer. The page says "Editing needs a mouse and keyboard; on this device the page is a viewer."
+On a phone or tablet with WebGL2, the page uses a mobile layout: a full-screen picture, a top bar with a **Menu** button (for opening files, texture packs, view settings and exporting), a bottom toolbar for choosing tools and opening the block palette, a floating **Undo** / **Redo** cluster (which can be moved to the left side for left-handed use), and draggable bottom sheets (with peek, half and full heights) for the palette, block state and selection panels. (Direct touch block placement on the picture is still in progress; see `docs/mobile-editor-plan.md`.)
 
-On a touch screen in Orbit, one finger turns the build, pinching with two fingers zooms, and moving two fingers together moves the build across the screen. If you lift one finger after a two-finger gesture, the other keeps turning the build. The **Turn**, **Tilt** and zoom controls in the side panel work too. The **Fly** button is shown, but touch has no way to move in Fly; dragging only looks around. The project has not tested these gestures in a browser run or on a real phone, only a phone-sized window.
+On a touch screen in Orbit, one finger turns the build, pinching with two fingers zooms, and moving two fingers together pans the build across the screen. If you lift one finger after a two-finger gesture, the remaining finger keeps turning the build without jumping. The **Turn**, **Tilt** and zoom controls in the **Menu** sheet work too, and **Fly** mode is hidden on touch devices. Adding `?perf=1` to the address shows a small performance overlay (frame rate, triangle count, frame time, heap memory and pixel ratio).
 
 ## 3. Converting and the loss report
 
@@ -265,7 +265,7 @@ There is one slot: the build you are editing.
 - **When the copy is deleted.** After an export, when you undo every edit, when you discard it, and when you choose to open another file and drop the edits.
 - **Where it lives.** In this browser only. A different browser or device does not see it, and clearing the site's data removes it. If the browser blocks storage (some private windows), autosave turns itself off and the panel says so: export to keep your work.
 
-Autosave is for the editor. A page that cannot edit (software renderer, touch only) does not offer a restore.
+Autosave is for the editor. A page that cannot edit (software renderer) does not offer a restore.
 
 ## 7. Your own resource pack or client jar
 
@@ -291,7 +291,7 @@ The software renderer (no WebGL2) also uses your pack.
 Editing:
 
 - No editing in Fly mode. Switch to Orbit.
-- No editing with the software renderer (no WebGL2), and none on a touch-only device.
+- No editing with the software renderer (no WebGL2). Direct touch block placement on the canvas is still in progress (see `docs/mobile-editor-plan.md`).
 - Selections are boxes. A drag chooses a box between two blocks, so you cannot select cells in empty air by dragging. Type the corners instead.
 - Mirror works east-west and north-south only. There is no vertical mirror.
 - Move uses typed offsets or the up and down buttons. There is no drag-to-move.

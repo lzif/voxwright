@@ -9,6 +9,7 @@
   "files": {
     "includes": [
       "**",
+      "!.agents",
       "!reference",
       "!**/dist",
       "!**/coverage",

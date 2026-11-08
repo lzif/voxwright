@@ -2,7 +2,7 @@
 
 # Mobile-first schematic editor: plan
 
-Nov 7, 2026 · plan only, no code written · base: `main` at `d3a7ef6`
+Nov 7, 2026 · MB1–MB3 implemented, MB4 in progress · base: `main` at `d3a7ef6`
 
 Goal: full editing on a touch-only phone, without taking anything away from desktop mouse-and-keyboard editing. The editing core is already input-independent, so most of the work is a new input layer and a new layout in `apps/web`, plus a few small, additive hooks in `render`. Luki's decisions on the twelve open questions are recorded in section 5 and applied below. One item stays open on purpose: the largest build size a phone must handle smoothly is set from the first real-phone measurement in MB1.
 
@@ -10,13 +10,17 @@ Milestones are named MB1 to MB8 (mobile B-series) so they do not collide with th
 
 ## Progress
 
-| Step                                                       | State                                                             |
-| ---------------------------------------------------------- | ----------------------------------------------------------------- |
-| Plan written (`docs/mobile-editor-plan.md`)                | Done, 2026-11-07                                                  |
-| Plan reviewed by Luki                                      | Done, 2026-11-07; decisions recorded in section 5                 |
-| Dependency: `vite dev` mesh-worker fix (`server.fs.allow`) | Not started; not part of this plan, blocks phone dev-mode testing |
-| MB1 to MB8                                                 | Not started (implementation needs a separate go-ahead)            |
-| Mobile editing release                                     | After 0.1.0, as 0.2.0 (decision 12)                               |
+| Step                                                       | State                                                                               |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Plan written (`docs/mobile-editor-plan.md`)                | Done, 2026-11-07                                                                    |
+| Plan reviewed by Luki                                      | Done, 2026-11-07; decisions recorded in section 5                                   |
+| Dependency: `vite dev` mesh-worker fix (`server.fs.allow`) | Done, 2026-11-07 (commit `30d90af`)                                                 |
+| MB1: Phone baseline and test harness                       | Done in VM (`touch-e2e.ts`, `PerfOverlay.svelte`, `docs/phone-test-checklist.md`)   |
+| MB2: Input ownership and the gesture arbiter               | Done (`renderer.ts` external input/camera API, `gestures.ts` state machine + tests) |
+| MB3: Mobile layout shell                                   | Done (`BottomSheet`, `BottomToolbar`, `ThumbCluster`, coarse gate removed)          |
+| MB4: Touch placement with the offset cursor                | In progress (`TouchReticle.svelte` added; `EditSession` touch placement next)       |
+| MB5 to MB8                                                 | Not started                                                                         |
+| Mobile editing release                                     | After 0.1.0, as 0.2.0 (decision 12)                                                 |
 
 ## 1. Current-state audit
 
@@ -262,13 +266,11 @@ The only item still waiting is decision 4, which needs data from MB1.
 
 ## 6. Explicitly out of scope
 
-- No implementation in this task: this file is the only thing written (plus its `docs/` directory).
 - No release: no 0.1.0 version bump, no tag, no npm publish, no npm organization. Mobile editing is planned for a release after 0.1.0 (decision 12), which is also not part of this plan.
 - No GitHub Pages deploy.
-- No commit or push as part of this plan.
 - The mcbuilder port (M5) and the converter are unaffected.
 - No new file formats, no multiplayer or cloud sync, no native app wrapper.
 
-### Dependency, not a task
+### Dependency, not a task (resolved)
 
-`vite dev` currently fails to load the mesh worker (`server.fs.allow` is missing in `apps/web/vite.config.ts`). Until that is fixed, dev-mode testing on the phone through Termux is blocked, and every "phone checklist" above depends on it. The fix itself is not part of this plan; a production build served statically is the possible workaround, but it was not tried here.
+`vite dev` previously failed to load the mesh worker (`server.fs.allow` was missing in `apps/web/vite.config.ts`). This was fixed in commit `30d90af` by allowing the workspace root in `server.fs.allow`, unblocking dev-mode testing on the phone through Termux.

@@ -48,8 +48,9 @@ work in the Orbit camera, not in Fly. While layers are limited with the slicer,
 the mouse tools pick and place only in the visible ones; selection actions (fill,
 replace, move, rotate, mirror) act on the whole box, hidden layers included. Edits live in the page: Export writes a new
 file (the one you opened is never changed), and the page asks before you leave or
-open another file with unexported edits. A touch-only device, or a browser
-without WebGL2, keeps the page a viewer. Drawing uses WebGL2
+open another file with unexported edits. A browser
+without WebGL2 keeps the page a viewer (mobile touch editing is in progress; see
+[docs/mobile-editor-plan.md](docs/mobile-editor-plan.md)). Drawing uses WebGL2
 (`@voxwright/render/webgl`: our own section mesher in a pool of workers, drawn
 with three.js); without WebGL2 the page falls back to a software rasterizer in a
 worker.
@@ -66,7 +67,8 @@ git-ignored; without it the page still works and draws flat colours.
 once with the GPU off, once through the editor (real mouse and key events on a
 `.litematic`, then the exported file is read back and compared cell by cell), and
 once for the release work (footer, autosave, your own resource pack, accessibility
-with axe-core, a phone-sized window). Build the site first. `node apps/web/test/perf.ts` and
+with axe-core, a phone-sized window). `node apps/web/test/touch-e2e.ts` drives the
+mobile touch shell and gestures in a 390 x 844 touch-emulated viewport. Build the site first. `node apps/web/test/perf.ts` and
 `node apps/web/scripts/measure.ts` measure a generated 256-wide build.
 
 Guides: the [user guide](docs/user-guide.md) for people using the app, and the
@@ -81,7 +83,7 @@ Guides: the [user guide](docs/user-guide.md) for people using the app, and the
 - dependency-cruiser for the dependency rules (`.dependency-cruiser.cjs`)
 - GitHub Actions, per path (`.github/workflows/ci.yml`)
 
-Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm depcheck`, `pnpm run licenses`
+Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm depcheck`, `pnpm run licenses`
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
@@ -136,9 +138,7 @@ Built:
 
 - Repo foundations: license, editor config, workspace, TypeScript base config,
   Biome, Vitest, dependency-cruiser.
-- CI on GitHub (`.github/workflows/ci.yml`). It has run, and the last pushed
-  commit failed its `repo` job at `pnpm run check`, a formatting error. The fix is
-  not pushed yet.
+- CI on GitHub (`.github/workflows/ci.yml`), passing on `main`.
 - Golden vectors from the Python mcbuilder for the core, the mcbuilder port and
   the renderer (see [vectors/README.md](vectors/README.md)).
 - `core`: NBT reader and writer (big and little endian, gzip), block strings,
