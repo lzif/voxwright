@@ -1,0 +1,211 @@
+/* Ore UI Study, version 3: tokens for ore-ui.css.
+ *
+ * GENERATED from tokens.json by `node apps/web/scripts/ore-tokens.ts`. Do not edit by hand:
+ * change tokens.json (or the script) and run the command again. test/ore-tokens.test.ts fails
+ * if this file is not what the script writes.
+ *
+ * Load this file before ore-ui.css. The custom properties are named as ore-ui.css reads them.
+ * `.ore-type-<style>` sets the family, size, line height and weight of a type style; the React
+ * bundle of the design system used the bare names (`label`, `caption`) for these.
+ */
+
+@font-face {
+  font-family: "Pixelify Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/PixelifySans-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Pixelify Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/PixelifySans-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/NotoSans-Regular.woff2") format("woff2");
+}
+
+:root {
+  /* Colour, theme 'dark' */
+  --surface-page: #313233;
+  --surface-panel: #48494a;
+  --surface-raised: #58585a;
+  --panel-hi: #5a5b5c;
+  --panel-hi-strong: #6d6d6e;
+  --panel-lo: #333334;
+  --tab-lo: #454647;
+  --raised-hi: #79797b;
+  --raised-lo: #68686a;
+  --field-shade: #242425;
+  --outline: #1e1e1f;
+  --light-100: #f4f6f9;
+  --light-100-hi: #fbfbfd;
+  --light-100-lo: #f8fafb;
+  --light-200: #d0d1d4;
+  --light-200-hi: #ecedee;
+  --light-200-lo: #e3e3e5;
+  --light-300: #b1b2b5;
+  --light-300-hi: #e0e0e1;
+  --light-300-lo: #d0d1d3;
+  --light-400: #8c8d90;
+  --grey-hi: #a3a4a6;
+  --grey-lo: #97989b;
+  --grey-hover: #c1c1c4;
+  --grey-hover-lo: #c7c7ca;
+  --grey-pressed: #79797b;
+  --grey-pressed-lo: #868688;
+  --green: #3c8527;
+  --green-hi: #639d52;
+  --green-lo: #4f913c;
+  --green-edge: #1d4d13;
+  --green-shade: #2a5d1b;
+  --green-hover: #52a535;
+  --green-hover-hi: #75b75d;
+  --green-hover-lo: #63ae49;
+  --green-pressed: #2a641c;
+  --green-pressed-hi: #558349;
+  --green-pressed-lo: #3f7332;
+  --red: #ca3636;
+  --red-hi: #d55e5e;
+  --red-lo: #cf4a4a;
+  --red-edge: #ad1d1d;
+  --red-hover: #ff8080;
+  --red-hover-hi: #ff9999;
+  --red-hover-lo: #ff8c8c;
+  --red-pressed: #c02d2d;
+  --red-pressed-hi: #cd5757;
+  --red-pressed-lo: #c64242;
+  --blue: #2e6be5;
+  --yellow: #ffe866;
+  --tag-neutral: var(--outline);
+  --tag-primary: #6cc349;
+  --tag-info: #8cb3ff;
+  --tag-notice: var(--yellow);
+  --tag-warning: var(--red-hover);
+  --tag-realms: #ac90f3;
+  --ink: #ffffff;
+  --ink-muted: var(--light-200);
+  --ink-placeholder: var(--light-300);
+  --ink-dark: var(--outline);
+  --ink-disabled: var(--surface-panel);
+  --focus: #ffffff;
+
+  /* Font families */
+  --font-sans: "Pixelify Sans", system-ui, sans-serif;
+  --font-text: "Noto Sans", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type styles */
+  --type-display-family: var(--font-sans);
+  --type-display-size: 36px;
+  --type-display-line: 40px;
+  --type-display-weight: 700;
+  --type-title-family: var(--font-sans);
+  --type-title-size: 22px;
+  --type-title-line: 26px;
+  --type-title-weight: 700;
+  --type-heading-family: var(--font-sans);
+  --type-heading-size: 16px;
+  --type-heading-line: 20px;
+  --type-heading-weight: 700;
+  --type-body-family: var(--font-sans);
+  --type-body-size: 14px;
+  --type-body-line: 20px;
+  --type-body-weight: 400;
+  --type-label-family: var(--font-sans);
+  --type-label-size: 14px;
+  --type-label-line: 16px;
+  --type-label-weight: 400;
+  --type-caption-family: var(--font-sans);
+  --type-caption-size: 12px;
+  --type-caption-line: 16px;
+  --type-caption-weight: 400;
+  --type-prose-family: var(--font-text);
+  --type-prose-size: 15px;
+  --type-prose-line: 18px;
+  --type-prose-weight: 400;
+  --type-code-family: var(--font-mono);
+  --type-code-size: 13px;
+  --type-code-line: 20px;
+  --type-code-weight: 400;
+
+  /* Spacing, one design unit is 2px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-pixel: 2px;
+
+  /* Shadow */
+  --panel-tile: inset 0 2px 0 #5a5b5c, 0 2px 0 #333334;
+  --field-well: inset 0 4px 0 #242425;
+}
+
+.ore-type-display {
+  font-family: var(--type-display-family);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+  font-weight: var(--type-display-weight);
+}
+
+.ore-type-title {
+  font-family: var(--type-title-family);
+  font-size: var(--type-title-size);
+  line-height: var(--type-title-line);
+  font-weight: var(--type-title-weight);
+}
+
+.ore-type-heading {
+  font-family: var(--type-heading-family);
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.ore-type-body {
+  font-family: var(--type-body-family);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+}
+
+.ore-type-label {
+  font-family: var(--type-label-family);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}
+
+.ore-type-caption {
+  font-family: var(--type-caption-family);
+  font-size: var(--type-caption-size);
+  line-height: var(--type-caption-line);
+  font-weight: var(--type-caption-weight);
+}
+
+.ore-type-prose {
+  font-family: var(--type-prose-family);
+  font-size: var(--type-prose-size);
+  line-height: var(--type-prose-line);
+  font-weight: var(--type-prose-weight);
+}
+
+.ore-type-code {
+  font-family: var(--type-code-family);
+  font-size: var(--type-code-size);
+  line-height: var(--type-code-line);
+  font-weight: var(--type-code-weight);
+}

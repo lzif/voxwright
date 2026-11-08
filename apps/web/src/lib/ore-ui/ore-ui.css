@@ -1,0 +1,226 @@
+/* Ore UI Study components, from Luki's "Ore UI Study" design system, version 3
+ * (components/bundle.css of the design system, unchanged below this comment).
+ *
+ * Load tokens.css first: every colour, space and radius here is a custom property it defines.
+ * tokens.css is generated from tokens.json; see docs/design-system.md.
+ *
+ * Kept as supplied, one rule per line, so it can be compared with a newer version of the design
+ * system. Biome is told to leave its layout and its selector order alone for that reason.
+ */
+/* biome-ignore-all format: kept as supplied, one rule per line */
+/* biome-ignore-all lint/style/noDescendingSpecificity: the state rules are ordered as the design system has them */
+
+/* Ore UI Study components. Every color reads a token from tokens.css.
+   One design unit is 2px: outlines, bevel lines and bands are 1, 1 and 2 units. Values measured from the Ore UI state sheets. */
+
+.ore-btn, .ore-seg, .ore-tab, .ore-input, .ore-switch { box-sizing: border-box; font-family: inherit; }
+
+/* Focus: a 2px white ring drawn directly outside the control outline */
+.ore-btn:focus-visible, .ore-seg:focus-visible, .ore-tab:focus-visible, .ore-switch:focus-visible .ore-switch__thumb,
+.ore-slider__input:focus-visible::-webkit-slider-thumb, .ore-choice__input:focus-visible + .ore-box,
+.ore-dialog__icon:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
+.ore-slider__input:focus-visible::-moz-range-thumb { outline: 2px solid var(--focus); outline-offset: 0; }
+.ore-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ore-btn:focus-visible, .ore-seg:focus-visible, .ore-tab:focus-visible, .ore-dialog__icon:focus-visible, .ore-slider__input:focus-visible, .ore-switch:focus-visible { z-index: 1; }
+.ore-slider__input:focus-visible, .ore-switch:focus-visible { outline: none; }
+
+/* Bevelled faces: button, toggle segment, tab.
+   Set --bf face, --bh top/left line, --bl bottom/right line, --be 2-unit band. */
+.ore-btn, .ore-seg, .ore-tab {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: 44px; padding: 0 var(--space-4) 4px; border: 2px solid var(--outline); border-radius: var(--radius-none);
+  background: var(--bf); color: var(--bt, var(--ink)); cursor: pointer;
+  box-shadow: inset 0 -4px 0 var(--be), inset 2px 2px 0 var(--bh), inset -2px -6px 0 var(--bl);
+}
+.ore-btn { --bt: var(--ink); }
+
+/* Button: hero and primary are green, secondary is light, destructive is red */
+.ore-btn--hero, .ore-btn--primary { --bf: var(--green); --bh: var(--green-hi); --bl: var(--green-lo); --be: var(--green-edge); }
+.ore-btn--hero:hover:not(:disabled), .ore-btn--primary:hover:not(:disabled) { --bf: var(--green-hover); --bh: var(--green-hover-hi); --bl: var(--green-hover-lo); }
+.ore-btn--hero:active:not(:disabled), .ore-btn--primary:active:not(:disabled) { --bf: var(--green-pressed); --bh: var(--green-pressed-hi); --bl: var(--green-pressed-lo); }
+.ore-btn--hero { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; text-shadow: 2px 2px 0 var(--green-shade); }
+.ore-btn--secondary { --bf: var(--light-200); --bh: var(--light-200-hi); --bl: var(--light-200-lo); --be: var(--surface-raised); --bt: var(--ink-dark); }
+.ore-btn--secondary:hover:not(:disabled) { --bf: var(--light-100); --bh: var(--light-100-hi); --bl: var(--light-100-lo); }
+.ore-btn--secondary:active:not(:disabled) { --bf: var(--light-300); --bh: var(--light-300-hi); --bl: var(--light-300-lo); }
+.ore-btn--destructive { --bf: var(--red); --bh: var(--red-hi); --bl: var(--red-lo); --be: var(--red-edge); }
+.ore-btn--destructive:hover:not(:disabled) { --bf: var(--red-hover); --bh: var(--red-hover-hi); --bl: var(--red-hover-lo); }
+.ore-btn--destructive:active:not(:disabled) { --bf: var(--red-pressed); --bh: var(--red-pressed-hi); --bl: var(--red-pressed-lo); }
+/* pressed: the band closes and the face drops 2 units; margin keeps the layout still */
+.ore-btn:active:not(:disabled) { min-height: 40px; margin-top: 4px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+.ore-btn:disabled { --bf: var(--light-200); border-color: var(--light-400); color: var(--ink-disabled); text-shadow: none; cursor: not-allowed; box-shadow: inset 0 -4px 0 var(--light-300); }
+
+/* Toggle: segments in a row, one selected */
+.ore-toggle__group { display: flex; align-items: flex-end; }
+.ore-seg { flex: 1; --bf: var(--light-200); --bh: var(--light-200-hi); --bl: var(--light-200-lo); --be: var(--surface-raised); --bt: var(--ink-dark); }
+.ore-seg + .ore-seg { margin-left: -2px; }
+.ore-seg:hover:not(:disabled) { --bf: var(--light-100); --bh: var(--light-100-hi); --bl: var(--light-100-lo); }
+.ore-seg[aria-checked="true"] { --bf: var(--green); --bh: var(--green-hi); --bl: var(--green-lo); --bt: var(--ink); min-height: 40px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+.ore-seg[aria-checked="true"]:hover:not(:disabled) { --bf: var(--green-hover); --bh: var(--green-hover-hi); --bl: var(--green-hover-lo); }
+.ore-seg:active:not(:disabled):not([aria-checked="true"]) { --bf: var(--light-300); --bh: var(--light-300-hi); --bl: var(--light-300-lo); min-height: 40px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+.ore-seg:disabled { --bf: var(--light-200); border-color: var(--light-400); --bt: var(--ink-disabled); cursor: not-allowed; box-shadow: inset 0 -4px 0 var(--light-300); }
+.ore-seg[aria-checked="true"]:disabled { min-height: 40px; box-shadow: none; }
+.ore-seg[aria-checked="true"]::after, .ore-tab[aria-selected="true"]::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 44px; height: 2px; margin-left: -22px; background: var(--ink); }
+.ore-seg:disabled[aria-checked="true"]::after { background: var(--ink-disabled); }
+
+/* Tabs: unselected tabs are raised, the selected one is pressed in and underlined */
+.ore-tabs { display: flex; align-items: flex-end; }
+.ore-tab { flex: 1; --bf: var(--surface-panel); --bh: var(--panel-hi-strong); --bl: var(--panel-hi); --be: var(--surface-page); }
+.ore-tab + .ore-tab { margin-left: -2px; }
+.ore-tab:hover { --bf: var(--surface-raised); --bh: var(--raised-hi); --bl: var(--raised-lo); }
+.ore-tab[aria-selected="true"], .ore-tab:active { --bf: var(--surface-page); --bh: var(--panel-hi); --bl: var(--tab-lo); min-height: 40px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+
+/* Field wrapper */
+.ore-field { display: flex; flex-direction: column; gap: var(--space-1); color: var(--ink); }
+.ore-field__label { color: var(--ink); }
+.ore-field.is-disabled .ore-field__label { color: var(--ink-muted); }
+.ore-field__help { color: var(--ink-muted); }
+.ore-field__error { color: var(--ink); }
+.ore-field__error::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; background: var(--red); }
+
+/* Text field: a dark well with a shaded top edge */
+.ore-input { display: block; width: 100%; min-height: 44px; padding: 0 var(--space-3); background: var(--surface-page); color: var(--ink); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: var(--field-well); text-align: left; }
+.ore-input::placeholder { color: var(--ink-placeholder); opacity: 1; }
+.ore-input.is-error { border-color: var(--red); }
+.ore-input:disabled { background: var(--light-200); color: var(--ink-disabled); border-color: var(--light-400); box-shadow: inset 2px 2px 0 var(--light-300); cursor: not-allowed; }
+.ore-input:disabled::placeholder { color: var(--ink-disabled); }
+
+/* Checkbox and radio */
+.ore-choice { display: flex; flex-direction: column; gap: var(--space-1); color: var(--ink); }
+.ore-choice__row { position: relative; display: inline-flex; align-items: center; gap: var(--space-3); cursor: pointer; }
+.ore-choice__input { position: absolute; left: 0; top: 50%; width: 24px; height: 24px; margin: -12px 0 0; opacity: 0; }
+.ore-choice__help { padding-left: 36px; }
+.ore-choice__text { color: var(--ink); }
+.ore-box { display: inline-flex; align-items: center; justify-content: center; flex: none; box-sizing: border-box; width: 24px; height: 24px; background: var(--light-400); border: 2px solid var(--outline); border-radius: var(--radius-none); color: transparent; box-shadow: inset 2px 2px 0 var(--grey-hi), inset -2px -2px 0 var(--grey-lo); }
+.ore-box svg { display: block; }
+.ore-choice__input:checked + .ore-box { background: var(--green); color: var(--ink); box-shadow: inset 2px 2px 0 var(--green-hi), inset -2px -2px 0 var(--green-lo); }
+.ore-choice__row:hover .ore-choice__input:not(:disabled) + .ore-box { background: var(--grey-hover); box-shadow: inset 2px 2px 0 var(--grey-hover), inset -2px -2px 0 var(--grey-hover-lo); }
+.ore-choice__row:hover .ore-choice__input:not(:disabled):checked + .ore-box { background: var(--green-hover); box-shadow: inset 2px 2px 0 var(--green-hover-hi), inset -2px -2px 0 var(--green-hover-lo); }
+.ore-choice__row:active .ore-choice__input:not(:disabled) + .ore-box { background: var(--grey-pressed); box-shadow: inset 2px 2px 0 var(--grey-pressed), inset -2px -2px 0 var(--grey-pressed-lo); }
+.ore-choice__row:active .ore-choice__input:not(:disabled):checked + .ore-box { background: var(--green-pressed); box-shadow: inset 2px 2px 0 var(--green-pressed-hi), inset -2px -2px 0 var(--green-pressed-lo); }
+.ore-choice__input:disabled + .ore-box { background: var(--light-200); border-color: var(--light-400); box-shadow: none; }
+.ore-choice__input:disabled:checked + .ore-box { color: var(--light-400); }
+.ore-choice__input:disabled ~ .ore-choice__text { color: var(--ink-muted); }
+.ore-choice__row:has(.ore-choice__input:disabled) { cursor: not-allowed; }
+
+/* radio: a diamond with a white centre */
+.ore-box--radio { width: 16px; height: 16px; margin: 4px; transform: rotate(45deg); }
+.ore-dot { width: 6px; height: 6px; background: transparent; }
+.ore-choice__input:checked + .ore-box--radio .ore-dot { background: var(--ink); box-shadow: inset -2px -2px 0 var(--light-300); }
+.ore-choice__input:disabled:checked + .ore-box--radio .ore-dot { background: var(--light-400); box-shadow: none; }
+
+/* Switch: a track with an I or O glyph and a 28px thumb that slides over it */
+.ore-switch { position: relative; flex: none; width: 54px; height: 28px; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.ore-switch__track { position: absolute; left: 0; right: 0; bottom: 0; height: 24px; box-sizing: border-box; background: var(--light-400); border: 2px solid var(--outline); box-shadow: inset 2px 2px 0 var(--grey-hi), inset -2px -2px 0 var(--grey-lo); }
+.ore-switch[aria-checked="true"] .ore-switch__track { background: var(--green); box-shadow: inset 2px 2px 0 var(--green-hi), inset -2px -2px 0 var(--green-lo); }
+.ore-switch[aria-checked="true"]:hover:not(:disabled) .ore-switch__track { background: var(--green-hover); box-shadow: inset 2px 2px 0 var(--green-hover-hi), inset -2px -2px 0 var(--green-hover-lo); }
+.ore-switch__glyph { position: absolute; bottom: 0; display: flex; align-items: center; justify-content: center; width: 26px; height: 24px; font-size: 12px; line-height: 1; font-weight: 700; color: var(--field-shade); }
+.ore-switch[aria-checked="false"] .ore-switch__glyph { right: 0; }
+.ore-switch[aria-checked="true"] .ore-switch__glyph { left: 0; color: var(--ink); }
+.ore-switch__thumb { position: absolute; bottom: 0; left: 0; box-sizing: border-box; width: 28px; height: 28px; background: var(--light-200); border: 2px solid var(--outline); box-shadow: inset 0 -4px 0 var(--surface-raised), inset 2px 2px 0 var(--light-200-hi), inset -2px -6px 0 var(--light-200-lo); }
+.ore-switch[aria-checked="true"] .ore-switch__thumb { left: auto; right: 0; }
+.ore-switch:hover:not(:disabled) .ore-switch__thumb { background: var(--light-100); box-shadow: inset 0 -4px 0 var(--surface-raised), inset 2px 2px 0 var(--light-100-hi), inset -2px -6px 0 var(--light-100-lo); }
+.ore-switch:active:not(:disabled) .ore-switch__thumb { background: var(--light-300); box-shadow: inset 0 -4px 0 var(--surface-raised), inset 2px 2px 0 var(--light-300-hi), inset -2px -6px 0 var(--light-300-lo); }
+.ore-switch:disabled { cursor: not-allowed; }
+.ore-switch:disabled .ore-switch__track { background: var(--light-200); border-color: var(--light-400); box-shadow: none; }
+.ore-switch:disabled .ore-switch__glyph, .ore-switch[aria-checked="true"]:disabled .ore-switch__glyph { color: var(--ink-disabled); }
+.ore-switch:disabled .ore-switch__thumb { background: var(--light-200); border-color: var(--light-400); box-shadow: inset 0 -4px 0 var(--light-300); }
+
+/* Slider: a segmented rail under a native range input */
+.ore-slider-field { display: flex; flex-direction: column; gap: var(--space-2); color: var(--ink); }
+.ore-slider__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.ore-slider__value { color: var(--ink); }
+.ore-slider-field.is-disabled .ore-field__label { color: var(--ink-muted); }
+.ore-slider__control { position: relative; height: 28px; }
+.ore-slider__input { position: relative; z-index: 1; -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 28px; margin: 0; padding: 0; background: transparent; cursor: pointer; }
+.ore-slider__rail {
+  --fill: calc(14px + (100% - 28px) * var(--p, 0));
+  --seg: var(--outline); --face: var(--light-400); --top: var(--grey-hi); --bot: var(--grey-lo);
+  position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; box-sizing: border-box; border: 2px solid var(--outline);
+  background:
+    repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 2px), var(--seg) calc(10% - 2px), var(--seg) 10%),
+    linear-gradient(to right, var(--green-hi) var(--fill), var(--top) var(--fill)) top / 100% 2px no-repeat,
+    linear-gradient(to right, var(--green-lo) var(--fill), var(--bot) var(--fill)) bottom / 100% 2px no-repeat,
+    linear-gradient(to right, var(--green) var(--fill), var(--face) var(--fill));
+}
+.ore-slider__input:disabled + .ore-slider__rail { --seg: var(--light-400); --face: var(--light-200); --top: var(--light-200-hi); --bot: var(--light-200-lo); border-color: var(--light-400);
+  background:
+    repeating-linear-gradient(to right, transparent 0, transparent calc(10% - 2px), var(--seg) calc(10% - 2px), var(--seg) 10%),
+    linear-gradient(var(--face), var(--face)); }
+.ore-slider__input::-webkit-slider-runnable-track { height: 28px; background: transparent; }
+.ore-slider__input::-moz-range-track { height: 28px; background: transparent; }
+.ore-slider__input::-webkit-slider-thumb { -webkit-appearance: none; box-sizing: border-box; width: 28px; height: 28px; background: var(--light-200); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: inset 0 -4px 0 var(--surface-raised), inset 2px 2px 0 var(--light-200-hi), inset -2px -6px 0 var(--light-200-lo); }
+.ore-slider__input::-moz-range-thumb { box-sizing: border-box; width: 28px; height: 28px; background: var(--light-200); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: inset 0 -4px 0 var(--surface-raised), inset 2px 2px 0 var(--light-200-hi), inset -2px -6px 0 var(--light-200-lo); }
+.ore-slider__input:disabled { cursor: not-allowed; }
+.ore-slider__input:disabled::-webkit-slider-thumb { border-color: var(--light-400); box-shadow: inset 0 -4px 0 var(--light-300), inset 2px 2px 0 var(--light-200-hi); }
+.ore-slider__input:disabled::-moz-range-thumb { border-color: var(--light-400); box-shadow: inset 0 -4px 0 var(--light-300), inset 2px 2px 0 var(--light-200-hi); }
+
+/* Dropdown: a secondary button with a chevron */
+.ore-dd { position: relative; }
+.ore-dd__btn { display: flex; width: 100%; justify-content: space-between; text-align: left; }
+.ore-dd__btn[aria-expanded="true"] { --bf: var(--light-300); --bh: var(--light-300-hi); --bl: var(--light-300-lo); min-height: 40px; margin-top: 4px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+.ore-dd__btn.is-error { border-color: var(--red); }
+.ore-dd__placeholder { color: var(--ink-disabled); }
+.ore-dd__chev { flex: none; color: var(--ink-dark); }
+.ore-dd__btn:disabled .ore-dd__chev { color: var(--ink-disabled); }
+.ore-dd__menu { position: absolute; z-index: 10; top: calc(100% + var(--space-1)); left: 0; right: 0; margin: 0; padding: 0; list-style: none; background: var(--surface-panel); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: inset 0 2px 0 var(--panel-hi); }
+.ore-dd__opt { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: 44px; padding: 0 var(--space-4); color: var(--ink); cursor: pointer; }
+.ore-dd__opt + .ore-dd__opt { border-top: 2px solid var(--panel-hi); }
+.ore-dd__opt.is-active { background: var(--surface-raised); }
+.ore-dd__opt svg { visibility: hidden; }
+.ore-dd__opt[aria-selected="true"] svg { visibility: visible; }
+
+/* Tag: a flat colored square, no outline */
+.ore-tag { display: inline-flex; align-items: center; height: 18px; padding: 0 var(--space-1); background: var(--tag-neutral); color: var(--ink); border-radius: var(--radius-none); white-space: nowrap; }
+.ore-tag--primary { background: var(--tag-primary); color: var(--ink-dark); }
+.ore-tag--info { background: var(--tag-info); color: var(--ink-dark); }
+.ore-tag--notice { background: var(--tag-notice); color: var(--ink-dark); }
+.ore-tag--warning { background: var(--tag-warning); color: var(--ink-dark); }
+.ore-tag--realms { background: var(--tag-realms); color: var(--ink-dark); }
+
+/* Dialog: outlined frame, panel header, dark body, panel footer */
+.ore-scrim { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: var(--space-8); }
+.ore-scrim::before { content: ""; position: absolute; inset: 0; background: var(--outline); opacity: .7; }
+.ore-dialog { position: relative; display: flex; flex-direction: column; box-sizing: border-box; width: 100%; max-width: 428px; background: var(--surface-page); color: var(--ink); border: 2px solid var(--outline); border-radius: var(--radius-none); }
+.ore-dialog:focus { outline: none; }
+.ore-dialog__header { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 48px; background: var(--surface-panel); box-shadow: inset 0 2px 0 var(--panel-hi-strong), inset 0 -2px 0 var(--panel-hi); }
+.ore-dialog__title { margin: 0; text-align: center; color: var(--ink); }
+.ore-dialog__icon { position: absolute; top: 50%; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: -16px 0 0; padding: 0; background: none; border: 0; color: var(--ink); cursor: pointer; }
+.ore-dialog__icon--back { left: 8px; }
+.ore-dialog__icon--close { right: 8px; }
+.ore-dialog__icon:hover { background: var(--surface-raised); }
+.ore-dialog__body { padding: var(--space-4); color: var(--ink); }
+.ore-dialog__body > :first-child { margin-top: 0; }
+.ore-dialog__body > :last-child { margin-bottom: 0; }
+.ore-dialog__section { padding: var(--space-4); border-top: 2px solid var(--panel-hi); }
+.ore-dialog__footer { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-4); background: var(--surface-panel); box-shadow: inset 0 2px 0 var(--panel-hi); }
+
+/* Panel and ListItem: tiles with a light top edge and a dark line beneath */
+.ore-panel { box-sizing: border-box; padding: var(--space-4); background: var(--surface-panel); color: var(--ink); box-shadow: var(--panel-tile); }
+.ore-panel__header { margin: 0 0 var(--space-2); }
+.ore-panel > * + * { margin-top: var(--space-4); }
+.ore-panel > .ore-panel__header + * { margin-top: 0; }
+.ore-row { display: flex; align-items: stretch; background: var(--surface-panel); color: var(--ink); box-shadow: var(--panel-tile); }
+.ore-row + .ore-row { margin-top: 4px; }
+.ore-row__media { display: flex; align-items: center; padding: var(--space-2) 0 var(--space-2) var(--space-4); }
+.ore-row__main { flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0; padding: var(--space-3) var(--space-4); }
+.ore-row__label { color: var(--ink); }
+.ore-row__desc { color: var(--ink-muted); }
+.ore-row__data { display: flex; flex-direction: column; justify-content: center; padding: var(--space-2) var(--space-4); text-align: right; color: var(--ink-muted); }
+.ore-row__trailing { display: flex; align-items: center; padding: var(--space-2) var(--space-4); }
+.ore-row__cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-1); padding: var(--space-2) var(--space-4); border-left: 2px solid var(--surface-page); }
+.ore-row__icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: var(--light-300); color: var(--ink-dark); }
+.ore-row__cell-label { color: var(--ink); }
+
+/* Notice */
+.ore-notice { display: flex; align-items: center; justify-content: center; box-sizing: border-box; min-height: 36px; padding: var(--space-2) var(--space-4); border: 2px solid var(--outline); border-radius: var(--radius-none); text-align: center; }
+.ore-notice--important { background: var(--yellow); color: var(--ink-dark); }
+.ore-notice--info { background: var(--blue); color: var(--ink); }
+
+/* Tooltip */
+.ore-tooltip { position: relative; display: inline-block; padding: var(--space-1) var(--space-2); background: var(--blue); color: var(--ink); border-radius: var(--radius-pixel); }
+.ore-tooltip::after { content: ""; position: absolute; top: 100%; right: var(--space-2); width: 0; height: 0; border-style: solid; border-width: 6px 6px 0 0; border-color: var(--blue) transparent transparent transparent; }
+
+/* Progress */
+.ore-progress-wrap { display: flex; flex-direction: column; gap: var(--space-1); color: var(--ink); }
+.ore-progress { box-sizing: border-box; height: 16px; background: var(--surface-page); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: inset 0 2px 0 var(--field-shade); }
+.ore-progress__bar { height: 100%; background: var(--blue); }
