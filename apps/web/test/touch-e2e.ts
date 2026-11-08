@@ -93,6 +93,17 @@ async function newPage(browser: Browser): Promise<Page> {
   return page;
 }
 
+/**
+ * Makes `navigator.hardwareConcurrency` read `cores` on every document of `page` (reloads included),
+ * so a check on the mesher worker count says the same on a 2-core CI runner as on a big machine.
+ * The renderer's default is `cores - 1` clamped to 1..4 and a touch-only page caps it at 2.
+ */
+async function pinCores(page: Page, cores: number): Promise<void> {
+  await page.evaluateOnNewDocument((n) => {
+    Object.defineProperty(Navigator.prototype, "hardwareConcurrency", { get: () => n });
+  }, cores);
+}
+
 /** Helper: dispatch a multi-step touch drag gesture via CDP Input.dispatchTouchEvent */
 export async function cdpTouchDrag(
   cdp: CDPSession,
@@ -5513,7 +5524,9 @@ export async function touchCameraSuite(): Promise<void> {
  * MB7, the phone performance pass: the Quality setting (Auto / High / Low) and what it does to the
  * pixel ratio, dynamic resolution while a touch gesture moves the view, and the limits of a touch-only
  * device (two mesher workers, a 16 MB undo history), read from the `?perf=1` overlay and from the
- * renderer. The desktop page keeps its defaults. Antialiasing cannot be told apart here: the VM's
+ * renderer. The desktop page keeps its defaults. The worker counts depend on the core count, so each
+ * page pins `navigator.hardwareConcurrency` (8 cores for the phone and the desktop, 2 for a small
+ * phone) and the test says the same on any machine. Antialiasing cannot be told apart here: the VM's
  * software WebGL starts without it in every mode.
  */
 export async function touchQualitySuite(): Promise<void> {
@@ -5527,6 +5540,9 @@ export async function touchQualitySuite(): Promise<void> {
   const MB = 1024 * 1024;
   try {
     const page = await newPage(browser);
+    // The worker counts below are a function of the core count: pin it (8 cores here, so the
+    // renderer's own default is 4 and the touch cap of 2 is what applies).
+    await pinCores(page, 8);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -5704,10 +5720,11 @@ export async function touchQualitySuite(): Promise<void> {
           .history.maxBytes,
       };
     });
-    const defaultWorkers = Math.max(1, Math.min(4, facts.cores - 1));
     ok(
-      facts.workers === Math.min(2, defaultWorkers) && facts.workers === 2,
-      t(`a touch-only page runs 2 mesher workers (the default here would be ${defaultWorkers})`),
+      facts.cores === 8 && facts.workers === 2,
+      t(
+        `a touch-only page with 8 cores runs 2 mesher workers (the desktop default would be 4; workers: ${facts.workers}, cores: ${facts.cores})`,
+      ),
     );
     ok(
       facts.history === 16 * MB && facts.maxBytes === 16 * MB,
@@ -5925,6 +5942,7 @@ export async function touchQualitySuite(): Promise<void> {
     // -- the desktop page keeps the defaults ------------------------------------------------------
     const desk = await newPage(browser);
     try {
+      await pinCores(desk, 8);
       desk.on("pageerror", (e) => errors.push(String(e)));
       await desk.setViewport({ width: 1280, height: 800, deviceScaleFactor: 3 });
       await desk.goto(`${url}&perf=1`);
@@ -5943,8 +5961,10 @@ export async function touchQualitySuite(): Promise<void> {
         };
       });
       ok(
-        d.workers === Math.max(1, Math.min(4, d.cores - 1)),
-        t(`the desktop page keeps the default worker count (${d.workers} for ${d.cores} cores)`),
+        d.cores === 8 && d.workers === 4,
+        t(
+          `the desktop page keeps the default worker count, 4 with 8 cores (workers: ${d.workers}, cores: ${d.cores})`,
+        ),
       );
       ok(d.history === 64 * MB, t(`and the 64 MB undo history (${d.history / MB} MB)`));
       ok(
@@ -5952,7 +5972,7 @@ export async function touchQualitySuite(): Promise<void> {
         t(`and the device's ratio, at most 2 (DPR 3 gives ${d.ratio})`),
       );
       ok(
-        (await overlayIs(desk, "perf-workers", String(d.workers))) &&
+        (await overlayIs(desk, "perf-workers", "4")) &&
           (await overlayIs(desk, "perf-history", "64 MB")) &&
           (await overlayIs(desk, "perf-quality", "auto")),
         t("the overlay shows them on the desktop page"),
@@ -5975,6 +5995,39 @@ export async function touchQualitySuite(): Promise<void> {
       );
     } finally {
       await desk.close();
+    }
+
+    // -- a two-core phone: min(2, 2 - 1) is one worker ---------------------------------------------
+    const small = await newPage(browser);
+    try {
+      await pinCores(small, 2);
+      small.on("pageerror", (e) => errors.push(String(e)));
+      await small.setViewport(MOBILE_VIEWPORT);
+      await small.goto(`${url}&perf=1`);
+      await startUp(small);
+      await openFixture(small);
+      const s = await small.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        return {
+          workers: v.renderer.getWorkerCount(),
+          cores: navigator.hardwareConcurrency,
+          history: (v.session() as NonNullable<ReturnType<Vox["session"]>>).historyBytes,
+        };
+      });
+      ok(
+        s.cores === 2 && s.workers === 1,
+        t(
+          `a touch-only page with 2 cores runs 1 mesher worker (workers: ${s.workers}, cores: ${s.cores})`,
+        ),
+      );
+      ok(
+        s.history === 16 * MB &&
+          (await overlayIs(small, "perf-workers", "1")) &&
+          (await overlayIs(small, "perf-history", "16 MB")),
+        t("the overlay shows 1 worker and the 16 MB history cap"),
+      );
+    } finally {
+      await small.close();
     }
 
     ok(
