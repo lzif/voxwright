@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from "vitest";
-import { GestureArbiter, type GestureIntent, pointerEventToSample } from "../src/lib/gestures.ts";
+import {
+  GestureArbiter,
+  type GestureIntent,
+  pointerEventToSample,
+  TWIST_MIN_SPREAD_PX,
+  wrapDegrees,
+} from "../src/lib/gestures.ts";
 
 function createHarness() {
   const events: GestureIntent[] = [];
@@ -464,5 +470,320 @@ describe("GestureArbiter", () => {
         pointerType: "touch",
       });
     });
+  });
+});
+
+describe("wrapDegrees", () => {
+  it("wraps an angle difference into (-180, 180]", () => {
+    expect(wrapDegrees(0)).toBe(0);
+    expect(wrapDegrees(10)).toBe(10);
+    expect(wrapDegrees(-10)).toBe(-10);
+    expect(wrapDegrees(180)).toBe(180);
+    expect(wrapDegrees(-180)).toBe(180);
+    expect(wrapDegrees(190)).toBeCloseTo(-170, 9);
+    expect(wrapDegrees(-190)).toBeCloseTo(170, 9);
+    expect(wrapDegrees(359)).toBeCloseTo(-1, 9);
+    expect(wrapDegrees(360)).toBe(0);
+    expect(wrapDegrees(540)).toBe(180);
+    expect(wrapDegrees(-350)).toBeCloseTo(10, 9);
+  });
+});
+
+describe("GestureArbiter two-finger twist", () => {
+  const CENTER = { x: 200, y: 300 };
+  const RADIUS = 60; // 120 px between the fingers
+  const RAD = Math.PI / 180;
+
+  /**
+   * Two fingers on a circle round CENTER, at `deg` and `deg + 180` (y down: a larger angle is a
+   * clockwise turn on the screen). Both are moved in one touch packet, so the arbiter evaluates them
+   * at once. `radius` lets a test pinch while it turns.
+   */
+  function fingers(deg: number, radius = RADIUS) {
+    const at = (a: number) => ({
+      x: CENTER.x + Math.cos(a * RAD) * radius,
+      y: CENTER.y + Math.sin(a * RAD) * radius,
+    });
+    return [at(deg), at(deg + 180)] as const;
+  }
+
+  function twoFingers(startDeg = 0, radius = RADIUS, config = {}) {
+    const events: GestureIntent[] = [];
+    const arbiter = new GestureArbiter({ onIntent: (i) => events.push(i), ...config });
+    const [a, b] = fingers(startDeg, radius);
+    let time = 0;
+    arbiter.feed({ id: 1, type: "down", x: a.x, y: a.y, time });
+    time += 10;
+    arbiter.feed({ id: 2, type: "down", x: b.x, y: b.y, time });
+    /** Turn to `deg` (and `radius`) in one packet; returns the intents of that packet. */
+    const turnTo = (deg: number, r = radius): GestureIntent[] => {
+      const [p, q] = fingers(deg, r);
+      time += 16;
+      const out = [...arbiter.feed({ id: 1, type: "move", x: p.x, y: p.y, time })];
+      out.push(...arbiter.feed({ id: 2, type: "move", x: q.x, y: q.y, time }));
+      return out;
+    };
+    return { arbiter, events, turnTo, getTime: () => time };
+  }
+
+  const twists = (intents: readonly GestureIntent[]): number[] =>
+    intents.flatMap((i) => (i.type === "twist" ? [i.degrees] : []));
+
+  it("emits nothing until the twist since landing passes 10 degrees", () => {
+    const t = twoFingers();
+    // 2 degrees at a time to 9.
+    for (const deg of [2, 4, 6, 8, 9]) expect(twists(t.turnTo(deg)), `at ${deg}`).toEqual([]);
+    expect(twists(t.events)).toEqual([]);
+  });
+
+  it("the dead zone is the same the other way", () => {
+    const t = twoFingers();
+    for (const deg of [-2, -4, -6, -8, -9.5])
+      expect(twists(t.turnTo(deg)), `at ${deg}`).toEqual([]);
+    const past = twists(t.turnTo(-11));
+    expect(past).toHaveLength(1);
+    expect(past[0]).toBeCloseTo(-1, 6); // only what lies beyond the zone
+  });
+
+  it("just inside 10 degrees is silent and just outside speaks", () => {
+    expect(twists(twoFingers().turnTo(9.9))).toEqual([]);
+    const past = twists(twoFingers().turnTo(10.1));
+    expect(past).toHaveLength(1);
+    expect(past[0]).toBeCloseTo(0.1, 6);
+  });
+
+  it("the frame that passes the dead zone says only what lies beyond it, never the total, so the view does not snap", () => {
+    const t = twoFingers();
+    for (const deg of [3, 6, 9]) t.turnTo(deg);
+    const first = twists(t.turnTo(12));
+    expect(first).toHaveLength(1);
+    expect(first[0]).toBeCloseTo(2, 6); // 12 turned, 10 of them inside the zone
+    expect(first[0]).not.toBeCloseTo(12, 1);
+    // A single big frame is no different: 25 degrees at once is 15 beyond the zone.
+    const jump = twists(twoFingers().turnTo(25));
+    expect(jump).toHaveLength(1);
+    expect(jump[0]).toBeCloseTo(15, 6);
+  });
+
+  it("after the dead zone it follows the fingers 1:1, frame by frame, always a zone behind them", () => {
+    const t = twoFingers();
+    const all: number[] = [];
+    for (let deg = 3; deg <= 90; deg += 3) all.push(...twists(t.turnTo(deg)));
+    // The frame that passed the zone (12) said 2; every frame after that said its own 3.
+    expect(all[0]).toBeCloseTo(2, 6);
+    for (const d of all.slice(1)) expect(d).toBeCloseTo(3, 6);
+    expect(all.reduce((a, b) => a + b, 0)).toBeCloseTo(80, 6);
+  });
+
+  it("the view stays exactly the size of the dead zone behind the fingers, whatever the size of the frames", () => {
+    for (const step of [1.3, 3, 4.7, 7, 11]) {
+      const t = twoFingers();
+      let sum = 0;
+      let deg = 0;
+      while (deg + step <= 70) {
+        deg += step;
+        sum += twists(t.turnTo(deg)).reduce((a, b) => a + b, 0);
+      }
+      expect(sum, `frames of ${step}`).toBeCloseTo(deg - 10, 6);
+    }
+  });
+
+  it("clockwise on the screen is positive, counter-clockwise negative", () => {
+    // With the fingers on a horizontal line, the second one moving down (y grows) is a clockwise turn.
+    const cw = twoFingers();
+    expect(twists(cw.turnTo(30))[0]).toBeGreaterThan(0);
+    const [p, q] = fingers(30);
+    expect(q.y).toBeLessThan(CENTER.y); // finger 2 started at 180 degrees: it went up while finger 1 went down
+    expect(p.y).toBeGreaterThan(CENTER.y);
+    const ccw = twoFingers();
+    expect(twists(ccw.turnTo(-30))[0]).toBeLessThan(0);
+  });
+
+  it("stays active for the rest of the gesture, even back inside the dead zone", () => {
+    const t = twoFingers();
+    expect(twists(t.turnTo(20))).toHaveLength(1);
+    const back = twists(t.turnTo(5));
+    expect(back).toHaveLength(1);
+    expect(back[0]).toBeCloseTo(-15, 6);
+    const again = twists(t.turnTo(0));
+    expect(again[0]).toBeCloseTo(-5, 6);
+  });
+
+  it("a frame in which the fingers did not turn says nothing", () => {
+    const t = twoFingers();
+    t.turnTo(25);
+    expect(twists(t.turnTo(25))).toEqual([]);
+  });
+
+  describe("wrap-around at +-180 degrees", () => {
+    it("a twist across the line has no jump: the deltas stay small and the total is right", () => {
+      // Start with the line at 170 degrees; turn clockwise to 230 (= -130) in steps of 6.
+      const t = twoFingers(170);
+      const all: number[] = [];
+      for (let deg = 176; deg <= 230; deg += 6) all.push(...twists(t.turnTo(deg)));
+      expect(all[0]).toBeCloseTo(2, 6); // 6 is silent; 12 speaks with the 2 beyond the zone
+      for (const d of all.slice(1)) expect(d).toBeCloseTo(6, 6);
+      expect(all.reduce((a, b) => a + b, 0)).toBeCloseTo(50, 6); // 60 turned, the first 10 not made up
+      expect(Math.max(...all.map(Math.abs))).toBeLessThan(20);
+    });
+
+    it("counter-clockwise across the line too", () => {
+      const t = twoFingers(-170);
+      const all: number[] = [];
+      for (let deg = -176; deg >= -230; deg -= 6) all.push(...twists(t.turnTo(deg)));
+      expect(all.reduce((a, b) => a + b, 0)).toBeCloseTo(-50, 6);
+      expect(Math.max(...all.map(Math.abs))).toBeLessThan(20);
+    });
+
+    it("a full turn and more adds up to the whole angle less the zone", () => {
+      const t = twoFingers();
+      const all: number[] = [];
+      for (let deg = 8; deg <= 400; deg += 8) all.push(...twists(t.turnTo(deg)));
+      expect(all.reduce((a, b) => a + b, 0)).toBeCloseTo(390, 6);
+    });
+
+    it("the dead zone counts the sum, so 6 + 6 across the line is 12", () => {
+      const t = twoFingers(177);
+      expect(twists(t.turnTo(183))).toEqual([]); // 6 degrees, across 180
+      const past = twists(t.turnTo(189));
+      expect(past).toHaveLength(1);
+      expect(past[0]).toBeCloseTo(2, 6); // 12 in all, 2 beyond the zone
+    });
+  });
+
+  describe("with pan and pinch", () => {
+    it("a pinch and a twist in the same frame: both are emitted, the pinch before the twist", () => {
+      const t = twoFingers();
+      const intents = t.turnTo(20, RADIUS * 1.5);
+      const order = intents.map((i) => i.type);
+      expect(order).toContain("pinch");
+      expect(order).toContain("twist");
+      expect(order.indexOf("pinch")).toBeLessThan(order.indexOf("twist"));
+      const pinch = intents.find((i) => i.type === "pinch") as Extract<
+        GestureIntent,
+        { type: "pinch" }
+      >;
+      expect(pinch.factor).toBeCloseTo(1 / 1.5, 6);
+      expect(twists(intents)[0]).toBeCloseTo(10, 6); // 20 turned, 10 beyond the zone
+    });
+
+    it("pinch keeps working during a twist: the spread changes while the line turns", () => {
+      const t = twoFingers();
+      t.turnTo(20); // past the dead zone
+      const factors: number[] = [];
+      let sum = 0;
+      for (let i = 1; i <= 6; i++) {
+        const intents = t.turnTo(20 + i * 5, RADIUS * (1 + i * 0.1));
+        for (const it of intents) if (it.type === "pinch") factors.push(it.factor);
+        sum += twists(intents).reduce((a, b) => a + b, 0);
+      }
+      expect(factors.length).toBeGreaterThan(0);
+      for (const f of factors) expect(f).toBeLessThan(1); // fingers moving apart: zoom in
+      expect(sum).toBeCloseTo(30, 6);
+    });
+
+    it("a pan keeps working during a twist: the centre moves while the line turns", () => {
+      const t = twoFingers();
+      t.turnTo(20);
+      // Turn 10 degrees more and shift both fingers 20 px right.
+      const [p, q] = fingers(30);
+      const out = [
+        ...t.arbiter.feed({ id: 1, type: "move", x: p.x + 20, y: p.y, time: 500 }),
+        ...t.arbiter.feed({ id: 2, type: "move", x: q.x + 20, y: q.y, time: 500 }),
+      ];
+      const pan = out.find((i) => i.type === "twoFingerPan") as Extract<
+        GestureIntent,
+        { type: "twoFingerPan" }
+      >;
+      expect(pan).toBeDefined();
+      expect(pan.dx).toBeCloseTo(20, 6);
+      expect(twists(out)[0]).toBeCloseTo(10, 6);
+    });
+
+    it("a pure pan or pinch never twists", () => {
+      const t = twoFingers();
+      const events: GestureIntent[] = [];
+      for (let i = 1; i <= 10; i++) events.push(...t.turnTo(0, RADIUS + i * 6)); // spread grows, line fixed
+      expect(events.some((i) => i.type === "pinch")).toBe(true);
+      expect(twists(events)).toEqual([]);
+    });
+
+    it("a twist does not produce the pan or pinch it cannot see: fingers on a fixed circle say only twist", () => {
+      const t = twoFingers();
+      const intents = t.turnTo(25);
+      expect(intents.map((i) => i.type)).toEqual(["twist"]);
+    });
+  });
+
+  describe("when the two fingers change", () => {
+    it("the twist is counted from the moment the two fingers are down together", () => {
+      const t = twoFingers();
+      expect(twists(t.turnTo(8))).toEqual([]);
+      // Lift finger 2 and put it down again at the same place: the 8 degrees are forgotten.
+      const [, q] = fingers(8);
+      t.arbiter.feed({ id: 2, type: "up", x: q.x, y: q.y, time: 300 });
+      t.arbiter.feed({ id: 2, type: "down", x: q.x, y: q.y, time: 320 });
+      const next = fingers(16);
+      const out = [
+        ...t.arbiter.feed({ id: 1, type: "move", x: next[0].x, y: next[0].y, time: 340 }),
+        ...t.arbiter.feed({ id: 2, type: "move", x: next[1].x, y: next[1].y, time: 340 }),
+      ];
+      expect(twists(out)).toEqual([]); // only 8 degrees since this landing
+    });
+
+    it("an active twist stops when a finger lifts: the finger left over orbits and never twists", () => {
+      const t = twoFingers();
+      t.turnTo(30);
+      const [p, q] = fingers(30);
+      t.arbiter.feed({ id: 2, type: "up", x: q.x, y: q.y, time: 400 });
+      const out = [
+        ...t.arbiter.feed({ id: 1, type: "move", x: p.x + 30, y: p.y + 30, time: 420 }),
+        ...t.arbiter.feed({ id: 1, type: "move", x: p.x + 60, y: p.y + 60, time: 440 }),
+      ];
+      expect(twists(out)).toEqual([]);
+      expect(out.some((i) => i.type === "oneFingerDragMove")).toBe(true);
+    });
+
+    it("three or more fingers do not twist", () => {
+      const t = twoFingers();
+      t.arbiter.feed({ id: 3, type: "down", x: 20, y: 20, time: 100 });
+      const [p, q] = fingers(40);
+      const out = [
+        ...t.arbiter.feed({ id: 1, type: "move", x: p.x, y: p.y, time: 120 }),
+        ...t.arbiter.feed({ id: 2, type: "move", x: q.x, y: q.y, time: 120 }),
+      ];
+      expect(twists(out)).toEqual([]);
+    });
+  });
+
+  describe("fingers almost on top of each other", () => {
+    it(`below ${TWIST_MIN_SPREAD_PX} px apart the angle is noise: no twist, and it is measured again from there`, () => {
+      const t = twoFingers(0, 8); // 16 px between the fingers
+      expect(twists(t.turnTo(40, 8))).toEqual([]);
+      expect(twists(t.turnTo(-80, 8))).toEqual([]);
+      // Spreading to a real distance does not turn the build by the noise before it.
+      const wide = twists(t.turnTo(-80, RADIUS));
+      expect(wide).toEqual([]);
+    });
+  });
+
+  describe("configuration", () => {
+    it("the dead zone can be set", () => {
+      const wide = twoFingers(0, RADIUS, { twistDeadZoneDeg: 20 });
+      expect(twists(wide.turnTo(15))).toEqual([]);
+      expect(twists(wide.turnTo(21))[0]).toBeCloseTo(1, 6);
+      const none = twoFingers(0, RADIUS, { twistDeadZoneDeg: 0 });
+      expect(twists(none.turnTo(1))[0]).toBeCloseTo(1, 6);
+    });
+  });
+
+  it("does not disturb a quick two-finger tap", () => {
+    const events: GestureIntent[] = [];
+    const arbiter = new GestureArbiter({ onIntent: (i) => events.push(i) });
+    arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+    arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+    arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 80 });
+    arbiter.feed({ id: 2, type: "up", x: 200, y: 100, time: 90 });
+    expect(events).toEqual([{ type: "multiFingerTap", fingers: 2 }]);
   });
 });

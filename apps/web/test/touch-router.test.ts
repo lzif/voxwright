@@ -11,6 +11,9 @@ interface Options {
   move?: (x: number, y: number) => boolean;
   /** No editing side at all, as before a file is open. */
   noTarget?: boolean;
+  /** Double-tap thresholds, when a test wants others than the defaults. */
+  doubleTapMaxMs?: number;
+  doubleTapSlopPx?: number;
 }
 
 function createHarness(options: Options = {}) {
@@ -32,11 +35,14 @@ function createHarness(options: Options = {}) {
     touchLongPress: (x, y) => log.push(`longPress ${x},${y}`),
     touchPickAt: (x, y) => log.push(`pickAt ${x},${y}`),
     touchInspectAt: (x, y) => log.push(`inspectAt ${x},${y}`),
+    touchFocusAt: (x, y) => log.push(`focusAt ${x},${y}`),
     touchEnd: () => log.push("end"),
   };
   const router = new TouchRouter({
     target: () => (options.noTarget ? null : target),
     camera: (intent) => camera.push(intent),
+    doubleTapMaxMs: options.doubleTapMaxMs,
+    doubleTapSlopPx: options.doubleTapSlopPx,
     // The arbiter's own timers never run; tests advance its clock with `stepTime`.
     arbiter: { setTimeout: () => 0 as unknown as ReturnType<typeof setTimeout>, clearTimeout() {} },
   });
@@ -522,5 +528,223 @@ describe("TouchRouter", () => {
     expect(h.router.currentOwner).toBe("none");
     h.feed(1, "down", 100, 200, 100);
     expect(h.router.currentOwner).toBe("tool");
+  });
+});
+
+describe("double tap (the camera's)", () => {
+  type H = ReturnType<typeof createHarness>;
+  /** A camera-owned tap: the finger goes down at `down` ms and lifts at `up` ms. */
+  const tap = (h: H, x: number, y: number, down: number, up: number, id = 1): void => {
+    h.feed(id, "down", x, y, down);
+    h.feed(id, "up", x, y, up);
+  };
+  const focuses = (h: H): string[] => h.log.filter((l) => l.startsWith("focusAt"));
+  const view = (options: Options = {}): H => createHarness({ toolActive: false, ...options });
+
+  it("two quick taps focus at the second tap; the first and the second still inspect", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    expect(h.log).toEqual(["inspectAt 100,200"]);
+    tap(h, 104, 202, 160, 220);
+    expect(h.log).toEqual(["inspectAt 100,200", "inspectAt 104,202", "focusAt 104,202"]);
+    // The camera sees only the arbiter's taps, nothing extra for the double tap.
+    expect(types(h.camera)).toEqual(["tap", "tap"]);
+  });
+
+  it("the gap is measured from the first lift to the second landing: 300 ms counts, 301 ms does not", () => {
+    const at = (gap: number): string[] => {
+      const h = view();
+      tap(h, 100, 200, 0, 60);
+      tap(h, 100, 200, 60 + gap, 120 + gap);
+      return focuses(h);
+    };
+    expect(at(0)).toEqual(["focusAt 100,200"]);
+    expect(at(299)).toEqual(["focusAt 100,200"]);
+    expect(at(300)).toEqual(["focusAt 100,200"]);
+    expect(at(301)).toEqual([]);
+    expect(at(1000)).toEqual([]);
+  });
+
+  it("how long the first tap lasted does not count: a slow tap followed by a quick one is a double tap", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 400); // a long tap, still under the long-press time
+    tap(h, 100, 200, 650, 700); // 250 ms after the lift, 650 ms after the landing
+    expect(focuses(h)).toEqual(["focusAt 100,200"]);
+  });
+
+  it("the distance between the taps is at most 24 px: 24 counts, 25 does not", () => {
+    const at = (dx: number, dy: number): string[] => {
+      const h = view();
+      tap(h, 100, 200, 0, 60);
+      tap(h, 100 + dx, 200 + dy, 160, 220);
+      return focuses(h);
+    };
+    expect(at(24, 0)).toEqual(["focusAt 124,200"]);
+    expect(at(0, -24)).toEqual(["focusAt 100,176"]);
+    expect(at(25, 0)).toEqual([]);
+    expect(at(0, 25)).toEqual([]);
+    // The distance is Euclidean: 17 px each way is about 24.04, 16 each way about 22.6.
+    expect(at(17, 17)).toEqual([]);
+    expect(at(16, 16)).toEqual(["focusAt 116,216"]);
+  });
+
+  it("the thresholds can be set: a longer wait and a smaller radius", () => {
+    const slow = view({ doubleTapMaxMs: 500 });
+    tap(slow, 100, 200, 0, 60);
+    tap(slow, 100, 200, 500 + 60, 620);
+    expect(focuses(slow)).toEqual(["focusAt 100,200"]);
+
+    const tight = view({ doubleTapSlopPx: 10 });
+    tap(tight, 100, 200, 0, 60);
+    tap(tight, 111, 200, 160, 220);
+    expect(focuses(tight)).toEqual([]);
+  });
+
+  it("a double tap on a double tap: the third tap starts a new pair, the fourth completes it", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    tap(h, 100, 200, 120, 180); // double
+    tap(h, 100, 200, 240, 300); // new pair
+    expect(focuses(h)).toHaveLength(1);
+    tap(h, 100, 200, 360, 420); // double again
+    expect(focuses(h)).toHaveLength(2);
+  });
+
+  it("an orbit, a pan or a pinch between two taps breaks the pair", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    // An orbit drag that is over in 100 ms, so the next tap is well within 300 ms of the first.
+    h.feed(1, "down", 100, 200, 80);
+    h.feed(1, "move", 112, 200, 100); // past the 8 px slop, but within 24 px of the first tap
+    h.feed(1, "up", 112, 200, 120);
+    expect(types(h.camera)).toContain("oneFingerDragEnd");
+    tap(h, 112, 200, 140, 200);
+    expect(focuses(h)).toEqual([]);
+
+    const pinch = view();
+    tap(pinch, 100, 200, 0, 60);
+    pinch.feed(1, "down", 60, 200, 70);
+    pinch.feed(2, "down", 140, 200, 75);
+    pinch.feed(1, "move", 40, 200, 90);
+    pinch.feed(2, "move", 160, 200, 90);
+    pinch.feed(1, "up", 40, 200, 100);
+    pinch.feed(2, "up", 160, 200, 105);
+    tap(pinch, 100, 200, 140, 200);
+    expect(focuses(pinch)).toEqual([]);
+  });
+
+  it("a long press between two taps breaks the pair", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    h.feed(1, "down", 100, 200, 70);
+    h.stepTime(70 + 450);
+    h.feed(1, "up", 100, 200, 530);
+    tap(h, 100, 200, 560, 600); // 30 ms after the lift, but the long press came between
+    expect(focuses(h)).toEqual([]);
+  });
+
+  it("a two-finger tap between two taps breaks the pair", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    h.feed(1, "down", 60, 200, 70);
+    h.feed(2, "down", 140, 200, 75);
+    h.feed(1, "up", 60, 200, 100);
+    h.feed(2, "up", 140, 200, 105);
+    expect(types(h.camera)).toContain("multiFingerTap");
+    tap(h, 100, 200, 140, 200);
+    expect(focuses(h)).toEqual([]);
+  });
+
+  it("never for a gesture the tool owns, and a tool's gesture breaks the pair", () => {
+    const tool = createHarness({ toolActive: true });
+    tap(tool, 100, 200, 0, 60);
+    tap(tool, 100, 200, 160, 220);
+    expect(focuses(tool)).toEqual([]);
+    expect(tool.log.filter((l) => l.startsWith("inspectAt"))).toEqual([]);
+
+    // View tap, then a touch tool is armed and tapped, then View again: the camera taps are not a pair.
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    h.state.toolActive = true;
+    tap(h, 100, 200, 100, 150);
+    h.state.toolActive = false;
+    tap(h, 100, 200, 200, 250);
+    expect(focuses(h)).toEqual([]);
+  });
+
+  it("a gesture that began on a tool and went to the camera (a second finger) pairs with nothing", () => {
+    const h = createHarness({ toolActive: true });
+    h.feed(1, "down", 100, 200, 0);
+    h.feed(2, "down", 160, 200, 20);
+    h.feed(2, "up", 160, 200, 60);
+    h.feed(1, "up", 100, 200, 70);
+    h.state.toolActive = false;
+    tap(h, 100, 200, 100, 150);
+    tap(h, 100, 200, 200, 250); // only this pair counts
+    expect(focuses(h)).toEqual(["focusAt 100,200"]);
+  });
+
+  it("the finger left down after a two-finger gesture is no tap, so it pairs with nothing", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    h.feed(1, "down", 100, 200, 100);
+    h.feed(2, "down", 160, 200, 110);
+    h.feed(1, "move", 80, 200, 150);
+    h.feed(2, "move", 180, 200, 150);
+    h.feed(2, "up", 180, 200, 200);
+    h.feed(1, "up", 80, 200, 230);
+    expect(focuses(h)).toEqual([]);
+  });
+
+  it("does not pair taps on different targets (a new session between them)", () => {
+    const log: string[] = [];
+    const mk = (name: string): TouchTarget => ({
+      touchToolActive: false,
+      touchMove: () => true,
+      touchTap() {},
+      touchStrokeBegin() {},
+      touchStrokeEnd() {},
+      touchCancel() {},
+      touchLongPress() {},
+      touchPickAt() {},
+      touchInspectAt() {},
+      touchFocusAt: (x, y) => log.push(`${name} focusAt ${x},${y}`),
+      touchEnd() {},
+    });
+    let current = mk("old");
+    const router = new TouchRouter({
+      target: () => current,
+      camera() {},
+      arbiter: {
+        setTimeout: () => 0 as unknown as ReturnType<typeof setTimeout>,
+        clearTimeout() {},
+      },
+    });
+    const t = (down: number, up: number): void => {
+      router.feed({ id: 1, type: "down", x: 100, y: 200, time: down });
+      router.feed({ id: 1, type: "up", x: 100, y: 200, time: up });
+    };
+    t(0, 60);
+    current = mk("new");
+    t(100, 160);
+    expect(log).toEqual([]);
+    t(200, 260);
+    expect(log).toEqual(["new focusAt 100,200"]);
+  });
+
+  it("reset forgets the first tap", () => {
+    const h = view();
+    tap(h, 100, 200, 0, 60);
+    h.router.reset();
+    tap(h, 100, 200, 100, 160);
+    expect(focuses(h)).toEqual([]);
+  });
+
+  it("without an editing side nothing happens and nothing throws", () => {
+    const h = createHarness({ noTarget: true });
+    tap(h, 100, 200, 0, 60);
+    tap(h, 100, 200, 100, 160);
+    expect(h.log).toEqual([]);
+    expect(types(h.camera)).toEqual(["tap", "tap"]);
   });
 });

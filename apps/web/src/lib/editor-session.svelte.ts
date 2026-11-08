@@ -42,6 +42,7 @@ import {
   cellOnPlane,
   clipRayToBox,
   DEFAULT_CURSOR_OFFSET_PX,
+  focusDistance,
   inSlice,
   isTouchTool,
   isTwoPointTool,
@@ -65,6 +66,7 @@ import {
   nudgeCells,
   type Pending,
   type PendingCorner,
+  pendingFocusCell,
   pendingSize,
   shiftPending,
   type TwoPointPending,
@@ -823,6 +825,41 @@ export class EditSession {
     this.inspected = hit === null ? null : hit.position;
     this.refreshHighlight();
     return hit !== null;
+  }
+
+  /**
+   * A double tap while the camera owns the gesture, with the View tool: the orbit target moves to
+   * the centre of the block under the finger and the distance halves (not below 4 blocks, see
+   * `focusDistance`). A double tap on empty space does nothing. Returns whether the camera moved.
+   * Any other tool, and the fly camera, do nothing with it.
+   */
+  touchFocusAt(x: number, y: number): boolean {
+    if (this.cameraMode !== "orbit" || this.tool !== "navigate") return false;
+    const hit = this.pick(x, y);
+    if (hit === null) return false;
+    this.focusCell(hit.position);
+    return true;
+  }
+
+  /**
+   * "Zoom in here": focus the camera on the pending cell, the paste origin or the active corner (A
+   * while B is not set), the same way a double tap does. Returns false with nothing pending.
+   */
+  focusPending(): boolean {
+    const p = this.pending;
+    if (p === null) return false;
+    const cell = pendingFocusCell(p);
+    this.focusCell(cell);
+    this.say(`Zoomed in on ${cellText(cell)}`);
+    return true;
+  }
+
+  /** Put the orbit target at the centre of a cell and bring the camera half as close (see `focusDistance`). */
+  private focusCell(cell: Vec3): void {
+    this.renderer.focusOn(
+      [cell[0] + 0.5, cell[1] + 0.5, cell[2] + 0.5],
+      focusDistance(this.renderer.getPose().distance),
+    );
   }
 
   /** Every finger is up: nothing of the gesture stays on screen, and a stroke still open is reverted. */

@@ -137,6 +137,25 @@ export const CONFIRM_PLACE_KEY = "voxwright.confirmplace";
 export const parseConfirmPlacement = (stored: string | null | undefined): boolean =>
   stored === "true";
 
+/** Where the "Twist with two fingers to turn" setting is kept in the browser. */
+export const TWIST_KEY = "voxwright.twist";
+
+/** The setting a browser kept from an earlier visit: on unless the stored text is exactly "false". */
+export const parseTwist = (stored: string | null | undefined): boolean => stored !== "false";
+
+/** Focusing the camera never brings it closer than this many blocks to the target (unless it already was). */
+export const FOCUS_MIN_DISTANCE = 4;
+
+/**
+ * The orbit distance after a focus: half of the current one, but not below `FOCUS_MIN_DISTANCE`, and
+ * never farther than it is now (a camera already closer than 4 stays where it is instead of backing
+ * off). Repeated focus therefore zooms in step by step, as double tap does in map apps.
+ */
+export function focusDistance(current: number): number {
+  if (!Number.isFinite(current) || current <= 0) return FOCUS_MIN_DISTANCE;
+  return Math.min(current, Math.max(FOCUS_MIN_DISTANCE, current / 2));
+}
+
 /** The tooltip for a tool: its help line and its shortcut. */
 export function toolTitle(tool: ToolInfo): string {
   return tool.key === null ? tool.help : `${tool.help} (${tool.key.toUpperCase()})`;

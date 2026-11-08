@@ -7,6 +7,8 @@ import {
   cellOnPlane,
   clipRayToBox,
   DEFAULT_CURSOR_OFFSET_PX,
+  FOCUS_MIN_DISTANCE,
+  focusDistance,
   followLayerBounds,
   inSlice,
   isTouchTool,
@@ -23,9 +25,11 @@ import {
   paletteEntries,
   parseConfirmPlacement,
   parseCursorOffset,
+  parseTwist,
   searchPalette,
   shiftBox,
   TOOLS,
+  TWIST_KEY,
   toolTitle,
   withoutNbt,
 } from "../src/lib/editing.ts";
@@ -355,5 +359,57 @@ describe("cursor distance setting", () => {
         expect(parseConfirmPlacement(stored), String(stored)).toBe(false);
       }
     });
+  });
+});
+
+describe("twist setting (Twist with two fingers to turn)", () => {
+  it("is kept under voxwright.twist", () => {
+    expect(TWIST_KEY).toBe("voxwright.twist");
+  });
+
+  it("is on by default and off only for the exact text false", () => {
+    expect(parseTwist("false")).toBe(false);
+    for (const stored of [null, undefined, "", "true", "FALSE", "0", "off", " false", "no", "x"]) {
+      expect(parseTwist(stored), String(stored)).toBe(true);
+    }
+  });
+});
+
+describe("focusDistance (double tap and Zoom in here)", () => {
+  it("halves the distance", () => {
+    expect(focusDistance(100)).toBe(50);
+    expect(focusDistance(40)).toBe(20);
+    expect(focusDistance(9)).toBe(4.5);
+  });
+
+  it("stops at 4 blocks", () => {
+    expect(FOCUS_MIN_DISTANCE).toBe(4);
+    expect(focusDistance(8)).toBe(4);
+    expect(focusDistance(7.9)).toBe(4);
+    expect(focusDistance(5)).toBe(4);
+    expect(focusDistance(4.01)).toBe(4);
+    expect(focusDistance(4)).toBe(4);
+  });
+
+  it("never backs the camera off: already closer than 4, it stays", () => {
+    expect(focusDistance(3)).toBe(3);
+    expect(focusDistance(2)).toBe(2);
+    expect(focusDistance(0.5)).toBe(0.5);
+  });
+
+  it("repeated focus zooms in step by step to the floor", () => {
+    const steps: number[] = [];
+    let d = 150;
+    for (let i = 0; i < 8; i++) {
+      d = focusDistance(d);
+      steps.push(d);
+    }
+    expect(steps).toEqual([75, 37.5, 18.75, 9.375, 4.6875, 4, 4, 4]);
+  });
+
+  it("a distance that is not a usable number goes to the floor", () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, 0, -5]) {
+      expect(focusDistance(bad), String(bad)).toBe(4);
+    }
   });
 });

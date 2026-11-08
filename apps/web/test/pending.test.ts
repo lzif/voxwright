@@ -13,6 +13,7 @@ import {
   nudgeCells,
   type Pending,
   type PendingCorner,
+  pendingFocusCell,
   pendingSize,
   shiftPending,
   withCorner,
@@ -175,5 +176,29 @@ describe("describePending", () => {
     expect(describePending({ kind: "paste", at: [2, 3, 4] }, { ...ctx, clipSize: null })).toBe(
       "Paste at 2,3,4",
     );
+  });
+});
+
+describe("pendingFocusCell", () => {
+  it("is the armed cell", () => {
+    expect(pendingFocusCell({ kind: "cell", tool: "place", cell: [3, 4, 5] })).toEqual([3, 4, 5]);
+  });
+
+  it("is the paste origin", () => {
+    expect(pendingFocusCell({ kind: "paste", at: [7, 1, 2] })).toEqual([7, 1, 2]);
+  });
+
+  it("is corner A while B is not set, even when B is the active one", () => {
+    expect(pendingFocusCell(line([1, 2, 3], null, "a"))).toEqual([1, 2, 3]);
+    expect(pendingFocusCell(line([1, 2, 3], null, "b"))).toEqual([1, 2, 3]);
+  });
+
+  it("is the active corner once both are set", () => {
+    expect(pendingFocusCell(line([1, 2, 3], [4, 2, 9], "a"))).toEqual([1, 2, 3]);
+    expect(pendingFocusCell(line([1, 2, 3], [4, 2, 9], "b"))).toEqual([4, 2, 9]);
+    expect(pendingFocusCell(rect([0, 1, 0], [5, 1, 6], 1, "b"))).toEqual([5, 1, 6]);
+    expect(
+      pendingFocusCell({ kind: "select", a: [2, 2, 2], b: [6, 6, 6], active: "a", before: null }),
+    ).toEqual([2, 2, 2]);
   });
 });

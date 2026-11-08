@@ -14,6 +14,12 @@
 // has started, or a `pointercancel` before it, produce no intent. The arbiter's intents then drive
 // the discrete steps of a tool gesture (tap, stroke start, stroke end, long press), while the raw
 // samples move the cursor. No DOM here, so it runs under Vitest with synthetic sequences.
+//
+// A double tap is also found here, because only the router sees the sample times: two taps of a
+// camera-owned gesture (the arbiter's `tap`, never the end of a drag) whose second finger lands at most
+// `DOUBLE_TAP_MAX_MS` after the first lifted, and at most `DOUBLE_TAP_SLOP_PX` away, ask the target to
+// focus the camera there (`touchFocusAt`). The first tap still inspects, as it always did. Any other
+// intent of the camera, and any gesture the tool owns, forgets the first tap.
 
 import {
   GestureArbiter,
@@ -23,6 +29,11 @@ import {
 } from "./gestures.ts";
 
 export type TouchOwner = "none" | "tool" | "camera";
+
+/** The most time between the first tap's lift and the second finger landing for a double tap, ms. */
+export const DOUBLE_TAP_MAX_MS = 300;
+/** The most distance between the two taps for a double tap, CSS px. */
+export const DOUBLE_TAP_SLOP_PX = 24;
 
 /** What the router asks of the editing side (`EditSession` implements it). All points are client coordinates of the finger. */
 export interface TouchTarget {
@@ -48,6 +59,12 @@ export interface TouchTarget {
    * anything with it (only View does).
    */
   touchInspectAt(x: number, y: number): void;
+  /**
+   * A camera-owned double tap: bring the block under the finger into focus (the orbit target moves
+   * onto it and the distance halves). The target decides whether its tool does anything with it
+   * (only View does) and whether there is a block there at all.
+   */
+  touchFocusAt(x: number, y: number): void;
   /** Every finger is up: hide the cursor and the touch hover. */
   touchEnd(): void;
 }
@@ -59,6 +76,10 @@ export interface TouchRouterOptions {
   camera: (intent: GestureIntent) => void;
   /** Thresholds and timers for the arbiter, for tests. */
   arbiter?: Omit<GestureArbiterConfig, "onIntent">;
+  /** Longest gap between a tap's lift and the next finger down for a double tap, ms (default `DOUBLE_TAP_MAX_MS`). */
+  doubleTapMaxMs?: number;
+  /** Farthest the second tap may be from the first, px (default `DOUBLE_TAP_SLOP_PX`). */
+  doubleTapSlopPx?: number;
 }
 
 export class TouchRouter {
@@ -70,10 +91,19 @@ export class TouchRouter {
   private owner: TouchOwner = "none";
   /** The tool's gesture is over (cancelled, lifted or long-pressed): later samples change nothing until every finger is up. */
   private spent = false;
+  private readonly doubleTapMaxMs: number;
+  private readonly doubleTapSlopPx: number;
+  /** The time of the sample being fed, and of the first finger of the gesture in progress going down. */
+  private sampleTime = 0;
+  private downTime = 0;
+  /** The last camera-owned tap, for a double tap: where it lifted, when, and on which target. */
+  private lastTap: { x: number; y: number; upTime: number; target: TouchTarget } | null = null;
 
   constructor(options: TouchRouterOptions) {
     this.getTarget = options.target;
     this.camera = options.camera;
+    this.doubleTapMaxMs = options.doubleTapMaxMs ?? DOUBLE_TAP_MAX_MS;
+    this.doubleTapSlopPx = options.doubleTapSlopPx ?? DOUBLE_TAP_SLOP_PX;
     this.arbiter = new GestureArbiter({
       ...options.arbiter,
       onIntent: (intent) => this.onIntent(intent),
@@ -87,6 +117,7 @@ export class TouchRouter {
 
   /** Feed one raw pointer sample, in the order the browser delivers them. */
   feed(sample: PointerSample): void {
+    this.sampleTime = sample.time;
     switch (sample.type) {
       case "down":
         this.onDown(sample);
@@ -118,6 +149,7 @@ export class TouchRouter {
     this.owner = "none";
     this.spent = false;
     this.target = null;
+    this.lastTap = null;
   }
 
   private onDown(sample: PointerSample): void {
@@ -125,6 +157,9 @@ export class TouchRouter {
       this.target = this.getTarget();
       this.owner = this.target?.touchToolActive === true ? "tool" : "camera";
       this.spent = false;
+      this.downTime = sample.time;
+      // A double tap is the camera's: a gesture the tool owns never pairs with a tap before it.
+      if (this.owner === "tool") this.lastTap = null;
     }
     this.fingers.add(sample.id);
     if (this.fingers.size >= 2) {
@@ -164,6 +199,30 @@ export class TouchRouter {
     this.target = null;
   }
 
+  /**
+   * A camera-owned tap lifted at (x, y). If the previous one lifted at most `doubleTapMaxMs` before
+   * this finger went down, and within `doubleTapSlopPx` of here, this is a double tap and the target
+   * focuses; the pair is used up, so a third quick tap starts a new pair rather than focusing again.
+   */
+  private noteTap(x: number, y: number): void {
+    const target = this.target;
+    if (target === null) return;
+    const prev = this.lastTap;
+    const gap = prev === null ? 0 : this.downTime - prev.upTime;
+    if (
+      prev !== null &&
+      prev.target === target &&
+      gap >= 0 &&
+      gap <= this.doubleTapMaxMs &&
+      Math.hypot(x - prev.x, y - prev.y) <= this.doubleTapSlopPx
+    ) {
+      this.lastTap = null;
+      target.touchFocusAt(x, y);
+      return;
+    }
+    this.lastTap = { x, y, upTime: this.sampleTime, target };
+  }
+
   private onIntent(intent: GestureIntent): void {
     if (this.owner !== "tool") {
       this.camera(intent);
@@ -172,7 +231,12 @@ export class TouchRouter {
       if (intent.type === "longPress") this.target?.touchPickAt(intent.clientX, intent.clientY);
       // The arbiter says `tap` only for a finger that landed alone, stayed within the slop and lifted
       // before the long-press time: never for the end of a pan, a pinch, an orbit or a leftover finger.
-      if (intent.type === "tap") this.target?.touchInspectAt(intent.clientX, intent.clientY);
+      if (intent.type === "tap") {
+        this.target?.touchInspectAt(intent.clientX, intent.clientY);
+        this.noteTap(intent.clientX, intent.clientY);
+      } else {
+        this.lastTap = null; // a drag, pan, pinch, twist, long press or cancel in between
+      }
       return;
     }
     const target = this.target;

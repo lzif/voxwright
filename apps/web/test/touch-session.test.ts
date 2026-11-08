@@ -69,11 +69,19 @@ function makeSession(
     cursorOffsetPx?: number;
     confirmPlacement?: boolean;
     volume?: Volume;
+    /** The orbit distance the fake camera reports (default 40). */
+    distance?: number;
   } = {},
 ) {
   const volume = options.volume ?? makeVolume();
   const highlights: unknown[][] = [];
+  /** Every `focusOn` the session asked for. */
+  const focuses: Array<{ target: Vec3; distance: number | undefined }> = [];
   const renderer = {
+    getPose: () => ({ distance: options.distance ?? 40 }),
+    focusOn: (target: Vec3, distance?: number) => {
+      focuses.push({ target: [...target], distance });
+    },
     rayFromClient: (x: number, y: number) => ({
       origin: [x / 10, 10, y / 10] as [number, number, number],
       direction: [0, -1, 0] as [number, number, number],
@@ -103,7 +111,7 @@ function makeSession(
     cursorOffsetPx: options.cursorOffsetPx,
     confirmPlacement: options.confirmPlacement,
   });
-  return { session, volume, highlights };
+  return { session, volume, highlights, focuses };
 }
 
 const cellsChanged = (volume: Volume, before: Map<string, string | undefined>): string[] => {
@@ -2300,5 +2308,248 @@ describe("Copy on touch", () => {
     session.setSelection(boxBetween([0, 0, 0], [0, 0, 0]));
     session.copy();
     expect(session.message).toBe("Copied 1 block. Ctrl+V pastes.");
+  });
+});
+
+describe("camera focus: a double tap in View and Zoom in here", () => {
+  /** The finger itself over the middle of cell (cx, cz) of the floor, no offset. */
+  const over = (cx: number, cz: number): { x: number; y: number } => ({
+    x: cx * 10 + 5,
+    y: cz * 10 + 5,
+  });
+
+  describe("touchFocusAt", () => {
+    it("moves the target to the centre of the block under the finger and halves the distance", () => {
+      const { session, focuses } = makeSession({ distance: 40 });
+      const p = over(5, 6);
+      expect(session.touchFocusAt(p.x, p.y)).toBe(true);
+      expect(focuses).toEqual([{ target: [5.5, 0.5, 6.5], distance: 20 }]);
+    });
+
+    it("focuses on the block itself, not the cell in front of it, and not the cell 64 px above", () => {
+      const { session, focuses } = makeSession();
+      const p = over(3, 10); // the gold block; the planks at (3, 0, 3) are 64 px above
+      session.touchFocusAt(p.x, p.y);
+      expect(focuses).toHaveLength(1);
+      expect(focuses[0]?.target).toEqual([3.5, 0.5, 10.5]);
+    });
+
+    it("never brings the camera below 4 blocks, and never backs it off", () => {
+      const cases: Array<[number, number]> = [
+        [40, 20],
+        [10, 5],
+        [8, 4],
+        [7, 4], // half is 3.5: held at the floor
+        [4, 4],
+        [3, 3], // already closer than the floor: it stays instead of going back out to 4
+        [2, 2],
+      ];
+      for (const [from, to] of cases) {
+        const { session, focuses } = makeSession({ distance: from });
+        const p = over(4, 4);
+        session.touchFocusAt(p.x, p.y);
+        expect(focuses[0]?.distance, `from ${from}`).toBe(to);
+      }
+    });
+
+    it("on empty space does nothing: the camera is not asked to move", () => {
+      const { session, focuses } = makeSession();
+      expect(session.touchFocusAt(500, 500)).toBe(false);
+      expect(focuses).toEqual([]);
+    });
+
+    it("looks only at the visible layers", () => {
+      const { session, focuses } = makeSession();
+      session.setSlice({ y0: 5, y1: 9 });
+      expect(session.touchFocusAt(over(4, 4).x, over(4, 4).y)).toBe(false);
+      expect(focuses).toEqual([]);
+    });
+
+    it("changes nothing in the volume, the history, the selection or the pending value", () => {
+      const { session, volume } = makeSession();
+      session.setSelection(boxBetween([0, 0, 0], [1, 0, 1]));
+      const before = snapshot(volume);
+      session.touchFocusAt(over(4, 4).x, over(4, 4).y);
+      expect(cellsChanged(volume, before)).toEqual([]);
+      expect(session.undoCount).toBe(0);
+      expect(session.selection).toEqual(boxBetween([0, 0, 0], [1, 0, 1]));
+      expect(session.pending).toBeNull();
+    });
+
+    it("does nothing with a tool armed (a double tap is the View tool's), or in the fly camera", () => {
+      for (const tool of [
+        "place",
+        "paint",
+        "erase",
+        "eyedropper",
+        "line",
+        "rectangle",
+        "select",
+      ] as const) {
+        const { session, focuses } = makeSession();
+        session.setTool(tool);
+        expect(session.touchFocusAt(over(4, 4).x, over(4, 4).y), tool).toBe(false);
+        expect(focuses, tool).toEqual([]);
+      }
+      const { session, focuses } = makeSession();
+      session.setCameraMode("fly");
+      session.setTool("navigate");
+      expect(session.touchFocusAt(over(4, 4).x, over(4, 4).y)).toBe(false);
+      expect(focuses).toEqual([]);
+    });
+  });
+
+  describe("focusPending (Zoom in here)", () => {
+    it("does nothing with nothing pending", () => {
+      const { session, focuses } = makeSession();
+      expect(session.focusPending()).toBe(false);
+      expect(focuses).toEqual([]);
+    });
+
+    it("focuses on an armed cell: the centre of the cell the tool will change", () => {
+      const { session, focuses } = makeSession({ distance: 30 });
+      session.setConfirmPlacement(true);
+      arm(session, "place");
+      tapCell(session, 6, 7); // Place arms the cell above the floor: (6, 1, 7)
+      expect(session.pending).toMatchObject({ kind: "cell", cell: [6, 1, 7] });
+      expect(session.focusPending()).toBe(true);
+      expect(focuses).toEqual([{ target: [6.5, 1.5, 7.5], distance: 15 }]);
+      expect(session.message).toBe("Zoomed in on 6, 1, 7");
+    });
+
+    it("focuses on the paste origin", () => {
+      const { session, focuses } = makeSession();
+      session.setSelection(boxBetween([0, 0, 0], [2, 0, 1]));
+      session.copy();
+      session.clearSelection();
+      session.setTool("paste");
+      tapCell(session, 9, 4);
+      expect(session.pending).toEqual({ kind: "paste", at: [9, 1, 4] });
+      session.focusPending();
+      expect(focuses).toEqual([{ target: [9.5, 1.5, 4.5], distance: 20 }]);
+    });
+
+    it("focuses on corner A while B is not set, then on whichever corner is active", () => {
+      const { session, focuses } = makeSession();
+      arm(session, "line");
+      tapCell(session, 2, 2);
+      session.focusPending();
+      expect(focuses.at(-1)?.target).toEqual([2.5, 1.5, 2.5]);
+
+      tapCell(session, 2, 8); // B
+      session.focusPending();
+      expect(focuses.at(-1)?.target).toEqual([2.5, 1.5, 8.5]);
+
+      session.setActiveCorner("a");
+      session.focusPending();
+      expect(focuses.at(-1)?.target).toEqual([2.5, 1.5, 2.5]);
+
+      session.nudge(0, 1); // the active corner moves one cell; the focus follows it
+      session.focusPending();
+      expect(focuses.at(-1)?.target).toEqual([3.5, 1.5, 2.5]);
+    });
+
+    it("works the same for a rectangle and a selection", () => {
+      for (const tool of ["rectangle", "select"] as const) {
+        const { session, focuses } = makeSession();
+        arm(session, tool);
+        tapCell(session, 4, 4);
+        session.focusPending();
+        expect(focuses, tool).toHaveLength(1);
+        const a = (session.pending as { a: Vec3 }).a;
+        expect(focuses[0]?.target, tool).toEqual([a[0] + 0.5, a[1] + 0.5, a[2] + 0.5]);
+      }
+    });
+
+    it("keeps the pending value, the volume and the history as they are", () => {
+      const { session, volume } = makeSession();
+      arm(session, "line");
+      tapCell(session, 2, 2);
+      tapCell(session, 2, 8);
+      const pending = session.pending;
+      const before = snapshot(volume);
+      session.focusPending();
+      expect(session.pending).toBe(pending);
+      expect(cellsChanged(volume, before)).toEqual([]);
+      expect(session.undoCount).toBe(0);
+    });
+
+    it("halves a little more each time it is pressed, down to the floor of 4", () => {
+      // The renderer moves the camera; the fake reports a fixed distance, so a real run is stepped by hand.
+      for (const [from, to] of [
+        [32, 16],
+        [16, 8],
+        [8, 4],
+        [4, 4],
+      ] as const) {
+        const { session, focuses } = makeSession({ distance: from });
+        arm(session, "line");
+        tapCell(session, 2, 2);
+        session.focusPending();
+        expect(focuses[0]?.distance).toBe(to);
+      }
+    });
+  });
+
+  describe("with the router and the session together", () => {
+    function wireView(distance = 40) {
+      const made = makeSession({ distance });
+      const camera: GestureIntent[] = [];
+      const router = new TouchRouter({
+        target: () => made.session,
+        camera: (i) => camera.push(i),
+        arbiter: {
+          setTimeout: () => 0 as unknown as ReturnType<typeof setTimeout>,
+          clearTimeout() {},
+        },
+      });
+      let clock = 0;
+      const feed = (id: number, type: "down" | "move" | "up", x: number, y: number, dt = 30) => {
+        clock += dt;
+        router.feed({ id, type, x, y, time: clock });
+      };
+      /** A tap: down, up 60 ms later; `gap` ms after the previous lift. */
+      const tap = (x: number, y: number, gap = 100): void => {
+        feed(1, "down", x, y, gap);
+        feed(1, "up", x, y, 60);
+      };
+      return { ...made, camera, router, feed, tap };
+    }
+
+    it("two quick taps in View focus on the second tap's block; the first still inspects", () => {
+      const h = wireView();
+      const p = over(5, 6);
+      h.tap(p.x, p.y);
+      expect(h.focuses).toEqual([]);
+      expect(h.session.inspected).toEqual([5, 0, 6]);
+      h.tap(p.x + 3, p.y + 2);
+      expect(h.focuses).toEqual([{ target: [5.5, 0.5, 6.5], distance: 20 }]);
+      expect(h.session.inspected).toEqual([5, 0, 6]);
+    });
+
+    it("a double tap on empty space does nothing, and clears the inspected block as one tap does", () => {
+      const h = wireView();
+      h.tap(500, 500);
+      h.tap(500, 500);
+      expect(h.focuses).toEqual([]);
+      expect(h.session.inspected).toBeNull();
+    });
+
+    it("a slow second tap only inspects", () => {
+      const h = wireView();
+      const p = over(5, 6);
+      h.tap(p.x, p.y);
+      h.tap(p.x, p.y, 301);
+      expect(h.focuses).toEqual([]);
+    });
+
+    it("with a touch tool armed two quick taps go to the tool and never focus", () => {
+      const h = wireView();
+      arm(h.session, "line");
+      const f = fingerFor(2, 2);
+      h.tap(f.x, f.y);
+      h.tap(f.x, f.y);
+      expect(h.focuses).toEqual([]);
+    });
   });
 });

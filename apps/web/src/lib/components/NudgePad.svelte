@@ -76,6 +76,15 @@ onDestroy(() => repeater.stop());
       >{a.text}</button>
     {/each}
 
+    <button
+      type="button"
+      class="pad-btn zoom"
+      aria-label="Zoom to the armed cell"
+      title="Zoom in here: bring the camera closer to the armed cell"
+      data-testid="nudge-zoom"
+      onclick={() => session.focusPending()}
+    >Zoom</button>
+
     {#if twoPoint}
       {@const other = twoPoint.active === "a" ? "b" : "a"}
       <button
@@ -119,7 +128,7 @@ onDestroy(() => repeater.stop());
     grid-template-areas:
       "hollow away up"
       "left corner right"
-      ". toward down";
+      "zoom toward down";
     gap: 8px;
     user-select: none;
     -webkit-user-select: none;
@@ -165,6 +174,7 @@ onDestroy(() => repeater.stop());
   .down { grid-area: down; }
   .corner { grid-area: corner; gap: 2px; font-size: 1rem; font-weight: 700; }
   .hollow { grid-area: hollow; font-size: 0.7rem; font-weight: 600; }
+  .zoom { grid-area: zoom; font-size: 0.7rem; font-weight: 600; background: #3d3a34; }
 
   .up,
   .down {

@@ -8,6 +8,14 @@ export type GestureIntent =
   | { type: "oneFingerDragEnd"; clientX: number; clientY: number }
   | { type: "twoFingerPan"; dx: number; dy: number }
   | { type: "pinch"; factor: number; center: { x: number; y: number } }
+  /**
+   * The line between two fingers turned by `degrees` (positive: clockwise on the screen) since the
+   * previous two-finger frame. Nothing is emitted until the twist since the fingers landed passes the
+   * dead zone. The turn up to the zone is never made up: the frame that passes it says only what it
+   * turned beyond the zone, and every later frame its own change, 1:1, so the view never jumps and
+   * stays the size of the zone (10 degrees) behind the fingers.
+   */
+  | { type: "twist"; degrees: number }
   | { type: "multiFingerTap"; fingers: 2 | 3 }
   | { type: "cancel" };
 
@@ -29,6 +37,7 @@ export interface GestureArbiterConfig {
   readonly longPressMs?: number; // default: 450
   readonly multiTapMaxMs?: number; // default: 300
   readonly multiTapSlopPx?: number; // default: 12
+  readonly twistDeadZoneDeg?: number; // default: 10
   readonly onIntent?: (intent: GestureIntent) => void;
   readonly setTimeout?: (fn: () => void, ms: number) => TimerHandle;
   readonly clearTimeout?: (handle: TimerHandle) => void;
@@ -40,7 +49,24 @@ export const DEFAULT_GESTURE_CONFIG = {
   longPressMs: 450,
   multiTapMaxMs: 300,
   multiTapSlopPx: 12,
+  twistDeadZoneDeg: 10,
 } as const;
+
+/**
+ * Below this distance between the fingers their angle is noise (a pinch that nearly closes), so the
+ * twist neither accumulates nor fires there; the angle is measured again from where they are.
+ */
+export const TWIST_MIN_SPREAD_PX = 20;
+
+/** An angle difference in degrees wrapped into (-180, 180]: 179 to -179 is a turn of 2, not -358. */
+export function wrapDegrees(deg: number): number {
+  const r = ((((deg + 180) % 360) + 360) % 360) - 180;
+  return r === -180 ? 180 : r;
+}
+
+/** The angle of the line from the first finger to the second, in degrees, y down: clockwise on screen is positive. */
+const lineAngle = (a: { curX: number; curY: number }, b: { curX: number; curY: number }): number =>
+  (Math.atan2(b.curY - a.curY, b.curX - a.curX) * 180) / Math.PI;
 
 interface ActivePointer {
   readonly id: number;
@@ -83,6 +109,11 @@ export class GestureArbiter {
   private multiTapEligible = false;
   private twoFingerPrevCenter: { x: number; y: number } | null = null;
   private twoFingerPrevSpread: number | null = null;
+  private twoFingerPrevAngle: number | null = null;
+  /** The twist since the two fingers landed, unwrapped, in degrees (positive: clockwise). */
+  private twistTotal = 0;
+  /** The dead zone was passed: twist now follows the fingers' changes, until they lift or one is left. */
+  private twistActive = false;
   private readonly pendingMovePointers = new Set<number>();
   private pendingMoveTime: number | null = null;
   private pendingTimer: TimerHandle | null = null;
@@ -93,6 +124,7 @@ export class GestureArbiter {
       longPressMs: config.longPressMs ?? DEFAULT_GESTURE_CONFIG.longPressMs,
       multiTapMaxMs: config.multiTapMaxMs ?? DEFAULT_GESTURE_CONFIG.multiTapMaxMs,
       multiTapSlopPx: config.multiTapSlopPx ?? DEFAULT_GESTURE_CONFIG.multiTapSlopPx,
+      twistDeadZoneDeg: config.twistDeadZoneDeg ?? DEFAULT_GESTURE_CONFIG.twistDeadZoneDeg,
       onIntent: config.onIntent,
       setTimeout: config.setTimeout ?? ((fn, ms) => setTimeout(fn, ms)),
       clearTimeout: config.clearTimeout ?? ((handle) => clearTimeout(handle)),
@@ -171,6 +203,10 @@ export class GestureArbiter {
               Math.hypot(p1.curX - p2.curX, p1.curY - p2.curY),
               1,
             );
+            // The twist is counted from the moment these two fingers are down together.
+            this.twoFingerPrevAngle = lineAngle(p1, p2);
+            this.twistTotal = 0;
+            this.twistActive = false;
           }
           if (this.abortedDrag) {
             this.multiTapEligible = false;
@@ -183,6 +219,7 @@ export class GestureArbiter {
           this.state = "three_pointer_gesture";
           this.twoFingerPrevCenter = null;
           this.twoFingerPrevSpread = null;
+          this.twoFingerPrevAngle = null;
           this.pendingMovePointers.clear();
           this.pendingMoveTime = null;
           if (!this.abortedDrag && this.multiTapEligible) {
@@ -195,6 +232,7 @@ export class GestureArbiter {
           this.multiTapEligible = false;
           this.twoFingerPrevCenter = null;
           this.twoFingerPrevSpread = null;
+          this.twoFingerPrevAngle = null;
           this.pendingMovePointers.clear();
           this.pendingMoveTime = null;
         }
@@ -339,6 +377,7 @@ export class GestureArbiter {
             }
             this.twoFingerPrevCenter = null;
             this.twoFingerPrevSpread = null;
+            this.twoFingerPrevAngle = null;
             this.pendingMovePointers.clear();
             this.pendingMoveTime = null;
             this.cancelPendingFlush();
@@ -383,6 +422,7 @@ export class GestureArbiter {
           this.state = "waiting_for_all_up";
           this.twoFingerPrevCenter = null;
           this.twoFingerPrevSpread = null;
+          this.twoFingerPrevAngle = null;
           this.pendingMovePointers.clear();
           this.pendingMoveTime = null;
           this.cancelPendingFlush();
@@ -447,6 +487,9 @@ export class GestureArbiter {
     this.multiTapEligible = false;
     this.twoFingerPrevCenter = null;
     this.twoFingerPrevSpread = null;
+    this.twoFingerPrevAngle = null;
+    this.twistTotal = 0;
+    this.twistActive = false;
     this.pendingMovePointers.clear();
     this.pendingMoveTime = null;
   }
@@ -515,14 +558,51 @@ export class GestureArbiter {
       } else {
         this.twoFingerPrevSpread = spread;
       }
+
+      this.evaluateTwist(p1, p2, spread, intents);
     } else {
       this.twoFingerPrevCenter = center;
       this.twoFingerPrevSpread = spread;
+      this.twoFingerPrevAngle = lineAngle(p1, p2);
     }
 
     this.pendingMovePointers.clear();
     this.pendingMoveTime = null;
     return intents;
+  }
+
+  /**
+   * The twist of this frame: how far the line between the fingers turned since the last one. Nothing
+   * is said until the total since the fingers landed is past the dead zone; from then on every frame
+   * says its own change, whatever the pan and pinch do. The turn inside the zone is not made up, so
+   * the view never snaps: the frame that crosses the zone says the part of the total beyond it
+   * (its own change when the previous frame ended at the edge of the zone), and the view then stays
+   * the size of the zone behind the fingers. The total is of angle differences wrapped to
+   * (-180, 180], so a twist across the +-180 line has no jump.
+   */
+  private evaluateTwist(
+    p1: ActivePointer,
+    p2: ActivePointer,
+    spread: number,
+    intents: GestureIntent[],
+  ): void {
+    const angle = lineAngle(p1, p2);
+    const before = this.twoFingerPrevAngle;
+    this.twoFingerPrevAngle = angle;
+    // Fingers almost on top of each other have no angle worth following.
+    if (before === null || spread < TWIST_MIN_SPREAD_PX) return;
+    const delta = wrapDegrees(angle - before);
+    if (this.twistActive) {
+      if (delta !== 0) intents.push({ type: "twist", degrees: delta });
+      return;
+    }
+    this.twistTotal += delta;
+    if (Math.abs(this.twistTotal) > this.config.twistDeadZoneDeg) {
+      this.twistActive = true;
+      // The turn up to the edge of the zone stays unmade: only what lies beyond it is said.
+      const beyond = this.twistTotal - Math.sign(this.twistTotal) * this.config.twistDeadZoneDeg;
+      intents.push({ type: "twist", degrees: beyond });
+    }
   }
 
   private scheduleLongPress(id: number, _startTime: number): void {

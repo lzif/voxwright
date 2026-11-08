@@ -33,6 +33,8 @@ import {
   packBlockIds,
   parseConfirmPlacement,
   parseCursorOffset,
+  parseTwist,
+  TWIST_KEY,
 } from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
 import {
@@ -93,6 +95,8 @@ let leftHanded = $state(false);
 let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
 /** Do Place, Replace and Erase wait for the check mark on touch? Every session the page creates starts with it. */
 let confirmPlacement = $state(false);
+/** Does a two-finger twist turn the view? On unless the user turned it off; read by the gesture handler as it happens. */
+let twistEnabled = $state(true);
 let activeSheet = $state<SheetType>("none");
 /** The blocks the user chose last and the ones they starred; kept in this browser (decision 9). */
 let recentBlocks = $state.raw<readonly string[]>([]);
@@ -151,6 +155,13 @@ function setConfirmPlacement(on: boolean): void {
   session?.setConfirmPlacement(on);
   try {
     localStorage.setItem(CONFIRM_PLACE_KEY, String(on));
+  } catch {}
+}
+
+function setTwistEnabled(on: boolean): void {
+  twistEnabled = on;
+  try {
+    localStorage.setItem(TWIST_KEY, String(on));
   } catch {}
 }
 
@@ -688,6 +699,8 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
 
   let pendingPan: { dx: number; dy: number } | null = null;
   let pendingPinch: { factor: number } | null = null;
+  /** Degrees the fingers turned clockwise since the last flush. */
+  let pendingTwist = 0;
   let flushMicrotaskScheduled = false;
 
   function flushTwoFinger(): void {
@@ -703,8 +716,12 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
     } else if (pendingPinch) {
       r.zoomBy(pendingPinch.factor);
     }
+    // The build turns with the fingers: a clockwise twist turns it clockwise seen from above, which
+    // is a smaller azimuth (a drag to the right adds to it).
+    if (pendingTwist !== 0) r.orbitAzimuthBy(-pendingTwist);
     pendingPan = null;
     pendingPinch = null;
+    pendingTwist = 0;
   }
 
   function scheduleFlushTwoFinger(): void {
@@ -732,6 +749,13 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
       case "pinch":
         pendingPinch = { factor: intent.factor };
         scheduleFlushTwoFinger();
+        break;
+      case "twist":
+        // Pan and pinch go on during a twist; the setting only decides whether the view turns.
+        if (twistEnabled) {
+          pendingTwist += intent.degrees;
+          scheduleFlushTwoFinger();
+        }
         break;
       case "tap":
       case "longPress":
@@ -874,6 +898,7 @@ onMount(() => {
     }
     cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
     confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
+    twistEnabled = parseTwist(localStorage.getItem(TWIST_KEY));
   } catch {}
   recentBlocks = loadBlockList(blockStore(), RECENT_KEY, RECENT_LIMIT);
   favoriteBlocks = loadBlockList(blockStore(), FAVORITE_KEY, FAVORITE_LIMIT);
@@ -1297,6 +1322,11 @@ onMount(() => {
             <span>Confirm each placement</span>
           </label>
           <p class="menu-hint">Place, Replace and Erase then wait for the check mark: a tap or the end of a drag arms the cell, the nudge pad moves it, and nothing changes until you confirm.</p>
+          <label class="menu-checkbox" data-testid="twist-toggle">
+            <input type="checkbox" checked={twistEnabled} onchange={(e) => setTwistEnabled(e.currentTarget.checked)} data-testid="twist-input" />
+            <span>Twist with two fingers to turn</span>
+          </label>
+          <p class="menu-hint">Turn two fingers like a dial to turn the view. Moving two fingers up and down still pans; tilt stays on the Tilt slider.</p>
           <div class="menu-field menu-range" data-testid="cursor-offset">
             <div class="menu-range-head">
               <span class="field-label">Cursor distance</span>

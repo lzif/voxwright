@@ -11,10 +11,12 @@
 // The fourth suite (MB6) inspects blocks by tap, changes their state through chips and switches,
 // works the selection sheet and its move pad, and exercises the hotbar; its exit check is a whole
 // edit session by touch whose exported file equals the same edits made through the desktop path.
+// The fifth suite (camera conveniences) checks double tap to focus, Zoom in here on the nudge pad, and
+// the two-finger twist with its setting.
 // Run after `pnpm --filter @voxwright/web build`:
 //
 //   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
-//     [--only viewer|placement|two-point|selection-state]
+//     [--only viewer|placement|two-point|selection-state|camera]
 
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
@@ -49,7 +51,7 @@ const { values } = parseArgs({
   options: {
     shots: { type: "string" },
     chromium: { type: "string" },
-    /** Run one suite only while working on it: viewer, placement, two-point or selection-state. */
+    /** Run one suite only while working on it: viewer, placement, two-point, selection-state or camera. */
     only: { type: "string" },
   },
 });
@@ -174,6 +176,39 @@ export async function cdpTwoFingerPan(
       { x: p2End.x, y: p2End.y, id: 2 },
     ],
   });
+}
+
+/**
+ * Helper: two fingers on opposite sides of `center` turn like a dial by `degrees` (positive:
+ * clockwise on the screen) while their distance goes from `2 * radius` to `2 * endRadius`. The
+ * coordinates are fractional: rounding them would add a pinch of a pixel or two to every step. The
+ * last event releases every finger with an empty list: listing the fingers there leaves a touch
+ * behind in Chromium's emulation, and the next tap of the test then produces no click.
+ */
+export async function cdpTwist(
+  cdp: CDPSession,
+  center: { x: number; y: number },
+  radius: number,
+  degrees: number,
+  steps = 12,
+  endRadius = radius,
+): Promise<void> {
+  const RAD = Math.PI / 180;
+  const fingers = (deg: number, r: number) => [
+    { x: center.x + Math.cos(deg * RAD) * r, y: center.y + Math.sin(deg * RAD) * r, id: 1 },
+    { x: center.x - Math.cos(deg * RAD) * r, y: center.y - Math.sin(deg * RAD) * r, id: 2 },
+  ];
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: fingers(0, radius),
+  });
+  for (let i = 1; i <= steps; i++) {
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: fingers((degrees * i) / steps, radius + ((endRadius - radius) * i) / steps),
+    });
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 }
 
 function computeTarget(p: TouchPose): [number, number, number] {
@@ -4667,12 +4702,791 @@ export async function touchSelectionStateSuite(): Promise<void> {
   }
 }
 
+/**
+ * Camera conveniences: a double tap in View focuses the camera on the block under the finger, "Zoom
+ * in here" on the nudge pad does the same for the armed cell, and a two-finger twist turns the view
+ * (with a setting). Real touch events over CDP; the camera is judged by reading the renderer's pose.
+ */
+export async function touchCameraSuite(): Promise<void> {
+  const t = (what: string): string => `[touch-camera] ${what}`;
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  const TWIST_KEY = "voxwright.twist";
+  try {
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    page.on("dialog", (d) => void d.accept());
+    const cdp = await page.createCDPSession();
+
+    // -- helpers that talk to the page (as in the other suites) ---------------------------------
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "center" });
+      }, selector);
+      const el = await page.$(selector);
+      let box = el === null ? null : await el.boundingBox();
+      // The toolbar may still be scrolling the button into view: a tap on a moving button is no click.
+      for (let i = 0; el !== null && i < 30; i++) {
+        await sleep(40);
+        const next = await el.boundingBox();
+        const still = next !== null && box !== null && next.x === box.x && next.y === box.y;
+        box = next;
+        if (still) break;
+      }
+      if (box === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(120);
+    };
+    const startUp = async (): Promise<void> => {
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600);
+      if ((await page.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await tapButton('[data-testid="discard"]');
+        await page.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (): Promise<void> => {
+      const file = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const tops = (): Promise<Top[]> =>
+      page.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const vol = v.volume();
+        const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
+        const [lo, hi] = vol.bounds() as [number[], number[]];
+        const out: Top[] = [];
+        for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+          for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+            for (let y = hi[1] as number; y >= (lo[1] as number); y--) {
+              const b = vol.get(x, y, z);
+              if (b === undefined || b === "minecraft:air") continue;
+              const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+              const hit = pt === null ? null : s.pick(pt.x, pt.y);
+              if (
+                pt !== null &&
+                hit !== null &&
+                hit.position[0] === x &&
+                hit.position[1] === y &&
+                hit.position[2] === z &&
+                hit.normal[1] === 1
+              )
+                out.push({ pos: [x, y, z], pt, block: b });
+              break;
+            }
+          }
+        return out;
+      });
+    const pose = (): Promise<TouchPose> =>
+      page.evaluate(() =>
+        (
+          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
+        ).renderer.getPose(),
+      );
+    const worldToPage = (x: number, y: number, z: number): Promise<{ x: number; y: number }> =>
+      page.evaluate(
+        (a, b, c) => {
+          const pt = (window.__voxwright as Vox).renderer.clientFromWorld(a, b, c);
+          if (pt === null) throw new Error("point is behind the camera");
+          return pt;
+        },
+        x,
+        y,
+        z,
+      );
+    const settleFrames = async (): Promise<void> => {
+      await sleep(150);
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const state = (): Promise<{
+      tool: string;
+      inspected: Vec3 | null;
+      pending: NonNullable<SessionView["pending"]> | null;
+      message: string;
+      undoCount: number;
+    }> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        return JSON.parse(
+          JSON.stringify({
+            tool: s.tool,
+            inspected: s.inspected,
+            pending: s.pending,
+            message: s.message,
+            undoCount: s.undoCount,
+          }),
+        );
+      });
+    /** Long enough since the last tap that the next one cannot pair with it. */
+    const rest = (): Promise<void> => sleep(400);
+    /**
+     * After a multi-finger gesture Chromium turns the next tap into a click only after a moment (a tap
+     * a few hundred ms later is delivered as pointer events but gets no click), so every gesture below
+     * ends with this wait before a test taps a button again.
+     */
+    const calm = (): Promise<void> => sleep(700);
+    const twist = async (
+      center: { x: number; y: number },
+      radius: number,
+      degrees: number,
+      steps = 12,
+      endRadius = radius,
+    ): Promise<void> => {
+      await cdpTwist(cdp, center, radius, degrees, steps, endRadius);
+      await calm();
+    };
+    /** One tap: the finger is down for 40 ms; nothing waits after it. */
+    const quickTap = async (x: number, y: number): Promise<void> => {
+      const finger = await page.touchscreen.touchStart(x, y);
+      await sleep(40);
+      await finger.end();
+    };
+    /** Two taps `gap` ms apart (lift to landing, plus the round trips of the test harness). */
+    const doubleTap = async (
+      a: { x: number; y: number },
+      b: { x: number; y: number },
+      gap = 80,
+    ): Promise<void> => {
+      await rest();
+      await quickTap(a.x, a.y);
+      await sleep(gap);
+      await quickTap(b.x, b.y);
+      await settleFrames();
+    };
+    const tapAt = async (x: number, y: number): Promise<void> => {
+      await quickTap(x, y);
+      await sleep(220);
+    };
+    const below = (p: { x: number; y: number }): { x: number; y: number } => ({
+      x: Math.round(p.x),
+      y: Math.round(p.y + OFFSET),
+    });
+    const targetOf = (p: TouchPose): Vec3 => computeTarget(p);
+    const near = (a: readonly number[], b: readonly number[], tol: number): boolean =>
+      a.every((v, i) => Math.abs(v - (b[i] as number)) <= tol);
+    const fmt = (v: readonly number[]): string => `(${v.map((n) => n.toFixed(2)).join(", ")})`;
+    const wrap = (deg: number): number => ((((deg + 180) % 360) + 360) % 360) - 180;
+    const armTool = async (id: string): Promise<void> => {
+      await tapButton(`[data-testid="tool-${id}"]`);
+      ok((await state()).tool === id, t(`the ${id} tool is armed from the bottom toolbar`));
+    };
+    const canvasCenter = async (): Promise<{ x: number; y: number }> => {
+      const box = await (await page.$('[data-testid="canvas"]'))?.boundingBox();
+      if (!box) throw new Error("no canvas");
+      return { x: Math.round(box.x + box.width / 2), y: Math.round(box.y + box.height / 2) };
+    };
+    const emptySpot = (): Promise<{ x: number; y: number }> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        for (const [x, y] of [
+          [30, 130],
+          [360, 130],
+          [30, 640],
+          [360, 640],
+          [195, 120],
+        ] as const) {
+          if (
+            s.pick(x, y) === null &&
+            document.elementFromPoint(x, y)?.getAttribute("data-testid") === "canvas"
+          )
+            return { x, y };
+        }
+        throw new Error("no empty spot on the canvas");
+      });
+    const openMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector('[data-testid="twist-toggle"] input', { timeout: 5000 });
+      await page.$eval('[data-testid="twist-toggle"] input', (el) =>
+        el.scrollIntoView({ block: "center" }),
+      );
+      await sleep(300);
+    };
+    const closeSheet = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    const twistBox = '[data-testid="twist-toggle"] input';
+    const twistStored = (): Promise<string | null> =>
+      page.evaluate((k) => localStorage.getItem(k), TWIST_KEY);
+
+    // -- setup ----------------------------------------------------------------------------------
+    await page.goto(url);
+    await startUp();
+    await openFixture();
+    const home = await pose();
+    const restoreCamera = async (): Promise<void> => {
+      await page.evaluate(
+        (p, target) => {
+          (window.__voxwright as Vox).renderer.setOrbit({
+            azimuth: p.azimuth,
+            elevation: p.elevation,
+            distance: p.distance,
+            target,
+          });
+        },
+        home,
+        targetOf(home),
+      );
+      await settleFrames();
+    };
+    const all = await tops();
+    const topAt = (x: number, y: number, z: number): Top => {
+      const found = all.find((c) => c.pos[0] === x && c.pos[1] === y && c.pos[2] === z);
+      if (found === undefined) throw new Error(`no reachable top face at ${x},${y},${z}`);
+      return found;
+    };
+    ok(
+      home.azimuth === 45 && home.distance > 8 && (await state()).tool === "navigate",
+      t(
+        `View is the tool and the camera starts at azimuth 45, distance ${home.distance.toFixed(1)}`,
+      ),
+    );
+
+    // =========================================================================
+    // Double tap in View focuses the camera
+    // =========================================================================
+    const aim = topAt(6, 7, 6);
+    const centreOf = (c: Top): Vec3 => [c.pos[0] + 0.5, c.pos[1] + 0.5, c.pos[2] + 0.5];
+    const p0 = await pose();
+    await rest();
+    await quickTap(aim.pt.x, aim.pt.y);
+    await settleFrames();
+    const afterOne = await state();
+    const p1 = await pose();
+    ok(
+      afterOne.inspected !== null &&
+        near(afterOne.inspected, aim.pos, 0) &&
+        near(targetOf(p1), targetOf(p0), 0.01) &&
+        Math.abs(p1.distance - p0.distance) < 0.01,
+      t("one tap inspects the block and does not touch the camera"),
+    );
+    await doubleTap(aim.pt, { x: aim.pt.x + 3, y: aim.pt.y + 2 }, 80);
+    const p2 = await pose();
+    const target2 = targetOf(p2);
+    ok(
+      near(target2, centreOf(aim), 0.02),
+      t(
+        `a double tap moves the orbit target to the centre of the tapped block (${fmt(target2)} vs ${fmt(centreOf(aim))})`,
+      ),
+    );
+    ok(
+      Math.abs(p2.distance - p0.distance / 2) < 0.02,
+      t(`and halves the orbit distance (${p0.distance.toFixed(2)} -> ${p2.distance.toFixed(2)})`),
+    );
+    ok(
+      Math.abs(p2.azimuth - p0.azimuth) < 0.05 && Math.abs(p2.elevation - p0.elevation) < 0.05,
+      t("the view direction stays"),
+    );
+    const afterTwo = await state();
+    ok(
+      afterTwo.inspected !== null &&
+        near(afterTwo.inspected, aim.pos, 0) &&
+        afterTwo.undoCount === 0,
+      t("the block stays inspected and nothing was edited"),
+    );
+
+    // Progressive zoom: each double tap halves again, down to 4 and no further
+    let last = p2;
+    let steps = 1;
+    while (last.distance > 4.5 && steps < 8) {
+      const at = await worldToPage(aim.pos[0] + 0.5, aim.pos[1] + 1, aim.pos[2] + 0.5);
+      await doubleTap(at, at, 80);
+      const now = await pose();
+      const want = Math.max(4, last.distance / 2);
+      ok(
+        Math.abs(now.distance - want) < 0.02,
+        t(
+          `double tap ${steps + 1} halves again (${last.distance.toFixed(2)} -> ${now.distance.toFixed(2)}, wanted ${want.toFixed(2)})`,
+        ),
+      );
+      last = now;
+      steps++;
+    }
+    ok(
+      Math.abs(last.distance - 4) < 0.02,
+      t(`the zoom stops at 4 blocks (${last.distance.toFixed(2)})`),
+    );
+    const floorAt = await worldToPage(aim.pos[0] + 0.5, aim.pos[1] + 1, aim.pos[2] + 0.5);
+    await doubleTap(floorAt, floorAt, 80);
+    const floored = await pose();
+    ok(
+      Math.abs(floored.distance - 4) < 0.02 && near(targetOf(floored), centreOf(aim), 0.02),
+      t(`one more double tap does not go below 4 (${floored.distance.toFixed(2)})`),
+    );
+
+    // A double tap elsewhere moves the target to that block
+    await restoreCamera();
+    const other = (await tops()).find((c) => c.pos[0] === 3 && c.pos[2] === 5);
+    if (other === undefined) throw new Error("no block at x=3, z=5");
+    await doubleTap(other.pt, other.pt, 80);
+    const pOther = await pose();
+    ok(
+      near(targetOf(pOther), centreOf(other), 0.02) &&
+        Math.abs(pOther.distance - home.distance / 2) < 0.02,
+      t(
+        `and from home again it focuses on another block (${other.pos.join(",")}) at half the distance`,
+      ),
+    );
+
+    // Empty space: nothing happens
+    await restoreCamera();
+    const empty = await emptySpot();
+    const pe0 = await pose();
+    await doubleTap(empty, empty, 80);
+    const pe1 = await pose();
+    ok(
+      near(pe1.position, pe0.position, 0.001) &&
+        Math.abs(pe1.distance - pe0.distance) < 0.001 &&
+        (await state()).inspected === null,
+      t("a double tap on empty space does nothing"),
+    );
+
+    // A slow second tap is two single taps
+    await restoreCamera();
+    const slow0 = await pose();
+    await rest();
+    await quickTap(aim.pt.x, aim.pt.y);
+    await sleep(500);
+    await quickTap(aim.pt.x, aim.pt.y);
+    await settleFrames();
+    const slow1 = await pose();
+    ok(
+      near(slow1.position, slow0.position, 0.001) &&
+        Math.abs(slow1.distance - slow0.distance) < 0.001,
+      t("a second tap more than 300 ms after the first does not focus"),
+    );
+    ok((await state()).inspected !== null, t("and it inspects like any tap"));
+
+    // Two taps far apart are two single taps
+    await restoreCamera();
+    const far0 = await pose();
+    const aim2 = topAt(3, 6, 5);
+    await doubleTap(aim.pt, aim2.pt, 80);
+    const far1 = await pose();
+    ok(
+      Math.hypot(aim.pt.x - aim2.pt.x, aim.pt.y - aim2.pt.y) > 24 &&
+        near(far1.position, far0.position, 0.001),
+      t("taps more than 24 px apart do not focus"),
+    );
+
+    // An orbit between two taps breaks the pair
+    await restoreCamera();
+    await rest();
+    await quickTap(aim.pt.x, aim.pt.y);
+    await sleep(40);
+    const dragger = await page.touchscreen.touchStart(aim.pt.x, aim.pt.y);
+    await dragger.move(aim.pt.x + 14, aim.pt.y);
+    await dragger.end();
+    const orbitedFrom = await pose();
+    await quickTap(aim.pt.x + 14, aim.pt.y);
+    await settleFrames();
+    const orbited = await pose();
+    ok(
+      Math.abs(orbited.distance - orbitedFrom.distance) < 0.001,
+      t("an orbit between two quick taps breaks the pair"),
+    );
+
+    // With a tool armed, two quick taps are the tool's: the camera does not move
+    await restoreCamera();
+    await armTool("select");
+    const tool0 = await pose();
+    const cursor = below(aim.pt);
+    await doubleTap(cursor, cursor, 80);
+    const tool1 = await pose();
+    const toolState = await state();
+    ok(
+      near(tool1.position, tool0.position, 0.001) &&
+        Math.abs(tool1.distance - tool0.distance) < 0.001,
+      t("two quick taps with Select armed do not focus the camera"),
+    );
+    ok(
+      toolState.pending?.kind === "select" &&
+        toolState.pending.b !== null &&
+        toolState.undoCount === 0,
+      t(`they are the tool's: corners A and B are set (${JSON.stringify(toolState.pending)})`),
+    );
+    await tapButton('[data-testid="cancel"]');
+    await armTool("navigate");
+
+    // =========================================================================
+    // Zoom in here on the nudge pad
+    // =========================================================================
+    await restoreCamera();
+    ok(
+      (await page.$('[data-testid="nudge-zoom"]')) === null,
+      t("the button is not there with nothing pending"),
+    );
+    await armTool("select");
+    await tapAt(below(aim.pt).x, below(aim.pt).y);
+    const armedA = (await state()).pending;
+    ok(
+      armedA?.kind === "select" &&
+        armedA.a !== undefined &&
+        near(armedA.a, aim.pos, 0) &&
+        armedA.b === null,
+      t(`a tap sets corner A (${JSON.stringify(armedA)})`),
+    );
+    const zoom = await page.$eval('[data-testid="nudge-zoom"]', (el) => {
+      const r = el.getBoundingClientRect();
+      return {
+        w: r.width,
+        h: r.height,
+        name: el.getAttribute("aria-label"),
+        text: el.textContent?.trim(),
+      };
+    });
+    ok(
+      zoom.w >= 47.99 && zoom.h >= 47.99,
+      t(`the Zoom button is at least 48 x 48 px (${zoom.w} x ${zoom.h})`),
+    );
+    ok(
+      zoom.name === "Zoom to the armed cell" && zoom.text === "Zoom",
+      t(`its accessible name is "${zoom.name}" and it reads "${zoom.text}"`),
+    );
+    const noOverlap = await page.evaluate(() => {
+      const z = (
+        document.querySelector('[data-testid="nudge-zoom"]') as HTMLElement
+      ).getBoundingClientRect();
+      return [...document.querySelectorAll('[data-testid^="nudge-"]')]
+        .filter(
+          (el) =>
+            el.getAttribute("data-testid") !== "nudge-zoom" &&
+            el.getAttribute("data-testid") !== "nudge-pad",
+        )
+        .every((el) => {
+          const r = el.getBoundingClientRect();
+          return (
+            r.right <= z.left + 0.5 ||
+            r.left >= z.right - 0.5 ||
+            r.bottom <= z.top + 0.5 ||
+            r.top >= z.bottom - 0.5
+          );
+        });
+    });
+    ok(noOverlap, t("and it overlaps no other button of the pad"));
+    const z0 = await pose();
+    await tapButton('[data-testid="nudge-zoom"]');
+    await settleFrames();
+    const z1 = await pose();
+    ok(
+      near(targetOf(z1), [aim.pos[0] + 0.5, aim.pos[1] + 0.5, aim.pos[2] + 0.5], 0.02) &&
+        Math.abs(z1.distance - z0.distance / 2) < 0.02,
+      t(
+        `Zoom in here puts corner A in the middle and halves the distance (${fmt(targetOf(z1))}, ${z0.distance.toFixed(2)} -> ${z1.distance.toFixed(2)})`,
+      ),
+    );
+    const afterZoom = await state();
+    ok(
+      afterZoom.pending?.kind === "select" &&
+        afterZoom.undoCount === 0 &&
+        afterZoom.message.startsWith("Zoomed in on "),
+      t(
+        `the pending corner stays, nothing is edited and the message line says so (${afterZoom.message})`,
+      ),
+    );
+    // Nudge the corner up one block: the next zoom follows it
+    await tapButton('[data-testid="nudge-up"]');
+    await tapButton('[data-testid="nudge-zoom"]');
+    await settleFrames();
+    const z2 = await pose();
+    ok(
+      near(targetOf(z2), [aim.pos[0] + 0.5, aim.pos[1] + 1.5, aim.pos[2] + 0.5], 0.02),
+      t(
+        `after nudging the corner up one block, the next zoom is on its new cell (${fmt(targetOf(z2))})`,
+      ),
+    );
+    ok(
+      Math.abs(z2.distance - Math.min(z1.distance, Math.max(4, z1.distance / 2))) < 0.02,
+      t(`and halves again, to at least 4 (${z2.distance.toFixed(2)})`),
+    );
+    // Two corners: Zoom follows the active one
+    await tapButton('[data-testid="cancel"]');
+    await restoreCamera();
+    await tapAt(below(topAt(6, 7, 3).pt).x, below(topAt(6, 7, 3).pt).y);
+    const cornerB = topAt(6, 7, 7);
+    await tapAt(below(cornerB.pt).x, below(cornerB.pt).y);
+    const both = (await state()).pending;
+    ok(
+      both?.kind === "select" && both.b !== null && both.active === "b",
+      t(`B is set and active (${JSON.stringify(both)})`),
+    );
+    await tapButton('[data-testid="nudge-zoom"]');
+    await settleFrames();
+    const zb = await pose();
+    ok(
+      near(targetOf(zb), [6.5, 7.5, 7.5], 0.02),
+      t(`with B active the zoom is on corner B (${fmt(targetOf(zb))})`),
+    );
+    await tapButton('[data-testid="nudge-corner"]');
+    await tapButton('[data-testid="nudge-zoom"]');
+    await settleFrames();
+    const za = await pose();
+    ok(
+      near(targetOf(za), [6.5, 7.5, 3.5], 0.02),
+      t(`and after switching to A it is on corner A (${fmt(targetOf(za))})`),
+    );
+    await tapButton('[data-testid="cancel"]');
+    await armTool("navigate");
+    await restoreCamera();
+
+    // =========================================================================
+    // Two-finger twist
+    // =========================================================================
+    const centre = await canvasCenter();
+    const RADIUS = 50;
+    const setElevation = async (deg: number): Promise<void> => {
+      await page.evaluate(
+        (e) => (window.__voxwright as Vox).renderer.setOrbit({ elevation: e }),
+        deg,
+      );
+      await settleFrames();
+    };
+    /** The angle of the on-screen line between two world points on the same level, y down (clockwise is positive). */
+    const screenAngle = async (around: Vec3): Promise<number> => {
+      const a = await worldToPage(around[0] - 6, around[1], around[2]);
+      const b = await worldToPage(around[0] + 6, around[1], around[2]);
+      return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
+    };
+
+    // The menu has the setting, on, and nothing is stored until it changes
+    await openMenu();
+    const twistLabel = await page.$eval('[data-testid="twist-toggle"]', (el) => ({
+      text: el.textContent?.trim() ?? "",
+      h: el.getBoundingClientRect().height,
+    }));
+    ok(
+      twistLabel.text === "Twist with two fingers to turn",
+      t(`Menu, Settings has "${twistLabel.text}"`),
+    );
+    ok(twistLabel.h >= 43.99, t(`it is at least 44 px tall (${twistLabel.h})`));
+    ok(
+      (await page.$eval(twistBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await twistStored()) === null,
+      t("it starts on, and nothing is stored until it is changed"),
+    );
+    await closeSheet();
+
+    const a0 = await pose();
+    await twist(centre, RADIUS, 40);
+    await settleFrames();
+    const a1 = await pose();
+    ok(
+      Math.abs(wrap(a1.azimuth - a0.azimuth) - -30) < 1,
+      t(
+        `a 40 degree clockwise twist turns the azimuth by -30, the 10 degree dead zone is not made up (${a0.azimuth.toFixed(1)} -> ${a1.azimuth.toFixed(1)})`,
+      ),
+    );
+    ok(
+      Math.abs(a1.elevation - a0.elevation) < 0.05 &&
+        Math.abs(a1.distance - a0.distance) / a0.distance < 0.02 &&
+        near(targetOf(a1), targetOf(a0), 0.1),
+      t("a pure twist leaves the tilt, the distance and the target alone"),
+    );
+
+    // The build turns the way the fingers turn: look straight down and measure on the screen
+    await restoreCamera();
+    await setElevation(89);
+    const top0 = await pose();
+    const around = targetOf(top0);
+    const ang0 = await screenAngle(around);
+    await twist(centre, RADIUS, 40);
+    await settleFrames();
+    const top1 = await pose();
+    const ang1 = await screenAngle(targetOf(top1));
+    ok(
+      Math.abs(wrap(ang1 - ang0) - 30) < 3,
+      t(
+        `seen from above, the build turns clockwise on the screen, with the fingers (${wrap(ang1 - ang0).toFixed(1)} degrees for a 40 degree twist)`,
+      ),
+    );
+    await twist(centre, RADIUS, -40);
+    await settleFrames();
+    const top2 = await pose();
+    const ang2 = await screenAngle(targetOf(top2));
+    ok(
+      Math.abs(wrap(ang2 - ang1) - -30) < 3 && Math.abs(wrap(top2.azimuth - top1.azimuth) - 30) < 1,
+      t(
+        `and a counter-clockwise twist turns it back (${wrap(ang2 - ang1).toFixed(1)} degrees, azimuth ${top1.azimuth.toFixed(1)} -> ${top2.azimuth.toFixed(1)})`,
+      ),
+    );
+    await restoreCamera();
+
+    // The dead zone
+    const d0 = await pose();
+    await twist(centre, RADIUS, 5);
+    await settleFrames();
+    const d1 = await pose();
+    ok(
+      Math.abs(d1.azimuth - d0.azimuth) < 0.05 && Math.abs(d1.distance - d0.distance) < 0.05,
+      t(
+        `a 5 degree twist does not turn the view (${d0.azimuth.toFixed(2)} -> ${d1.azimuth.toFixed(2)})`,
+      ),
+    );
+    await twist(centre, RADIUS, -9);
+    await settleFrames();
+    ok(
+      Math.abs((await pose()).azimuth - d0.azimuth) < 0.05,
+      t("nor does a 9 degree one the other way"),
+    );
+    await twist(centre, RADIUS, 20);
+    await settleFrames();
+    const d2 = await pose();
+    ok(
+      Math.abs(wrap(d2.azimuth - d0.azimuth) - -10) < 1,
+      t(
+        `a 20 degree twist turns it by 10, what lies beyond the dead zone (${wrap(d2.azimuth - d0.azimuth).toFixed(1)})`,
+      ),
+    );
+    await restoreCamera();
+
+    // Pinch and pan go on during a twist
+    const c0 = await pose();
+    await twist(centre, RADIUS, 40, 12, 90);
+    await settleFrames();
+    const c1 = await pose();
+    ok(
+      Math.abs(wrap(c1.azimuth - c0.azimuth) - -30) < 2,
+      t(
+        `a 40 degree twist that also spreads the fingers still turns the view by 30 (${wrap(c1.azimuth - c0.azimuth).toFixed(1)})`,
+      ),
+    );
+    ok(
+      c1.distance / c0.distance > 0.4 && c1.distance / c0.distance < 0.7,
+      t(
+        `and still zooms in (${c0.distance.toFixed(1)} -> ${c1.distance.toFixed(1)}, fingers 100 -> 180 px apart)`,
+      ),
+    );
+    await restoreCamera();
+    const v0 = await pose();
+    await cdpTwoFingerPan(cdp, centre, { dx: 0, dy: -120 });
+    await calm();
+    await settleFrames();
+    const v1 = await pose();
+    ok(
+      Math.abs(v1.azimuth - v0.azimuth) < 0.05 &&
+        Math.abs(v1.elevation - v0.elevation) < 0.05 &&
+        Math.hypot(...(targetOf(v1).map((n, i) => n - (targetOf(v0)[i] as number)) as Vec3)) > 0.5,
+      t("a two-finger vertical drag is still a pan: no turn, no tilt, the target moves"),
+    );
+    await restoreCamera();
+
+    // A twist with a touch tool armed and something pending turns the view and leaves the pending action
+    await armTool("line");
+    await tapAt(below(aim.pt).x, below(aim.pt).y);
+    const pendBefore = JSON.stringify((await state()).pending);
+    const l0 = await pose();
+    await twist(centre, RADIUS, 40);
+    await settleFrames();
+    const l1 = await pose();
+    ok(
+      Math.abs(wrap(l1.azimuth - l0.azimuth) - -30) < 1 &&
+        JSON.stringify((await state()).pending) === pendBefore &&
+        (await state()).undoCount === 0,
+      t("with Line armed and corner A set, a twist turns the view and changes nothing pending"),
+    );
+    await tapButton('[data-testid="cancel"]');
+    await armTool("navigate");
+    await restoreCamera();
+
+    // Off: stored, applied at once, and a pinch still works
+    await openMenu();
+    await tapButton(twistBox);
+    ok(
+      !(await page.$eval(twistBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await twistStored()) === "false",
+      t("turning it off stores false"),
+    );
+    await closeSheet();
+    const o0 = await pose();
+    await twist(centre, RADIUS, 40, 12, 90);
+    await settleFrames();
+    const o1 = await pose();
+    ok(
+      Math.abs(o1.azimuth - o0.azimuth) < 0.05,
+      t(
+        `with it off a twist does not turn the view (${o0.azimuth.toFixed(2)} -> ${o1.azimuth.toFixed(2)})`,
+      ),
+    );
+    ok(
+      o1.distance / o0.distance > 0.4 && o1.distance / o0.distance < 0.7,
+      t("but pinch still zooms in the same gesture"),
+    );
+    await restoreCamera();
+
+    // It survives a reload
+    await page.reload();
+    await startUp();
+    await openFixture();
+    await openMenu();
+    ok(
+      !(await page.$eval(twistBox, (el) => (el as HTMLInputElement).checked)),
+      t("after a reload the checkbox still shows it off"),
+    );
+    await closeSheet();
+    const r0 = await pose();
+    await twist(centre, RADIUS, 40);
+    await settleFrames();
+    ok(Math.abs((await pose()).azimuth - r0.azimuth) < 0.05, t("and the twist is still off"));
+
+    // On again
+    await openMenu();
+    await tapButton(twistBox);
+    ok(
+      (await page.$eval(twistBox, (el) => (el as HTMLInputElement).checked)) &&
+        (await twistStored()) === "true",
+      t("turning it on stores true"),
+    );
+    await closeSheet();
+    const n0 = await pose();
+    await twist(centre, RADIUS, -40);
+    await settleFrames();
+    const n1 = await pose();
+    ok(
+      Math.abs(wrap(n1.azimuth - n0.azimuth) - 30) < 1,
+      t(
+        `and the twist turns the view again (${n0.azimuth.toFixed(1)} -> ${n1.azimuth.toFixed(1)})`,
+      ),
+    );
+
+    ok(
+      errors.length === 0,
+      t(`no console errors${errors.length ? `: ${errors.join(" | ")}` : ""}`),
+    );
+  } finally {
+    await browser.close();
+  }
+}
+
 try {
   if (values.only === undefined || values.only === "viewer") await touchViewerSuite();
   if (values.only === undefined || values.only === "placement") await touchPlacementSuite();
   if (values.only === undefined || values.only === "two-point") await touchTwoPointSuite();
   if (values.only === undefined || values.only === "selection-state")
     await touchSelectionStateSuite();
+  if (values.only === undefined || values.only === "camera") await touchCameraSuite();
 } finally {
   server.close();
 }

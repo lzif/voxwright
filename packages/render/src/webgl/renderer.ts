@@ -433,6 +433,18 @@ export class WebglRenderer implements Renderer {
     this.requestFrame();
   }
 
+  /**
+   * Turn the orbit camera around its target by degrees of azimuth, as `setOrbit({ azimuth })` would
+   * from the current pose. A positive value is the direction a drag to the right turns the camera
+   * (seen from above, the build turns counter-clockwise on the screen); a negative one turns it
+   * clockwise. The elevation, the distance and the target stay.
+   */
+  orbitAzimuthBy(degrees: number): void {
+    if (!Number.isFinite(degrees)) return;
+    this.orbit.azimuth = (((this.orbit.azimuth + degrees) % 360) + 360) % 360;
+    this.requestFrame();
+  }
+
   /** Pan the camera target in the screen plane by screen pixel deltas. */
   panBy(dxPx: number, dyPx: number): void {
     if (!Number.isFinite(dxPx) || !Number.isFinite(dyPx)) return;

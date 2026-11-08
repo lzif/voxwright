@@ -68,6 +68,10 @@ export const cornerB = (p: TwoPointPending): Vec3 => p.b ?? p.a;
 export const activeCorner = (p: TwoPointPending): Vec3 =>
   p.active === "b" && p.b !== null ? p.b : p.a;
 
+/** The cell the camera focuses on for a pending value: the armed cell, the paste origin, or the active corner (A when B is not set). */
+export const pendingFocusCell = (p: Pending): Vec3 =>
+  p.kind === "cell" ? p.cell : p.kind === "paste" ? p.at : activeCorner(p);
+
 /** The box the two corners span (a flat one for a rectangle). */
 export const cornersBox = (p: TwoPointPending): Box => boxBetween(p.a, cornerB(p));
 
