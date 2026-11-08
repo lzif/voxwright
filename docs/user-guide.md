@@ -88,9 +88,19 @@ In that mode:
 
 ### Touch-only devices
 
-On a phone or tablet with WebGL2, the page uses a mobile layout: a full-screen picture, a top bar with a **Menu** button (for opening files, texture packs, view settings and exporting), a bottom toolbar for choosing tools and opening the block palette, a floating **Undo** / **Redo** cluster (which can be moved to the left side for left-handed use), and draggable bottom sheets (with peek, half and full heights) for the palette, block state and selection panels. (Direct touch block placement on the picture is still in progress; see `docs/mobile-editor-plan.md`.)
+On a phone or tablet with WebGL2, the page uses a mobile layout: a full-screen picture, a top bar with a **Menu** button (for opening files, texture packs, view settings and exporting), a bottom toolbar for choosing tools and opening the block palette, a floating **Undo** / **Redo** cluster (which can be moved to the left side for left-handed use), and draggable bottom sheets (with peek, half and full heights) for the palette, block state and selection panels.
 
-On a touch screen in Orbit, one finger turns the build, pinching with two fingers zooms, and moving two fingers together pans the build across the screen. If you lift one finger after a two-finger gesture, the remaining finger keeps turning the build without jumping. The **Turn**, **Tilt** and zoom controls in the **Menu** sheet work too, and **Fly** mode is hidden on touch devices. Adding `?perf=1` to the address shows a small performance overlay (frame rate, triangle count, frame time, heap memory and pixel ratio).
+On a touch screen in Orbit with the **View**, **Line**, **Rectangle**, **Select** or **Paste** tool, one finger turns the build, pinching with two fingers zooms, and moving two fingers together pans the build across the screen. If you lift one finger after a two-finger gesture, the remaining finger waits until every finger is up before it does anything again, so it never jumps. A long press (about half a second, without moving) on a block chooses that block for the drawing tools and says "Picked …".
+
+**Placing blocks by touch.** With **Place**, **Replace**, **Erase** or **Pick** chosen in the bottom toolbar, one finger on the picture does not turn the build. It drives a cursor that sits about 64 pixels above your fingertip, so your finger does not cover the block you are aiming at. A ring marks the cursor, and the block under it is outlined (with a ghost block next to it for Place):
+
+- **Tap** applies the tool once at the cursor, as one undo step. Pick chooses the block under the cursor and switches to Place.
+- **Drag** paints a stroke along the surface where it began, like the mouse does; lifting the finger ends it, and one **Undo** removes the whole stroke. A drag with Pick only moves the cursor.
+- **Long press** chooses the block under the cursor as the current block and keeps the tool you have.
+- **A second finger** cancels the stroke at once (the blocks it painted are removed) and the two fingers pan and zoom the view. A finger left down after that does not paint.
+- **Sliding the finger onto the bottom toolbar, the Undo and Redo buttons or a sheet, or sliding the cursor off the top or a side of the picture,** cancels the stroke the same way.
+
+Choose **View** to turn the build with one finger again. The line above the toolbar says "place done" (or "erase done", and so on) after each edit; **Undo** is in the thumb cluster. Line, Rectangle, Select and Paste have no touch version yet (they turn the build with one finger), and there is no setting for the cursor distance yet. The **Turn**, **Tilt** and zoom controls in the **Menu** sheet work too, and **Fly** mode is hidden on touch devices. Adding `?perf=1` to the address shows a small performance overlay (frame rate, triangle count, frame time, heap memory and pixel ratio).
 
 ## 3. Converting and the loss report
 
@@ -291,7 +301,7 @@ The software renderer (no WebGL2) also uses your pack.
 Editing:
 
 - No editing in Fly mode. Switch to Orbit.
-- No editing with the software renderer (no WebGL2). Direct touch block placement on the canvas is still in progress (see `docs/mobile-editor-plan.md`).
+- No editing with the software renderer (no WebGL2). On a touch screen, Place, Replace, Erase and Pick work through the offset cursor; Line, Rectangle, Select and Paste have no touch version yet (see `docs/mobile-editor-plan.md`).
 - Selections are boxes. A drag chooses a box between two blocks, so you cannot select cells in empty air by dragging. Type the corners instead.
 - Mirror works east-west and north-south only. There is no vertical mirror.
 - Move uses typed offsets or the up and down buttons. There is no drag-to-move.

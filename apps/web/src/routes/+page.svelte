@@ -18,6 +18,7 @@ import RestoreDialog from "../lib/components/RestoreDialog.svelte";
 import SelectionPanel from "../lib/components/SelectionPanel.svelte";
 import SiteFooter from "../lib/components/SiteFooter.svelte";
 import ThumbCluster from "../lib/components/ThumbCluster.svelte";
+import TouchReticle from "../lib/components/TouchReticle.svelte";
 import { describeVolume } from "../lib/describe.ts";
 import { followLayerBounds, packBlockIds } from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
@@ -29,11 +30,12 @@ import {
   openFile,
   saveAs,
 } from "../lib/formats.ts";
-import { GestureArbiter, type GestureIntent, pointerEventToSample } from "../lib/gestures.ts";
+import { type GestureIntent, pointerEventToSample } from "../lib/gestures.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import Worker from "../lib/render.worker.ts?worker";
 import { restoreSnapshot, type Snapshot } from "../lib/snapshot.ts";
+import { TouchRouter } from "../lib/touch-router.ts";
 import {
   loadUserPack,
   readUserPack,
@@ -645,32 +647,34 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
     }
   }
 
-  const arbiter = new GestureArbiter({
-    onIntent: (intent: GestureIntent) => {
-      switch (intent.type) {
-        case "oneFingerDragMove":
-          flushTwoFinger();
-          r.orbitBy(intent.dx, intent.dy);
-          break;
-        case "twoFingerPan":
-          pendingPan = { dx: intent.dx, dy: intent.dy };
-          scheduleFlushTwoFinger();
-          break;
-        case "pinch":
-          pendingPinch = { factor: intent.factor };
-          scheduleFlushTwoFinger();
-          break;
-        case "tap":
-        case "longPress":
-        case "oneFingerDragStart":
-        case "oneFingerDragEnd":
-        case "multiFingerTap":
-        case "cancel":
-          flushTwoFinger();
-          break;
-      }
-    },
-  });
+  // The camera's share of a gesture. The router hands over every intent of a gesture the camera
+  // owns; a gesture that starts on a touch tool never gets here (see `touch-router.ts`).
+  const cameraIntent = (intent: GestureIntent): void => {
+    switch (intent.type) {
+      case "oneFingerDragMove":
+        flushTwoFinger();
+        r.orbitBy(intent.dx, intent.dy);
+        break;
+      case "twoFingerPan":
+        pendingPan = { dx: intent.dx, dy: intent.dy };
+        scheduleFlushTwoFinger();
+        break;
+      case "pinch":
+        pendingPinch = { factor: intent.factor };
+        scheduleFlushTwoFinger();
+        break;
+      case "tap":
+      case "longPress":
+      case "oneFingerDragStart":
+      case "oneFingerDragEnd":
+      case "multiFingerTap":
+      case "cancel":
+        flushTwoFinger();
+        break;
+    }
+  };
+
+  const router = new TouchRouter({ target: () => session, camera: cameraIntent });
 
   const onDown = (e: PointerEvent): void => {
     c.focus({ preventScroll: true });
@@ -680,22 +684,22 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
       // Ignore if setPointerCapture fails
     }
     e.preventDefault();
-    arbiter.feed(pointerEventToSample(e));
+    router.feed(pointerEventToSample(e));
     flushTwoFinger();
   };
 
   const onMove = (e: PointerEvent): void => {
-    arbiter.feed(pointerEventToSample(e));
+    router.feed(pointerEventToSample(e));
     flushTwoFinger();
   };
 
   const onUp = (e: PointerEvent): void => {
-    arbiter.feed(pointerEventToSample(e));
+    router.feed(pointerEventToSample(e));
     flushTwoFinger();
   };
 
   const onCancel = (e: PointerEvent): void => {
-    arbiter.feed(pointerEventToSample(e));
+    router.feed(pointerEventToSample(e));
     flushTwoFinger();
   };
 
@@ -705,6 +709,7 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
   c.addEventListener("pointercancel", onCancel);
 
   gestureCleanup = () => {
+    router.reset();
     c.removeEventListener("pointerdown", onDown);
     c.removeEventListener("pointermove", onMove);
     c.removeEventListener("pointerup", onUp);
@@ -1076,6 +1081,11 @@ onMount(() => {
   <div class="sr-only">
     <SiteFooter />
   </div>
+{/if}
+
+<!-- The offset cursor of a touch gesture, drawn over the canvas; it ignores the pointer. -->
+{#if session}
+  <TouchReticle {session} />
 {/if}
 
 <!-- Mobile floating thumb controls and docked toolbar -->

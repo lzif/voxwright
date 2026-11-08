@@ -31,6 +31,17 @@ export interface SessionView {
   clipboardCells: number;
   message: string;
   error: string;
+  /** The touch offset cursor while a finger drives a tool, else `null`. */
+  reticle: {
+    active: boolean;
+    touchX: number;
+    touchY: number;
+    reticleX: number;
+    reticleY: number;
+    hit: PickedBlock | null;
+  } | null;
+  /** How far above the finger the cursor sits, in CSS pixels. */
+  cursorOffsetPx: number;
   pick(x: number, y: number): PickedBlock | null;
 }
 

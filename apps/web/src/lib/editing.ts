@@ -85,6 +85,11 @@ export const TOOLS: readonly ToolInfo[] = [
 
 export const toolInfo = (id: ToolId): ToolInfo => TOOLS.find((t) => t.id === id) as ToolInfo;
 
+/** The tools a finger drives through the offset cursor; with the others one finger still turns the view. */
+export const TOUCH_TOOLS: readonly ToolId[] = ["place", "paint", "erase", "eyedropper"];
+
+export const isTouchTool = (id: ToolId): boolean => TOUCH_TOOLS.includes(id);
+
 /** The tooltip for a tool: its help line and its shortcut. */
 export function toolTitle(tool: ToolInfo): string {
   return tool.key === null ? tool.help : `${tool.help} (${tool.key.toUpperCase()})`;

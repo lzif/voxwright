@@ -42,6 +42,7 @@ import {
   cellOnPlane,
   clipRayToBox,
   inSlice,
+  isTouchTool,
   isTypingTarget,
   type KeyAction,
   keyAction,
@@ -62,6 +63,11 @@ export interface SessionOptions {
   packBlocks: readonly string[];
   /** Edits the volume already holds that cannot be undone (a restored autosave); default 0. */
   baseEdits?: number;
+  /**
+   * Is a page point over the canvas itself and not over a toolbar or sheet drawn on top of it? A
+   * touch stroke is cancelled when the finger leaves the canvas. Default: `elementFromPoint`.
+   */
+  isOverCanvas?: (clientX: number, clientY: number) => boolean;
 }
 
 /** What the pointer is over. */
@@ -139,6 +145,9 @@ export class EditSession {
   /** The revision at the last export; a restored session starts at -1, unsaved. */
   private savedRevision = 0;
   private pointer: { x: number; y: number } | null = null;
+  /** Where the finger of a touch gesture is, while the tool owns the gesture. */
+  private touchFinger: { x: number; y: number } | null = null;
+  private readonly overCanvas: (clientX: number, clientY: number) => boolean;
   private frame = 0;
   private detach: (() => void) | null = null;
 
@@ -149,6 +158,9 @@ export class EditSession {
     this.dataVersion = options.dataVersion;
     this.packBlocks = options.packBlocks;
     this.baseEdits = options.baseEdits ?? 0;
+    this.overCanvas =
+      options.isOverCanvas ??
+      ((x, y) => options.canvas.ownerDocument.elementFromPoint(x, y) === options.canvas);
     this.editor = new Editor(options.volume);
     if (this.baseEdits > 0) this.savedRevision = -1;
     const bb = options.volume.placedBounds();
@@ -207,6 +219,11 @@ export class EditSession {
     return this.tool !== "navigate" && this.cameraMode === "orbit";
   }
 
+  /** Would a finger that lands now drive the tool through the offset cursor (a touch tool, in Orbit)? */
+  get touchToolActive(): boolean {
+    return this.cameraMode === "orbit" && isTouchTool(this.tool);
+  }
+
   // -- Wiring -----------------------------------------------------------------------------------
 
   /** Listen for the mouse on the canvas and the keyboard on the page. Returns the way to stop. */
@@ -215,7 +232,7 @@ export class EditSession {
     const down = (e: PointerEvent): void => this.onPointerDown(e);
     const move = (e: PointerEvent): void => this.onPointerMove(e);
     const up = (e: PointerEvent): void => this.onPointerUp(e);
-    const leave = (): void => this.onPointerLeave();
+    const leave = (e: PointerEvent): void => this.onPointerLeave(e);
     const wheel = (): void => this.schedule(); // zooming moves the scene under a still pointer
     const key = (e: KeyboardEvent): void => this.onKey(e);
     // Capture phase on the canvas's parent: runs before the renderer's own listeners, which an
@@ -240,6 +257,7 @@ export class EditSession {
   }
 
   dispose(): void {
+    this.touchIdle();
     this.cancelDrag();
     this.detach?.();
     this.detach = null;
@@ -311,10 +329,10 @@ export class EditSession {
     this.canvas.focus({ preventScroll: true });
     this.canvas.setPointerCapture(e.pointerId);
     this.error = "";
-    this.begin(this.pick(e.clientX, e.clientY), e);
+    this.begin(this.pick(e.clientX, e.clientY), e.clientX, e.clientY);
   }
 
-  private begin(hit: Hover | null, e: PointerEvent): void {
+  private begin(hit: Hover | null, x: number, y: number): void {
     const tool = this.tool;
     try {
       switch (tool) {
@@ -327,8 +345,7 @@ export class EditSession {
           return;
         case "eyedropper":
           if (hit === null) return;
-          this.block = withoutNbt(hit.block);
-          this.message = `Picked ${this.block}`;
+          this.pickBlock(hit);
           this.tool = "place";
           this.refreshHighlight();
           return;
@@ -363,8 +380,14 @@ export class EditSession {
       this.error = errorText(err);
       return;
     }
-    this.pointer = { x: e.clientX, y: e.clientY };
+    this.pointer = { x, y };
     this.refreshHighlight();
+  }
+
+  /** Make the block a hit names the one the tools use, and say so. */
+  private pickBlock(hit: Hover): void {
+    this.block = withoutNbt(hit.block);
+    this.message = `Picked ${this.block}`;
   }
 
   private beginBrush(tool: "place" | "paint" | "erase", hit: Hover): void {
@@ -414,8 +437,8 @@ export class EditSession {
   }
 
   private onPointerMove(e: PointerEvent): void {
+    if (e.pointerType === "touch") return; // fingers reach the tool through the touch methods below
     this.pointer = { x: e.clientX, y: e.clientY };
-    if (e.pointerType === "touch") return;
     if (e.buttons !== 0 && this.drag === null) {
       // A camera drag (Alt, Shift or the right button, or any drag with the View tool): no outline follows it.
       if (this.hover !== null) {
@@ -433,6 +456,10 @@ export class EditSession {
 
   private tick(): void {
     this.frame = 0;
+    if (this.touchFinger !== null) {
+      this.touchTick(this.touchFinger);
+      return;
+    }
     const p = this.pointer;
     if (p === null || this.cameraMode === "fly") return;
     if (this.drag !== null) {
@@ -499,21 +526,31 @@ export class EditSession {
   }
 
   private onPointerUp(e: PointerEvent): void {
+    if (e.pointerType === "touch") return;
     const drag = this.drag;
     if (drag === null) return;
-    if (this.frame !== 0) {
-      cancelAnimationFrame(this.frame);
-      this.frame = 0;
-    }
-    this.updateDrag(e.clientX, e.clientY);
-    this.drag = null;
+    this.settleDrag(e.clientX, e.clientY);
     if (this.canvas.hasPointerCapture(e.pointerId)) this.canvas.releasePointerCapture(e.pointerId);
+    this.commitDrag(drag, false);
+  }
+
+  /** Apply the last position to the drag in progress and detach it from the pointer. */
+  private settleDrag(x: number, y: number): void {
+    this.dropFrame();
+    this.updateDrag(x, y);
+    this.drag = null;
+  }
+
+  /** Finish a drag that `settleDrag` detached: run the command it built, or record the stroke as one undo step. */
+  private commitDrag(drag: Drag, touch: boolean): void {
     try {
       switch (drag.kind) {
         case "brush":
           if (drag.stroke.commit()) {
             this.revision++;
-            this.message = `${drag.stroke.label} done (Ctrl+Z undoes it)`;
+            this.message = touch
+              ? `${drag.stroke.label} done`
+              : `${drag.stroke.label} done (Ctrl+Z undoes it)`;
           }
           break;
         case "line":
@@ -543,11 +580,161 @@ export class EditSession {
     this.refreshHighlight();
   }
 
-  private onPointerLeave(): void {
+  private dropFrame(): void {
+    if (this.frame !== 0) {
+      cancelAnimationFrame(this.frame);
+      this.frame = 0;
+    }
+  }
+
+  private onPointerLeave(e: PointerEvent): void {
+    if (e.pointerType === "touch") return; // a finger leaves the canvas as it lifts
     this.pointer = null;
     if (this.drag !== null) return;
     this.hover = null;
     this.refreshHighlight();
+  }
+
+  // -- Touch ------------------------------------------------------------------------------------
+  //
+  // A finger drives Place, Replace, Erase and Pick through an offset cursor: the target is the
+  // point `cursorOffsetPx` above the finger, so the finger does not hide the cell that will change.
+  // `TouchRouter` decides when a gesture belongs to the tool and calls these; the session's own
+  // DOM listeners ignore touch pointers. All points are client coordinates of the finger.
+
+  /** A finger landed or moved: show the cell under the cursor. False: the gesture was cancelled (off the canvas). */
+  touchMove(x: number, y: number): boolean {
+    if (!this.touchToolActive || !this.touchInBounds(x, y)) {
+      this.touchStop();
+      return false;
+    }
+    this.touchFinger = { x, y };
+    this.schedule(); // one pick per animation frame
+    return true;
+  }
+
+  /** A tap: apply the tool once at the cell under the cursor, as one undo step. Pick chooses the block. */
+  touchTap(x: number, y: number): void {
+    const live = this.touchToolActive && this.touchInBounds(x, y);
+    this.touchIdle();
+    if (live) {
+      const ry = y - this.cursorOffsetPx;
+      const hit = this.pick(x, ry);
+      if (hit !== null) {
+        this.error = "";
+        this.inspected = hit.position;
+        this.begin(hit, x, ry);
+        const drag = this.drag;
+        if (drag !== null && drag.kind === "brush") {
+          this.drag = null;
+          this.commitDrag(drag, true);
+        }
+      }
+    }
+    this.refreshHighlight();
+  }
+
+  /** The finger moved past the tap slop: begin a stroke at the cell the finger-down point previewed. */
+  touchStrokeBegin(x: number, y: number): void {
+    // Pick only moves the cursor. As with a mouse press on empty space, no hit means no stroke.
+    if (!this.touchToolActive || this.tool === "eyedropper" || this.drag !== null) return;
+    const ry = y - this.cursorOffsetPx;
+    const hit = this.pick(x, ry);
+    if (hit === null) return;
+    this.error = "";
+    this.begin(hit, x, ry);
+    this.schedule();
+  }
+
+  /** The finger lifted after a drag: apply the last position and commit the stroke as one undo step. */
+  touchStrokeEnd(x: number, y: number): void {
+    const drag = this.drag;
+    if (drag === null || drag.kind !== "brush") {
+      this.touchStop(); // Pick's drag, or the stroke is already gone (undo from the thumb cluster)
+      return;
+    }
+    if (!this.touchToolActive || !this.touchInBounds(x, y)) {
+      this.touchStop();
+      return;
+    }
+    this.touchIdle();
+    this.settleDrag(x, y - this.cursorOffsetPx);
+    this.commitDrag(drag, true);
+  }
+
+  /** Throw the gesture away: revert a stroke in progress, hide the cursor and the hover. */
+  touchCancel(): void {
+    this.touchStop();
+  }
+
+  /** A long press: pick the block under the cursor. The tool stays, except that Pick does what its tap does. */
+  touchLongPress(x: number, y: number): void {
+    const live = this.touchToolActive && this.touchInBounds(x, y);
+    this.touchIdle();
+    if (live) {
+      const ry = y - this.cursorOffsetPx;
+      const hit = this.pick(x, ry);
+      if (hit !== null) {
+        this.error = "";
+        this.inspected = hit.position;
+        if (this.tool === "eyedropper") this.begin(hit, x, ry);
+        else this.pickBlock(hit);
+      }
+    }
+    this.refreshHighlight();
+  }
+
+  /** A long press while the camera owns the gesture (View, Line, Rectangle, Select, Paste): pick the block under the finger itself. */
+  touchPickAt(x: number, y: number): void {
+    if (this.cameraMode !== "orbit") return;
+    const hit = this.pick(x, y);
+    if (hit === null) return;
+    this.error = "";
+    this.pickBlock(hit);
+  }
+
+  /** Every finger is up: nothing of the gesture stays on screen, and a stroke still open is reverted. */
+  touchEnd(): void {
+    this.touchStop();
+  }
+
+  /** The cursor point is on the canvas, and the finger is over the canvas and not over a toolbar or sheet. */
+  private touchInBounds(x: number, y: number): boolean {
+    const ry = y - this.cursorOffsetPx;
+    const r = this.canvas.getBoundingClientRect();
+    if (x < r.left || x > r.right || ry < r.top || ry > r.bottom) return false;
+    return this.overCanvas(x, y);
+  }
+
+  /** Forget the finger and hide the cursor and the hover. */
+  private touchIdle(): void {
+    this.dropFrame();
+    this.touchFinger = null;
+    this.reticle = null;
+    this.hover = null;
+  }
+
+  private touchStop(): void {
+    this.touchIdle();
+    if (this.drag !== null) this.cancelDrag();
+    else this.refreshHighlight();
+  }
+
+  /** The once-per-frame work of a touch gesture: pick under the cursor, move the outline and the cursor drawing. */
+  private touchTick(finger: { x: number; y: number }): void {
+    if (!this.touchToolActive) return;
+    const rx = finger.x;
+    const ry = finger.y - this.cursorOffsetPx;
+    if (this.drag !== null) this.updateDrag(rx, ry);
+    else this.updateHover(rx, ry);
+    this.reticle = {
+      active: true,
+      touchX: finger.x,
+      touchY: finger.y,
+      reticleX: rx,
+      reticleY: ry,
+      hit: this.hover,
+    };
   }
 
   private cancelDrag(): void {

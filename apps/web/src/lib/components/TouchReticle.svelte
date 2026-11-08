@@ -76,11 +76,10 @@ const reticle = $derived(session.reticle);
 {/if}
 
 <style>
+  /* Client coordinates are measured from the top left of the viewport, as are these. */
   .reticle-container {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
     pointer-events: none;
     z-index: 45;
   }

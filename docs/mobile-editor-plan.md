@@ -2,7 +2,7 @@
 
 # Mobile-first schematic editor: plan
 
-Nov 7, 2026 · MB1–MB3 implemented, MB4 in progress · base: `main` at `d3a7ef6`
+Nov 8, 2026 · MB1–MB4 implemented and checked in the VM, MB4 not yet tried on a phone; MB5 next · base: `main` at `d3a7ef6`
 
 Goal: full editing on a touch-only phone, without taking anything away from desktop mouse-and-keyboard editing. The editing core is already input-independent, so most of the work is a new input layer and a new layout in `apps/web`, plus a few small, additive hooks in `render`. Luki's decisions on the twelve open questions are recorded in section 5 and applied below. One item stays open on purpose: the largest build size a phone must handle smoothly is set from the first real-phone measurement in MB1.
 
@@ -10,17 +10,17 @@ Milestones are named MB1 to MB8 (mobile B-series) so they do not collide with th
 
 ## Progress
 
-| Step                                                       | State                                                                               |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Plan written (`docs/mobile-editor-plan.md`)                | Done, 2026-11-07                                                                    |
-| Plan reviewed by Luki                                      | Done, 2026-11-07; decisions recorded in section 5                                   |
-| Dependency: `vite dev` mesh-worker fix (`server.fs.allow`) | Done, 2026-11-07 (commit `30d90af`)                                                 |
-| MB1: Phone baseline and test harness                       | Done in VM (`touch-e2e.ts`, `PerfOverlay.svelte`, `docs/phone-test-checklist.md`)   |
-| MB2: Input ownership and the gesture arbiter               | Done (`renderer.ts` external input/camera API, `gestures.ts` state machine + tests) |
-| MB3: Mobile layout shell                                   | Done (`BottomSheet`, `BottomToolbar`, `ThumbCluster`, coarse gate removed)          |
-| MB4: Touch placement with the offset cursor                | In progress (`TouchReticle.svelte` added; `EditSession` touch placement next)       |
-| MB5 to MB8                                                 | Not started                                                                         |
-| Mobile editing release                                     | After 0.1.0, as 0.2.0 (decision 12)                                                 |
+| Step                                                       | State                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Plan written (`docs/mobile-editor-plan.md`)                | Done, 2026-11-07                                                                                             |
+| Plan reviewed by Luki                                      | Done, 2026-11-07; decisions recorded in section 5                                                            |
+| Dependency: `vite dev` mesh-worker fix (`server.fs.allow`) | Done, 2026-11-07 (commit `30d90af`)                                                                          |
+| MB1: Phone baseline and test harness                       | Done in VM (`touch-e2e.ts`, `PerfOverlay.svelte`, `docs/phone-test-checklist.md`)                            |
+| MB2: Input ownership and the gesture arbiter               | Done (`renderer.ts` external input/camera API, `gestures.ts` state machine + tests)                          |
+| MB3: Mobile layout shell                                   | Done (`BottomSheet`, `BottomToolbar`, `ThumbCluster`, coarse gate removed)                                   |
+| MB4: Touch placement with the offset cursor                | Done in VM (`touch-router.ts`, `EditSession` touch methods, `TouchReticle.svelte`); not yet tried on a phone |
+| MB5 to MB8                                                 | Not started                                                                                                  |
+| Mobile editing release                                     | After 0.1.0, as 0.2.0 (decision 12)                                                                          |
 
 ## 1. Current-state audit
 
@@ -214,6 +214,16 @@ Each milestone is small and ends with a testable exit criterion. Verification la
 
 **Exit criterion:** with a touch-only context a tap places one block exactly at the cell under the reticle (not under the finger); a drag paints a stroke that one Undo removes; adding a second finger mid-stroke reverts the stroke; long press picks the block and the palette shows it. The same sequences run on a mouse produce the same results as before.
 **Verify:** Vitest (session with a fake renderer and fake ray), Chromium touch e2e (known cell coordinates via the renderer's `clientFromWorld`, as the existing editor suite does), phone checklist.
+
+**Built (2026-11-08, in the VM; not tried on a phone).** The tools that take a finger are Place, Replace, Erase and Pick. Line, Rectangle, Select and Paste keep one-finger orbit until MB5, and View keeps it for good.
+
+- `apps/web/src/lib/touch-router.ts` decides, when the first finger lands, whether the tool or the camera owns the gesture, and holds that until every finger is up. A second finger while the tool owns the gesture reverts the stroke and gives the gesture to the camera, so a finger left down afterwards never paints. The router reads the raw pointer samples as well as the arbiter's intents, because the arbiter emits no `cancel` for a second finger or a `pointercancel` that comes before a drag has started. Unit tests: `apps/web/test/touch-router.test.ts`.
+- `EditSession` gained the touch methods (`touchMove`, `touchTap`, `touchStrokeBegin`, `touchStrokeEnd`, `touchCancel`, `touchLongPress`, `touchPickAt`, `touchEnd`). The target is the point 64 px above the finger (`cursorOffsetPx`); the picks are coalesced to one per animation frame and flushed when the finger lifts. The session's own pointer listeners now ignore touch pointers completely (before, a finger's move set the mouse position, and its lift or leave ended mouse state). Unit tests against a fake renderer: `apps/web/test/touch-session.test.ts`.
+- `TouchReticle.svelte` is mounted in the page over the canvas and ignores the pointer.
+- A stroke needs a block under the cursor where the finger first touched; as with a mouse press on empty space, a drag that starts on nothing paints nothing (it only moves the cursor). A gesture is cancelled when the cursor leaves the canvas rectangle (so a finger that lands within 64 px of the top edge is cancelled at once) or when the finger is dragged over something other than the canvas (the bottom toolbar, the thumb cluster, a sheet).
+- A long press picks the block under the cursor and keeps the tool (with Pick it does what its tap does); under View, Line, Rectangle, Select and Paste it picks the block under the finger itself. After a long press the gesture is spent.
+- The touch completion message reads "place done" and does not mention Ctrl+Z.
+- Not part of MB4: confirm mode, the nudge pad, two-corner taps, the paste ghost, toasts, haptics, a setting for the offset, multi-finger undo and redo taps, and tap-to-inspect in View.
 
 ### MB5: Armed cell, nudge pad and two-point tools
 

@@ -150,6 +150,41 @@ Follow these sequential steps on the phone to verify the baseline:
 
 ---
 
+## 3b. Manual Test Checklist (MB4: touch placement)
+
+MB4 was built and checked in the VM with emulated touch only. Nobody has tried it on a phone yet, so this is the first real test: a fingertip, the real offset, and the real frame rate. Open `Rafeals_house.nbt` as in section 3, then:
+
+1. Pick **Place** in the bottom toolbar. Tap the block swatch and choose any block (for example `stone`).
+2. Zoom in until one cell is a comfortable size, and turn the view so that you can see the roof or a wall face.
+
+| Step                         | Action                                                                    | Expected Result                                                                                                                                                          | Verified (✓) |
+| :--------------------------- | :------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------: |
+| **1. Cursor**                | Put one finger on the picture and keep it still (under half a second)     | A ring appears about 64 px above the fingertip, joined to it by a dotted line. The cell under the ring is outlined, with a ghost block next to it.                       |      []      |
+| **2. Follow**                | Slide the finger slowly across the build                                  | The ring and the outline follow without visible lag. The ring turns teal when it is over a block.                                                                        |      []      |
+| **3. Tap places**            | Tap with the finger so that the ring is over a block's face               | One block appears next to the ringed face, not under the fingertip. The line above the toolbar says "place done" and does not mention Ctrl+Z.                            |      []      |
+| **4. Undo**                  | Tap **Undo** in the thumb cluster                                         | The block goes. Undo is greyed out again.                                                                                                                                |      []      |
+| **5. Drag paints**           | Put the finger down and drag it along a flat surface, then lift           | A run of blocks is painted along that surface. One tap on **Undo** removes the whole run.                                                                                |      []      |
+| **6. Second finger cancels** | Start a drag, then put a second finger on the picture                     | The painted blocks vanish at once and the ring disappears. Moving the two fingers pans the view; pinching zooms. Lifting one finger and moving the other paints nothing. |      []      |
+| **7. Drag off cancels**      | Start a drag, then slide the finger down onto the bottom toolbar          | The stroke is reverted when the finger reaches the toolbar. Lifting there changes nothing and presses no button.                                                         |      []      |
+| **8. Drag off the top**      | Start a drag, then slide the finger up until the ring leaves the top edge | The stroke is reverted when the ring leaves the picture.                                                                                                                 |      []      |
+| **9. Long press picks**      | Hold the finger still for about half a second                             | The block under the ring becomes the current block (the swatch in the toolbar changes) and the line above the toolbar says "Picked …". The tool is still Place.          |      []      |
+| **10. After a long press**   | Without lifting, move the finger, then lift                               | Nothing is painted and nothing changes.                                                                                                                                  |      []      |
+| **11. Replace**              | Pick **Replace**, choose another block, tap with the ring over a block    | That block turns into the chosen one. One **Undo** restores it.                                                                                                          |      []      |
+| **12. Erase**                | Pick **Erase**, tap with the ring over a block                            | That block is removed. Drag erases a run. One **Undo** restores it.                                                                                                      |      []      |
+| **13. Pick**                 | Pick **Pick**, tap with the ring over a block                             | The current block becomes that block and the tool switches to Place. Dragging with Pick only moves the ring and changes nothing.                                         |      []      |
+| **14. Other tools**          | Pick **View**, then **Line**: drag one finger                             | The view turns, as in section 3. Nothing is edited and no ring appears. (Line, Rectangle and Select get their touch version in MB5.)                                     |      []      |
+| **15. Long press in View**   | In **View**, hold a finger on a block                                     | The current block becomes the block directly under the fingertip (no offset in this case). The tool stays View.                                                          |      []      |
+
+Questions to answer while testing (write the answers into the log):
+
+- Is 64 px the right distance for your thumb and for your index finger? Too close (the finger still hides the cell) or too far (hard to aim)? The offset is a constant for now; a setting comes later.
+- Does the ring keep up with the finger during a drag on this phone, or does it lag behind?
+- Does a drag that ends near the bottom of the picture get in the way of the thumb cluster or the toolbar, or of Android's own back gesture at the screen edge?
+- Does a long press ever fire when you meant to tap or drag (a slow tap)? Does the half second feel right?
+- Is a stroke that starts on empty sky, and so paints nothing, confusing?
+
+---
+
 ## 4. Baseline Telemetry Log & Decision 4 Template (FEAT-MB1-04)
 
 ### Background & Objective (Decision 4)

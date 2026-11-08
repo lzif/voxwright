@@ -4,6 +4,8 @@
 // Serves the built site, emulates a mobile viewport (390 x 844, DPR 3, touch-enabled),
 // opens the Rafeals_house fixture, verifies touch orbit, pinch zoom, and tap gestures,
 // and asserts ?perf=1 telemetry overlay presence and metrics (FEAT-MB1-02).
+// The second suite (MB4) edits the same fixture with real touch events: Place, Replace, Erase and
+// Pick through the offset cursor, strokes, second-finger and drag-off cancels, long press.
 // Run after `pnpm --filter @voxwright/web build`:
 //
 //   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
@@ -14,7 +16,7 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import puppeteer, { type CDPSession, type ElementHandle } from "puppeteer-core";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
-import type { Pose, Vox } from "./vox.ts";
+import type { PickedBlock, Pose, SessionView, Vox } from "./vox.ts";
 
 export const MOBILE_VIEWPORT = {
   width: 390,
@@ -510,7 +512,7 @@ export async function touchViewerSuite(): Promise<void> {
     ok(searchBox !== null, t("palette search input has a bounding box"));
     if (searchBox) {
       ok(
-        searchBox.height >= 44,
+        searchBox.height >= 43.99, // a 44px box can measure 43.9999 at a fractional device ratio
         t(
           `palette search input meets WCAG 2.5.5 >= 44px (height: ${searchBox.height.toFixed(1)}px)`,
         ),
@@ -858,8 +860,652 @@ export async function touchViewerSuite(): Promise<void> {
   }
 }
 
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+type Vec3 = [number, number, number];
+interface Top {
+  pos: Vec3;
+  pt: { x: number; y: number };
+  block: string;
+}
+
+/** How far above the finger the cursor sits (`DEFAULT_CURSOR_OFFSET_PX`; the suite checks the page agrees). */
+const OFFSET = 64;
+const GOLD = "minecraft:gold_block";
+
+/**
+ * MB4: touch placement with the offset cursor. Real touch events (Puppeteer's touchscreen over CDP)
+ * on a fresh page; cells are judged by reading the page's volume, as the desktop editor suite does.
+ */
+export async function touchPlacementSuite(): Promise<void> {
+  const t = (what: string): string => `[touch-edit] ${what}`;
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+
+    await page.goto(url);
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('[data-testid="status"]')
+          ?.textContent?.startsWith("open a schematic"),
+      { timeout: 30000 },
+    );
+    const input = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+    await input.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+      { timeout: 60000 },
+    );
+    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+
+    // -- helpers that talk to the page ---------------------------------------------------------
+    const state = (): Promise<SessionView> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        return JSON.parse(
+          JSON.stringify({
+            tool: s.tool,
+            block: s.block,
+            hover: s.hover,
+            inspected: s.inspected,
+            undoCount: s.undoCount,
+            canUndo: s.canUndo,
+            message: s.message,
+            error: s.error,
+            reticle: s.reticle,
+            cursorOffsetPx: s.cursorOffsetPx,
+          }),
+        ) as SessionView;
+      });
+    /** Block strings of every cell that is not air, as "x,y,z" to block. */
+    const cells = async (): Promise<Map<string, string>> =>
+      new Map(
+        await page.evaluate(() => {
+          const v = (window.__voxwright as Vox).volume();
+          const [lo, hi] = v.placedBounds() as [number[], number[]];
+          const out: [string, string][] = [];
+          for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+            for (let y = lo[1] as number; y <= (hi[1] as number); y++)
+              for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+                const b = v.get(x, y, z);
+                if (b !== undefined && b !== "minecraft:air") out.push([`${x},${y},${z}`, b]);
+              }
+          return out;
+        }),
+      );
+    const changed = async (before: Map<string, string>): Promise<string[]> => {
+      const now = await cells();
+      const keys = new Set([...before.keys(), ...now.keys()]);
+      return [...keys].filter((k) => before.get(k) !== now.get(k)).sort();
+    };
+    /** Cells whose top face a touch reaches, with the page point of that face's centre. */
+    const tops = (): Promise<Top[]> =>
+      page.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const vol = v.volume();
+        const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
+        const [lo, hi] = vol.bounds() as [number[], number[]];
+        const out: Top[] = [];
+        for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+          for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+            for (let y = hi[1] as number; y >= (lo[1] as number); y--) {
+              const b = vol.get(x, y, z);
+              if (b === undefined || b === "minecraft:air") continue;
+              const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+              const hit = pt === null ? null : s.pick(pt.x, pt.y);
+              if (
+                pt !== null &&
+                hit !== null &&
+                hit.position[0] === x &&
+                hit.position[1] === y &&
+                hit.position[2] === z &&
+                hit.normal[1] === 1
+              )
+                out.push({ pos: [x, y, z], pt, block: b });
+              break;
+            }
+          }
+        return out;
+      });
+    const pickAt = (x: number, y: number): Promise<PickedBlock | null> =>
+      page.evaluate((px, py) => (window.__voxwright as Vox).session()?.pick(px, py) ?? null, x, y);
+    const pose = (): Promise<TouchPose> =>
+      page.evaluate(() =>
+        (
+          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
+        ).renderer.getPose(),
+      );
+    const setBlock = (block: string): Promise<void> =>
+      page.evaluate((b) => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        s.block = b;
+      }, block);
+    const settleFrames = async (): Promise<void> => {
+      await sleep(120);
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+
+    /** Put the camera back where it was when the file opened, so page points keep meaning the same cells. */
+    const home = await pose();
+    const restoreCamera = async (): Promise<void> => {
+      await page.evaluate(
+        (p, target) => {
+          (window.__voxwright as Vox).renderer.setOrbit({
+            azimuth: p.azimuth,
+            elevation: p.elevation,
+            distance: p.distance,
+            target,
+          });
+        },
+        home,
+        computeTarget(home),
+      );
+      await settleFrames();
+    };
+
+    /** Tap a button with a real touch. */
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "nearest" });
+      }, selector);
+      const el = await page.$(selector);
+      const box = el === null ? null : await el.boundingBox();
+      if (box === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(120);
+    };
+    const armTool = async (id: string): Promise<void> => {
+      await tapButton(`[data-testid="tool-${id}"]`);
+      ok((await state()).tool === id, t(`the ${id} tool is armed from the bottom toolbar`));
+    };
+    const tapAt = async (x: number, y: number): Promise<void> => {
+      const finger = await page.touchscreen.touchStart(x, y);
+      await sleep(50);
+      await finger.end();
+      await sleep(200);
+    };
+    /** A finger put down at the first point and moved through the rest; the caller lifts it. */
+    const dragThrough = async (path: { x: number; y: number }[]) => {
+      const [first, ...rest] = path as [{ x: number; y: number }, ...{ x: number; y: number }[]];
+      const finger = await page.touchscreen.touchStart(first.x, first.y);
+      await sleep(80);
+      for (const p of rest) {
+        await finger.move(p.x, p.y);
+        await sleep(90);
+      }
+      return finger;
+    };
+    /** Evenly spaced points from a to b, a first. */
+    const line = (a: { x: number; y: number }, b: { x: number; y: number }, steps: number) =>
+      Array.from({ length: steps + 1 }, (_, i) => ({
+        x: Math.round(a.x + ((b.x - a.x) * i) / steps),
+        y: Math.round(a.y + ((b.y - a.y) * i) / steps),
+      }));
+    /** Where a finger goes so that the cursor is on a page point. */
+    const below = (p: { x: number; y: number }): { x: number; y: number } => ({
+      x: Math.round(p.x),
+      y: Math.round(p.y + OFFSET),
+    });
+    const key = (p: readonly number[]): string => p.join(",");
+
+    // -- setup ----------------------------------------------------------------------------------
+    const original = await cells();
+    const all = await tops();
+    const topAt = (x: number, y: number, z: number): Top => {
+      const found = all.find((c) => c.pos[0] === x && c.pos[1] === y && c.pos[2] === z);
+      if (found === undefined) throw new Error(`no reachable top face at ${x},${y},${z}`);
+      return found;
+    };
+    // The roof ridge: a run of cells at x = 6, y = 7 that a finger can sweep along.
+    const target = topAt(6, 7, 6);
+    const targetAdjacent: Vec3 = [6, 8, 6];
+    const finger = below(target.pt);
+    const underFinger = await pickAt(finger.x, finger.y);
+    ok(
+      underFinger !== null && key(underFinger.adjacent) !== key(targetAdjacent),
+      t(
+        `the finger point is over a different cell than the cursor point (${underFinger ? key(underFinger.adjacent) : "nothing"} vs ${key(targetAdjacent)})`,
+      ),
+    );
+    ok(
+      (await state()).cursorOffsetPx === OFFSET,
+      t(`the cursor sits ${OFFSET}px above the finger`),
+    );
+    const toolbarTop = await page.$eval(
+      '[data-testid="bottom-toolbar"]',
+      (el) => el.getBoundingClientRect().top,
+    );
+    ok(toolbarTop > finger.y + 100, t(`the bottom toolbar starts at y=${Math.round(toolbarTop)}`));
+
+    const undoViaThumb = async (what: string): Promise<void> => {
+      await tapButton('[data-testid="undo"]');
+      const s = await state();
+      ok((await changed(original)).length === 0 && s.undoCount === 0, t(what));
+    };
+
+    // =========================================================================
+    // Place: tap, offset cursor, drag, undo
+    // =========================================================================
+    await armTool("place");
+    await setBlock("minecraft:stone");
+
+    // A finger held still shows the cursor 64px above it, and the outline is on the cell under the cursor.
+    const held = await page.touchscreen.touchStart(finger.x, finger.y);
+    await page.waitForFunction(
+      () =>
+        (window.__voxwright as Vox).session()?.reticle?.hit != null &&
+        document.querySelector(".reticle-target") !== null,
+      { timeout: 5000 },
+    );
+    // One evaluation for all of it, well inside the long-press time.
+    const during = await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const r = document.querySelector(".reticle-target")?.getBoundingClientRect();
+      const overlay = document.querySelector('[data-testid="reticle-overlay"]');
+      return {
+        reticle: s.reticle && {
+          active: s.reticle.active,
+          touchX: s.reticle.touchX,
+          touchY: s.reticle.touchY,
+          reticleX: s.reticle.reticleX,
+          reticleY: s.reticle.reticleY,
+        },
+        hover: s.hover?.position ?? null,
+        cx: r ? r.left + r.width / 2 : null,
+        cy: r ? r.top + r.height / 2 : null,
+        pointerEvents: overlay ? getComputedStyle(overlay).pointerEvents : null,
+      };
+    });
+    ok(
+      during.reticle?.active === true &&
+        during.reticle.touchX === finger.x &&
+        during.reticle.touchY === finger.y &&
+        during.reticle.reticleX === finger.x &&
+        during.reticle.reticleY === finger.y - OFFSET,
+      t(
+        `holding a finger shows the cursor ${OFFSET}px above it (${JSON.stringify(during.reticle && [during.reticle.reticleX, during.reticle.reticleY])})`,
+      ),
+    );
+    ok(
+      during.hover !== null && key(during.hover) === key(target.pos),
+      t("the outline is on the cell under the cursor, not under the finger"),
+    );
+    ok(
+      during.cx !== null &&
+        during.cy !== null &&
+        Math.abs(during.cx - finger.x) < 1.5 &&
+        Math.abs(during.cy - (finger.y - OFFSET)) < 1.5 &&
+        during.pointerEvents === "none",
+      t(
+        `the reticle is drawn at the cursor point and ignores the pointer (${during.cx?.toFixed(1)}, ${during.cy?.toFixed(1)})`,
+      ),
+    );
+    // Held on past the long-press time, the lift is neither a tap nor a stroke.
+    await sleep(600);
+    await held.end();
+    await sleep(200);
+    const afterHold = await state();
+    ok(
+      afterHold.reticle === null && afterHold.hover === null,
+      t("lifting the finger removes the cursor and the hover"),
+    );
+    ok(
+      (await changed(original)).length === 0,
+      t("a finger held past the long press and lifted changes nothing"),
+    );
+    await setBlock("minecraft:stone"); // the long press picked the block under the cursor
+
+    await tapAt(finger.x, finger.y);
+    const placed = await changed(original);
+    const afterTap = await state();
+    ok(
+      placed.length === 1 && placed[0] === key(targetAdjacent),
+      t(
+        `tap places exactly one block, at the cursor's cell ${key(targetAdjacent)} (changed: ${placed.join(" ")})`,
+      ),
+    );
+    ok(
+      underFinger !== null && !placed.includes(key(underFinger.adjacent)),
+      t("the cell under the finger is unchanged"),
+    );
+    ok(
+      (await cells()).get(key(targetAdjacent)) === "minecraft:stone",
+      t("the placed block is the chosen block"),
+    );
+    ok(afterTap.undoCount === 1, t("the tap is one undo step"));
+    ok(
+      afterTap.message === "place done" && !/ctrl/i.test(afterTap.message),
+      t(`the message does not mention Ctrl+Z (got "${afterTap.message}")`),
+    );
+    ok(afterTap.reticle === null, t("the cursor is gone after the tap"));
+    await undoViaThumb("one tap on the thumb cluster's Undo removes the tapped block");
+
+    // Drag: paint along the ridge, with the cursor sweeping x = 6, y = 7, z = 2..8.
+    await setBlock(GOLD);
+    const from = topAt(6, 7, 2);
+    const to = topAt(6, 7, 8);
+    const path = line(below(from.pt), below(to.pt), 8);
+    const stroke = await dragThrough(path.slice(0, 5));
+    const midState = await state();
+    const midChanged = await changed(original);
+    ok(
+      midState.reticle !== null &&
+        midState.reticle.reticleY === midState.reticle.touchY - OFFSET &&
+        midChanged.length >= 1,
+      t(
+        `mid-stroke the cursor follows the finger and blocks are already placed (${midChanged.length})`,
+      ),
+    );
+    ok(midState.undoCount === 0, t("a stroke in progress is not yet in the history"));
+    for (const p of path.slice(5)) {
+      await stroke.move(p.x, p.y);
+      await sleep(90);
+    }
+    await stroke.end();
+    await sleep(300);
+    const painted = await changed(original);
+    const afterDrag = await state();
+    const now = await cells();
+    ok(
+      painted.length >= 3 && painted.every((k) => k.startsWith("6,8,") && now.get(k) === GOLD),
+      t(`a drag paints a run of blocks along the surface (${painted.join(" ")})`),
+    );
+    ok(afterDrag.undoCount === 1, t("the whole stroke is one undo step"));
+    ok(
+      afterDrag.reticle === null && afterDrag.hover === null,
+      t("the cursor and the hover are gone after the stroke"),
+    );
+    ok(
+      !/ctrl/i.test(afterDrag.message),
+      t(`the stroke message does not mention Ctrl+Z ("${afterDrag.message}")`),
+    );
+    await undoViaThumb("one tap on the thumb cluster's Undo removes the whole stroke");
+
+    // =========================================================================
+    // Cancels
+    // =========================================================================
+    // A second finger added mid-stroke reverts it, and the camera takes the gesture.
+    const first = below(from.pt);
+    const poseBefore = await pose();
+    const f1 = await dragThrough(line(first, below(topAt(6, 7, 5).pt), 3));
+    ok(
+      (await changed(original)).length >= 1,
+      t("a stroke is under way before the second finger lands"),
+    );
+    const f2 = await page.touchscreen.touchStart(300, 560);
+    await sleep(250);
+    const afterSecond = await state();
+    ok(
+      (await changed(original)).length === 0 && afterSecond.undoCount === 0,
+      t("a second finger mid-stroke leaves the volume unchanged and adds no history entry"),
+    );
+    ok(
+      afterSecond.reticle === null && afterSecond.hover === null,
+      t("the cursor is hidden once the second finger lands"),
+    );
+    await f1.move(first.x - 30, first.y + 40);
+    await f2.move(300 - 30, 560 + 40);
+    await sleep(150);
+    await f1.move(first.x - 60, first.y + 80);
+    await f2.move(300 - 60, 560 + 80);
+    await sleep(250);
+    const poseAfterPan = await pose();
+    ok(
+      Math.hypot(
+        poseAfterPan.position[0] - poseBefore.position[0],
+        poseAfterPan.position[1] - poseBefore.position[1],
+        poseAfterPan.position[2] - poseBefore.position[2],
+      ) > 0.3,
+      t("the two fingers pan the camera after the stroke was cancelled"),
+    );
+    await f2.end();
+    await sleep(150);
+    await f1.move(first.x + 80, first.y + 20);
+    await sleep(120);
+    await f1.move(first.x + 20, first.y - 60);
+    await sleep(150);
+    await f1.end();
+    await sleep(250);
+    ok(
+      (await changed(original)).length === 0 && (await state()).undoCount === 0,
+      t("the finger left down after the second one lifted never paints"),
+    );
+    await restoreCamera();
+
+    // A pinch with a finger left down.
+    const dist0 = (await pose()).distance;
+    const g1 = await page.touchscreen.touchStart(140, 420);
+    const g2 = await page.touchscreen.touchStart(250, 420);
+    await sleep(100);
+    for (let i = 1; i <= 4; i++) {
+      await g1.move(140 - i * 15, 420);
+      await g2.move(250 + i * 15, 420);
+      await sleep(90);
+    }
+    const dist1 = (await pose()).distance;
+    ok(
+      dist1 < dist0 * 0.8,
+      t(`two fingers apart zoom in (${dist0.toFixed(1)} -> ${dist1.toFixed(1)})`),
+    );
+    await g2.end();
+    await sleep(150);
+    await g1.move(120, 480);
+    await sleep(100);
+    await g1.move(220, 300);
+    await sleep(100);
+    await g1.end();
+    await sleep(250);
+    ok(
+      (await changed(original)).length === 0 && (await state()).undoCount === 0,
+      t("a finger left down after a pinch does not paint"),
+    );
+    await restoreCamera();
+
+    // Dragging the finger onto the bottom toolbar cancels.
+    const down1 = below(from.pt);
+    const toToolbar = [
+      ...line(down1, { x: down1.x + 20, y: down1.y + 110 }, 3),
+      { x: down1.x + 20, y: Math.round(toolbarTop) + 30 },
+    ];
+    const toolbarFinger = await dragThrough(toToolbar.slice(0, 3));
+    const beforeToolbar = await changed(original);
+    ok(
+      beforeToolbar.length >= 1,
+      t("the stroke has painted something before it reaches the toolbar"),
+    );
+    const toolbarPoint = toToolbar[toToolbar.length - 1] as { x: number; y: number };
+    await toolbarFinger.move(toolbarPoint.x, toolbarPoint.y);
+    await sleep(250);
+    const overToolbar = await state();
+    ok(
+      (await changed(original)).length === 0 &&
+        overToolbar.undoCount === 0 &&
+        overToolbar.reticle === null,
+      t("dragging the finger onto the bottom toolbar mid-stroke cancels it"),
+    );
+    await toolbarFinger.end();
+    await sleep(250);
+    const afterToolbar = await state();
+    ok(
+      (await changed(original)).length === 0 &&
+        afterToolbar.undoCount === 0 &&
+        afterToolbar.tool === "place",
+      t("lifting the finger on the toolbar commits nothing and presses no button"),
+    );
+
+    // The cursor leaving the top of the canvas cancels too (the finger is still over the canvas).
+    const topFinger = await dragThrough([...line(down1, { x: down1.x, y: down1.y - 120 }, 3)]);
+    ok(
+      (await changed(original)).length >= 1,
+      t("the stroke has painted something before it leaves the top"),
+    );
+    await topFinger.move(down1.x, 60); // the cursor is at y = -4
+    await sleep(250);
+    ok(
+      (await changed(original)).length === 0 && (await state()).reticle === null,
+      t("the cursor leaving the canvas cancels the stroke"),
+    );
+    await topFinger.end();
+    await sleep(250);
+    ok((await changed(original)).length === 0, t("and the lift that follows commits nothing"));
+
+    // =========================================================================
+    // Long press
+    // =========================================================================
+    await setBlock(GOLD);
+    const hold = await page.touchscreen.touchStart(finger.x, finger.y);
+    await sleep(750);
+    const pressed = await state();
+    ok(
+      pressed.block === target.block && pressed.tool === "place",
+      t(
+        `a long press picks the block under the cursor and the tool stays Place (${pressed.block})`,
+      ),
+    );
+    ok(
+      pressed.message === `Picked ${target.block}` && pressed.reticle === null,
+      t(`the Picked message shows and the cursor is gone (${pressed.message})`),
+    );
+    const swatch = await page.$eval('[data-testid="mobile-palette-toggle"]', (el) =>
+      el.textContent?.trim(),
+    );
+    const swatchAria = await page.$eval('[data-testid="active-block-swatch"]', (el) =>
+      el.getAttribute("aria-label"),
+    );
+    const picked = target.block.replace("minecraft:", "");
+    ok(
+      swatch === picked && swatchAria?.includes(picked) === true,
+      t(`the bottom toolbar shows the picked block (${swatch})`),
+    );
+    await hold.move(finger.x + 60, finger.y + 40);
+    await sleep(150);
+    await hold.end();
+    await sleep(250);
+    ok(
+      (await changed(original)).length === 0 && (await state()).undoCount === 0,
+      t("after a long press, moving and lifting change nothing"),
+    );
+
+    // =========================================================================
+    // Replace, Erase and Pick by tap
+    // =========================================================================
+    await armTool("paint");
+    await setBlock(GOLD);
+    await tapAt(finger.x, finger.y);
+    const replaced = await changed(original);
+    ok(
+      replaced.length === 1 &&
+        replaced[0] === key(target.pos) &&
+        (await cells()).get(key(target.pos)) === GOLD,
+      t(`Replace by tap turns the cursor's block into the chosen one (${replaced.join(" ")})`),
+    );
+    ok((await state()).undoCount === 1, t("Replace by tap is one undo step"));
+    await undoViaThumb("Undo restores the replaced block");
+
+    await armTool("erase");
+    await tapAt(finger.x, finger.y);
+    const erased = await changed(original);
+    ok(
+      erased.length === 1 && erased[0] === key(target.pos) && !(await cells()).has(key(target.pos)),
+      t(`Erase by tap removes the cursor's block (${erased.join(" ")})`),
+    );
+    ok((await state()).undoCount === 1, t("Erase by tap is one undo step"));
+    await undoViaThumb("Undo restores the erased block");
+
+    await armTool("eyedropper");
+    await setBlock(GOLD);
+    await tapAt(finger.x, finger.y);
+    const pickTap = await state();
+    ok(
+      pickTap.block === target.block && pickTap.tool === "place" && pickTap.undoCount === 0,
+      t(
+        `Pick by tap chooses the cursor's block and switches to Place (${pickTap.block}, ${pickTap.tool})`,
+      ),
+    );
+    ok((await changed(original)).length === 0, t("Pick changes no cell"));
+
+    // A tap with no block under the cursor changes nothing.
+    await armTool("place");
+    await tapAt(8, 120); // the cursor is at y = 56: sky
+    ok(
+      (await changed(original)).length === 0 && (await state()).undoCount === 0,
+      t("a tap with nothing under the cursor changes nothing"),
+    );
+
+    // =========================================================================
+    // Tools that keep one-finger orbit
+    // =========================================================================
+    for (const id of ["navigate", "line"]) {
+      await armTool(id);
+      const p0 = await pose();
+      const orbitFinger = await dragThrough(line({ x: 200, y: 300 }, { x: 290, y: 340 }, 4));
+      await orbitFinger.end();
+      await sleep(200);
+      const p1 = await pose();
+      ok(
+        Math.abs(p1.azimuth - p0.azimuth) > 5 || Math.abs(p1.elevation - p0.elevation) > 5,
+        t(
+          `with ${id === "navigate" ? "View" : "Line"} one finger still orbits (azimuth ${p0.azimuth.toFixed(1)} -> ${p1.azimuth.toFixed(1)})`,
+        ),
+      );
+      ok(
+        (await changed(original)).length === 0 &&
+          (await state()).undoCount === 0 &&
+          (await state()).reticle === null,
+        t(`${id === "navigate" ? "View" : "Line"} drag edits nothing and shows no cursor`),
+      );
+    }
+
+    // Long press under View picks the block under the finger itself.
+    await armTool("navigate");
+    await settleFrames();
+    const fresh = await tops();
+    const viewTarget = fresh.find((c) => c.block === "minecraft:stone_bricks") as Top;
+    await setBlock(GOLD);
+    const viewHold = await page.touchscreen.touchStart(
+      Math.round(viewTarget.pt.x),
+      Math.round(viewTarget.pt.y),
+    );
+    await sleep(750);
+    await viewHold.end();
+    await sleep(200);
+    const viewPick = await state();
+    ok(
+      viewPick.block === "minecraft:stone_bricks" && viewPick.tool === "navigate",
+      t(
+        `a long press under View picks the block under the finger and keeps View (${viewPick.block})`,
+      ),
+    );
+    ok((await changed(original)).length === 0, t("and changes no cell"));
+
+    if (values.shots) {
+      await page.screenshot({ path: join(values.shots, "mobile-edit-final.png") });
+    }
+    ok(
+      errors.length === 0,
+      t(
+        `no console errors throughout touch editing${errors.length ? `: ${errors.join(" | ")}` : ""}`,
+      ),
+    );
+  } finally {
+    await browser.close();
+  }
+}
+
 try {
   await touchViewerSuite();
+  await touchPlacementSuite();
 } finally {
   server.close();
 }
