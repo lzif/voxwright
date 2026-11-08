@@ -2,17 +2,23 @@
 import { describe, expect, it } from "vitest";
 import {
   boxBetween,
+  CURSOR_OFFSET_STEP_PX,
   cellOnPlane,
   clipRayToBox,
+  DEFAULT_CURSOR_OFFSET_PX,
   followLayerBounds,
   inSlice,
   isTypingTarget,
   type KeyLike,
   keyAction,
+  MAX_CURSOR_OFFSET_PX,
+  MIN_CURSOR_OFFSET_PX,
   normalAxis,
   normalizeBlockInput,
+  normalizeCursorOffset,
   packBlockIds,
   paletteEntries,
+  parseCursorOffset,
   searchPalette,
   shiftBox,
   TOOLS,
@@ -255,5 +261,70 @@ describe("followLayerBounds", () => {
     expect(followLayerBounds({ yMin: 2, yMax: 8 }, 10, 0, 5, 0)).toEqual({ yMin: 2, yMax: 4 });
     expect(followLayerBounds({ yMin: 6, yMax: 8 }, 10, 0, 5, 0)).toEqual({ yMin: 4, yMax: 4 });
     expect(followLayerBounds({ yMin: 2, yMax: 5 }, 10, 0, 6, 3)).toEqual({ yMin: 0, yMax: 2 });
+  });
+});
+
+describe("cursor distance setting", () => {
+  it("is 64 px by default, within 0 to 128 in steps of 8", () => {
+    expect(DEFAULT_CURSOR_OFFSET_PX).toBe(64);
+    expect(MIN_CURSOR_OFFSET_PX).toBe(0);
+    expect(MAX_CURSOR_OFFSET_PX).toBe(128);
+    expect(CURSOR_OFFSET_STEP_PX).toBe(8);
+  });
+
+  describe("parseCursorOffset (a value kept from an earlier visit)", () => {
+    it("reads every allowed value back unchanged", () => {
+      for (let px = 0; px <= 128; px += 8) expect(parseCursorOffset(String(px))).toBe(px);
+    });
+
+    it("falls back to 64 when nothing is stored or it is not a number", () => {
+      for (const stored of [
+        null,
+        undefined,
+        "",
+        " ",
+        "abc",
+        "64px",
+        "NaN",
+        "Infinity",
+        "1e1",
+        "0x40",
+        "6 4",
+        "--8",
+      ]) {
+        expect(parseCursorOffset(stored), String(stored)).toBe(64);
+      }
+    });
+
+    it("falls back to 64 when the number is outside 0 to 128", () => {
+      for (const stored of ["-1", "-8", "129", "136", "200", "99999"]) {
+        expect(parseCursorOffset(stored), stored).toBe(64);
+      }
+    });
+
+    it("rounds a number in range to the nearest step", () => {
+      expect(parseCursorOffset("13")).toBe(16);
+      expect(parseCursorOffset("11")).toBe(8);
+      expect(parseCursorOffset("12")).toBe(16); // halfway rounds up
+      expect(parseCursorOffset("127")).toBe(128);
+      expect(parseCursorOffset("3.9")).toBe(0);
+      expect(parseCursorOffset("63.9")).toBe(64);
+      expect(parseCursorOffset(" 40 ")).toBe(40);
+    });
+  });
+
+  describe("normalizeCursorOffset (a value from the slider)", () => {
+    it("clamps to 0 to 128 and rounds to the step", () => {
+      expect(normalizeCursorOffset(-50)).toBe(0);
+      expect(normalizeCursorOffset(500)).toBe(128);
+      expect(normalizeCursorOffset(100)).toBe(104);
+      expect(normalizeCursorOffset(64)).toBe(64);
+      expect(normalizeCursorOffset(0)).toBe(0);
+    });
+
+    it("gives the default for a value that is not a number", () => {
+      expect(normalizeCursorOffset(Number.NaN)).toBe(64);
+      expect(normalizeCursorOffset(Number.POSITIVE_INFINITY)).toBe(64);
+    });
   });
 });

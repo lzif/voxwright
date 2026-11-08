@@ -20,7 +20,16 @@ import SiteFooter from "../lib/components/SiteFooter.svelte";
 import ThumbCluster from "../lib/components/ThumbCluster.svelte";
 import TouchReticle from "../lib/components/TouchReticle.svelte";
 import { describeVolume } from "../lib/describe.ts";
-import { followLayerBounds, packBlockIds } from "../lib/editing.ts";
+import {
+  CURSOR_OFFSET_STEP_PX,
+  DEFAULT_CURSOR_OFFSET_PX,
+  followLayerBounds,
+  MAX_CURSOR_OFFSET_PX,
+  MIN_CURSOR_OFFSET_PX,
+  normalizeCursorOffset,
+  packBlockIds,
+  parseCursorOffset,
+} from "../lib/editing.ts";
 import { EditSession } from "../lib/editor-session.svelte.ts";
 import {
   type Carried,
@@ -65,6 +74,8 @@ type LayoutMode = "auto" | "desktop" | "mobile";
 let layoutOverride = $state<LayoutMode>("auto");
 let mqDesktop = $state(false);
 let leftHanded = $state(false);
+/** How far above the fingertip the touch cursor sits (px); every session the page creates starts with it. */
+let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
 let activeSheet = $state<SheetType>("none");
 
 const isMobileLayout = $derived.by(() => {
@@ -84,6 +95,14 @@ function setLeftHanded(lh: boolean): void {
   leftHanded = lh;
   try {
     localStorage.setItem("voxwright.lefthanded", String(lh));
+  } catch {}
+}
+
+function setCursorOffset(px: number): void {
+  cursorOffset = normalizeCursorOffset(px);
+  if (session) session.cursorOffsetPx = cursorOffset;
+  try {
+    localStorage.setItem("voxwright.cursoroffset", String(cursorOffset));
   } catch {}
 }
 
@@ -238,6 +257,7 @@ function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits:
     dataVersion: dv,
     packBlocks,
     baseEdits,
+    cursorOffsetPx: cursorOffset,
   });
   stopSession = s.attach();
   session = s;
@@ -802,6 +822,7 @@ onMount(() => {
     if (savedLh !== null) {
       leftHanded = savedLh === "true";
     }
+    cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
   } catch {}
 
   const mqWidth = window.matchMedia("(min-width: 1000px)");
@@ -1206,6 +1227,25 @@ onMount(() => {
             <input type="checkbox" checked={leftHanded} onchange={(e) => setLeftHanded(e.currentTarget.checked)} />
             <span>Left-handed controls (mirror thumb cluster)</span>
           </label>
+          <div class="menu-field menu-range" data-testid="cursor-offset">
+            <div class="menu-range-head">
+              <span class="field-label">Cursor distance</span>
+              <output for="cursor-offset-input" data-testid="cursor-offset-value">{cursorOffset} px</output>
+            </div>
+            <input
+              id="cursor-offset-input"
+              type="range"
+              min={MIN_CURSOR_OFFSET_PX}
+              max={MAX_CURSOR_OFFSET_PX}
+              step={CURSOR_OFFSET_STEP_PX}
+              value={cursorOffset}
+              aria-label="Cursor distance above the finger"
+              aria-valuetext="{cursorOffset} px"
+              oninput={(e) => setCursorOffset(e.currentTarget.valueAsNumber)}
+              data-testid="cursor-offset-input"
+            />
+            <p class="menu-hint">How far above your fingertip the cursor sits when you place or erase blocks. 0 puts it under the finger.</p>
+          </div>
         </section>
 
         {#if session}
@@ -1526,6 +1566,19 @@ onMount(() => {
     font-size: 0.85rem;
     color: #5f594f;
     font-weight: 500;
+  }
+  .menu-range-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.9rem;
+  }
+  .menu-range input[type="range"] {
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    box-sizing: border-box;
   }
   .menu-checkbox {
     display: inline-flex !important;

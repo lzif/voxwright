@@ -54,11 +54,16 @@ interface ActivePointer {
   maxDist: number;
 }
 
+// `one_pointer_leftover` is the finger still down after one finger of a two-finger gesture lifted.
+// It is never a tap or a long press. It turns into `one_pointer_dragging` (an orbit drag whose
+// baseline is where the finger was when the other one lifted) on its first move, unless the gesture
+// could still be a quick two-finger tap, which a small movement must not spoil.
 type ArbiterState =
   | "idle"
   | "one_pointer_down"
   | "one_pointer_dragging"
   | "one_pointer_long_press"
+  | "one_pointer_leftover"
   | "two_pointer_gesture"
   | "three_pointer_gesture"
   | "waiting_for_all_up";
@@ -145,6 +150,9 @@ export class GestureArbiter {
           this.scheduleLongPress(sample.id, sample.time);
         } else if (this.pointers.size === 2) {
           this.cancelLongPress();
+          // A finger landing next to the one left over from an earlier two-finger gesture continues
+          // that gesture: it keeps the tap timing and the "moved too far for a tap" verdict so far.
+          const resumed = this.state === "one_pointer_leftover";
 
           // FEAT-MB2-04: Second-finger stroke abort
           if (this.dragActive) {
@@ -164,11 +172,11 @@ export class GestureArbiter {
               1,
             );
           }
-          if (!this.abortedDrag) {
+          if (this.abortedDrag) {
+            this.multiTapEligible = false;
+          } else if (!resumed) {
             this.multiTapStartTime = sample.time;
             this.multiTapEligible = true;
-          } else {
-            this.multiTapEligible = false;
           }
         } else if (this.pointers.size === 3) {
           this.cancelLongPress();
@@ -234,6 +242,27 @@ export class GestureArbiter {
             dx,
             dy,
           });
+        } else if (this.state === "one_pointer_leftover") {
+          // A quick two-finger tap can still happen: a small movement before the lift is not an orbit.
+          if (sample.time - this.multiTapStartTime > this.config.multiTapMaxMs) {
+            this.multiTapEligible = false;
+          }
+          if (!this.multiTapEligible && (sample.x !== p.lastX || sample.y !== p.lastY)) {
+            // The baseline is where the finger was when the other one lifted, so the first delta
+            // is the movement since then and the view does not jump.
+            this.state = "one_pointer_dragging";
+            this.dragActive = true;
+            intents.push({ type: "oneFingerDragStart", clientX: p.lastX, clientY: p.lastY });
+            intents.push({
+              type: "oneFingerDragMove",
+              clientX: sample.x,
+              clientY: sample.y,
+              dx: sample.x - p.lastX,
+              dy: sample.y - p.lastY,
+            });
+            p.lastX = sample.x;
+            p.lastY = sample.y;
+          }
         } else if (this.state === "two_pointer_gesture") {
           this.pendingMovePointers.add(sample.id);
           this.pendingMoveTime = sample.time;
@@ -296,15 +325,25 @@ export class GestureArbiter {
             }
             this.reset();
           } else {
-            // One finger lifted: enter waiting state to avoid accidental drags/taps from leftover fingers
-            this.state = "waiting_for_all_up";
+            const leftover = this.state === "two_pointer_gesture" && this.pointers.size === 1;
+            // A two-finger gesture drops to one finger: that finger keeps turning the view from
+            // where it is now. After three fingers the remaining ones wait until all are up, so
+            // an accidental palm or extra touch does not start a drag or a tap.
+            this.state = leftover ? "one_pointer_leftover" : "waiting_for_all_up";
+            if (leftover) {
+              const [rest] = [...this.pointers.values()];
+              if (rest) {
+                rest.lastX = rest.curX;
+                rest.lastY = rest.curY;
+              }
+            }
             this.twoFingerPrevCenter = null;
             this.twoFingerPrevSpread = null;
             this.pendingMovePointers.clear();
             this.pendingMoveTime = null;
             this.cancelPendingFlush();
           }
-        } else if (this.state === "waiting_for_all_up") {
+        } else if (this.state === "one_pointer_leftover" || this.state === "waiting_for_all_up") {
           if (
             p.maxDist > this.config.multiTapSlopPx ||
             sample.time - this.multiTapStartTime > this.config.multiTapMaxMs

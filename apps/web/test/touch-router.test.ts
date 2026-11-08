@@ -156,7 +156,7 @@ describe("TouchRouter", () => {
   });
 
   describe("a second finger", () => {
-    it("mid-stroke: reverts the stroke, hands the gesture to the camera, and the leftover finger never reaches the tool", () => {
+    it("mid-stroke: reverts the stroke, hands the gesture to the camera, and the leftover finger orbits without reaching the tool", () => {
       const h = createHarness();
       h.feed(1, "down", 100, 200, 0);
       h.feed(1, "move", 130, 200, 30); // stroke in progress
@@ -180,9 +180,14 @@ describe("TouchRouter", () => {
       // The tool heard nothing after the cancel: no move, no stroke end, no tap, no end.
       expect(h.log.slice(seen)).toEqual([]);
       expect(h.log).not.toContain("strokeEnd 260,400");
-      expect(h.log.some((l) => l.startsWith("tap"))).toBe(false);
-      // The arbiter holds the leftover finger as it does today: no orbit, no drag.
-      expect(h.camera.slice(cameraSeen)).toEqual([]);
+      expect(h.log.some((l) => l.startsWith("tap") || l.startsWith("pickAt"))).toBe(false);
+      // The camera gets the leftover finger as an orbit that starts where the finger was at the lift.
+      expect(h.camera.slice(cameraSeen)).toEqual([
+        { type: "oneFingerDragStart", clientX: 140, clientY: 210 },
+        { type: "oneFingerDragMove", clientX: 200, clientY: 300, dx: 60, dy: 90 },
+        { type: "oneFingerDragMove", clientX: 260, clientY: 400, dx: 60, dy: 100 },
+        { type: "oneFingerDragEnd", clientX: 260, clientY: 400 },
+      ]);
       expect(h.router.currentOwner).toBe("none");
     });
 
@@ -199,7 +204,7 @@ describe("TouchRouter", () => {
       expect(h.router.currentOwner).toBe("none");
     });
 
-    it("pinch zoom reaches the camera, and a finger left down after it does not paint or orbit", () => {
+    it("pinch zoom reaches the camera, and a finger left down after it orbits but does not paint", () => {
       const h = createHarness();
       h.feed(1, "down", 100, 300, 0);
       h.feed(2, "down", 200, 300, 5);
@@ -211,7 +216,73 @@ describe("TouchRouter", () => {
       h.feed(1, "move", 140, 360, 120);
       h.feed(1, "move", 200, 420, 160);
       h.feed(1, "up", 200, 420, 200);
+      expect(h.camera.slice(cameraSeen)).toEqual([
+        { type: "oneFingerDragStart", clientX: 80, clientY: 300 },
+        { type: "oneFingerDragMove", clientX: 140, clientY: 360, dx: 60, dy: 60 },
+        { type: "oneFingerDragMove", clientX: 200, clientY: 420, dx: 60, dy: 60 },
+        { type: "oneFingerDragEnd", clientX: 200, clientY: 420 },
+      ]);
+      expect(h.log.some((l) => l.startsWith("strokeBegin") || l.startsWith("tap"))).toBe(false);
+    });
+
+    it("before the drag started: after the second finger lifts, the leftover finger orbits and never paints or picks", () => {
+      const h = createHarness();
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(2, "down", 220, 200, 40); // tool cancels, camera owns the gesture
+      expect(h.router.currentOwner).toBe("camera");
+      h.feed(2, "up", 220, 200, 500);
+      const logSeen = h.log.length;
+      const cameraSeen = h.camera.length;
+
+      // Held still for a long time: no long press, so no pick.
+      h.stepTime(2000);
       expect(h.camera.slice(cameraSeen)).toEqual([]);
+
+      h.feed(1, "move", 104, 203, 2100);
+      h.feed(1, "move", 150, 260, 2150);
+      h.feed(1, "up", 150, 260, 2200);
+      expect(h.camera.slice(cameraSeen)).toEqual([
+        { type: "oneFingerDragStart", clientX: 100, clientY: 200 },
+        { type: "oneFingerDragMove", clientX: 104, clientY: 203, dx: 4, dy: 3 },
+        { type: "oneFingerDragMove", clientX: 150, clientY: 260, dx: 46, dy: 57 },
+        { type: "oneFingerDragEnd", clientX: 150, clientY: 260 },
+      ]);
+      expect(h.log.slice(logSeen)).toEqual([]);
+      expect(h.log.some((l) => l.startsWith("pickAt") || l.startsWith("tap"))).toBe(false);
+    });
+
+    it("a quick two-finger tap that began as a tool gesture is no orbit and no paint", () => {
+      const h = createHarness();
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(2, "down", 220, 200, 20);
+      h.feed(1, "up", 100, 200, 70);
+      h.feed(2, "move", 222, 201, 75);
+      h.feed(2, "up", 222, 201, 90);
+      expect(h.camera).toEqual([{ type: "multiFingerTap", fingers: 2 }]);
+      expect(h.log).toEqual(["move 100,200", "cancel"]);
+    });
+
+    it("a finger landing again next to the leftover finger is a two-finger gesture again", () => {
+      const h = createHarness();
+      h.feed(1, "down", 100, 300, 0);
+      h.feed(2, "down", 200, 300, 5);
+      h.feed(1, "move", 80, 300, 400);
+      h.feed(2, "move", 220, 300, 400);
+      h.feed(2, "up", 220, 300, 500);
+      h.feed(1, "move", 90, 310, 520); // orbit
+      const cameraSeen = h.camera.length;
+      h.feed(3, "down", 220, 300, 600);
+      h.feed(1, "move", 90, 340, 650);
+      h.feed(3, "move", 220, 340, 650);
+      expect(types(h.camera.slice(cameraSeen))).toEqual(["cancel", "twoFingerPan"]);
+      h.feed(3, "up", 220, 340, 700);
+      h.feed(1, "move", 95, 345, 720);
+      h.feed(1, "up", 95, 345, 760);
+      expect(types(h.camera.slice(cameraSeen + 2))).toEqual([
+        "oneFingerDragStart",
+        "oneFingerDragMove",
+        "oneFingerDragEnd",
+      ]);
       expect(h.log.some((l) => l.startsWith("strokeBegin") || l.startsWith("tap"))).toBe(false);
     });
 
@@ -239,6 +310,25 @@ describe("TouchRouter", () => {
         "oneFingerDragMove",
         "oneFingerDragMove",
         "oneFingerDragEnd",
+      ]);
+      expect(h.log).toEqual([]);
+    });
+
+    it("a finger left down after a two-finger gesture keeps turning the view, and picks nothing", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 300, 0);
+      h.feed(2, "down", 200, 300, 5);
+      h.feed(1, "move", 80, 300, 400);
+      h.feed(2, "move", 220, 300, 400);
+      h.feed(2, "up", 220, 300, 500);
+      const cameraSeen = h.camera.length;
+      h.stepTime(5000); // held still: not a long press
+      h.feed(1, "move", 85, 310, 5100);
+      h.feed(1, "up", 85, 310, 5200);
+      expect(h.camera.slice(cameraSeen)).toEqual([
+        { type: "oneFingerDragStart", clientX: 80, clientY: 300 },
+        { type: "oneFingerDragMove", clientX: 85, clientY: 310, dx: 5, dy: 10 },
+        { type: "oneFingerDragEnd", clientX: 85, clientY: 310 },
       ]);
       expect(h.log).toEqual([]);
     });

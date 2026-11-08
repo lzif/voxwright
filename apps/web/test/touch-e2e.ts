@@ -14,7 +14,12 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import puppeteer, { type CDPSession, type ElementHandle } from "puppeteer-core";
+import puppeteer, {
+  type CDPSession,
+  type ElementHandle,
+  type KeyInput,
+  type TouchHandle,
+} from "puppeteer-core";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
 import type { PickedBlock, Pose, SessionView, Vox } from "./vox.ts";
 
@@ -726,6 +731,10 @@ export async function touchViewerSuite(): Promise<void> {
         return topBar === null && thumb === null;
       });
       ok(mobileElsInactive, t("Mobile top bar and thumb cluster are absent in desktop mode"));
+      ok(
+        (await desktopPage.$('[data-testid="cursor-offset-input"]')) === null,
+        t("the Cursor distance control is not in the desktop layout"),
+      );
     } finally {
       await desktopPage.close();
     }
@@ -869,7 +878,7 @@ interface Top {
   block: string;
 }
 
-/** How far above the finger the cursor sits (`DEFAULT_CURSOR_OFFSET_PX`; the suite checks the page agrees). */
+/** How far above the finger the cursor sits by default (`DEFAULT_CURSOR_OFFSET_PX`; the suite checks the page agrees). */
 const OFFSET = 64;
 const GOLD = "minecraft:gold_block";
 
@@ -1012,6 +1021,62 @@ export async function touchPlacementSuite(): Promise<void> {
         computeTarget(home),
       );
       await settleFrames();
+    };
+
+    /** The shortest signed turn from one azimuth to another, in degrees. */
+    const turn = (from: number, to: number): number => ((((to - from) % 360) + 540) % 360) - 180;
+    const turned = (a: TouchPose, b: TouchPose): { az: number; el: number } => ({
+      az: turn(a.azimuth, b.azimuth),
+      el: b.elevation - a.elevation,
+    });
+    /**
+     * A finger still down at `at` after the other finger of a two-finger gesture lifted: it must
+     * keep turning the build, from where it is (no jump), and must not pick or paint.
+     * `label` names the gesture in the check texts. The finger is lifted at the end.
+     */
+    const leftoverOrbits = async (
+      label: string,
+      leftover: TouchHandle,
+      at: { x: number; y: number },
+    ): Promise<void> => {
+      const atLift = await pose();
+      const blockBefore = (await state()).block;
+      // Held still well past the long-press time: no pick, and the camera does not move.
+      await sleep(650);
+      const held = await state();
+      const heldPose = turned(atLift, await pose());
+      ok(
+        held.block === blockBefore && held.tool !== "eyedropper" && held.reticle === null,
+        t(`${label}: the finger left down, held still, picks nothing and shows no cursor`),
+      );
+      ok(
+        Math.abs(heldPose.az) < 0.01 && Math.abs(heldPose.el) < 0.01,
+        t(`${label}: the finger left down does not turn the view while it is still`),
+      );
+      // The first small move after the lift: 6 px sideways turns the view by 6 px worth, not by
+      // the distance the finger travelled since it first landed.
+      await leftover.move(at.x + 6, at.y);
+      await sleep(150);
+      const small = turned(atLift, await pose());
+      ok(
+        Math.abs(small.az) >= 1.5 && Math.abs(small.az) <= 3.5 && Math.abs(small.el) < 0.5,
+        t(
+          `${label}: its first 6px move turns the view by about 2.4 degrees, with no jump (azimuth ${small.az.toFixed(2)}, elevation ${small.el.toFixed(2)})`,
+        ),
+      );
+      await leftover.move(at.x + 70, at.y + 50);
+      await sleep(120);
+      await leftover.move(at.x + 20, at.y - 60);
+      await sleep(150);
+      await leftover.end();
+      await sleep(250);
+      const total = turned(atLift, await pose());
+      ok(
+        Math.abs(total.az) > 5 || Math.abs(total.el) > 5,
+        t(
+          `${label}: the finger left down turns the view (azimuth ${total.az.toFixed(1)}, elevation ${total.el.toFixed(1)})`,
+        ),
+      );
     };
 
     /** Tap a button with a real touch. */
@@ -1271,12 +1336,11 @@ export async function touchPlacementSuite(): Promise<void> {
     );
     await f2.end();
     await sleep(150);
-    await f1.move(first.x + 80, first.y + 20);
-    await sleep(120);
-    await f1.move(first.x + 20, first.y - 60);
-    await sleep(150);
-    await f1.end();
-    await sleep(250);
+    // The finger left down turns the view (the gesture began with Place armed) and never paints.
+    await leftoverOrbits("Place armed, stroke, second finger", f1, {
+      x: first.x - 60,
+      y: first.y + 80,
+    });
     ok(
       (await changed(original)).length === 0 && (await state()).undoCount === 0,
       t("the finger left down after the second one lifted never paints"),
@@ -1300,12 +1364,7 @@ export async function touchPlacementSuite(): Promise<void> {
     );
     await g2.end();
     await sleep(150);
-    await g1.move(120, 480);
-    await sleep(100);
-    await g1.move(220, 300);
-    await sleep(100);
-    await g1.end();
-    await sleep(250);
+    await leftoverOrbits("Place armed, pinch", g1, { x: 140 - 4 * 15, y: 420 });
     ok(
       (await changed(original)).length === 0 && (await state()).undoCount === 0,
       t("a finger left down after a pinch does not paint"),
@@ -1467,6 +1526,26 @@ export async function touchPlacementSuite(): Promise<void> {
       );
     }
 
+    // Under View, a finger left down after a two-finger gesture also keeps turning the build.
+    await armTool("navigate");
+    await setBlock(GOLD);
+    const v1 = await page.touchscreen.touchStart(140, 420);
+    const v2 = await page.touchscreen.touchStart(250, 420);
+    await sleep(100);
+    for (let i = 1; i <= 4; i++) {
+      await v1.move(140, 420 + i * 12);
+      await v2.move(250, 420 + i * 12);
+      await sleep(90);
+    }
+    await v2.end();
+    await sleep(150);
+    await leftoverOrbits("View, two-finger pan", v1, { x: 140, y: 420 + 4 * 12 });
+    ok(
+      (await changed(original)).length === 0 && (await state()).undoCount === 0,
+      t("and changes no cell"),
+    );
+    await restoreCamera();
+
     // Long press under View picks the block under the finger itself.
     await armTool("navigate");
     await settleFrames();
@@ -1488,6 +1567,326 @@ export async function touchPlacementSuite(): Promise<void> {
       ),
     );
     ok((await changed(original)).length === 0, t("and changes no cell"));
+
+    // =========================================================================
+    // Cursor distance (Menu > Settings): 0 to 128 px, default 64, kept per browser
+    // =========================================================================
+    page.on("dialog", (d) => void d.accept()); // the unsaved-edits prompts of the reloads below
+    const sliderSel = '[data-testid="cursor-offset-input"]';
+    const OFFSET_KEY = "voxwright.cursoroffset";
+    const openMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector(sliderSel, { timeout: 5000 });
+      await page.$eval(sliderSel, (el) => el.scrollIntoView({ block: "center" }));
+      await sleep(300);
+    };
+    const closeMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    const slider = () =>
+      page.evaluate(
+        (sel, storeKey) => {
+          const el = document.querySelector(sel) as HTMLInputElement;
+          const box = el.getBoundingClientRect();
+          let stored: string | null;
+          try {
+            stored = localStorage.getItem(storeKey);
+          } catch {
+            stored = "unreadable";
+          }
+          return {
+            value: el.value,
+            min: el.min,
+            max: el.max,
+            step: el.step,
+            label: el.getAttribute("aria-label"),
+            valueText: el.getAttribute("aria-valuetext"),
+            readout:
+              document.querySelector('[data-testid="cursor-offset-value"]')?.textContent?.trim() ??
+              null,
+            title:
+              document.querySelector('[data-testid="cursor-offset"] .field-label')?.textContent ??
+              null,
+            height: box.height,
+            stored,
+          };
+        },
+        sliderSel,
+        OFFSET_KEY,
+      );
+    const press = async (...keys: KeyInput[]): Promise<void> => {
+      await page.focus(sliderSel);
+      for (const k of keys) {
+        await page.keyboard.press(k);
+        await sleep(40);
+      }
+      await sleep(120);
+    };
+    /** A page load that is ready for a file; a returning visit's restore prompt is discarded unless `keep`. */
+    const startUp = async (keep = false): Promise<void> => {
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600); // the prompt is offered a moment after the viewer is ready
+      if (!keep && (await page.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await tapButton('[data-testid="discard"]');
+        await page.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (): Promise<void> => {
+      const file = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+
+    // The page is where the earlier checks left it: put the camera back, Place armed.
+    await restoreCamera();
+    await armTool("place");
+    await setBlock("minecraft:stone");
+    await openMenu();
+    const initial = await slider();
+    ok(
+      initial.value === "64" && initial.readout === "64 px" && initial.valueText === "64 px",
+      t(`the Cursor distance control starts at 64 px (${initial.value}, "${initial.readout}")`),
+    );
+    ok(
+      initial.min === "0" && initial.max === "128" && initial.step === "8",
+      t(
+        `it is a range from 0 to 128 in steps of 8 (${initial.min}..${initial.max} by ${initial.step})`,
+      ),
+    );
+    ok(
+      initial.label === "Cursor distance above the finger" && initial.title === "Cursor distance",
+      t(`it has a visible name and an accessible label (${initial.label})`),
+    );
+    ok(
+      initial.height >= 43.99,
+      t(`the control is at least 44px tall (${initial.height.toFixed(1)}px)`),
+    );
+    ok(initial.stored === null, t("nothing is stored until the setting is changed"));
+
+    await press("Home");
+    const atZero = await slider();
+    ok(
+      atZero.value === "0" && atZero.readout === "0 px" && atZero.stored === "0",
+      t(
+        `Home sets 0, shows "0 px" and stores it (${atZero.value}, "${atZero.readout}", ${atZero.stored})`,
+      ),
+    );
+    ok((await state()).cursorOffsetPx === 0, t("the open session uses the new distance at once"));
+    await press("ArrowRight", "ArrowRight");
+    const atSixteen = await slider();
+    ok(
+      atSixteen.value === "16" && atSixteen.readout === "16 px",
+      t(`arrow keys move it one step of 8 (${atSixteen.value})`),
+    );
+    await press("End");
+    ok((await slider()).readout === "128 px", t("End sets 128 px"));
+    await press("Home");
+
+    // A real touch on the track moves the thumb.
+    const track = await page.$eval(sliderSel, (el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left, y: r.top + r.height / 2, w: r.width };
+    });
+    await page.touchscreen.tap(Math.round(track.x + track.w * 0.75), Math.round(track.y));
+    await sleep(200);
+    const tapped = await slider();
+    ok(
+      Number(tapped.value) >= 80 && Number(tapped.value) <= 112 && tapped.stored === tapped.value,
+      t(`tapping the track moves the thumb and stores the value (${tapped.value})`),
+    );
+    ok(
+      (await state()).cursorOffsetPx === Number(tapped.value),
+      t("the session follows the touch on the slider"),
+    );
+    await press("Home");
+    await closeMenu();
+
+    // 0: the cursor is under the finger, so a tap on a cell's top face places on that cell.
+    const direct = { x: Math.round(target.pt.x), y: Math.round(target.pt.y) };
+    const hold0 = await page.touchscreen.touchStart(direct.x, direct.y);
+    await page.waitForFunction(() => document.querySelector(".reticle-target") !== null, {
+      timeout: 5000,
+    });
+    const at0 = await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const r = document.querySelector(".reticle-target")?.getBoundingClientRect();
+      return {
+        touchY: s.reticle?.touchY,
+        reticleY: s.reticle?.reticleY,
+        cx: r ? r.left + r.width / 2 : null,
+        cy: r ? r.top + r.height / 2 : null,
+        stem: document.querySelector(".reticle-stem") !== null,
+        hover: s.hover?.position ?? null,
+      };
+    });
+    ok(
+      at0.reticleY === at0.touchY &&
+        at0.cx !== null &&
+        at0.cy !== null &&
+        Math.abs(at0.cx - direct.x) < 1.5 &&
+        Math.abs(at0.cy - direct.y) < 1.5,
+      t(
+        `with distance 0 the cursor is drawn under the finger (${at0.cx?.toFixed(1)}, ${at0.cy?.toFixed(1)})`,
+      ),
+    );
+    ok(!at0.stem, t("and no stem is drawn between the finger and the cursor"));
+    ok(
+      at0.hover !== null && key(at0.hover) === key(target.pos),
+      t("and the outline is on the cell under the finger"),
+    );
+    await sleep(600); // held past the long press, the lift is neither a tap nor a stroke
+    await hold0.end();
+    await sleep(200);
+    await setBlock("minecraft:stone"); // the long press picked the block under the cursor
+    ok((await changed(original)).length === 0, t("and holding the finger there changes nothing"));
+    await tapAt(direct.x, direct.y);
+    const placed0 = await changed(original);
+    ok(
+      placed0.length === 1 && placed0[0] === key(targetAdjacent),
+      t(`with distance 0 a tap places on the cell under the finger (${placed0.join(" ")})`),
+    );
+    await undoViaThumb("Undo removes it");
+
+    // 128: the cursor is 128px above the finger.
+    await openMenu();
+    await press("End");
+    ok((await state()).cursorOffsetPx === 128, t("End sets 128 and the session follows"));
+    await closeMenu();
+    const far = { x: Math.round(target.pt.x), y: Math.round(target.pt.y + 128) };
+    const farTarget = await page.evaluate(
+      (x, y) => document.elementFromPoint(x, y)?.getAttribute("data-testid") ?? null,
+      far.x,
+      far.y,
+    );
+    ok(
+      farTarget === "canvas",
+      t(`the finger point for distance 128 is over the canvas (${farTarget})`),
+    );
+    const hold128 = await page.touchscreen.touchStart(far.x, far.y);
+    await page.waitForFunction(() => document.querySelector(".reticle-target") !== null, {
+      timeout: 5000,
+    });
+    const at128 = await page.evaluate(() => {
+      const r = document.querySelector(".reticle-target")?.getBoundingClientRect();
+      return {
+        cy: r ? r.top + r.height / 2 : null,
+        stem: document.querySelector(".reticle-stem") !== null,
+      };
+    });
+    ok(
+      at128.cy !== null && Math.abs(at128.cy - target.pt.y) < 1.5 && at128.stem,
+      t(
+        `with distance 128 the cursor is drawn 128px above the finger, joined by a stem (${at128.cy?.toFixed(1)})`,
+      ),
+    );
+    await sleep(600);
+    await hold128.end();
+    await sleep(200);
+    await setBlock("minecraft:stone");
+    ok((await changed(original)).length === 0, t("and holding the finger there changes nothing"));
+    await tapAt(far.x, far.y);
+    const placed128 = await changed(original);
+    ok(
+      placed128.length === 1 && placed128[0] === key(targetAdjacent),
+      t(
+        `with distance 128 a tap places on the cell 128px above the finger (${placed128.join(" ")})`,
+      ),
+    );
+    await undoViaThumb("Undo removes that one too");
+
+    // The value survives a reload, reaches the session of a restored autosave and of another file.
+    await openMenu();
+    await press("Home", "ArrowRight", "ArrowRight", "ArrowRight", "ArrowRight", "ArrowRight");
+    ok((await slider()).readout === "40 px", t("the distance is set to 40 px"));
+    await closeMenu();
+    await tapAt(Math.round(target.pt.x), Math.round(target.pt.y + 40));
+    ok(
+      (await changed(original)).join(" ") === key(targetAdjacent),
+      t("with distance 40 a tap places 40px above the finger"),
+    );
+    await page.evaluate(() =>
+      (window.__voxwright as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
+    );
+    await page.reload();
+    await startUp(true);
+    await page.waitForSelector('[data-testid="restore-dialog"][open]', { timeout: 15000 });
+    await tapButton('[data-testid="restore"]');
+    await page.waitForFunction(() => (window.__voxwright as Vox | undefined)?.session() != null, {
+      timeout: 30000,
+    });
+    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    ok(
+      (await state()).cursorOffsetPx === 40 && (await cells()).has(key(targetAdjacent)),
+      t(
+        `after a reload the restored autosave has a session with the stored distance (${(await state()).cursorOffsetPx})`,
+      ),
+    );
+    await openMenu();
+    const reloaded = await slider();
+    ok(
+      reloaded.value === "40" && reloaded.readout === "40 px" && reloaded.stored === "40",
+      t(
+        `the control shows the stored distance after a reload (${reloaded.value}, "${reloaded.readout}")`,
+      ),
+    );
+    await closeMenu();
+    await page.evaluate(() => {
+      (window as unknown as { __before: unknown }).__before = (window.__voxwright as Vox).session();
+    });
+    await openFixture(); // another file: the unsaved restored edit is given up (the dialog is accepted)
+    const another = await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session();
+      return {
+        fresh: s !== (window as unknown as { __before: unknown }).__before,
+        offset: s?.cursorOffsetPx ?? null,
+      };
+    });
+    ok(
+      another.fresh && another.offset === 40,
+      t(`opening another file starts a session with the same distance (${another.offset})`),
+    );
+
+    // A stored value that is absent, not a number or out of range falls back to 64; one off the step is rounded.
+    for (const [stored, expected] of [
+      ["banana", "64"],
+      ["999", "64"],
+      ["-8", "64"],
+      ["", "64"],
+      ["13", "16"],
+    ] as const) {
+      await page.evaluate((v, k) => localStorage.setItem(k, v), stored, OFFSET_KEY);
+      await page.reload();
+      await startUp();
+      await openMenu();
+      const got = await slider();
+      ok(
+        got.value === expected && got.readout === `${expected} px`,
+        t(`a stored value of "${stored}" reads as ${expected} px (${got.value})`),
+      );
+      await closeMenu();
+    }
+    await page.evaluate((k) => localStorage.removeItem(k), OFFSET_KEY);
+    await page.reload();
+    await startUp();
+    await openMenu();
+    ok((await slider()).readout === "64 px", t("with nothing stored the distance is 64 px"));
+    await closeMenu();
 
     if (values.shots) {
       await page.screenshot({ path: join(values.shots, "mobile-edit-final.png") });

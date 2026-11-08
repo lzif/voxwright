@@ -90,6 +90,32 @@ export const TOUCH_TOOLS: readonly ToolId[] = ["place", "paint", "erase", "eyedr
 
 export const isTouchTool = (id: ToolId): boolean => TOUCH_TOOLS.includes(id);
 
+/** The touch cursor's distance above the fingertip, in CSS px. 0 puts the cursor under the finger. */
+export const DEFAULT_CURSOR_OFFSET_PX = 64;
+export const MIN_CURSOR_OFFSET_PX = 0;
+export const MAX_CURSOR_OFFSET_PX = 128;
+export const CURSOR_OFFSET_STEP_PX = 8;
+
+/** A distance clamped to the allowed range and rounded to the nearest step. Not a number: the default. */
+export function normalizeCursorOffset(px: number): number {
+  if (!Number.isFinite(px)) return DEFAULT_CURSOR_OFFSET_PX;
+  const clamped = Math.min(MAX_CURSOR_OFFSET_PX, Math.max(MIN_CURSOR_OFFSET_PX, px));
+  return Math.round(clamped / CURSOR_OFFSET_STEP_PX) * CURSOR_OFFSET_STEP_PX;
+}
+
+/**
+ * The distance a browser kept from an earlier visit. Absent, not a plain decimal number (empty,
+ * "64px", "1e1") or outside 0 to 128: the default. A number in range but off the step is rounded.
+ */
+export function parseCursorOffset(stored: string | null | undefined): number {
+  if (typeof stored !== "string" || !/^\s*-?\d+(?:\.\d+)?\s*$/.test(stored)) {
+    return DEFAULT_CURSOR_OFFSET_PX;
+  }
+  const px = Number(stored);
+  if (px < MIN_CURSOR_OFFSET_PX || px > MAX_CURSOR_OFFSET_PX) return DEFAULT_CURSOR_OFFSET_PX;
+  return normalizeCursorOffset(px);
+}
+
 /** The tooltip for a tool: its help line and its shortcut. */
 export function toolTitle(tool: ToolInfo): string {
   return tool.key === null ? tool.help : `${tool.help} (${tool.key.toUpperCase()})`;

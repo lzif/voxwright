@@ -840,7 +840,8 @@ async function runChallengerStress(): Promise<void> {
     // 4.2 Degraded sequence: pointercancel while 2 fingers down
     intents.length = 0;
     arbiter.feed({ id: 1, type: "cancel", x: 150, y: 70, time: 50 });
-    // Arbiter should enter waiting_for_all_up and not emit accidental single finger drag on pointer 2 move
+    // A pointercancel is the system taking a finger away, not the user lifting one: the arbiter
+    // still enters waiting_for_all_up and emits no single finger drag on pointer 2 move
     arbiter.feed({ id: 2, type: "move", x: 300, y: 300, time: 60 });
     ok(
       intents.every((i) => i.type !== "oneFingerDragStart" && i.type !== "oneFingerDragMove"),
@@ -851,6 +852,40 @@ async function runChallengerStress(): Promise<void> {
     ok(
       arbiter["state"] === "idle",
       "GestureArbiter cleanly resets to idle after all pointers lift",
+    );
+
+    // 4.3 One finger of a two-finger pan lifts: the other keeps turning the view from where it is
+    intents.length = 0;
+    arbiter.feed({ id: 3, type: "down", x: 100, y: 100, time: 1000 });
+    arbiter.feed({ id: 4, type: "down", x: 200, y: 100, time: 1010 });
+    arbiter.feed({ id: 3, type: "move", x: 150, y: 160, time: 1100 });
+    arbiter.feed({ id: 4, type: "move", x: 250, y: 160, time: 1100 });
+    arbiter.feed({ id: 3, type: "up", x: 150, y: 160, time: 1500 });
+    intents.length = 0;
+    arbiter.feed({ id: 4, type: "move", x: 253, y: 164, time: 1520 });
+    const leftoverStart = intents.find((i) => i.type === "oneFingerDragStart");
+    const leftoverMove = intents.find((i) => i.type === "oneFingerDragMove");
+    ok(
+      leftoverStart?.clientX === 250 && leftoverStart?.clientY === 160,
+      "GestureArbiter starts the leftover finger's orbit at its position when the other finger lifted",
+    );
+    ok(
+      leftoverMove?.dx === 3 && leftoverMove?.dy === 4,
+      `GestureArbiter measures the leftover finger's first delta from that position, not from where it landed (dx=${leftoverMove?.dx}, dy=${leftoverMove?.dy})`,
+    );
+    arbiter.stepTime(10000);
+    arbiter.feed({ id: 4, type: "up", x: 253, y: 164, time: 1540 });
+    ok(
+      intents.every((i) => i.type !== "tap" && i.type !== "longPress") &&
+        intents.at(-1)?.type === "oneFingerDragEnd",
+      "GestureArbiter ends the leftover finger's orbit on lift, with no tap and no long press",
+    );
+    intents.length = 0;
+    arbiter.feed({ id: 5, type: "down", x: 60, y: 60, time: 2000 });
+    arbiter.feed({ id: 5, type: "up", x: 60, y: 60, time: 2050 });
+    ok(
+      intents.length === 1 && intents[0]?.type === "tap",
+      "GestureArbiter is ready for the next tap after the leftover finger lifts",
     );
 
     // Check no console errors

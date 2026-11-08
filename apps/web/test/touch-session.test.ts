@@ -10,6 +10,8 @@ import type { WebglRenderer } from "@voxwright/render/webgl";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ToolId } from "../src/lib/editing.ts";
 import { EditSession } from "../src/lib/editor-session.svelte.ts";
+import type { GestureIntent } from "../src/lib/gestures.ts";
+import { TouchRouter } from "../src/lib/touch-router.ts";
 
 const STONE = "minecraft:stone";
 const PLANKS = "minecraft:oak_planks";
@@ -43,7 +45,7 @@ const runFrames = (): void => {
   for (const f of due) f();
 };
 
-function makeSession(options: { overCanvas?: () => boolean } = {}) {
+function makeSession(options: { overCanvas?: () => boolean; cursorOffsetPx?: number } = {}) {
   const volume = new Volume();
   for (let x = 0; x < 16; x++) for (let z = 0; z < 16; z++) volume.set(x, 0, z, STONE);
   volume.set(3, 0, 3, PLANKS); // under the cursor
@@ -76,6 +78,7 @@ function makeSession(options: { overCanvas?: () => boolean } = {}) {
     dataVersion: null,
     packBlocks: [],
     isOverCanvas: options.overCanvas ?? (() => true),
+    cursorOffsetPx: options.cursorOffsetPx,
   });
   return { session, volume, highlights };
 }
@@ -502,5 +505,195 @@ describe("EditSession touch path", () => {
       session.touchCancel();
       expect(cellsChanged(volume, before)).toEqual([]);
     });
+  });
+});
+
+describe("the cursor distance", () => {
+  it("is 64 px unless the session is made with another", () => {
+    expect(makeSession().session.cursorOffsetPx).toBe(64);
+    expect(makeSession({ cursorOffsetPx: 24 }).session.cursorOffsetPx).toBe(24);
+  });
+
+  it("0: a tap places on the cell under the finger", () => {
+    const { session, volume } = makeSession();
+    arm(session, "place");
+    session.cursorOffsetPx = 0;
+    const before = snapshot(volume);
+    session.touchMove(FINGER.x, FINGER.y);
+    session.touchTap(FINGER.x, FINGER.y);
+    // The finger is over cell (3, 10), which holds the gold block; the block goes on top of it.
+    expect(cellsChanged(volume, before)).toEqual(["3,1,10"]);
+    expect(volume.get(3, 1, 3)).not.toBe(STONE);
+  });
+
+  it("128: a tap places on the cell 128 px above the finger", () => {
+    const { session, volume } = makeSession();
+    arm(session, "place");
+    session.cursorOffsetPx = 128;
+    const before = snapshot(volume);
+    session.touchMove(35, 150);
+    session.touchTap(35, 150);
+    // 150 - 128 = 22 px: cell row 2.
+    expect(cellsChanged(volume, before)).toEqual(["3,1,2"]);
+  });
+
+  it("applies to the next touch at once, in the picks and in the drawn cursor", () => {
+    const { session } = makeSession();
+    arm(session, "place");
+    session.touchMove(FINGER.x, FINGER.y);
+    runFrames();
+    expect(session.reticle).toMatchObject({ reticleY: FINGER.y - 64 });
+    expect(session.hover?.position).toEqual([3, 0, 3]);
+
+    session.cursorOffsetPx = 32;
+    session.touchMove(FINGER.x, FINGER.y);
+    runFrames();
+    expect(session.reticle).toMatchObject({ touchY: FINGER.y, reticleY: FINGER.y - 32 });
+    expect(session.hover?.position).toEqual([3, 0, 6]);
+
+    session.cursorOffsetPx = 0;
+    session.touchMove(FINGER.x, FINGER.y);
+    runFrames();
+    expect(session.reticle).toMatchObject({ touchY: FINGER.y, reticleY: FINGER.y });
+    expect(session.hover?.position).toEqual([3, 0, 10]);
+  });
+
+  it("a long press and a stroke use it too", () => {
+    const { session, volume } = makeSession();
+    arm(session, "place");
+    session.cursorOffsetPx = 0;
+    session.touchMove(FINGER.x, FINGER.y);
+    session.touchLongPress(FINGER.x, FINGER.y);
+    expect(session.block).toBe(GOLD); // the block under the finger itself
+
+    session.block = STONE;
+    const before = snapshot(volume);
+    session.touchMove(FINGER.x, FINGER.y);
+    session.touchStrokeBegin(FINGER.x, FINGER.y);
+    session.touchMove(55, FINGER.y);
+    runFrames();
+    session.touchStrokeEnd(55, FINGER.y);
+    session.touchEnd();
+    expect(cellsChanged(volume, before).sort()).toEqual(["3,1,10", "4,1,10", "5,1,10"]);
+  });
+
+  it("is checked against the canvas edge: 0 lets the finger reach the top row, 128 does not", () => {
+    const { session } = makeSession();
+    arm(session, "place");
+    session.cursorOffsetPx = 0;
+    expect(session.touchMove(35, 5)).toBe(true);
+    session.touchEnd();
+    session.cursorOffsetPx = 128;
+    expect(session.touchMove(35, 100)).toBe(false); // the cursor would be at y = -28
+  });
+});
+
+describe("a finger left down after a second finger lifts (router and session together)", () => {
+  /** The router wired to the session as the page does it, with the camera's share collected. */
+  function wire() {
+    const made = makeSession();
+    const camera: GestureIntent[] = [];
+    const router = new TouchRouter({
+      target: () => made.session,
+      camera: (i) => camera.push(i),
+      arbiter: {
+        setTimeout: () => 0 as unknown as ReturnType<typeof setTimeout>,
+        clearTimeout() {},
+      },
+    });
+    const feed = (id: number, type: "down" | "move" | "up", x: number, y: number, time: number) =>
+      router.feed({ id, type, x, y, time });
+    return { ...made, camera, router, feed };
+  }
+
+  it("Place armed: the leftover finger orbits, nothing is painted, and no cursor or hover is left", () => {
+    const h = wire();
+    arm(h.session, "place");
+    const before = snapshot(h.volume);
+
+    h.feed(1, "down", FINGER.x, FINGER.y, 0);
+    runFrames();
+    expect(h.session.reticle).not.toBeNull(); // the tool owns the gesture so far
+    h.feed(2, "down", 135, 100, 20); // a second finger: the camera takes over
+    expect(h.session.reticle).toBeNull();
+    h.feed(1, "move", 35, 110, 100);
+    h.feed(2, "move", 135, 110, 100);
+    h.feed(2, "up", 135, 110, 200);
+
+    const cameraSeen = h.camera.length;
+    h.router.stepTime(5000); // held still: no long press, so no pick
+    h.feed(1, "move", 40, 120, 5100);
+    runFrames();
+    h.feed(1, "move", 55, 140, 5150);
+    h.feed(1, "up", 55, 140, 5200);
+    runFrames();
+
+    expect(h.camera.slice(cameraSeen)).toEqual([
+      { type: "oneFingerDragStart", clientX: 35, clientY: 110 },
+      { type: "oneFingerDragMove", clientX: 40, clientY: 120, dx: 5, dy: 10 },
+      { type: "oneFingerDragMove", clientX: 55, clientY: 140, dx: 15, dy: 20 },
+      { type: "oneFingerDragEnd", clientX: 55, clientY: 140 },
+    ]);
+    expect(cellsChanged(h.volume, before)).toEqual([]);
+    expect(h.session.undoCount).toBe(0);
+    expect(h.session.canUndo).toBe(false);
+    expect(h.session.reticle).toBeNull();
+    expect(h.session.hover).toBeNull();
+    expect(h.session.block).toBe(STONE); // no pick changed the block
+  });
+
+  it("mid-stroke: the stroke is reverted, then the leftover finger orbits and the volume stays as it was", () => {
+    const h = wire();
+    arm(h.session, "place");
+    const before = snapshot(h.volume);
+
+    h.feed(1, "down", FINGER.x, FINGER.y, 0);
+    h.feed(1, "move", 55, FINGER.y, 30);
+    h.feed(1, "move", 75, FINGER.y, 60);
+    runFrames();
+    expect(cellsChanged(h.volume, before).length).toBeGreaterThan(0); // the stroke is on screen
+    h.feed(2, "down", 135, 100, 80);
+    expect(cellsChanged(h.volume, before)).toEqual([]); // reverted
+
+    h.feed(1, "move", 75, 110, 150);
+    h.feed(2, "move", 135, 110, 150);
+    h.feed(2, "up", 135, 110, 250);
+    const cameraSeen = h.camera.length;
+    h.feed(1, "move", 80, 112, 300);
+    h.feed(1, "move", 90, 120, 330);
+    h.feed(1, "up", 90, 120, 360);
+    runFrames();
+
+    expect(h.camera.slice(cameraSeen).map((i) => i.type)).toEqual([
+      "oneFingerDragStart",
+      "oneFingerDragMove",
+      "oneFingerDragMove",
+      "oneFingerDragEnd",
+    ]);
+    expect(cellsChanged(h.volume, before)).toEqual([]);
+    expect(h.session.undoCount).toBe(0);
+    expect(h.session.reticle).toBeNull();
+  });
+
+  it("a finger landing again while the leftover finger is down is a two-finger gesture again, still without painting", () => {
+    const h = wire();
+    arm(h.session, "place");
+    const before = snapshot(h.volume);
+    h.feed(1, "down", FINGER.x, FINGER.y, 0);
+    h.feed(2, "down", 135, 100, 20);
+    h.feed(1, "move", 35, 120, 400);
+    h.feed(2, "move", 135, 120, 400);
+    h.feed(2, "up", 135, 120, 450);
+    h.feed(1, "move", 40, 125, 500); // orbit
+    const cameraSeen = h.camera.length;
+    h.feed(3, "down", 135, 125, 550);
+    h.feed(1, "move", 40, 150, 600);
+    h.feed(3, "move", 135, 150, 600);
+    expect(h.camera.slice(cameraSeen).map((i) => i.type)).toEqual(["cancel", "twoFingerPan"]);
+    h.feed(3, "up", 135, 150, 650);
+    h.feed(1, "up", 40, 150, 700);
+    runFrames();
+    expect(cellsChanged(h.volume, before)).toEqual([]);
+    expect(h.session.undoCount).toBe(0);
   });
 });

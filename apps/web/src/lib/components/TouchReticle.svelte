@@ -4,6 +4,10 @@ import type { EditSession } from "../editor-session.svelte.ts";
 
 let { session }: { session: EditSession } = $props();
 const reticle = $derived(session.reticle);
+// The stem runs from the rim of the contact circle to the rim of the target ring, 14 and 12 px
+// out from their centers. With the cursor close to the finger (the Cursor distance setting) there is
+// no gap to draw it in.
+const showStem = $derived(reticle !== null && reticle.touchY - reticle.reticleY > 14 + 12);
 </script>
 
 {#if reticle && reticle.active}
@@ -13,13 +17,15 @@ const reticle = $derived(session.reticle);
       data-testid="reticle-indicator"
     >
       <!-- Connecting stem line from finger contact to reticle target -->
-      <line
-        x1={reticle.touchX}
-        y1={reticle.touchY - 14}
-        x2={reticle.reticleX}
-        y2={reticle.reticleY + 12}
-        class="reticle-stem"
-      />
+      {#if showStem}
+        <line
+          x1={reticle.touchX}
+          y1={reticle.touchY - 14}
+          x2={reticle.reticleX}
+          y2={reticle.reticleY + 12}
+          class="reticle-stem"
+        />
+      {/if}
       <!-- Touch contact circle at finger -->
       <circle
         cx={reticle.touchX}
@@ -27,7 +33,7 @@ const reticle = $derived(session.reticle);
         r="14"
         class="reticle-contact"
       />
-      <!-- Target reticle ring at clientY - 64 -->
+      <!-- Target reticle ring, the cursor distance above the finger -->
       <circle
         cx={reticle.reticleX}
         cy={reticle.reticleY}

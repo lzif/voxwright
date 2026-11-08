@@ -214,7 +214,7 @@ describe("GestureArbiter", () => {
   });
 
   describe("Degraded / multi-finger lift safety", () => {
-    it("lifting 1 finger during 2-finger pan does not trigger 1-finger drag or tap", () => {
+    it("lifting 1 finger during 2-finger pan hands the other finger to a one-finger orbit, never a tap", () => {
       const { arbiter } = createHarness();
       arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
       arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
@@ -223,11 +223,214 @@ describe("GestureArbiter", () => {
       // Lift finger 1
       expect(arbiter.feed({ id: 1, type: "up", x: 150, y: 100, time: 50 })).toEqual([]);
 
-      // Move finger 2 alone -> ignored
-      expect(arbiter.feed({ id: 2, type: "move", x: 250, y: 100, time: 70 })).toEqual([]);
+      // Move finger 2 alone: it orbits from where it was when finger 1 lifted
+      expect(arbiter.feed({ id: 2, type: "move", x: 250, y: 100, time: 70 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 200, clientY: 100 },
+        { type: "oneFingerDragMove", clientX: 250, clientY: 100, dx: 50, dy: 0 },
+      ]);
 
-      // Lift finger 2 -> ignored
-      expect(arbiter.feed({ id: 2, type: "up", x: 250, y: 100, time: 90 })).toEqual([]);
+      // Lift finger 2: the drag ends, there is no tap
+      expect(arbiter.feed({ id: 2, type: "up", x: 250, y: 100, time: 90 })).toEqual([
+        { type: "oneFingerDragEnd", clientX: 250, clientY: 100 },
+      ]);
+    });
+  });
+
+  describe("A finger left over after a two-finger gesture", () => {
+    /** Two fingers pan together, far enough that the gesture is no tap. Finger 2 ends at (250, 160). */
+    function panThenLift(lifted: 1 | 2, liftTime = 400) {
+      const h = createHarness();
+      h.arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      h.arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      h.arbiter.feed({ id: 1, type: "move", x: 150, y: 160, time: 100 });
+      h.arbiter.feed({ id: 2, type: "move", x: 250, y: 160, time: 100 });
+      const x = lifted === 1 ? 150 : 250;
+      h.arbiter.feed({ id: lifted, type: "up", x, y: 160, time: liftTime });
+      h.events.length = 0;
+      return h;
+    }
+
+    it("orbits from where it was when the other finger lifted: the first delta is the movement since then", () => {
+      const { arbiter } = panThenLift(1);
+      // Finger 2 first touched at (200, 100); it is at (250, 160) when finger 1 lifts.
+      expect(arbiter.feed({ id: 2, type: "move", x: 253, y: 164, time: 420 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 250, clientY: 160 },
+        { type: "oneFingerDragMove", clientX: 253, clientY: 164, dx: 3, dy: 4 },
+      ]);
+      expect(arbiter.feed({ id: 2, type: "move", x: 260, y: 170, time: 440 })).toEqual([
+        { type: "oneFingerDragMove", clientX: 260, clientY: 170, dx: 7, dy: 6 },
+      ]);
+      expect(arbiter.feed({ id: 2, type: "up", x: 260, y: 170, time: 460 })).toEqual([
+        { type: "oneFingerDragEnd", clientX: 260, clientY: 170 },
+      ]);
+    });
+
+    it("takes its baseline from the finger's last position even if its move was not yet evaluated", () => {
+      const h = createHarness();
+      h.arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      h.arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      h.arbiter.feed({ id: 2, type: "move", x: 230, y: 130, time: 400 }); // half a packet: finger 1 did not move
+      h.arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 410 });
+      h.events.length = 0;
+      expect(h.arbiter.feed({ id: 2, type: "move", x: 232, y: 131, time: 420 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 230, clientY: 130 },
+        { type: "oneFingerDragMove", clientX: 232, clientY: 131, dx: 2, dy: 1 },
+      ]);
+    });
+
+    it("does nothing for a move that leaves it where it was", () => {
+      const { arbiter } = panThenLift(1);
+      expect(arbiter.feed({ id: 2, type: "move", x: 250, y: 160, time: 420 })).toEqual([]);
+    });
+
+    it("never taps or long-presses, held still or lifted without moving", () => {
+      const held = panThenLift(2);
+      expect(held.arbiter.stepTime(400 + 5000)).toEqual([]);
+      expect(held.arbiter.feed({ id: 1, type: "up", x: 150, y: 160, time: 6000 })).toEqual([]);
+      expect(held.events).toEqual([]);
+
+      const quick = panThenLift(1);
+      expect(quick.arbiter.feed({ id: 2, type: "up", x: 250, y: 160, time: 420 })).toEqual([]);
+      expect(quick.events).toEqual([]);
+    });
+
+    it("a finger landing again makes it a two-finger gesture again, and dropping to one finger orbits again", () => {
+      const { arbiter } = panThenLift(1);
+      // Pending leftover (not moved yet): a new finger lands, pan works as before.
+      arbiter.feed({ id: 3, type: "down", x: 150, y: 160, time: 450 });
+      arbiter.feed({ id: 2, type: "move", x: 250, y: 200, time: 470 });
+      const pan = arbiter.feed({ id: 3, type: "move", x: 150, y: 200, time: 470 });
+      expect(pan.map((i) => i.type)).toEqual(["twoFingerPan"]);
+      expect(pan[0]).toMatchObject({ dx: 0, dy: 40 });
+
+      // The new finger lifts: finger 2 is the leftover again, baseline where it is now.
+      expect(arbiter.feed({ id: 3, type: "up", x: 150, y: 200, time: 500 })).toEqual([]);
+      expect(arbiter.feed({ id: 2, type: "move", x: 255, y: 205, time: 520 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 250, clientY: 200 },
+        { type: "oneFingerDragMove", clientX: 255, clientY: 205, dx: 5, dy: 5 },
+      ]);
+    });
+
+    it("a finger landing during the leftover orbit cancels it (pair stays balanced) and starts a pan", () => {
+      const { arbiter, events } = panThenLift(1);
+      arbiter.feed({ id: 2, type: "move", x: 260, y: 170, time: 420 });
+      events.length = 0;
+      expect(arbiter.feed({ id: 3, type: "down", x: 150, y: 160, time: 450 })).toEqual([
+        { type: "cancel" },
+      ]);
+      arbiter.feed({ id: 2, type: "move", x: 260, y: 200, time: 470 });
+      const pan = arbiter.feed({ id: 3, type: "move", x: 150, y: 190, time: 470 });
+      expect(pan.map((i) => i.type)).toContain("twoFingerPan");
+
+      // Back to one finger: orbit again, from the finger's position at the lift.
+      arbiter.feed({ id: 3, type: "up", x: 150, y: 190, time: 500 });
+      expect(arbiter.feed({ id: 2, type: "move", x: 262, y: 203, time: 520 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 260, clientY: 200 },
+        { type: "oneFingerDragMove", clientX: 262, clientY: 203, dx: 2, dy: 3 },
+      ]);
+      expect(arbiter.feed({ id: 2, type: "up", x: 262, y: 203, time: 540 })).toEqual([
+        { type: "oneFingerDragEnd", clientX: 262, clientY: 203 },
+      ]);
+    });
+
+    it("every oneFingerDragStart is closed by an end or a cancel", () => {
+      const { arbiter, events } = createHarness();
+      const feed = (id: number, type: "down" | "move" | "up", x: number, y: number, time: number) =>
+        arbiter.feed({ id, type, x, y, time });
+      feed(1, "down", 100, 100, 0);
+      feed(1, "move", 130, 100, 20); // one-finger drag
+      feed(2, "down", 200, 100, 40); // cancel
+      feed(2, "up", 200, 100, 60); // leftover
+      feed(1, "move", 140, 110, 80); // drag again
+      feed(1, "up", 140, 110, 100); // end
+      feed(3, "down", 10, 10, 200);
+      feed(4, "down", 90, 10, 210);
+      feed(3, "move", 20, 40, 400);
+      feed(4, "move", 100, 40, 400);
+      feed(3, "up", 20, 40, 420);
+      feed(4, "move", 110, 50, 440); // drag
+      feed(4, "up", 110, 50, 460); // end
+      const open = events.reduce((n, i) => {
+        if (i.type === "oneFingerDragStart") return n + 1;
+        if (i.type === "oneFingerDragEnd" || i.type === "cancel") return n - 1;
+        return n;
+      }, 0);
+      expect(open).toBe(0);
+      expect(events.filter((i) => i.type === "oneFingerDragStart")).toHaveLength(3);
+      expect(events.some((i) => i.type === "tap" || i.type === "longPress")).toBe(false);
+    });
+
+    it("a quick two-finger tap is unchanged: small movement of the finger left over is no orbit, the lift is a multiFingerTap", () => {
+      const { arbiter } = createHarness();
+      arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      expect(arbiter.feed({ id: 1, type: "up", x: 101, y: 100, time: 80 })).toEqual([]);
+      expect(arbiter.feed({ id: 2, type: "move", x: 203, y: 102, time: 85 })).toEqual([]);
+      expect(arbiter.feed({ id: 2, type: "up", x: 203, y: 102, time: 90 })).toEqual([
+        { type: "multiFingerTap", fingers: 2 },
+      ]);
+    });
+
+    it("a quick two-finger touch whose leftover finger then travels past the slop is an orbit, not a tap", () => {
+      const { arbiter } = createHarness();
+      arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 80 });
+      expect(arbiter.feed({ id: 2, type: "move", x: 205, y: 100, time: 90 })).toEqual([]);
+      const crossing = arbiter.feed({ id: 2, type: "move", x: 216, y: 100, time: 100 });
+      expect(crossing).toEqual([
+        { type: "oneFingerDragStart", clientX: 200, clientY: 100 },
+        { type: "oneFingerDragMove", clientX: 216, clientY: 100, dx: 16, dy: 0 },
+      ]);
+      expect(
+        arbiter.feed({ id: 2, type: "up", x: 216, y: 100, time: 120 }).map((i) => i.type),
+      ).toEqual(["oneFingerDragEnd"]);
+    });
+
+    it("a leftover finger held past the tap window starts to orbit on its first move, however small", () => {
+      const { arbiter } = createHarness();
+      arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 200 });
+      expect(arbiter.feed({ id: 2, type: "move", x: 201, y: 100, time: 350 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 200, clientY: 100 },
+        { type: "oneFingerDragMove", clientX: 201, clientY: 100, dx: 1, dy: 0 },
+      ]);
+    });
+  });
+
+  describe("Paths that still wait for every finger to lift", () => {
+    it("three fingers: after one lifts, the other two are ignored until all are up", () => {
+      const { arbiter } = createHarness();
+      arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      arbiter.feed({ id: 2, type: "down", x: 150, y: 100, time: 10 });
+      arbiter.feed({ id: 3, type: "down", x: 200, y: 100, time: 20 });
+      arbiter.feed({ id: 3, type: "up", x: 200, y: 100, time: 600 });
+      expect(arbiter.feed({ id: 1, type: "move", x: 100, y: 200, time: 620 })).toEqual([]);
+      arbiter.feed({ id: 2, type: "up", x: 150, y: 100, time: 640 });
+      // The last of the three is no leftover orbit either.
+      expect(arbiter.feed({ id: 1, type: "move", x: 100, y: 300, time: 660 })).toEqual([]);
+      expect(arbiter.feed({ id: 1, type: "up", x: 100, y: 300, time: 680 })).toEqual([]);
+    });
+
+    it("a fourth finger: everything waits until all are up", () => {
+      const { arbiter } = createHarness();
+      for (let id = 1; id <= 4; id++)
+        arbiter.feed({ id, type: "down", x: id * 50, y: 100, time: id });
+      for (const id of [1, 2, 3]) arbiter.feed({ id, type: "up", x: id * 50, y: 100, time: 500 });
+      expect(arbiter.feed({ id: 4, type: "move", x: 200, y: 300, time: 520 })).toEqual([]);
+      expect(arbiter.feed({ id: 4, type: "up", x: 200, y: 300, time: 540 })).toEqual([]);
+    });
+
+    it("a pointercancel of one of two fingers: the other waits, as the system took the first away", () => {
+      const { arbiter } = createHarness();
+      arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
+      arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
+      arbiter.feed({ id: 1, type: "move", x: 150, y: 160, time: 100 });
+      arbiter.feed({ id: 2, type: "move", x: 250, y: 160, time: 100 });
+      expect(arbiter.feed({ id: 1, type: "cancel", x: 150, y: 160, time: 400 })).toEqual([]);
+      expect(arbiter.feed({ id: 2, type: "move", x: 300, y: 200, time: 420 })).toEqual([]);
+      expect(arbiter.feed({ id: 2, type: "up", x: 300, y: 200, time: 440 })).toEqual([]);
     });
   });
 

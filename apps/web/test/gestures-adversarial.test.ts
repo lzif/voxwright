@@ -110,7 +110,8 @@ describe("GestureArbiter Adversarial Stress Testing", () => {
       // Spurious cancel for ID 888
       arbiter.feed({ id: 888, type: "cancel", x: 0, y: 0, time: 20 });
 
-      // ID 1 lifts; since spurious cancel placed state into waiting_for_all_up, it resets on lift
+      // ID 1 lifts; the spurious cancel placed the state into waiting_for_all_up (it was never a
+      // multi-finger gesture, so no leftover orbit), and it resets on lift
       arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 50 });
 
       // Arbiter is fully recovered
@@ -204,10 +205,15 @@ describe("GestureArbiter Adversarial Stress Testing", () => {
 
       // Release pointer 1 first, then pointer 2
       expect(arbiter.feed({ id: 1, type: "up", x: 140, y: 100, time: 120 })).toEqual([]);
-      // Pointer 2 continues to move alone (should NOT trigger 1-finger drag)
-      expect(arbiter.feed({ id: 2, type: "move", x: 250, y: 100, time: 130 })).toEqual([]);
-      // Pointer 2 lifts
-      expect(arbiter.feed({ id: 2, type: "up", x: 250, y: 100, time: 140 })).toEqual([]);
+      // Pointer 2 continues to move alone: it orbits, from where it was when pointer 1 lifted
+      expect(arbiter.feed({ id: 2, type: "move", x: 250, y: 100, time: 130 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 220, clientY: 100 },
+        { type: "oneFingerDragMove", clientX: 250, clientY: 100, dx: 30, dy: 0 },
+      ]);
+      // Pointer 2 lifts: the drag ends, no tap
+      expect(arbiter.feed({ id: 2, type: "up", x: 250, y: 100, time: 140 })).toEqual([
+        { type: "oneFingerDragEnd", clientX: 250, clientY: 100 },
+      ]);
 
       // Next gesture works cleanly
       arbiter.feed({ id: 3, type: "down", x: 50, y: 50, time: 200 });
@@ -410,20 +416,25 @@ describe("GestureArbiter Adversarial Stress Testing", () => {
       arbiter.feed({ id: 1, type: "down", x: 100, y: 100, time: 0 });
       arbiter.feed({ id: 2, type: "down", x: 200, y: 100, time: 10 });
 
-      // Finger 1 lifts -> enters waiting_for_all_up
+      // Finger 1 lifts -> finger 2 is the leftover finger
       arbiter.feed({ id: 1, type: "up", x: 100, y: 100, time: 30 });
 
       // Finger 1 touches down AGAIN while finger 2 is still held down!
       arbiter.feed({ id: 1, type: "down", x: 105, y: 105, time: 40 });
 
-      // Finger 2 lifts
+      // Finger 2 lifts -> finger 1 (landed again) is the leftover finger
       arbiter.feed({ id: 2, type: "up", x: 200, y: 100, time: 50 });
 
-      // Finger 1 moves -> must be ignored because still waiting_for_all_up
-      expect(arbiter.feed({ id: 1, type: "move", x: 150, y: 105, time: 60 })).toEqual([]);
+      // Finger 1 moves -> it orbits from where it was when finger 2 lifted
+      expect(arbiter.feed({ id: 1, type: "move", x: 150, y: 105, time: 60 })).toEqual([
+        { type: "oneFingerDragStart", clientX: 105, clientY: 105 },
+        { type: "oneFingerDragMove", clientX: 150, clientY: 105, dx: 45, dy: 0 },
+      ]);
 
-      // Finger 1 lifts -> all pointers now lifted, should reset to idle
-      arbiter.feed({ id: 1, type: "up", x: 150, y: 105, time: 70 });
+      // Finger 1 lifts -> the drag ends and all pointers are lifted, back to idle
+      expect(arbiter.feed({ id: 1, type: "up", x: 150, y: 105, time: 70 })).toEqual([
+        { type: "oneFingerDragEnd", clientX: 150, clientY: 105 },
+      ]);
 
       // Subsequent tap succeeds cleanly
       arbiter.feed({ id: 3, type: "down", x: 50, y: 50, time: 100 });

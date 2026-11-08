@@ -6,8 +6,8 @@
 // the tool owns the gesture if a touch tool is armed in the orbit camera, the camera owns it
 // otherwise. It holds until every finger is up, with one exception: a second finger arriving while
 // the tool owns the gesture cancels the tool's work (a stroke in progress is reverted) and hands
-// the gesture to the camera, so two-finger pan and pinch work and a finger left down afterwards
-// never paints.
+// the gesture to the camera, so two-finger pan and pinch work. A finger left down afterwards never
+// paints; the arbiter turns it into a one-finger orbit from where it is, and the camera gets that.
 //
 // The router sits in front of a `GestureArbiter` and reads the raw pointer samples itself, because
 // the arbiter's intents do not cover everything the router must see: a second finger before a drag
@@ -161,6 +161,8 @@ export class TouchRouter {
   private onIntent(intent: GestureIntent): void {
     if (this.owner !== "tool") {
       this.camera(intent);
+      // Only a finger that landed alone and stayed still is a long press. The arbiter never says
+      // so of a finger left over from a two-finger gesture, so that one never picks.
       if (intent.type === "longPress") this.target?.touchPickAt(intent.clientX, intent.clientY);
       return;
     }

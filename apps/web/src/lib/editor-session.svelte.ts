@@ -41,6 +41,7 @@ import {
   boxBetween,
   cellOnPlane,
   clipRayToBox,
+  DEFAULT_CURSOR_OFFSET_PX,
   inSlice,
   isTouchTool,
   isTypingTarget,
@@ -63,6 +64,8 @@ export interface SessionOptions {
   packBlocks: readonly string[];
   /** Edits the volume already holds that cannot be undone (a restored autosave); default 0. */
   baseEdits?: number;
+  /** How far above the fingertip the touch cursor sits, in px; default `DEFAULT_CURSOR_OFFSET_PX`. */
+  cursorOffsetPx?: number;
   /**
    * Is a page point over the canvas itself and not over a toolbar or sheet drawn on top of it? A
    * touch stroke is cancelled when the finger leaves the canvas. Default: `elementFromPoint`.
@@ -86,9 +89,6 @@ export interface ReticleState {
   reticleY: number;
   hit: Hover | null;
 }
-
-export const DEFAULT_CURSOR_OFFSET_PX = 64;
-export const RETICLE_OFFSET_Y = DEFAULT_CURSOR_OFFSET_PX;
 
 type Drag =
   | {
@@ -134,6 +134,7 @@ export class EditSession {
   /** Bumped by every change to the volume or its history; reads of derived values depend on it. */
   revision = $state(0);
   cameraMode = $state<"orbit" | "fly">("orbit");
+  /** How far above the fingertip the touch cursor sits, in px. Read on every touch event, so a change applies at once. */
   cursorOffsetPx = DEFAULT_CURSOR_OFFSET_PX;
   reticle = $state.raw<ReticleState | null>(null);
 
@@ -158,6 +159,7 @@ export class EditSession {
     this.dataVersion = options.dataVersion;
     this.packBlocks = options.packBlocks;
     this.baseEdits = options.baseEdits ?? 0;
+    this.cursorOffsetPx = options.cursorOffsetPx ?? DEFAULT_CURSOR_OFFSET_PX;
     this.overCanvas =
       options.isOverCanvas ??
       ((x, y) => options.canvas.ownerDocument.elementFromPoint(x, y) === options.canvas);
