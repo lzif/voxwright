@@ -12,6 +12,7 @@ import BlockStatePanel from "../lib/components/BlockStatePanel.svelte";
 import BottomSheet from "../lib/components/BottomSheet.svelte";
 import BottomToolbar, { type SheetType } from "../lib/components/BottomToolbar.svelte";
 import EditToolbar from "../lib/components/EditToolbar.svelte";
+import Hotbar from "../lib/components/Hotbar.svelte";
 import NudgePad from "../lib/components/NudgePad.svelte";
 import PackPanel from "../lib/components/PackPanel.svelte";
 import PerfOverlay from "../lib/components/PerfOverlay.svelte";
@@ -43,6 +44,17 @@ import {
   saveAs,
 } from "../lib/formats.ts";
 import { type GestureIntent, pointerEventToSample } from "../lib/gestures.ts";
+import {
+  type BlockStore,
+  FAVORITE_KEY,
+  FAVORITE_LIMIT,
+  loadBlockList,
+  pushRecent,
+  RECENT_KEY,
+  RECENT_LIMIT,
+  saveBlockList,
+  toggleFavorite,
+} from "../lib/hotbar.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import Worker from "../lib/render.worker.ts?worker";
@@ -82,6 +94,29 @@ let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
 /** Do Place, Replace and Erase wait for the check mark on touch? Every session the page creates starts with it. */
 let confirmPlacement = $state(false);
 let activeSheet = $state<SheetType>("none");
+/** The blocks the user chose last and the ones they starred; kept in this browser (decision 9). */
+let recentBlocks = $state.raw<readonly string[]>([]);
+let favoriteBlocks = $state.raw<readonly string[]>([]);
+
+/** The browser's storage, or `null` when it is blocked: the editor works without it. */
+function blockStore(): BlockStore | null {
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
+}
+
+/** Told by the session whenever a block is chosen through the palette, the hotbar, Pick or a long press. */
+function recordRecent(block: string): void {
+  recentBlocks = pushRecent(recentBlocks, block);
+  saveBlockList(blockStore(), RECENT_KEY, recentBlocks);
+}
+
+function toggleFavoriteBlock(block: string): void {
+  favoriteBlocks = toggleFavorite(favoriteBlocks, block);
+  saveBlockList(blockStore(), FAVORITE_KEY, favoriteBlocks);
+}
 
 const isMobileLayout = $derived.by(() => {
   if (layoutOverride === "mobile") return true;
@@ -273,6 +308,7 @@ function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits:
     cursorOffsetPx: cursorOffset,
     confirmPlacement,
   });
+  s.onBlockChosen = recordRecent;
   stopSession = s.attach();
   session = s;
 }
@@ -839,6 +875,8 @@ onMount(() => {
     cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
     confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
   } catch {}
+  recentBlocks = loadBlockList(blockStore(), RECENT_KEY, RECENT_LIMIT);
+  favoriteBlocks = loadBlockList(blockStore(), FAVORITE_KEY, FAVORITE_LIMIT);
 
   const mqWidth = window.matchMedia("(min-width: 1000px)");
   const mqFine = window.matchMedia("(pointer: fine)");
@@ -1135,6 +1173,10 @@ onMount(() => {
     oncancel={() => session?.cancelPending()}
   />
   <NudgePad {session} {leftHanded} {azimuth} />
+  <!-- The quick row of favourites and recents, above the readout line and beside the thumb cluster. It gives way to the nudge pad (which needs that corner while something is pending) and to a sheet. -->
+  {#if session.pending === null && activeSheet === "none"}
+    <Hotbar compact {session} favorites={favoriteBlocks} recents={recentBlocks} {leftHanded} />
+  {/if}
   <BottomToolbar
     {session}
     {activeSheet}
@@ -1146,15 +1188,15 @@ onMount(() => {
 {#if isMobileLayout}
   {#if activeSheet === "palette" && session}
     <BottomSheet snap="half" title="Block Palette" onclose={() => (activeSheet = "none")}>
-      <BlockPalette {session} />
+      <BlockPalette {session} touch favorites={favoriteBlocks} recents={recentBlocks} ontogglefavorite={toggleFavoriteBlock} />
     </BottomSheet>
   {:else if activeSheet === "blockstate" && session}
     <BottomSheet snap="half" title="Block State" onclose={() => (activeSheet = "none")}>
-      <BlockStatePanel {session} />
+      <BlockStatePanel {session} touch />
     </BottomSheet>
   {:else if activeSheet === "selection" && session}
     <BottomSheet snap="half" title="Selection" onclose={() => (activeSheet = "none")}>
-      <SelectionPanel {session} touch />
+      <SelectionPanel {session} touch {azimuth} onpaste={() => (activeSheet = "none")} />
     </BottomSheet>
   {:else if activeSheet === "menu"}
     <BottomSheet snap="half" title="Menu" onclose={() => (activeSheet = "none")}>

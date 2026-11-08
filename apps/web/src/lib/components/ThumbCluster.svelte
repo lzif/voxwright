@@ -81,8 +81,8 @@ let {
   .thumb-cluster {
     position: fixed;
     z-index: 35;
-    /* Clear of the readout line and the toolbar below (28 + 56 px and a border), so neither is covered. */
-    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    /* Clear of the readout line (28 px, or 44 px while it holds the Edit state chip) and the toolbar below (56 px) and a border, so neither is covered. */
+    bottom: calc(108px + env(safe-area-inset-bottom, 0px));
     right: calc(12px + env(safe-area-inset-right, 0px));
     display: grid;
     grid-template-columns: repeat(2, 48px);

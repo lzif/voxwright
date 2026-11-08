@@ -58,9 +58,20 @@ export interface SessionView {
   /** Do Place, Replace and Erase wait for a confirm on touch? */
   confirmPlacement: boolean;
   hollow: boolean;
+  /** The block string at the inspected cell, or `null`. */
+  inspectedBlock: string | null;
   pick(x: number, y: number): PickedBlock | null;
   setTool(tool: string): void;
   setSlice(range: { y0: number; y1: number } | null): void;
+  // What the desktop panels call; the MB6 suite drives the desktop path of the same edits with them.
+  chooseBlock(block: string): void;
+  setSelection(box: { min: [number, number, number]; max: [number, number, number] } | null): void;
+  fill(): boolean;
+  copy(touch?: boolean): boolean;
+  rotate(rotation: "CLOCKWISE_90" | "COUNTERCLOCKWISE_90"): boolean;
+  placeAt(pos: [number, number, number], block: string): boolean;
+  setProperty(key: string, value: string): boolean;
+  undo(): void;
 }
 
 export interface Vox {

@@ -111,7 +111,7 @@ onDestroy(() => repeater.stop());
   .nudge-pad {
     position: fixed;
     z-index: 35;
-    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(108px + env(safe-area-inset-bottom, 0px));
     right: calc(12px + 104px + 8px + env(safe-area-inset-right, 0px));
     display: grid;
     grid-template-columns: repeat(3, 48px);

@@ -17,6 +17,15 @@ let {
 
 const shown = TOOLS.filter((t) => t.id !== "paste");
 const cleanBlockName = $derived(session.block.replace("minecraft:", ""));
+// The chip that opens the block state sheet: there is a block that was tapped (or armed, or
+// inspected) and nothing waits for a confirm. A finger previewing a cell moves `inspected` with
+// it, so the chip needs no gap while a finger is down (the readout line would jump on every touch).
+const showChip = $derived(session.pending === null && session.inspectedBlock !== null);
+const chipLabel = $derived(
+  showChip && session.inspected !== null
+    ? `Edit state of ${(session.inspectedBlock ?? "").split(/[[{]/, 1)[0]?.replace("minecraft:", "")} at ${session.inspected.join(", ")}`
+    : "Edit state",
+);
 
 function blockColor(name: string): string {
   if (name.includes("stone")) return "#858585";
@@ -43,6 +52,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
 </script>
 
 <div class="bottom-toolbar-container" data-testid="bottom-toolbar">
+  <div class="readout-row" class:has-chip={showChip}>
   <!-- Live cell readout bar -->
   <div
     class="cell-readout-bar"
@@ -86,6 +96,17 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     {:else if session.error}
       <span class="readout-error" class:wide={session.pending !== null} data-testid="edit-error">{session.error}</span>
     {/if}
+  </div>
+  {#if showChip}
+    <!-- Outside the live region: a button does not belong in a status line. -->
+    <button
+      type="button"
+      class="state-chip"
+      aria-label={chipLabel}
+      onclick={() => ontogglesheet?.("blockstate")}
+      data-testid="state-chip"
+    >Edit state ›</button>
+  {/if}
   </div>
 
   <div
@@ -272,14 +293,45 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     white-space: nowrap;
   }
 
+  .readout-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 28px;
+    background: #1e1c19;
+    border-bottom: 1px solid #3d3a34;
+  }
+
+  .state-chip {
+    flex: 0 0 auto;
+    min-height: 44px;
+    min-width: 44px;
+    margin: 0 8px 0 0;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #3d3a34;
+    color: #f4f1eb;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .state-chip:active {
+    filter: brightness(0.9);
+  }
+
   .cell-readout-bar {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 28px;
+    height: auto;
+    min-height: 28px;
     padding: 0 12px;
-    background: #1e1c19;
-    border-bottom: 1px solid #3d3a34;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.78rem;
     color: #f4f1eb;

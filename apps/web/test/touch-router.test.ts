@@ -31,6 +31,7 @@ function createHarness(options: Options = {}) {
     touchCancel: () => log.push("cancel"),
     touchLongPress: (x, y) => log.push(`longPress ${x},${y}`),
     touchPickAt: (x, y) => log.push(`pickAt ${x},${y}`),
+    touchInspectAt: (x, y) => log.push(`inspectAt ${x},${y}`),
     touchEnd: () => log.push("end"),
   };
   const router = new TouchRouter({
@@ -344,12 +345,85 @@ describe("TouchRouter", () => {
       expect(types(h.camera)).toContain("oneFingerDragMove");
     });
 
-    it("a tap goes to the camera's handler and picks nothing", () => {
+    it("a tap goes to the camera's handler and asks the target to inspect the block under the finger", () => {
       const h = createHarness({ toolActive: false });
       h.feed(1, "down", 100, 200, 0);
       h.feed(1, "up", 100, 200, 50);
       expect(types(h.camera)).toEqual(["tap"]);
+      expect(h.log).toEqual(["inspectAt 100,200"]);
+    });
+
+    it("a tap inspects at the point where the finger lifted, inside the slop", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(1, "move", 104, 203, 20);
+      h.feed(1, "up", 104, 203, 60);
+      expect(h.log).toEqual(["inspectAt 104,203"]);
+    });
+
+    it("never inspects for the end of an orbit", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(1, "move", 120, 210, 30);
+      h.feed(1, "move", 140, 220, 60);
+      h.feed(1, "up", 140, 220, 90);
+      expect(types(h.camera)).toContain("oneFingerDragEnd");
       expect(h.log).toEqual([]);
+    });
+
+    it("never inspects for a finger that moved a little past the slop and came back", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(1, "move", 112, 200, 30); // past the 8 px slop: the gesture is an orbit now
+      h.feed(1, "move", 100, 200, 60);
+      h.feed(1, "up", 100, 200, 90);
+      expect(types(h.camera)).not.toContain("tap");
+      expect(h.log).toEqual([]);
+    });
+
+    it("never inspects for a long press (it picks instead), nor for the lift after it", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 200, 0);
+      h.stepTime(450);
+      h.feed(1, "up", 100, 200, 700);
+      expect(h.log).toEqual(["pickAt 100,200"]);
+    });
+
+    it("never inspects for the end of a pan or a pinch, nor for the finger left down after them", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 300, 0);
+      h.feed(2, "down", 200, 300, 5);
+      h.feed(1, "move", 80, 300, 400);
+      h.feed(2, "move", 220, 300, 400); // a pinch
+      h.feed(2, "up", 220, 300, 500);
+      h.feed(1, "up", 80, 300, 560); // the leftover finger lifts without moving
+      expect(types(h.camera)).not.toContain("tap");
+      const pan = createHarness({ toolActive: false });
+      pan.feed(1, "down", 100, 300, 0);
+      pan.feed(2, "down", 200, 300, 5);
+      pan.feed(1, "move", 100, 340, 400);
+      pan.feed(2, "move", 200, 340, 400); // a two-finger pan
+      pan.feed(1, "up", 100, 340, 500);
+      pan.feed(2, "up", 200, 340, 520);
+      expect(types(pan.camera)).not.toContain("tap");
+      expect(h.log).toEqual([]);
+      expect(pan.log).toEqual([]);
+    });
+
+    it("never inspects for a quick two-finger tap", () => {
+      const h = createHarness({ toolActive: false });
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(2, "down", 220, 200, 20);
+      h.feed(1, "up", 100, 200, 70);
+      h.feed(2, "up", 220, 200, 90);
+      expect(h.log).toEqual([]);
+    });
+
+    it("does not inspect for a tap the tool owns", () => {
+      const h = createHarness({ toolActive: true });
+      h.feed(1, "down", 100, 200, 0);
+      h.feed(1, "up", 100, 200, 50);
+      expect(h.log).not.toContain("inspectAt 100,200");
     });
 
     it("long press picks the block under the finger itself, then lift commits nothing", () => {
@@ -428,6 +502,14 @@ describe("TouchRouter", () => {
     h.stepTime(450);
     h.feed(1, "up", 100, 200, 500);
     expect(types(h.camera)).toEqual(["longPress"]);
+    expect(h.log).toEqual([]);
+  });
+
+  it("without an editing side a tap goes to the camera only", () => {
+    const h = createHarness({ noTarget: true });
+    h.feed(1, "down", 100, 200, 0);
+    h.feed(1, "up", 100, 200, 50);
+    expect(types(h.camera)).toEqual(["tap"]);
     expect(h.log).toEqual([]);
   });
 

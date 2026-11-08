@@ -8,14 +8,22 @@
 // Pick through the offset cursor, strokes, second-finger and drag-off cancels, long press.
 // The third suite (MB5) makes lines, rectangles and selections by touch alone: two taps and the check
 // mark, the nudge pad, the selection's face steppers, the confirm setting and the paste ghost.
+// The fourth suite (MB6) inspects blocks by tap, changes their state through chips and switches,
+// works the selection sheet and its move pad, and exercises the hotbar; its exit check is a whole
+// edit session by touch whose exported file equals the same edits made through the desktop path.
 // Run after `pnpm --filter @voxwright/web build`:
 //
-//   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>] [--only viewer|placement|two-point]
+//   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
+//     [--only viewer|placement|two-point|selection-state]
 
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { readLitematic, type Volume } from "@voxwright/core";
 import puppeteer, {
   type CDPSession,
   type ElementHandle,
@@ -41,7 +49,7 @@ const { values } = parseArgs({
   options: {
     shots: { type: "string" },
     chromium: { type: "string" },
-    /** Run one suite only while working on it: viewer, placement or two-point. */
+    /** Run one suite only while working on it: viewer, placement, two-point or selection-state. */
     only: { type: "string" },
   },
 });
@@ -2776,7 +2784,12 @@ export async function touchTwoPointSuite(): Promise<void> {
     );
     await tapButton('[data-testid="paste"]');
     ok((await mb()).tool === "paste", t("Paste arms the paste tool"));
-    await closeSheet();
+    // MB6: Paste also closes the sheet, so the picture is free for the tap (it used to stay open)
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+      { timeout: 5000 },
+    );
+    ok(true, t("and closes the selection sheet, so the picture is free for the tap"));
     const clipCells = await page.evaluate(
       () => (window.__voxwright as Vox).session()?.clipboardCells ?? 0,
     );
@@ -3107,10 +3120,1559 @@ export async function touchTwoPointSuite(): Promise<void> {
   }
 }
 
+const axeSource = readFileSync(
+  createRequire(import.meta.url).resolve("axe-core/axe.min.js"),
+  "utf8",
+);
+
+const AIR_BLOCK = "minecraft:air";
+/** Block strings of every cell that holds something other than air, as "x,y,z" to block. */
+function cellsOf(volume: Volume): Map<string, string> {
+  const out = new Map<string, string>();
+  volume.eachCell((x, y, z, idx) => {
+    const block = volume.palette[idx] as string;
+    if (block !== AIR_BLOCK) out.set(`${x},${y},${z}`, block);
+  });
+  return out;
+}
+
+/** The coordinates whose block differs between two snapshots. */
+function diff(a: Map<string, string>, b: Map<string, string>): string[] {
+  const keys = new Set([...a.keys(), ...b.keys()]);
+  return [...keys].filter((k) => a.get(k) !== b.get(k)).sort();
+}
+
+/**
+ * MB6: selection actions and block state by touch. One mobile page walks the pieces (tap to inspect
+ * in View, the state sheet, the selection sheet and its move pad, the hotbar), then the exit
+ * criterion: a box is selected, filled, copied, pasted, rotated, a stairs block's facing and a
+ * door's open state are changed, and the file exported, all by touch (typing only in the palette's
+ * search); a second, desktop-layout page makes the same edits through the session API and the
+ * mouse and exports too, and the two downloaded files must hold exactly the same cells.
+ */
+export async function touchSelectionStateSuite(): Promise<void> {
+  const t = (what: string): string => `[touch-mb6] ${what}`;
+  const downloads = await mkdtemp(join(tmpdir(), "voxwright-mb6-"));
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  const DOOR = "minecraft:oak_door[facing=north,half=lower,hinge=left,open=false,powered=false]";
+  const SIGN = "minecraft:oak_sign[rotation=3,waterlogged=false]";
+  const RECENT_KEY = "voxwright.recentblocks";
+  const FAVORITE_KEY = "voxwright.favoriteblocks";
+  /** The edits of the exit criterion, as cells; both paths use the same ones. */
+  const BOX_A: Vec3 = [6, 7, 3];
+  const BOX_B: Vec3 = [6, 7, 5];
+  const PASTE_ON: Vec3 = [11, 7, 6]; // the paste tool puts the origin next to the face tapped: (11, 8, 6)
+  const STAIRS_AT: Vec3 = [3, 6, 5];
+  const DOOR_ON: Vec3 = [10, 4, 2]; // a tap with Place puts the door above this block: (10, 5, 2)
+  const DOOR_AT: Vec3 = [10, 5, 2];
+  try {
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    page.on("dialog", (d) => void d.accept()); // the unsaved-edits prompts of the reloads below
+    const cdp = await page.createCDPSession();
+    const mobileDownloads = join(downloads, "mobile");
+    await mkdir(mobileDownloads);
+    await cdp.send("Browser.setDownloadBehavior", {
+      behavior: "allow",
+      downloadPath: mobileDownloads,
+      eventsEnabled: true,
+    });
+
+    // -- helpers that talk to the page (as in the other suites) ---------------------------------
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "center" });
+      }, selector);
+      const el = await page.$(selector);
+      const box = el === null ? null : await el.boundingBox();
+      if (box === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(150);
+    };
+    const startUp = async (): Promise<void> => {
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600); // a returning visit's restore prompt comes a moment after the viewer is ready
+      if ((await page.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await tapButton('[data-testid="discard"]');
+        await page.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (): Promise<void> => {
+      const file = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const cells = async (): Promise<Map<string, string>> =>
+      new Map(
+        await page.evaluate(() => {
+          const v = (window.__voxwright as Vox).volume();
+          const [lo, hi] = v.placedBounds() as [number[], number[]];
+          const out: [string, string][] = [];
+          for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+            for (let y = lo[1] as number; y <= (hi[1] as number); y++)
+              for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+                const b = v.get(x, y, z);
+                if (b !== undefined && b !== "minecraft:air") out.push([`${x},${y},${z}`, b]);
+              }
+          return out;
+        }),
+      );
+    const changed = async (before: Map<string, string>): Promise<string[]> => {
+      const now = await cells();
+      const keys = new Set([...before.keys(), ...now.keys()]);
+      return [...keys].filter((k) => before.get(k) !== now.get(k)).sort();
+    };
+    const cellAt = (p: readonly number[]): Promise<string | undefined> =>
+      page.evaluate(
+        (x, y, z) => (window.__voxwright as Vox).volume().get(x, y, z),
+        p[0] as number,
+        p[1] as number,
+        p[2] as number,
+      );
+    const tops = (): Promise<Top[]> =>
+      page.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const vol = v.volume();
+        const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
+        const [lo, hi] = vol.bounds() as [number[], number[]];
+        const out: Top[] = [];
+        for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+          for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+            for (let y = hi[1] as number; y >= (lo[1] as number); y--) {
+              const b = vol.get(x, y, z);
+              if (b === undefined || b === "minecraft:air") continue;
+              const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+              const hit = pt === null ? null : s.pick(pt.x, pt.y);
+              if (
+                pt !== null &&
+                hit !== null &&
+                hit.position[0] === x &&
+                hit.position[1] === y &&
+                hit.position[2] === z &&
+                hit.normal[1] === 1
+              )
+                out.push({ pos: [x, y, z], pt, block: b });
+              break;
+            }
+          }
+        return out;
+      });
+    const pose = (): Promise<TouchPose> =>
+      page.evaluate(() =>
+        (
+          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
+        ).renderer.getPose(),
+      );
+    const settleFrames = async (): Promise<void> => {
+      await sleep(120);
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const tapAt = async (x: number, y: number): Promise<void> => {
+      const finger = await page.touchscreen.touchStart(x, y);
+      await sleep(50);
+      await finger.end();
+      await sleep(200);
+    };
+    const below = (p: { x: number; y: number }): { x: number; y: number } => ({
+      x: Math.round(p.x),
+      y: Math.round(p.y + OFFSET),
+    });
+    const key = (p: readonly number[]): string => p.join(",");
+
+    /** What the session holds, as the tests read it. */
+    const mb = (): Promise<{
+      tool: string;
+      block: string;
+      inspected: Vec3 | null;
+      inspectedBlock: string | null;
+      pending: NonNullable<SessionView["pending"]> | null;
+      selection: SessionView["selection"];
+      message: string;
+      error: string;
+      undoCount: number;
+      clipboardCells: number;
+    }> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        return JSON.parse(
+          JSON.stringify({
+            tool: s.tool,
+            block: s.block,
+            inspected: s.inspected,
+            inspectedBlock: s.inspectedBlock,
+            pending: s.pending,
+            selection: s.selection,
+            message: s.message,
+            error: s.error,
+            undoCount: s.undoCount,
+            clipboardCells: s.clipboardCells,
+          }),
+        );
+      });
+    const armTool = async (id: string): Promise<void> => {
+      await tapButton(`[data-testid="tool-${id}"]`);
+      ok((await mb()).tool === id, t(`the ${id} tool is armed from the bottom toolbar`));
+    };
+    /** A tap whose offset cursor lands on a page point; the finger must be over the canvas. */
+    const tapCursorAt = async (pt: { x: number; y: number }): Promise<void> => {
+      const f = below(pt);
+      const over = await page.evaluate(
+        (x, y) => document.elementFromPoint(x, y)?.getAttribute("data-testid") ?? null,
+        f.x,
+        f.y,
+      );
+      if (over !== "canvas") throw new Error(`the finger point ${f.x},${f.y} is over ${over}`);
+      await tapAt(f.x, f.y);
+    };
+    const disabled = (sel: string): Promise<boolean> =>
+      page.$eval(sel, (el) => (el as HTMLButtonElement).disabled);
+    const confirm = (): Promise<void> => tapButton('[data-testid="confirm"]');
+    const openSheet = async (toggle: string): Promise<void> => {
+      await tapButton(`[data-testid="${toggle}"]`);
+      await page.waitForSelector('[data-testid="bottom-sheet"]', { timeout: 5000 });
+      await sleep(350);
+    };
+    const closeSheet = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    const sheetOpen = async (): Promise<boolean> =>
+      (await page.$('[data-testid="bottom-sheet"]')) !== null;
+    const uiMessage = (): Promise<string> =>
+      page.evaluate(
+        () =>
+          (
+            document.querySelector('[data-testid="edit-message"]') ??
+            document.querySelector('[data-testid="edit-error"]')
+          )?.textContent?.trim() ?? "",
+      );
+    const box = async (
+      selector: string,
+    ): Promise<{ x: number; y: number; w: number; h: number; right: number; bottom: number }> =>
+      page.$eval(selector, (el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y, w: r.width, h: r.height, right: r.right, bottom: r.bottom };
+      });
+    const attr = (selector: string, name: string): Promise<string | null> =>
+      page.$eval(selector, (el, n) => el.getAttribute(n), name);
+    const exists = async (selector: string): Promise<boolean> => (await page.$(selector)) !== null;
+    const setAzimuth = async (azimuth: number): Promise<void> => {
+      await page.evaluate((az) => {
+        (window.__voxwright as Vox).renderer.setOrbit({ azimuth: az });
+      }, azimuth);
+      await settleFrames();
+      await sleep(150);
+    };
+    /** The sheet as a person sees it: nothing smaller than 44 px to press, nothing wider than the screen. */
+    const sheetLayout = (): Promise<{
+      small: string[];
+      pressable: number;
+      docWidth: number;
+      contentScrollWidth: number;
+      contentClientWidth: number;
+      viewport: number;
+    }> =>
+      page.evaluate(() => {
+        const sheet = document.querySelector('[data-testid="bottom-sheet"]') as HTMLElement;
+        const content = document.querySelector(
+          '[data-testid="bottom-sheet-content"]',
+        ) as HTMLElement;
+        const small: string[] = [];
+        let pressable = 0;
+        for (const el of sheet.querySelectorAll(
+          'button, [role="switch"], input[type="text"], input[type="number"], input[type="search"]',
+        )) {
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 && r.height === 0) continue;
+          pressable++;
+          if (r.width < 43.99 || r.height < 43.99) {
+            small.push(
+              `${el.getAttribute("data-testid") ?? el.getAttribute("aria-label") ?? el.textContent?.trim()}: ${r.width.toFixed(1)}x${r.height.toFixed(1)}`,
+            );
+          }
+        }
+        return {
+          small,
+          pressable,
+          docWidth: document.documentElement.scrollWidth,
+          contentScrollWidth: content.scrollWidth,
+          contentClientWidth: content.clientWidth,
+          viewport: window.innerWidth,
+        };
+      });
+    const checkLayout = async (label: string): Promise<void> => {
+      const l = await sheetLayout();
+      ok(
+        l.docWidth <= l.viewport && l.contentScrollWidth <= l.contentClientWidth,
+        t(
+          `${label}: no horizontal scroll at ${l.viewport}px (page ${l.docWidth}, sheet ${l.contentScrollWidth}/${l.contentClientWidth})`,
+        ),
+      );
+      ok(
+        l.small.length === 0 && l.pressable > 0,
+        t(
+          `${label}: all ${l.pressable} controls are at least 44 x 44 px${l.small.length ? ` (too small: ${l.small.join("; ")})` : ""}`,
+        ),
+      );
+    };
+    /** axe-core on one part of the page: the rules it breaks, with the first elements. */
+    const axeOn = async (selector: string): Promise<string[]> => {
+      await page.evaluate(axeSource);
+      return page.evaluate(async (sel) => {
+        const axe = (
+          window as unknown as {
+            axe: {
+              run(
+                ctx: object,
+                options: object,
+              ): Promise<{ violations: { id: string; nodes: { target: unknown[] }[] }[] }>;
+            };
+          }
+        ).axe;
+        const root = document.querySelector(sel);
+        if (root === null) return [`nothing matches ${sel}`];
+        // The sheet's own <header> counts as a second banner landmark next to the top bar's. That is
+        // BottomSheet's markup from MB3 and belongs to MB8's accessibility pass, so it is left out here.
+        // The face steppers of MB5 show "+1" and "-1" under longer names ("Grow the west face by one
+        // block"): axe's label-in-name rule objects, and the names are MB8's to settle.
+        const r = await axe.run(
+          { include: [root], exclude: [['[data-testid="face-steppers"]']] },
+          {
+            resultTypes: ["violations"],
+            rules: { "landmark-no-duplicate-banner": { enabled: false } },
+          },
+        );
+        return r.violations.map(
+          (v) =>
+            `${v.id} (${v.nodes
+              .slice(0, 3)
+              .map((n) => n.target.join(" "))
+              .join(" | ")})`,
+        );
+      }, selector);
+    };
+    const axeClean = async (label: string, selector: string): Promise<void> => {
+      const found = await axeOn(selector);
+      ok(
+        found.length === 0,
+        t(`axe-core finds no violations in ${label}${found.length ? `: ${found.join("; ")}` : ""}`),
+      );
+    };
+    const undoAll = async (): Promise<void> => {
+      await page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        while (s.canUndo) s.undo();
+      });
+      await settleFrames();
+    };
+    const stored = (k: string): Promise<string | null> =>
+      page.evaluate((name) => localStorage.getItem(name), k);
+    /** The palette: type a query (the one place typing is allowed) and choose the entry, or the typed block. */
+    const chooseViaPalette = async (query: string, block: string): Promise<void> => {
+      await openSheet("active-block-swatch");
+      await page.type('[data-testid="palette-search"]', query);
+      await sleep(250);
+      const entry = `[data-testid="palette-list"] li button.entry[data-block="${block}"]`;
+      await tapButton((await exists(entry)) ? entry : '[data-testid="palette-use-typed"]');
+      await closeSheet();
+    };
+
+    // -- setup ----------------------------------------------------------------------------------
+    await page.goto(url);
+    await startUp();
+    await openFixture();
+    const home = await pose();
+    ok(home.azimuth === 45, t("the camera starts at azimuth 45"));
+    const restoreCamera = async (): Promise<void> => {
+      await page.evaluate(
+        (p, target) => {
+          (window.__voxwright as Vox).renderer.setOrbit({
+            azimuth: p.azimuth,
+            elevation: p.elevation,
+            distance: p.distance,
+            target,
+          });
+        },
+        home,
+        computeTarget(home),
+      );
+      await settleFrames();
+    };
+    const original = await cells();
+    const all = await tops();
+    const topAt = (x: number, y: number, z: number): Top => {
+      const found = all.find((c) => c.pos[0] === x && c.pos[1] === y && c.pos[2] === z);
+      if (found === undefined) throw new Error(`no reachable top face at ${x},${y},${z}`);
+      return found;
+    };
+
+    // =========================================================================
+    // Tap to inspect in View
+    // =========================================================================
+    ok((await mb()).tool === "navigate", t("the editor starts in View"));
+    ok(
+      (await mb()).inspected === null && !(await exists('[data-testid="state-chip"]')),
+      t("nothing is inspected and there is no Edit state chip yet"),
+    );
+    const stairs = topAt(...STAIRS_AT);
+    ok(
+      stairs.block.startsWith("minecraft:stone_brick_stairs["),
+      t(`a stairs block: ${stairs.block}`),
+    );
+    await tapAt(stairs.pt.x, stairs.pt.y); // the finger itself: View has no offset cursor
+    const insp1 = await mb();
+    ok(
+      insp1.inspected !== null && key(insp1.inspected) === key(STAIRS_AT),
+      t(`a tap in View inspects the block under the finger (${JSON.stringify(insp1.inspected)})`),
+    );
+    ok(
+      insp1.undoCount === 0 && (await changed(original)).length === 0 && insp1.pending === null,
+      t("and changes nothing: no cell, no undo step, nothing pending"),
+    );
+    ok(
+      (await page.$eval('[data-testid="hover"]', (el) => el.textContent?.trim())) ===
+        `[${STAIRS_AT.join(", ")}]`,
+      t("the readout line names the cell"),
+    );
+    ok(
+      (await page.$eval('[data-testid="cell-block"]', (el) => el.textContent?.trim())) ===
+        stairs.block.replace("minecraft:", ""),
+      t("and the block"),
+    );
+    const chip = await box('[data-testid="state-chip"]');
+    const readoutRow = await box('[data-testid="live-cell-readout"]');
+    const toolbarBox = await box('[data-testid="toolbar"]');
+    ok(
+      chip.w >= 43.99 && chip.h >= 43.99,
+      t(`the Edit state chip is at least 44 px (${chip.w.toFixed(0)} x ${chip.h.toFixed(0)})`),
+    );
+    ok(
+      chip.bottom <= toolbarBox.y + 1 && readoutRow.bottom <= toolbarBox.y + 1,
+      t("the chip sits in the readout line above the toolbar and does not cover it"),
+    );
+    ok(
+      (await attr('[data-testid="state-chip"]', "aria-label"))?.includes("stone_brick_stairs") ===
+        true,
+      t("its accessible name names the block"),
+    );
+    await axeClean("the readout line with the Edit state chip", '[data-testid="bottom-toolbar"]');
+    // Empty space clears it
+    const sky = { x: 30, y: 130 };
+    ok(
+      (await page.evaluate(
+        (p) => (window.__voxwright as Vox).session()?.pick(p.x, p.y) ?? null,
+        sky,
+      )) === null,
+      t("(the point chosen for the empty tap is over no block)"),
+    );
+    await tapAt(sky.x, sky.y);
+    const insp2 = await mb();
+    ok(
+      insp2.inspected === null && !(await exists('[data-testid="state-chip"]')),
+      t("a tap on empty space clears it, and the chip goes"),
+    );
+    // An orbit that ends over a block, a pinch and a pan do not inspect
+    await cdpTouchDrag(cdp, { x: 300, y: 340 }, { x: 250, y: 330 }, 8);
+    await sleep(250);
+    await restoreCamera();
+    ok((await mb()).inspected === null, t("an orbit drag that ends over a block does not inspect"));
+    await cdpPinch(cdp, { x: 200, y: 400 }, 80, 140, 8);
+    await sleep(250);
+    await restoreCamera();
+    ok((await mb()).inspected === null, t("a pinch does not inspect"));
+    await cdpTwoFingerPan(cdp, { x: 195, y: 400 }, { dx: 30, dy: 20 }, 80, 6);
+    await sleep(250);
+    await restoreCamera();
+    ok((await mb()).inspected === null, t("a two-finger pan does not inspect"));
+    // A long press in View picks (and inspects) instead of just inspecting
+    const holdFinger = await page.touchscreen.touchStart(stairs.pt.x, stairs.pt.y);
+    await sleep(700);
+    await holdFinger.end();
+    await sleep(250);
+    const held = await mb();
+    ok(
+      held.block === (stairs.block.split("{")[0] as string) &&
+        held.inspected !== null &&
+        key(held.inspected) === key(STAIRS_AT),
+      t(`a long press in View still picks the block (${held.block}) and inspects it`),
+    );
+    await tapAt(sky.x, sky.y);
+
+    // =========================================================================
+    // The chip opens the state sheet
+    // =========================================================================
+    await tapAt(stairs.pt.x, stairs.pt.y);
+    await tapButton('[data-testid="state-chip"]');
+    await page.waitForSelector('[data-testid="bottom-sheet"]', { timeout: 5000 });
+    await sleep(350);
+    ok(
+      (await page.$eval('[data-testid="bottom-sheet"]', (el) => el.getAttribute("aria-label"))) ===
+        "Block State",
+      t("tapping the chip opens the Block State sheet"),
+    );
+    ok(
+      (await page.$eval('[data-testid="blockstate-name"]', (el) => el.textContent?.trim())) ===
+        `stone_brick_stairs at ${STAIRS_AT.join(", ")}`,
+      t("which names the inspected block and its cell"),
+    );
+    ok(
+      !(await exists("datalist")) && !(await exists('[data-testid="blockstate"] select')),
+      t("no <datalist> and no <select> in the touch sheet"),
+    );
+    const chips = async (
+      prop: string,
+    ): Promise<{ value: string; pressed: boolean; h: number; w: number }[]> =>
+      page.$$eval(`[data-testid="prop-${prop}"] button`, (els) =>
+        els.map((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            value: el.textContent?.trim() ?? "",
+            pressed: el.getAttribute("aria-pressed") === "true",
+            h: r.height,
+            w: r.width,
+          };
+        }),
+      );
+    const currentStairs = async (): Promise<string> => (await cellAt(STAIRS_AT)) as string;
+    const facingOf = async (): Promise<string> =>
+      /facing=(\w+)/.exec(await currentStairs())?.[1] as string;
+    const startFacing = await facingOf();
+    const facingChips = await chips("facing");
+    ok(
+      facingChips.map((c) => c.value).join() === "north,east,south,west" &&
+        facingChips
+          .filter((c) => c.pressed)
+          .map((c) => c.value)
+          .join() === startFacing,
+      t(
+        `facing is four chips, north east south west, with the current one (${startFacing}) pressed`,
+      ),
+    );
+    ok(
+      facingChips.every((c) => c.h >= 43.99 && c.w >= 43.99),
+      t("each chip is at least 44 x 44 px"),
+    );
+    const halfChips = await chips("half");
+    ok(
+      halfChips.map((c) => c.value).join() === "top,bottom",
+      t(`half is two chips (${halfChips.map((c) => c.value).join()})`),
+    );
+    const shapeChips = await chips("shape");
+    ok(shapeChips.length === 5, t(`shape is five chips that wrap (${shapeChips.length})`));
+    ok(
+      (await page.$eval('[data-testid="prop-waterlogged"]', (el) => el.getAttribute("role"))) ===
+        "switch" && (await attr('[data-testid="prop-waterlogged"]', "aria-checked")) === "false",
+      t("waterlogged is a switch (role=switch) that is off"),
+    );
+    await checkLayout("the state sheet of a stairs block");
+    await axeClean("the state sheet of a stairs block", '[data-testid="bottom-sheet"]');
+
+    // A chip applies at once, as one undo step
+    const target = startFacing === "north" ? "south" : "north";
+    const beforeFacing = await mb();
+    await tapButton(`[data-testid="prop-facing-${target}"]`);
+    ok((await facingOf()) === target, t(`the ${target} chip sets facing=${target}`));
+    ok((await mb()).undoCount === beforeFacing.undoCount + 1, t("and is one undo step"));
+    ok(
+      (await attr(`[data-testid="prop-facing-${target}"]`, "aria-pressed")) === "true" &&
+        (await attr(`[data-testid="prop-facing-${startFacing}"]`, "aria-pressed")) === "false",
+      t("the pressed chip moves"),
+    );
+    await tapButton(`[data-testid="prop-facing-${target}"]`);
+    ok(
+      (await mb()).undoCount === beforeFacing.undoCount + 1,
+      t("tapping the chip that is already on adds no undo step"),
+    );
+    await tapButton('[data-testid="prop-half-top"]');
+    await tapButton('[data-testid="prop-half-bottom"]');
+    ok(
+      (await mb()).undoCount === beforeFacing.undoCount + 3 &&
+        (await currentStairs()).includes("half=bottom"),
+      t("two more taps on the half chips: two more undo steps"),
+    );
+    // The switch
+    await tapButton('[data-testid="prop-waterlogged"]');
+    ok(
+      (await currentStairs()).includes("waterlogged=true") &&
+        (await attr('[data-testid="prop-waterlogged"]', "aria-checked")) === "true",
+      t("a tap on the waterlogged switch turns it on"),
+    );
+    ok((await mb()).undoCount === beforeFacing.undoCount + 4, t("as one undo step"));
+    await tapButton('[data-testid="prop-waterlogged"]');
+    ok(
+      (await currentStairs()).includes("waterlogged=false") &&
+        (await attr('[data-testid="prop-waterlogged"]', "aria-checked")) === "false",
+      t("and a second tap turns it off again"),
+    );
+    ok(
+      (
+        (await page.$eval('[data-testid="sheet-message"]', (el) => el.textContent?.trim())) ?? ""
+      ).includes("changed"),
+      t("the sheet says what it did on a status line of its own, as the readout is under it"),
+    );
+
+    // Rotate block
+    ok(await exists('[data-testid="rotate-block"]'), t("a stairs block has a Rotate block button"));
+    const rb = await box('[data-testid="rotate-block"]');
+    ok(rb.h >= 47.99, t(`which is at least 48 px tall (${rb.h.toFixed(0)})`));
+    await tapButton(`[data-testid="prop-facing-north"]`);
+    const seen: string[] = [];
+    const undoBeforeRotate = (await mb()).undoCount;
+    for (let i = 0; i < 4; i++) {
+      await tapButton('[data-testid="rotate-block"]');
+      seen.push(await facingOf());
+    }
+    ok(
+      seen.join() === "east,south,west,north",
+      t(`Rotate block cycles facing clockwise: north to ${seen.join(" to ")}`),
+    );
+    ok((await mb()).undoCount === undoBeforeRotate + 4, t("and every press is one undo step"));
+    ok(
+      (await attr('[data-testid="prop-facing-north"]', "aria-pressed")) === "true",
+      t("the chips follow the rotation"),
+    );
+
+    // Other...
+    ok(
+      !(await exists('[data-testid="prop-other"]')),
+      t("the free-text fields are hidden at first"),
+    );
+    ok(
+      (await attr('[data-testid="prop-other-toggle"]', "aria-expanded")) === "false",
+      t("behind an Other... button that says it is collapsed"),
+    );
+    await tapButton('[data-testid="prop-other-toggle"]');
+    ok(
+      (await attr('[data-testid="prop-other-toggle"]', "aria-expanded")) === "true" &&
+        (await exists('[data-testid="prop-other-facing"]')) &&
+        (await exists('[data-testid="prop-new-key"]')),
+      t("Other... reveals a text field per property and the new-property row"),
+    );
+    ok(!(await exists("datalist")), t("and still no <datalist>"));
+    await checkLayout("the state sheet with Other... open");
+    await axeClean("the state sheet with Other... open", '[data-testid="bottom-sheet"]');
+    const undoBeforeAdd = (await mb()).undoCount;
+    await page.type('[data-testid="prop-new-key"]', "mood");
+    await page.type('[data-testid="prop-new-value"]', "calm");
+    await tapButton('[data-testid="prop-add"]');
+    ok(
+      (await currentStairs()).includes("mood=calm") && (await mb()).undoCount === undoBeforeAdd + 1,
+      t("a new property can be added behind Other... (one undo step)"),
+    );
+    await closeSheet();
+
+    // Numeric properties and a door, placed with the session (the sheet is what is under test)
+    await page.evaluate(
+      (sign, door) => {
+        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        s.placeAt([4, 8, 6], sign);
+        s.placeAt([2, 8, 7], door);
+        s.inspected = [4, 8, 6];
+      },
+      SIGN,
+      DOOR,
+    );
+    await openSheet("mobile-state-toggle");
+    ok(
+      (await page.$eval('[data-testid="prop-rotation-value"]', (el) => el.textContent?.trim())) ===
+        "3",
+      t("rotation (0 to 15) is a stepper that shows its value, 3"),
+    );
+    ok(
+      (await exists('[data-testid="prop-rotation-dec"]')) &&
+        (await exists('[data-testid="prop-rotation-inc"]')) &&
+        (await chips("rotation")).length === 2,
+      t("with a minus and a plus, not sixteen chips"),
+    );
+    const signNow = async (): Promise<string> => (await cellAt([4, 8, 6])) as string;
+    await tapButton('[data-testid="prop-rotation-inc"]');
+    ok((await signNow()).includes("rotation=4"), t("+ makes it 4"));
+    await tapButton('[data-testid="prop-rotation-dec"]');
+    await tapButton('[data-testid="prop-rotation-dec"]');
+    ok((await signNow()).includes("rotation=2"), t("and two - make it 2"));
+    await page.evaluate(() => {
+      (window.__voxwright as Vox).session()?.setProperty("rotation", "0");
+    });
+    ok(await disabled('[data-testid="prop-rotation-dec"]'), t("at 0 the - is disabled"));
+    await page.evaluate(() => {
+      (window.__voxwright as Vox).session()?.setProperty("rotation", "15");
+    });
+    ok(await disabled('[data-testid="prop-rotation-inc"]'), t("at 15 the + is disabled"));
+    ok(
+      !(await exists('[data-testid="rotate-block"]')),
+      t("a sign has no Rotate block (no facing or axis)"),
+    );
+    await checkLayout("the state sheet of a sign");
+    await axeClean("the state sheet of a sign (stepper)", '[data-testid="bottom-sheet"]');
+    await closeSheet();
+    // The door
+    await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      s.inspected = [2, 8, 7];
+    });
+    await openSheet("mobile-state-toggle");
+    ok(
+      (await attr('[data-testid="prop-open"]', "role")) === "switch" &&
+        (await attr('[data-testid="prop-open"]', "aria-checked")) === "false",
+      t("a door's open is a switch that is off"),
+    );
+    const undoBeforeDoor = (await mb()).undoCount;
+    await tapButton('[data-testid="prop-open"]');
+    ok(
+      ((await cellAt([2, 8, 7])) as string).includes("open=true") &&
+        (await attr('[data-testid="prop-open"]', "aria-checked")) === "true" &&
+        (await mb()).undoCount === undoBeforeDoor + 1,
+      t("one tap opens the door, as one undo step"),
+    );
+    const doorHalf = await chips("half");
+    ok(
+      doorHalf.map((c) => c.value).join() === "upper,lower",
+      t(`a door's half is two chips (${doorHalf.map((c) => c.value).join()})`),
+    );
+    await checkLayout("the state sheet of a door");
+    await closeSheet();
+    await undoAll();
+    ok(
+      (await changed(original)).length === 0 && (await mb()).undoCount === 0,
+      t("every one of those edits undoes: the cells equal the file as opened"),
+    );
+
+    // =========================================================================
+    // The selection sheet on touch
+    // =========================================================================
+    await armTool("select");
+    const selA = topAt(...BOX_A);
+    const selB = topAt(...BOX_B);
+    await tapCursorAt(selA.pt);
+    await tapCursorAt(selB.pt);
+    await confirm();
+    ok(
+      (await mb()).selection !== null && key((await mb()).selection?.min ?? []) === key(BOX_A),
+      t("a box is selected by two taps and the check mark"),
+    );
+    await openSheet("mobile-selection-toggle");
+    await tapButton('[data-testid="face-east-grow"]');
+    ok(key((await mb()).selection?.max ?? []) === "7,7,5", t("East +1 widens it to 2 x 1 x 3"));
+    const names = await page.$$eval(
+      '[data-testid="selection-panel"] button, [data-testid="coords-panel"] button',
+      (els) =>
+        els.map((el) => ({
+          id: el.getAttribute("data-testid") ?? "",
+          text: el.textContent?.trim() ?? "",
+          h: el.getBoundingClientRect().height,
+        })),
+    );
+    const need = [
+      "fill",
+      "replace",
+      "copy",
+      "paste",
+      "rotate-ccw",
+      "rotate-cw",
+      "mirror-x",
+      "mirror-z",
+      "select-all",
+      "select-none",
+    ];
+    ok(
+      need.every((id) => names.some((n) => n.id === id && n.h >= 43.99)),
+      t(
+        `Fill, Replace, Copy, Paste, Rotate both ways, Mirror both ways, Select all and Clear are all there and at least 44 px (${need
+          .map((id) => `${id} ${names.find((n) => n.id === id)?.h.toFixed(0)}`)
+          .join(", ")})`,
+      ),
+    );
+    ok(
+      ["fill", "replace", "copy", "paste"].every(
+        (id) => (names.find((n) => n.id === id)?.h ?? 0) >= 47.99,
+      ),
+      t("the main actions (Fill, Replace, Copy, Paste) are 48 px"),
+    );
+    ok(
+      names.find((n) => n.id === "replace-use")?.text === "Use inspected block",
+      t("Replace has a Use inspected block button on touch"),
+    );
+    ok(
+      !(await exists('[data-testid="move"]')) &&
+        !(await exists('[data-testid="move-x"]')) &&
+        (await exists('[data-testid="move-pad"]')),
+      t("the typed move offsets are gone; the move pad is there"),
+    );
+    // Order: actions come before the typed coordinates and typed corners
+    const order = await page.evaluate(() => {
+      const y = (sel: string): number =>
+        (document.querySelector(sel) as HTMLElement).getBoundingClientRect().top;
+      return {
+        fill: y('[data-testid="fill"]'),
+        copy: y('[data-testid="copy"]'),
+        pad: y('[data-testid="move-pad"]'),
+        corners: y('[data-testid="sel-min-x"]'),
+        coords: y('[data-testid="at-set"]'),
+      };
+    });
+    ok(
+      order.fill < order.pad &&
+        order.pad < order.copy &&
+        order.copy < order.corners &&
+        order.corners < order.coords,
+      t("the actions come first; the typed corners and the typed block position are below them"),
+    );
+    await checkLayout("the selection sheet");
+    await axeClean("the selection sheet", '[data-testid="bottom-sheet"]');
+
+    // Use inspected block
+    await page.evaluate(() => {
+      (window.__voxwright as Vox).session()!.inspected = null;
+    });
+    ok(
+      await disabled('[data-testid="replace-use"]'),
+      t("Use inspected block is disabled while nothing is inspected"),
+    );
+    await page.evaluate((p) => {
+      (window.__voxwright as Vox).session()!.inspected = p;
+    }, STAIRS_AT);
+    ok(
+      !(await disabled('[data-testid="replace-use"]')),
+      t("and enabled once a block is inspected"),
+    );
+    await tapButton('[data-testid="replace-use"]');
+    ok(
+      (await page.$eval('[data-testid="replace-from"]', (el) => (el as HTMLInputElement).value)) ===
+        stairs.block,
+      t("it fills the block to replace from the inspected block"),
+    );
+    ok(
+      (await page.$eval('[data-testid="replace-from"]', (el) => (el as HTMLInputElement).type)) ===
+        "text",
+      t("and typing stays possible"),
+    );
+
+    // Copy says how many
+    await tapButton('[data-testid="copy"]');
+    ok(
+      (await mb()).message === "Copied 6 blocks" && (await mb()).clipboardCells === 6,
+      t(`Copy says how many blocks it copied (${(await mb()).message})`),
+    );
+    ok(
+      (await page.$eval('[data-testid="sheet-message"]', (el) => el.textContent?.trim())) ===
+        "Copied 6 blocks",
+      t("on the sheet's own status line, since the readout is under the sheet"),
+    );
+    ok((await uiMessage()) === "Copied 6 blocks", t("and in the message line above the toolbar"));
+
+    // The move pad
+    const expectedPad = (az: number) => {
+      const r = (az * Math.PI) / 180;
+      const fx = -Math.sin(r);
+      const fz = Math.cos(r);
+      const rx = -Math.cos(r);
+      const rz = -Math.sin(r);
+      const onZ = Math.abs(fz) >= Math.abs(fx) - 1e-9;
+      return {
+        away: onZ ? { axis: 2, step: Math.sign(fz) } : { axis: 0, step: Math.sign(fx) },
+        right: onZ ? { axis: 0, step: Math.sign(rx) } : { axis: 2, step: Math.sign(rz) },
+      };
+    };
+    const padArrow = async (
+      id: string,
+    ): Promise<{ axis: number; step: number; w: number; h: number }> =>
+      page.$eval(`[data-testid="move-${id}"]`, (el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          axis: Number((el as HTMLElement).dataset.axis),
+          step: Number((el as HTMLElement).dataset.step),
+          w: r.width,
+          h: r.height,
+        };
+      });
+    const selNow = async (): Promise<{ min: Vec3; max: Vec3 }> =>
+      (await mb()).selection as { min: Vec3; max: Vec3 };
+    const sameBlocksMoved = async (
+      before: Map<string, string>,
+      from: { min: Vec3; max: Vec3 },
+      d: Vec3,
+    ): Promise<boolean> => {
+      const now = await cells();
+      for (let x = from.min[0]; x <= from.max[0]; x++)
+        for (let y = from.min[1]; y <= from.max[1]; y++)
+          for (let z = from.min[2]; z <= from.max[2]; z++) {
+            const was = before.get(`${x},${y},${z}`);
+            if (was !== undefined && now.get(`${x + d[0]},${y + d[1]},${z + d[2]}`) !== was)
+              return false;
+          }
+      return true;
+    };
+    await closeSheet();
+    for (const az of [0, 90]) {
+      await setAzimuth(az);
+      await openSheet("mobile-selection-toggle");
+      const want = expectedPad(az);
+      const away = await padArrow("away");
+      const right = await padArrow("right");
+      ok(
+        away.axis === want.away.axis &&
+          away.step === want.away.step &&
+          right.axis === want.right.axis &&
+          right.step === want.right.step,
+        t(
+          `at azimuth ${az} Away moves ${"xyz"[away.axis]}${away.step > 0 ? "+" : "-"} and Right ${"xyz"[right.axis]}${right.step > 0 ? "+" : "-"}, as the camera sees it`,
+        ),
+      );
+      ok(
+        [
+          away,
+          right,
+          await padArrow("left"),
+          await padArrow("toward"),
+          await padArrow("up"),
+          await padArrow("down"),
+        ].every((a) => a.w >= 47.99 && a.h >= 47.99),
+        t("the six arrows are 48 px"),
+      );
+      for (const id of ["away", "right", "toward", "left", "up", "down"] as const) {
+        const a = await padArrow(id);
+        const before = await cells();
+        const sel0 = await selNow();
+        const undo0 = (await mb()).undoCount;
+        await tapButton(`[data-testid="move-${id}"]`);
+        const sel1 = await selNow();
+        const d: Vec3 = [0, 0, 0];
+        d[a.axis] = a.step;
+        const expectMin = sel0.min.map((v, i) => v + (d[i] as number));
+        ok(
+          key(sel1.min) === key(expectMin) && (await mb()).undoCount === undo0 + 1,
+          t(
+            `azimuth ${az}, ${id}: the selection moves one along ${"xyz"[a.axis]} by ${a.step}, as one undo step (${key(sel0.min)} to ${key(sel1.min)})`,
+          ),
+        );
+        ok(
+          await sameBlocksMoved(before, sel0, d),
+          t(`azimuth ${az}, ${id}: and the blocks moved with it`),
+        );
+        // put it back for the next arrow
+        await page.evaluate((box0) => {
+          const s = (window.__voxwright as Vox).session()!;
+          s.undo();
+          s.setSelection(box0);
+        }, sel0);
+        await sleep(100);
+      }
+      await closeSheet();
+    }
+    // x8
+    await setAzimuth(0);
+    await openSheet("mobile-selection-toggle");
+    ok(
+      (await attr('[data-testid="move-big"]', "aria-pressed")) === "false",
+      t("the x8 toggle starts off"),
+    );
+    await tapButton('[data-testid="move-big"]');
+    ok((await attr('[data-testid="move-big"]', "aria-pressed")) === "true", t("and turns on"));
+    const sel8 = await selNow();
+    const before8 = await cells();
+    const undo8 = (await mb()).undoCount;
+    const leftArrow = await padArrow("left");
+    await tapButton('[data-testid="move-left"]');
+    const sel8b = await selNow();
+    const d8: Vec3 = [0, 0, 0];
+    d8[leftArrow.axis] = leftArrow.step * 8;
+    ok(
+      key(sel8b.min) === key(sel8.min.map((v, i) => v + (d8[i] as number))) &&
+        (await mb()).undoCount === undo8 + 1,
+      t(
+        `with x8 one press moves the selection 8 blocks (${key(sel8.min)} to ${key(sel8b.min)}) as one undo step`,
+      ),
+    );
+    ok(await sameBlocksMoved(before8, sel8, d8), t("and the blocks arrive 8 blocks over"));
+    await page.evaluate((box0) => {
+      const s = (window.__voxwright as Vox).session()!;
+      s.undo();
+      s.setSelection(box0);
+    }, sel8);
+    await tapButton('[data-testid="move-big"]');
+    // Holding repeats
+    const arrowBox = await box('[data-testid="move-up"]');
+    const sheetTop = await box('[data-testid="bottom-sheet"]');
+    ok(arrowBox.y > sheetTop.y, t("(the up arrow is inside the sheet)"));
+    const undoHold = (await mb()).undoCount;
+    const holdBtn = await page.touchscreen.touchStart(
+      arrowBox.x + arrowBox.w / 2,
+      arrowBox.y + arrowBox.h / 2,
+    );
+    await sleep(950);
+    await holdBtn.end();
+    await sleep(200);
+    const heldSteps = (await mb()).undoCount - undoHold;
+    ok(heldSteps >= 3, t(`holding Up repeats: ${heldSteps} steps, each one undo step`));
+    await undoAll();
+    // Back to the state before the pad
+    ok((await changed(original)).length === 0, t("undoing the moves restores every cell"));
+    await closeSheet();
+    await restoreCamera();
+
+    // Paste closes the sheet
+    await openSheet("mobile-selection-toggle");
+    ok(!(await disabled('[data-testid="paste"]')), t("Paste is enabled after a Copy"));
+    await tapButton('[data-testid="paste"]');
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+      { timeout: 5000 },
+    );
+    ok(
+      (await mb()).tool === "paste" && !(await sheetOpen()),
+      t("Paste arms the Paste tool and closes the sheet, so the picture is free for the tap"),
+    );
+    await tapCursorAt(topAt(...PASTE_ON).pt);
+    ok(
+      (await mb()).pending?.kind === "paste" && key((await mb()).pending?.at ?? []) === "11,8,6",
+      t("the next tap sets the paste origin"),
+    );
+    await tapButton('[data-testid="cancel"]');
+    ok((await mb()).pending === null, t("and the cross drops it"));
+    await armTool("navigate");
+
+    // =========================================================================
+    // The hotbar: recents, favourites, storage
+    // =========================================================================
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await startUp();
+    await openFixture();
+    ok(
+      !(await exists('[data-testid="hotbar-compact"]')),
+      t("with nothing chosen yet the quick row is not shown"),
+    );
+    await openSheet("active-block-swatch");
+    ok(
+      (await exists('[data-testid="hotbar"]')) && (await exists('[data-testid="hotbar-empty"]')),
+      t("the palette sheet has a hotbar row above the search, with a hint while it is empty"),
+    );
+    const hbY = (await box('[data-testid="hotbar"]')).y;
+    const searchY = (await box('[data-testid="palette-search"]')).y;
+    ok(hbY < searchY, t("the hotbar is above the search field"));
+    await page.type('[data-testid="palette-search"]', "bricks");
+    await sleep(250);
+    const rowOf = (block: string): string =>
+      `[data-testid="palette-list"] li button.entry[data-block="${block}"]`;
+    const starOf = (block: string): string =>
+      `[data-testid="palette-list"] li button.star[data-block="${block}"]`;
+    ok(await exists(rowOf("minecraft:stone_bricks")), t("the build's blocks are listed"));
+    const star = await box(starOf("minecraft:stone_bricks"));
+    ok(
+      star.w >= 43.99 && star.h >= 43.99,
+      t(`each row has a star of at least 44 px (${star.w.toFixed(0)} x ${star.h.toFixed(0)})`),
+    );
+    ok(
+      (await attr(starOf("minecraft:stone_bricks"), "aria-label")) === "Favourite stone_bricks" &&
+        (await attr(starOf("minecraft:stone_bricks"), "aria-pressed")) === "false",
+      t("named Favourite stone_bricks, with aria-pressed"),
+    );
+    await tapButton(rowOf("minecraft:stone_bricks"));
+    await tapButton(rowOf("minecraft:deepslate_bricks"));
+    ok(
+      (await stored(RECENT_KEY)) ===
+        JSON.stringify(["minecraft:deepslate_bricks", "minecraft:stone_bricks"]),
+      t(`choosing blocks in the palette records them, newest first (${await stored(RECENT_KEY)})`),
+    );
+    ok(await sheetOpen(), t("choosing a block closes nothing"));
+    const hotChips = async (): Promise<
+      { block: string; favorite: boolean; h: number; label: string; pressed: boolean }[]
+    > =>
+      page.$$eval('[data-testid="hotbar-chip"]', (els) =>
+        els.map((el) => ({
+          block: el.getAttribute("data-block") ?? "",
+          favorite: el.getAttribute("data-favorite") === "true",
+          h: el.getBoundingClientRect().height,
+          label: el.getAttribute("aria-label") ?? "",
+          pressed: el.getAttribute("aria-pressed") === "true",
+        })),
+      );
+    const hc = await hotChips();
+    ok(
+      hc.map((c) => c.block).join() === "minecraft:deepslate_bricks,minecraft:stone_bricks" &&
+        hc.every((c) => c.h >= 43.99 && c.label === c.block),
+      t(
+        "the hotbar shows them as chips of 44 px or more, with the full name as the accessible name",
+      ),
+    );
+    ok(
+      (await page.$eval('[data-testid="hotbar-chip"]', (el) => el.textContent?.trim())) ===
+        "deepslate_bricks",
+      t("and the short name as the text"),
+    );
+    await tapButton('[data-testid="hotbar-chip"][data-block="minecraft:stone_bricks"]');
+    ok(
+      (await mb()).block === "minecraft:stone_bricks" &&
+        (await stored(RECENT_KEY)) ===
+          JSON.stringify(["minecraft:stone_bricks", "minecraft:deepslate_bricks"]) &&
+        (await sheetOpen()),
+      t("a tap on a hotbar chip chooses the block, moves it to the front, and closes nothing"),
+    );
+    // Stars
+    await tapButton(starOf("minecraft:deepslate_bricks"));
+    ok(
+      (await attr(starOf("minecraft:deepslate_bricks"), "aria-pressed")) === "true" &&
+        (await stored(FAVORITE_KEY)) === JSON.stringify(["minecraft:deepslate_bricks"]),
+      t(`a star toggles and is stored (${await stored(FAVORITE_KEY)})`),
+    );
+    const hc2 = await hotChips();
+    ok(
+      hc2[0]?.block === "minecraft:deepslate_bricks" && hc2[0].favorite && hc2.length === 2,
+      t("the favourite leads the hotbar, shown once"),
+    );
+    await checkLayout("the palette sheet with the hotbar");
+    await axeClean("the palette sheet with the hotbar and stars", '[data-testid="bottom-sheet"]');
+    await closeSheet();
+    // The quick row over the picture
+    const compact = await box('[data-testid="hotbar-compact"]');
+    const readoutNow = await box('[data-testid="live-cell-readout"]');
+    const cluster = await box('[data-testid="thumb-cluster"]');
+    ok(
+      compact.bottom <= readoutNow.y && compact.right <= cluster.x && compact.x >= 0,
+      t(
+        `the quick row sits above the readout line and left of the thumb cluster (right ${compact.right.toFixed(0)}, cluster ${cluster.x.toFixed(0)}, bottom ${compact.bottom.toFixed(0)}, readout top ${readoutNow.y.toFixed(0)})`,
+      ),
+    );
+    const compactChips = await page.$$eval('[data-testid="hotbar-compact-chip"]', (els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    );
+    ok(
+      compactChips.length === 2 && compactChips.every((h) => h >= 43.99),
+      t("its chips are at least 44 px"),
+    );
+    ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      t("and the page does not scroll sideways"),
+    );
+    await axeClean("the quick row", '[data-testid="hotbar-compact"]');
+    await tapButton('[data-testid="hotbar-compact-chip"][data-block="minecraft:stone_bricks"]');
+    ok(
+      (await mb()).block === "minecraft:stone_bricks" && !(await sheetOpen()),
+      t("a tap on a quick chip chooses the block and opens nothing"),
+    );
+    // Pick, long press and the cap of eight
+    await armTool("eyedropper");
+    const spruce = all.find((c) => c.block.startsWith("minecraft:spruce_planks")) ?? null;
+    const pickFrom = spruce ?? topAt(10, 4, 3);
+    await tapCursorAt(pickFrom.pt);
+    const afterPick = JSON.parse((await stored(RECENT_KEY)) ?? "[]") as string[];
+    ok(
+      afterPick[0] === (await mb()).block && !afterPick[0]?.includes("{"),
+      t(`the Pick tool records the block it picked (${afterPick[0]})`),
+    );
+    await armTool("navigate");
+    const lp = topAt(8, 6, 3);
+    const lpHold = await page.touchscreen.touchStart(lp.pt.x, lp.pt.y);
+    await sleep(700);
+    await lpHold.end();
+    await sleep(250);
+    const afterLong = JSON.parse((await stored(RECENT_KEY)) ?? "[]") as string[];
+    ok(
+      afterLong[0] === (await mb()).block && afterLong[0] === lp.block,
+      t(`a long press records the block it picked (${afterLong[0]})`),
+    );
+    await openSheet("active-block-swatch");
+    const blocksListed = await page.$$eval('[data-testid="palette-list"] li button.entry', (els) =>
+      els.slice(0, 12).map((el) => el.getAttribute("data-block") ?? ""),
+    );
+    for (const b of blocksListed.slice(0, 10)) {
+      await tapButton(`[data-testid="palette-list"] li button.entry[data-block="${b}"]`);
+    }
+    const eight = JSON.parse((await stored(RECENT_KEY)) ?? "[]") as string[];
+    ok(
+      eight.length === 8 && new Set(eight).size === 8 && eight[0] === blocksListed[9],
+      t(`the recents keep the last 8 distinct blocks (${eight.length})`),
+    );
+    await tapButton(starOf("minecraft:spruce_planks"));
+    const favs = JSON.parse((await stored(FAVORITE_KEY)) ?? "[]") as string[];
+    await closeSheet();
+
+    // A star survives a reload; so do the recents
+    await page.reload();
+    await startUp();
+    await openFixture();
+    const compactAfter = await page.$$eval('[data-testid="hotbar-compact-chip"]', (els) =>
+      els.map((el) => ({
+        block: el.getAttribute("data-block") ?? "",
+        favorite: el.getAttribute("data-favorite") === "true",
+      })),
+    );
+    ok(
+      compactAfter.slice(0, favs.length).every((c, i) => c.favorite && c.block === favs[i]) &&
+        favs.includes("minecraft:deepslate_bricks"),
+      t(`after a reload the starred blocks lead the quick row (${favs.length} starred)`),
+    );
+    ok(
+      compactAfter.length === new Set([...favs, ...eight]).size,
+      t(`followed by the recent ones (${compactAfter.length} chips)`),
+    );
+    await openSheet("active-block-swatch");
+    await page.type('[data-testid="palette-search"]', "deepslate_bricks");
+    await sleep(250);
+    ok(
+      (await attr(starOf("minecraft:deepslate_bricks"), "aria-pressed")) === "true",
+      t("and the palette still shows the star as on"),
+    );
+    await closeSheet();
+    // Left-handed: the quick row goes to the other side of the screen with the thumb cluster
+    await page.evaluate(() => localStorage.setItem("voxwright.lefthanded", "true"));
+    await page.reload();
+    await startUp();
+    await openFixture();
+    const lhCompact = await box('[data-testid="hotbar-compact"]');
+    const lhCluster = await box('[data-testid="thumb-cluster"]');
+    ok(
+      lhCluster.right < 195 && lhCompact.x >= lhCluster.right && lhCompact.right <= 390,
+      t(
+        `left-handed: the quick row is right of the thumb cluster (cluster to ${lhCluster.right.toFixed(0)}, row ${lhCompact.x.toFixed(0)} to ${lhCompact.right.toFixed(0)})`,
+      ),
+    );
+    ok(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      t("and the page still does not scroll sideways"),
+    );
+    await page.evaluate(() => localStorage.removeItem("voxwright.lefthanded"));
+    // A corrupt stored value is ignored
+    await page.evaluate(
+      (r, f) => {
+        localStorage.setItem(r, "{{ not json");
+        localStorage.setItem(
+          f,
+          JSON.stringify(Array.from({ length: 5000 }, (_, i) => `minecraft:block_${i}`)),
+        );
+      },
+      RECENT_KEY,
+      FAVORITE_KEY,
+    );
+    await page.reload();
+    await startUp();
+    await openFixture();
+    ok(
+      !(await exists('[data-testid="hotbar-compact"]')),
+      t(
+        "a damaged recents value and an oversized favourites value are ignored: the quick row is empty",
+      ),
+    );
+    await chooseViaPalette("stone_bricks", "minecraft:stone_bricks");
+    ok(
+      (await stored(RECENT_KEY)) === JSON.stringify(["minecraft:stone_bricks"]),
+      t("and the next choice replaces the damaged value"),
+    );
+    await page.evaluate(() => localStorage.clear());
+
+    // =========================================================================
+    // The exit criterion, by touch alone
+    // =========================================================================
+    await page.reload();
+    await startUp();
+    await openFixture();
+    await restoreCamera();
+    const fresh = await cells();
+    ok(
+      fresh.size === original.size && (await changed(original)).length === 0,
+      t("a fresh page holds the file as it was"),
+    );
+    // 1. choose gold in the palette (typing in its search is the one allowed use of the keyboard)
+    await chooseViaPalette("gold_block", GOLD);
+    ok((await mb()).block === GOLD, t("gold is chosen through the palette search"));
+    // 2. select a box: two corners and the check mark, then East +1
+    await armTool("select");
+    await tapCursorAt(topAt(...BOX_A).pt);
+    await tapCursorAt(topAt(...BOX_B).pt);
+    await confirm();
+    await openSheet("mobile-selection-toggle");
+    await tapButton('[data-testid="face-east-grow"]');
+    const boxSel = (await mb()).selection;
+    ok(
+      boxSel !== null && key(boxSel.min) === key(BOX_A) && key(boxSel.max) === "7,7,5",
+      t(`the box is x 6-7, y 7, z 3-5 (${JSON.stringify(boxSel)})`),
+    );
+    // 3. Fill
+    await tapButton('[data-testid="fill"]');
+    const filled = await changed(original);
+    ok(
+      filled.length === 6 && (await cellAt([7, 7, 4])) === GOLD,
+      t(`Fill turns the 6 blocks of the box to gold (${filled.length} cells changed)`),
+    );
+    ok((await mb()).undoCount === 1, t("as one undo step"));
+    // 4. Copy, Paste elsewhere
+    await tapButton('[data-testid="copy"]');
+    ok((await mb()).clipboardCells === 6, t("Copy takes the 6 gold blocks"));
+    await tapButton('[data-testid="paste"]');
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+      { timeout: 5000 },
+    );
+    await tapCursorAt(topAt(...PASTE_ON).pt);
+    ok(
+      (await mb()).pending?.kind === "paste" && key((await mb()).pending?.at ?? []) === "11,8,6",
+      t("a tap sets the paste origin at 11,8,6"),
+    );
+    await confirm();
+    const pasted = await mb();
+    ok(
+      pasted.pending === null &&
+        pasted.undoCount === 2 &&
+        key(pasted.selection?.min ?? []) === "11,8,6" &&
+        key(pasted.selection?.max ?? []) === "12,8,8" &&
+        (await cellAt([12, 8, 8])) === GOLD,
+      t(
+        `the check mark pastes it as one undo step; the pasted box is selected (${JSON.stringify(pasted.selection)})`,
+      ),
+    );
+    // 5. Rotate
+    await openSheet("mobile-selection-toggle");
+    await tapButton('[data-testid="rotate-cw"]');
+    const rotated = await mb();
+    ok(
+      rotated.undoCount === 3 && rotated.selection !== null,
+      t(`Rotate turns the pasted box (${JSON.stringify(rotated.selection)}), one undo step`),
+    );
+    await closeSheet();
+    // 6. Flip a stairs block's facing through its chips
+    await armTool("navigate");
+    const flipTo = target;
+    await tapAt(stairs.pt.x, stairs.pt.y);
+    await tapButton('[data-testid="state-chip"]');
+    await page.waitForSelector('[data-testid="blockstate"]', { timeout: 5000 });
+    await sleep(350);
+    await tapButton(`[data-testid="prop-facing-${flipTo}"]`);
+    ok(
+      ((await cellAt(STAIRS_AT)) as string).includes(`facing=${flipTo}`) &&
+        (await mb()).undoCount === 4,
+      t(`the stairs at ${STAIRS_AT.join(",")} faces ${flipTo} through its chips`),
+    );
+    await closeSheet();
+    // 7. A door: placed by touch (the fixture's doors are inside the house, out of reach of a tap),
+    //    chosen through the palette's search, then opened with its switch
+    await chooseViaPalette(DOOR.replace("minecraft:", ""), DOOR);
+    await armTool("place");
+    await tapCursorAt(topAt(...DOOR_ON).pt);
+    ok(
+      (await cellAt(DOOR_AT)) === DOOR && (await mb()).undoCount === 5,
+      t(`a tap with Place puts the door at ${DOOR_AT.join(",")} (one undo step)`),
+    );
+    await armTool("navigate");
+    const doorPt = await page.evaluate(
+      (x, y, z) => (window.__voxwright as Vox).renderer.clientFromWorld(x + 0.5, y + 0.5, z + 0.5),
+      DOOR_AT[0],
+      DOOR_AT[1],
+      DOOR_AT[2],
+    );
+    if (doorPt === null) throw new Error("the door is behind the camera");
+    await tapAt(doorPt.x, doorPt.y);
+    ok(
+      key((await mb()).inspected ?? []) === key(DOOR_AT),
+      t(`a tap in View inspects the door (${JSON.stringify((await mb()).inspected)})`),
+    );
+    await tapButton('[data-testid="state-chip"]');
+    await page.waitForSelector('[data-testid="blockstate"]', { timeout: 5000 });
+    await sleep(350);
+    await tapButton('[data-testid="prop-open"]');
+    ok(
+      ((await cellAt(DOOR_AT)) as string).includes("open=true") && (await mb()).undoCount === 6,
+      t("its open switch turns the door open"),
+    );
+    await closeSheet();
+    // 8. Export from the Menu sheet
+    await tapButton('[data-testid="mobile-menu-btn"]');
+    await page.waitForSelector('[data-testid="mobile-convert"]', { timeout: 5000 });
+    await sleep(350);
+    ok(
+      (await page.$eval(
+        '[data-testid="mobile-format"]',
+        (el) => (el as HTMLSelectElement).value,
+      )) === "litematic",
+      t("the Menu's export format is .litematic"),
+    );
+    await tapButton('[data-testid="mobile-convert"]');
+    const exportedName = "Rafeals_house-edited.litematic";
+    const deadline = Date.now() + 30000;
+    while (!readdirSync(mobileDownloads).includes(exportedName) && Date.now() < deadline)
+      await sleep(200);
+    ok(readdirSync(mobileDownloads).includes(exportedName), t(`Export downloads ${exportedName}`));
+    await sleep(500);
+    const fromTouch = await readLitematic(
+      new Uint8Array(await readFile(join(mobileDownloads, exportedName))),
+      { keepAir: true },
+    );
+    const touchCells = cellsOf(fromTouch.volume);
+    const liveCells = await cells();
+    ok(
+      diff(touchCells, liveCells).length === 0,
+      t(`the exported file holds exactly the cells of the edited page (${touchCells.size} blocks)`),
+    );
+    ok(
+      diff(touchCells, fresh).length > 10,
+      t(`and ${diff(touchCells, fresh).length} cells differ from the file as opened`),
+    );
+    await closeSheet();
+    const touchBounds = key((fromTouch.volume.placedBounds() ?? []).flat());
+    const touchVersion = fromTouch.meta.dataVersion;
+    ok(
+      errors.length === 0,
+      t(`no console errors on the touch page${errors.length ? `: ${errors.join(" | ")}` : ""}`),
+    );
+    await page.close();
+
+    // =========================================================================
+    // The same edits through the desktop path, in a desktop-layout page
+    // =========================================================================
+    const desk = await browser.newPage();
+    await desk.setViewport({ width: 1440, height: 900 });
+    desk.on("pageerror", (e) => errors.push(String(e)));
+    desk.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    desk.on("dialog", (d) => void d.accept());
+    const deskDownloads = join(downloads, "desktop");
+    await mkdir(deskDownloads);
+    const deskCdp = await desk.createCDPSession();
+    await deskCdp.send("Browser.setDownloadBehavior", {
+      behavior: "allow",
+      downloadPath: deskDownloads,
+      eventsEnabled: true,
+    });
+    await desk.goto(url);
+    await desk.waitForFunction(
+      () =>
+        document
+          .querySelector('[data-testid="status"]')
+          ?.textContent?.startsWith("open a schematic"),
+      { timeout: 30000 },
+    );
+    await sleep(600);
+    if ((await desk.$('[data-testid="restore-dialog"][open]')) !== null) {
+      await desk.click('[data-testid="discard"]');
+    }
+    const deskInput = (await desk.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+    await deskInput.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+    await desk.waitForFunction(
+      () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+      { timeout: 60000 },
+    );
+    await desk.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    ok(
+      (await desk.$('[data-testid="toolbar"]')) !== null &&
+        (await desk.$('[data-testid="bottom-toolbar"]')) === null,
+      t("the desktop page has the desktop layout (side panels, no bottom toolbar)"),
+    );
+    // The edits, through the session API the desktop panels call, and the mouse for the paste
+    await desk.evaluate(
+      (gold, a, b) => {
+        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        s.block = gold;
+        s.setSelection({ min: a as [number, number, number], max: b as [number, number, number] });
+        s.fill();
+        s.copy();
+        s.setTool("paste");
+      },
+      GOLD,
+      BOX_A,
+      [7, 7, 5],
+    );
+    const pastePt = await desk.evaluate(
+      (x, y, z) => {
+        const v = window.__voxwright as Vox;
+        const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+        const hit = pt === null ? null : v.session()?.pick(pt.x, pt.y);
+        return pt === null || hit === null || hit === undefined || hit.position[1] !== y
+          ? null
+          : pt;
+      },
+      PASTE_ON[0],
+      PASTE_ON[1],
+      PASTE_ON[2],
+    );
+    if (pastePt === null) throw new Error("the paste target is not reachable on the desktop page");
+    await desk.mouse.click(pastePt.x, pastePt.y);
+    await sleep(200);
+    const deskPasted = await desk.evaluate(() => {
+      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      return JSON.parse(JSON.stringify({ selection: s.selection, tool: s.tool }));
+    });
+    ok(
+      key(deskPasted.selection?.min ?? []) === "11,8,6" && deskPasted.tool === "select",
+      t(`the mouse paste lands at 11,8,6 (${JSON.stringify(deskPasted.selection)})`),
+    );
+    await desk.evaluate(
+      (door, doorAt, stairsAt, facing) => {
+        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        s.rotate("CLOCKWISE_90");
+        s.inspected = stairsAt as [number, number, number];
+        s.setProperty("facing", facing);
+        s.placeAt(doorAt as [number, number, number], door);
+        s.inspected = doorAt as [number, number, number];
+        s.setProperty("open", "true");
+      },
+      DOOR,
+      DOOR_AT,
+      STAIRS_AT,
+      flipTo,
+    );
+    await desk.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await desk.select('[data-testid="format"]', "litematic");
+    await desk.click('[data-testid="convert"]');
+    const deadline2 = Date.now() + 30000;
+    while (!readdirSync(deskDownloads).includes(exportedName) && Date.now() < deadline2)
+      await sleep(200);
+    ok(readdirSync(deskDownloads).includes(exportedName), t("the desktop page exports too"));
+    await sleep(500);
+    const fromDesk = await readLitematic(
+      new Uint8Array(await readFile(join(deskDownloads, exportedName))),
+      { keepAir: true },
+    );
+    const deskCells = cellsOf(fromDesk.volume);
+    const unequal = diff(touchCells, deskCells);
+    ok(
+      unequal.length === 0 && touchCells.size === deskCells.size,
+      t(
+        `THE EXIT CRITERION: the file exported by touch has exactly the same cells as the desktop path's (${touchCells.size} blocks, ${unequal.length} differ${unequal.length ? `: ${unequal.slice(0, 5).join(" ")}` : ""})`,
+      ),
+    );
+    ok(
+      key((fromDesk.volume.placedBounds() ?? []).flat()) === touchBounds &&
+        fromDesk.meta.dataVersion === touchVersion,
+      t("and the same size and position, and the same data version"),
+    );
+    ok(
+      errors.length === 0,
+      t(`no console errors on either page${errors.length ? `: ${errors.join(" | ")}` : ""}`),
+    );
+    await desk.close();
+  } finally {
+    await browser.close();
+    await rm(downloads, { recursive: true, force: true });
+  }
+}
+
 try {
   if (values.only === undefined || values.only === "viewer") await touchViewerSuite();
   if (values.only === undefined || values.only === "placement") await touchPlacementSuite();
   if (values.only === undefined || values.only === "two-point") await touchTwoPointSuite();
+  if (values.only === undefined || values.only === "selection-state")
+    await touchSelectionStateSuite();
 } finally {
   server.close();
 }

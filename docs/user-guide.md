@@ -115,7 +115,21 @@ Choose **View** to turn the build with one finger again. The line above the tool
 
 **Confirm each placement.** In **Menu**, **Settings**, turn on **Confirm each placement** (kept in this browser, off at the start). Then **Place**, **Replace** and **Erase** no longer act on a tap: a tap, or lifting the finger at the end of a drag, arms the cell under the cursor (a drag paints nothing), the nudge pad can move it, and the check mark applies the tool to that one cell (one **Undo** step). The cross drops it. **Pick** is not affected.
 
-**Paste.** After **Copy** in the Selection sheet, **Paste** there chooses the Paste tool (close the sheet to reach the picture). A tap arms the paste origin and draws the copied box as a green ghost; the nudge pad moves it; the check mark pastes (one **Undo** step; the "leave the target alone where there is air" setting applies), the cross cancels.
+**Paste.** After **Copy** in the Selection sheet, **Paste** there chooses the Paste tool and closes the sheet, so the picture is free for the tap. A tap arms the paste origin and draws the copied box as a green ghost; the nudge pad moves it; the check mark pastes (one **Undo** step; the "leave the target alone where there is air" setting applies), the cross cancels.
+
+**Looking at a block's state.** With **View**, a short tap on a block (not a drag, and not a long press) outlines it and shows an **Edit state ›** button at the right end of the line above the toolbar, next to the block's name and position. A tap on empty space clears both. With any other tool, the block you last tapped, armed or set a corner on is the one the button refers to. The button opens the **Block State** sheet (the **State** button in the toolbar opens the same sheet). The sheet covers the line above the toolbar, so it shows its own message line at the top ("set facing=north: 1 block changed").
+
+**The Block State sheet on a touch screen.** Each property of the block has the control that fits its values; every tap applies at once and is one **Undo** step:
+
+- A true / false property (`open`, `waterlogged`, `powered`, `lit`, ...) is a **switch**: tap to flip it.
+- A property with a few named values (`facing`, `half`, `shape`, `axis`, `type`, `hinge`, ...) is a row of **chips**, the current value pressed; long lists wrap onto more lines. Tapping the chip that is already pressed does nothing.
+- A number is a **stepper** (minus, the value, plus) when the property has many values (`rotation` and `power` run from 0 to 15 and stop at both ends); a number whose range is not known (`age`, `level`, ...) steps up from 0 with no top, since the editor cannot know where it ends. A number with eight values or fewer would be chips.
+- **Rotate block** turns a block clockwise: `facing` goes north, east, south, west and north again; `axis` goes x, y, z and x again. A block that faces up or down, or has neither property, has no such button.
+- **Other…** opens a text field for every property (any value can be typed) and a row to add a property that the block does not have yet. The field applies when you leave it.
+
+**The Selection sheet on a touch screen.** Fill, Replace, Rotate ↺ ↻, Mirror E–W and N–S, Move, Copy, Paste, Select all and Clear are all buttons of at least 44 px. **Replace** takes the block to replace from the text field, or from **Use inspected block**, which copies the block you last tapped. **Copy** says how many blocks it copied. **Move** is a pad of six arrows (the four ground directions as the screen shows them, **Up** and **Down**): each press moves the selected blocks one block and is one **Undo** step; hold a button to repeat it (each repeat is a step too); **×8** makes a step eight blocks. The typed block position and the typed selection corners are at the bottom of the sheet, for the rare case that needs them.
+
+**Recent blocks and favourites.** The palette sheet has a row of chips above its search field: the blocks you starred (with a ★), then the last eight you chose, newest first. Tap a chip to choose that block; the sheet stays open. Every block in the list has a star on its right: tap it to add the block to your favourites (up to 32) or to remove it. A block counts as chosen when you tap it in the palette, tap a chip, pick it with **Pick**, or long press it. Whenever the row has something in it, the same chips are also shown in one row above the line over the toolbar (hidden while a corner or armed cell waits for confirmation, and while a sheet is open); it scrolls sideways inside itself. Both lists are kept in this browser only.
 
 To change how far above your fingertip the cursor sits, open the **Menu** sheet and move **Cursor distance** under **Settings**: it goes from 0 to 128 pixels in steps of 8 (the readout shows "64 px" at the start), and 0 puts the cursor right under your finger. The setting takes effect at once and is kept in this browser. The **Turn**, **Tilt** and zoom controls in the **Menu** sheet work too, and **Fly** mode is hidden on touch devices. Adding `?perf=1` to the address shows a small performance overlay (frame rate, triangle count, frame time, heap memory and pixel ratio).
 
@@ -318,10 +332,10 @@ The software renderer (no WebGL2) also uses your pack.
 Editing:
 
 - No editing in Fly mode. Switch to Orbit.
-- No editing with the software renderer (no WebGL2). On a touch screen every tool except View works through the offset cursor; Line, Rectangle, Select and Paste take two taps or one and the check mark. Selection Move steppers, block-state chips, a hotbar and toasts are still to come (see `docs/mobile-editor-plan.md`).
+- No editing with the software renderer (no WebGL2). On a touch screen every tool except View works through the offset cursor; Line, Rectangle, Select and Paste take two taps or one and the check mark, block state and the selection actions have touch controls, and the palette has recent blocks and favourites (text only, no block pictures yet). Toasts, double-tap to focus and the two-finger twist are still to come (see `docs/mobile-editor-plan.md`).
 - Selections are boxes. A drag chooses a box between two blocks, so you cannot select cells in empty air by dragging. Type the corners instead.
 - Mirror works east-west and north-south only. There is no vertical mirror.
-- Move uses typed offsets or the up and down buttons. There is no drag-to-move.
+- Move uses typed offsets or the up and down buttons (on a touch screen, the move pad). There is no drag-to-move.
 - Entities are not part of a selection. Block entities and entities are kept, not edited.
 - A build cannot be grown past 512 blocks along one axis by editing. The editor refuses the edit. A file that is already more than 512 blocks along an axis is refused when it is opened (section 1).
 - The palette shows names only, and it does not know which property values are legal for a block. Values other than true/false are suggestions only.

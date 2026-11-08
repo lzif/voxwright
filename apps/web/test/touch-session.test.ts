@@ -1989,3 +1989,316 @@ describe("two-corner tools with the router and the session together", () => {
     expect(cellsChanged(h.volume, before)).toEqual(["5,1,5"]);
   });
 });
+
+describe("tap to inspect in View (touchInspectAt)", () => {
+  /** The finger itself, with no offset: the point over cell (cx, cz). */
+  const over = (cx: number, cz: number): { x: number; y: number } => ({
+    x: cx * 10 + 5,
+    y: cz * 10 + 5,
+  });
+  const hoverBoxes = (highlights: unknown[][]) =>
+    (highlights.at(-1) as Array<{ min: Vec3; max: Vec3; style: string }>).filter(
+      (b) => b.style === "hover",
+    );
+
+  it("makes the block under the finger itself the inspected one, with no offset", () => {
+    const { session } = makeSession();
+    expect(session.tool).toBe("navigate");
+    const p = over(3, 10); // the gold block
+    expect(session.touchInspectAt(p.x, p.y)).toBe(true);
+    expect(session.inspected).toEqual([3, 0, 10]);
+    expect(session.inspectedBlock).toBe(GOLD);
+    // Not the cell 64 px above, which is the planks at (3, 0, 3).
+    expect(session.inspected).not.toEqual([3, 0, 3]);
+  });
+
+  it("outlines it with the inspected (hover) style", () => {
+    const { session, highlights } = makeSession();
+    const p = over(4, 4);
+    session.touchInspectAt(p.x, p.y);
+    expect(hoverBoxes(highlights)).toEqual([{ min: [4, 0, 4], max: [4, 0, 4], style: "hover" }]);
+  });
+
+  it("changes nothing in the volume or the history", () => {
+    const { session, volume } = makeSession();
+    const before = snapshot(volume);
+    const p = over(3, 3);
+    session.touchInspectAt(p.x, p.y);
+    expect(cellsChanged(volume, before)).toEqual([]);
+    expect(session.undoCount).toBe(0);
+    expect(session.block).toBe(STONE);
+    expect(session.pending).toBeNull();
+  });
+
+  it("a later tap moves it", () => {
+    const { session } = makeSession();
+    session.touchInspectAt(over(3, 3).x, over(3, 3).y);
+    session.touchInspectAt(over(6, 6).x, over(6, 6).y);
+    expect(session.inspected).toEqual([6, 0, 6]);
+  });
+
+  it("a tap on empty space clears it, and with it the outline; the selection stays", () => {
+    const { session, highlights } = makeSession();
+    session.setSelection({ min: [0, 0, 0], max: [1, 0, 1] });
+    session.touchInspectAt(over(4, 4).x, over(4, 4).y);
+    expect(session.inspectedBlock).not.toBeNull();
+    expect(session.touchInspectAt(500, 500)).toBe(false); // far outside the 16 x 16 floor
+    expect(session.inspected).toBeNull();
+    expect(session.inspectedBlock).toBeNull();
+    expect(hoverBoxes(highlights)).toEqual([]);
+    expect(session.selection).not.toBeNull();
+  });
+
+  it("clears an old message and error", () => {
+    const { session } = makeSession();
+    session.message = "Picked something";
+    session.error = "something failed";
+    session.touchInspectAt(over(4, 4).x, over(4, 4).y);
+    expect(session.message).toBe("");
+    expect(session.error).toBe("");
+  });
+
+  it("respects the visible layers: a block outside them is not found", () => {
+    const { session } = makeSession();
+    session.setSlice({ y0: 5, y1: 9 });
+    expect(session.touchInspectAt(over(4, 4).x, over(4, 4).y)).toBe(false);
+    expect(session.inspected).toBeNull();
+  });
+
+  it("does nothing with a tool armed, or in the fly camera", () => {
+    for (const tool of [
+      "place",
+      "paint",
+      "erase",
+      "eyedropper",
+      "line",
+      "rectangle",
+      "select",
+    ] as const) {
+      const { session } = makeSession();
+      session.setTool(tool);
+      expect(session.touchInspectAt(over(4, 4).x, over(4, 4).y), tool).toBe(false);
+      expect(session.inspected, tool).toBeNull();
+    }
+    const { session } = makeSession();
+    session.setCameraMode("fly");
+    session.setTool("navigate");
+    expect(session.touchInspectAt(over(4, 4).x, over(4, 4).y)).toBe(false);
+    expect(session.inspected).toBeNull();
+  });
+
+  describe("with the router and the session together", () => {
+    function wireView() {
+      const made = makeSession();
+      const camera: GestureIntent[] = [];
+      const router = new TouchRouter({
+        target: () => made.session,
+        camera: (i) => camera.push(i),
+        arbiter: {
+          setTimeout: () => 0 as unknown as ReturnType<typeof setTimeout>,
+          clearTimeout() {},
+        },
+      });
+      let clock = 0;
+      const feed = (id: number, type: "down" | "move" | "up", x: number, y: number) => {
+        clock += 30;
+        router.feed({ id, type, x, y, time: clock });
+      };
+      return { ...made, camera, router, feed };
+    }
+
+    it("a tap inspects the block under the finger", () => {
+      const h = wireView();
+      const p = over(5, 5);
+      h.feed(1, "down", p.x, p.y);
+      h.feed(1, "up", p.x, p.y);
+      expect(h.session.inspected).toEqual([5, 0, 5]);
+      expect(h.camera.map((i) => i.type)).toEqual(["tap"]);
+    });
+
+    it("an orbit that ends over a block does not", () => {
+      const h = wireView();
+      const a = over(5, 5);
+      h.feed(1, "down", a.x, a.y);
+      h.feed(1, "move", a.x + 20, a.y);
+      h.feed(1, "move", a.x + 40, a.y);
+      h.feed(1, "up", a.x + 40, a.y);
+      expect(h.session.inspected).toBeNull();
+    });
+
+    it("the end of a pinch or a pan, and the finger left down after them, do not", () => {
+      for (const dy of [0, 40]) {
+        const h = wireView();
+        h.feed(1, "down", 50, 60);
+        h.feed(2, "down", 120, 60);
+        h.feed(1, "move", dy === 0 ? 30 : 50, 60 + dy);
+        h.feed(2, "move", dy === 0 ? 140 : 120, 60 + dy);
+        h.feed(2, "up", dy === 0 ? 140 : 120, 60 + dy);
+        h.feed(1, "up", dy === 0 ? 30 : 50, 60 + dy);
+        expect(h.session.inspected).toBeNull();
+      }
+    });
+
+    it("a long press picks and inspects the block, but a tap-length touch before it does not matter", () => {
+      const h = wireView();
+      const p = over(3, 10);
+      h.router.feed({ id: 1, type: "down", x: p.x, y: p.y, time: 0 });
+      h.router.stepTime(450);
+      h.router.feed({ id: 1, type: "up", x: p.x, y: p.y, time: 700 });
+      expect(h.session.block).toBe(GOLD);
+      expect(h.session.inspected).toEqual([3, 0, 10]);
+    });
+
+    it("with a touch tool armed a tap goes to the tool, not to inspect", () => {
+      const h = wireView();
+      arm(h.session, "line");
+      const f = fingerFor(2, 2);
+      h.feed(1, "down", f.x, f.y);
+      h.feed(1, "up", f.x, f.y);
+      runFrames();
+      expect(h.session.pending).toMatchObject({ kind: "line", a: [2, 1, 2] });
+    });
+  });
+});
+
+describe("inspected follows taps for every touch tool", () => {
+  it("Place and Replace and Erase set it on a tap (the block under the cursor, not the one the tool changes)", () => {
+    for (const tool of ["place", "paint", "erase"] as const) {
+      const { session } = makeSession();
+      arm(session, tool);
+      tapCell(session, 5, 5);
+      expect(session.inspected, tool).toEqual([5, 0, 5]);
+    }
+  });
+
+  it("an armed cell (Confirm each placement) sets it", () => {
+    const { session } = makeSession({ confirmPlacement: true });
+    arm(session, "place");
+    tapCell(session, 5, 5);
+    expect(session.pending).toMatchObject({ kind: "cell" });
+    expect(session.inspected).toEqual([5, 0, 5]);
+    expect(session.inspectedBlock).toBe(STONE);
+  });
+
+  it("the corners of Line, Rectangle and Select set it, and so does the second tap", () => {
+    for (const tool of ["line", "rectangle", "select"] as const) {
+      const { session } = makeSession();
+      arm(session, tool);
+      tapCell(session, 2, 2);
+      expect(session.inspected, `${tool} A`).toEqual([2, 0, 2]);
+      tapCell(session, 6, 8);
+      expect(session.inspected, `${tool} B`).toEqual([6, 0, 8]);
+    }
+  });
+
+  it("a corner dragged to another block sets it where the finger lifts", () => {
+    const { session } = makeSession();
+    arm(session, "line");
+    tapCell(session, 2, 2);
+    tapCell(session, 2, 8);
+    dragCells(session, [
+      [2, 8],
+      [4, 8],
+      [7, 8],
+    ]);
+    expect(session.inspected).toEqual([7, 0, 8]);
+  });
+
+  it("the Paste origin sets it", () => {
+    const { session } = makeSession();
+    session.setSelection(boxBetween([0, 0, 0], [1, 0, 1]));
+    session.copy();
+    session.clearSelection();
+    session.setTool("paste");
+    tapCell(session, 6, 6);
+    expect(session.pending).toMatchObject({ kind: "paste" });
+    expect(session.inspected).toEqual([6, 0, 6]);
+  });
+
+  it("a long press in View picks the block and inspects it", () => {
+    const { session } = makeSession();
+    session.touchPickAt(35, 100);
+    expect(session.inspected).toEqual([3, 0, 10]);
+  });
+});
+
+describe("choosing a block tells onBlockChosen", () => {
+  it("chooseBlock sets the block, clears the error and reports it once", () => {
+    const { session } = makeSession();
+    const seen: string[] = [];
+    session.onBlockChosen = (b) => seen.push(b);
+    session.error = "old";
+    session.chooseBlock("minecraft:oak_planks");
+    expect(session.block).toBe("minecraft:oak_planks");
+    expect(session.error).toBe("");
+    expect(seen).toEqual(["minecraft:oak_planks"]);
+  });
+
+  it("Pick (tap and long press) and a long press in View report the block they picked", () => {
+    const seen: string[] = [];
+    const a = makeSession();
+    a.session.onBlockChosen = (b) => seen.push(b);
+    arm(a.session, "eyedropper");
+    a.session.touchMove(FINGER.x, FINGER.y);
+    runFrames();
+    a.session.touchTap(FINGER.x, FINGER.y);
+    a.session.touchEnd();
+    expect(seen).toEqual([PLANKS]);
+
+    const b = makeSession();
+    b.session.onBlockChosen = (blk) => seen.push(blk);
+    arm(b.session, "place");
+    b.session.touchMove(FINGER.x, FINGER.y);
+    b.session.touchLongPress(FINGER.x, FINGER.y);
+    expect(seen).toEqual([PLANKS, PLANKS]);
+
+    const c = makeSession();
+    c.session.onBlockChosen = (blk) => seen.push(blk);
+    c.session.touchPickAt(35, 100);
+    expect(seen).toEqual([PLANKS, PLANKS, GOLD]);
+  });
+
+  it("assigning session.block directly (the typed field) is not a choice", () => {
+    const { session } = makeSession();
+    const seen: string[] = [];
+    session.onBlockChosen = (b) => seen.push(b);
+    session.block = "minecraft:ston";
+    session.block = "minecraft:stone";
+    expect(seen).toEqual([]);
+  });
+
+  it("a pick records the block without block-entity NBT", () => {
+    const volume = makeVolume();
+    volume.set(9, 0, 9, "minecraft:chest[facing=north]{Items:[]}");
+    const { session } = makeSession({ volume });
+    const seen: string[] = [];
+    session.onBlockChosen = (b) => seen.push(b);
+    session.touchPickAt(95, 95);
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).not.toContain("{");
+    expect(seen[0]).toContain("minecraft:chest");
+  });
+
+  it("works with no listener", () => {
+    const { session } = makeSession();
+    expect(() => session.chooseBlock("minecraft:glass")).not.toThrow();
+    expect(session.block).toBe("minecraft:glass");
+  });
+});
+
+describe("Copy on touch", () => {
+  it("says how many blocks were copied, without the keyboard hint", () => {
+    const { session } = makeSession();
+    session.setSelection(boxBetween([0, 0, 0], [2, 0, 1]));
+    expect(session.copy(true)).toBe(true);
+    expect(session.message).toBe("Copied 6 blocks");
+    expect(session.clipboardCells).toBe(6);
+  });
+
+  it("the desktop message still names Ctrl+V", () => {
+    const { session } = makeSession();
+    session.setSelection(boxBetween([0, 0, 0], [0, 0, 0]));
+    session.copy();
+    expect(session.message).toBe("Copied 1 block. Ctrl+V pastes.");
+  });
+});

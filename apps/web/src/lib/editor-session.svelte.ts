@@ -163,6 +163,12 @@ export class EditSession {
   cursorOffsetPx = DEFAULT_CURSOR_OFFSET_PX;
   reticle = $state.raw<ReticleState | null>(null);
   /**
+   * Told which block the user chose through the palette, the hotbar, Pick or a long press (never a
+   * block typed into the field, which is chosen one character at a time). The page keeps the recent
+   * blocks with it.
+   */
+  onBlockChosen: ((block: string) => void) | null = null;
+  /**
    * On touch: do Place, Replace and Erase only arm a cell on a tap or the end of a drag, and wait
    * for `confirmPending` (the Confirm setting)? Change it with `setConfirmPlacement`.
    */
@@ -463,6 +469,14 @@ export class EditSession {
   private pickBlock(hit: Hover): void {
     this.block = withoutNbt(hit.block);
     this.message = `Picked ${this.block}`;
+    this.onBlockChosen?.(this.block);
+  }
+
+  /** Make a block the one the tools use, from the palette or the hotbar, and tell `onBlockChosen`. */
+  chooseBlock(block: string): void {
+    this.block = block;
+    this.error = "";
+    this.onBlockChosen?.(block);
   }
 
   private beginBrush(tool: "place" | "paint" | "erase", hit: Hover): void {
@@ -789,7 +803,26 @@ export class EditSession {
     const hit = this.pick(x, y);
     if (hit === null) return;
     this.error = "";
+    this.inspected = hit.position;
     this.pickBlock(hit);
+    this.refreshHighlight();
+  }
+
+  /**
+   * A tap while the camera owns the gesture, with the View tool: the block under the finger itself
+   * (there is no offset cursor in View) becomes the inspected one, is outlined, and the readout line
+   * offers its state sheet. A tap on empty space clears `inspected` again, so the outline and the
+   * chip go and the state sheet has nothing to edit; the selection is left alone. Returns whether a
+   * block was found. Any other tool, and the fly camera, do nothing with the tap.
+   */
+  touchInspectAt(x: number, y: number): boolean {
+    if (this.cameraMode !== "orbit" || this.tool !== "navigate") return false;
+    const hit = this.pick(x, y);
+    this.error = "";
+    this.message = "";
+    this.inspected = hit === null ? null : hit.position;
+    this.refreshHighlight();
+    return hit !== null;
   }
 
   /** Every finger is up: nothing of the gesture stays on screen, and a stroke still open is reverted. */
@@ -856,6 +889,7 @@ export class EditSession {
     }
     const hit = this.pick(x, ry);
     if (hit === null) return;
+    this.inspected = hit.position;
     if (tool === "paste") {
       if (!inSlice(this.slice, hit.adjacent[1])) return;
       this.setPending({ kind: "paste", at: hit.adjacent });
@@ -886,6 +920,7 @@ export class EditSession {
     const p = this.pending;
     const current = p !== null && p.kind === tool ? (p as TwoPointPending) : null;
     const hit = this.pick(x, ry);
+    if (hit !== null) this.inspected = hit.position; // the block tapped, whether or not the corner moves
     if (current === null) {
       const first = this.firstCorner(tool, hit, null);
       if (first === null) return;
@@ -968,6 +1003,7 @@ export class EditSession {
   private dragCorner(rx: number, ry: number): void {
     const hit = this.pick(rx, ry);
     this.hover = hit; // the cursor ring shows whether it is over a block; no outline is drawn for it
+    if (hit !== null) this.inspected = hit.position;
     const p = this.pending;
     if (p === null || !isTwoPoint(p)) {
       this.refreshHighlight();
@@ -1393,13 +1429,16 @@ export class EditSession {
     return true;
   }
 
-  copy(): boolean {
+  /** Copy the selection. `touch` words the message for taps (no Ctrl+V). */
+  copy(touch = false): boolean {
     const box = this.selection;
     if (box === null) return this.needSelection();
     const clip: Clipboard = copySelection(this.volume, box);
     this.editor.clipboard = clip;
     this.clipboardCells = clipboardCellCount(clip);
-    this.message = `Copied ${blocksText(this.clipboardCells)}. Ctrl+V pastes.`;
+    this.message = touch
+      ? `Copied ${blocksText(this.clipboardCells)}`
+      : `Copied ${blocksText(this.clipboardCells)}. Ctrl+V pastes.`;
     return true;
   }
 

@@ -42,6 +42,12 @@ export interface TouchTarget {
   touchLongPress(x: number, y: number): void;
   /** A camera gesture was held still: pick the block under the finger itself. */
   touchPickAt(x: number, y: number): void;
+  /**
+   * A camera-owned gesture was a tap (a short, still touch, never the end of a pan, pinch or
+   * orbit): inspect the block under the finger itself. The target decides whether its tool does
+   * anything with it (only View does).
+   */
+  touchInspectAt(x: number, y: number): void;
   /** Every finger is up: hide the cursor and the touch hover. */
   touchEnd(): void;
 }
@@ -164,6 +170,9 @@ export class TouchRouter {
       // Only a finger that landed alone and stayed still is a long press. The arbiter never says
       // so of a finger left over from a two-finger gesture, so that one never picks.
       if (intent.type === "longPress") this.target?.touchPickAt(intent.clientX, intent.clientY);
+      // The arbiter says `tap` only for a finger that landed alone, stayed within the slop and lifted
+      // before the long-press time: never for the end of a pan, a pinch, an orbit or a leftover finger.
+      if (intent.type === "tap") this.target?.touchInspectAt(intent.clientX, intent.clientY);
       return;
     }
     const target = this.target;

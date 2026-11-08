@@ -3,8 +3,26 @@
 import { canonicalize } from "@voxwright/core";
 import { normalizeBlockInput, searchPalette } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
+import { FAVORITE_LIMIT, favoritesFull, isFavorite, shortName } from "../hotbar.ts";
+import Hotbar from "./Hotbar.svelte";
 
-let { session }: { session: EditSession } = $props();
+// `touch` adds the hotbar row above the search and a star on every row of the list.
+let {
+  session,
+  touch = false,
+  favorites = [],
+  recents = [],
+  ontogglefavorite,
+}: {
+  session: EditSession;
+  touch?: boolean;
+  /** The starred blocks (touch). */
+  favorites?: readonly string[];
+  /** The blocks chosen last (touch). */
+  recents?: readonly string[];
+  /** A tap on a row's star (touch). */
+  ontogglefavorite?: (block: string) => void;
+} = $props();
 
 let query = $state("");
 const found = $derived(searchPalette(session.paletteBlocks, query));
@@ -20,8 +38,7 @@ const invalid = $derived.by(() => {
 });
 
 function choose(block: string): void {
-  session.block = block;
-  session.error = "";
+  session.chooseBlock(block);
 }
 
 // The list is one stop in the Tab order: the chosen entry (or the one last focused) takes the Tab key,
@@ -38,7 +55,7 @@ const tabbable = $derived(
 );
 
 function onListKey(e: KeyboardEvent): void {
-  const items = [...listEl.querySelectorAll<HTMLButtonElement>("button")];
+  const items = [...listEl.querySelectorAll<HTMLButtonElement>("button.entry")];
   const at = items.indexOf(document.activeElement as HTMLButtonElement);
   if (at < 0) return;
   const next =
@@ -81,6 +98,10 @@ function onSearchKey(e: KeyboardEvent): void {
   </label>
   {#if invalid}<p class="hint bad">{invalid}</p>{:else}<p class="hint">Used by Place, Replace, Line, Rectangle, Fill and Replace-in-selection. Type any block, with properties if you like.</p>{/if}
 
+  {#if touch}
+    <Hotbar {session} {favorites} {recents} />
+  {/if}
+
   <input
     type="search"
     placeholder="Search blocks…"
@@ -97,7 +118,7 @@ function onSearchKey(e: KeyboardEvent): void {
       <li><button class="entry typed" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
     {/if}
     {#each found.shown as entry (entry.block)}
-      <li>
+      <li class:row={touch}>
         <button
           class="entry"
           class:on={session.block === entry.block}
@@ -109,6 +130,21 @@ function onSearchKey(e: KeyboardEvent): void {
           onclick={() => choose(entry.block)}
           data-block={entry.block}
         >{entry.block.replace("minecraft:", "")}</button>
+        {#if touch}
+          {@const fav = isFavorite(favorites, entry.block)}
+          {@const full = !fav && favoritesFull(favorites)}
+          <button
+            type="button"
+            class="star"
+            aria-pressed={fav}
+            aria-label={`Favourite ${shortName(entry.block)}`}
+            title={full ? `Favourites are full (${FAVORITE_LIMIT}): unstar one first` : `Star ${entry.block}`}
+            disabled={full}
+            onclick={() => ontogglefavorite?.(entry.block)}
+            data-testid="palette-star"
+            data-block={entry.block}
+          ><span aria-hidden="true">{fav ? "★" : "☆"}</span></button>
+        {/if}
       </li>
     {/each}
   </ul>
@@ -132,6 +168,13 @@ function onSearchKey(e: KeyboardEvent): void {
   .entry.typed { font-style: italic; }
   .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
   .bad { color: #7a1f16; }
+
+  /* Touch: a row is the block and its star side by side. */
+  li.row { display: flex; align-items: stretch; }
+  li.row .entry { flex: 1 1 auto; min-width: 0; }
+  .star { flex: 0 0 auto; width: 48px; min-width: 48px; min-height: 48px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #5f594f; font: inherit; font-size: 1.4rem; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; }
+  .star[aria-pressed="true"] { color: #7a4f00; }
+  .star:disabled { opacity: 0.45; cursor: default; }
 
   @media (pointer: coarse) {
     input[type="search"] {
