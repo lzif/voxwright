@@ -60,6 +60,8 @@ export interface SessionView {
   hollow: boolean;
   /** The block string at the inspected cell, or `null`. */
   inspectedBlock: string | null;
+  /** The newest undo entry while it is still the newest (the undo toast's), else `null`. */
+  lastChange: { id: number; label: string; count: number; text: string } | null;
   /** The most memory the undo history may hold, bytes. */
   historyBytes: number;
   pick(x: number, y: number): PickedBlock | null;
@@ -74,6 +76,7 @@ export interface SessionView {
   placeAt(pos: [number, number, number], block: string): boolean;
   setProperty(key: string, value: string): boolean;
   undo(): void;
+  redo(): void;
 }
 
 export interface Vox {

@@ -20,6 +20,8 @@ let {
 } = $props();
 
 let isDragging = $state(false);
+/** The dialog itself: focus goes here when the sheet opens, so a keyboard or screen reader starts inside it. */
+let dialogEl = $state<HTMLElement | null>(null);
 let dragTranslateY = $state<number | null>(null);
 let startY = 0;
 let startTime = 0;
@@ -37,6 +39,9 @@ const isKeyboardOpen = $derived(
 const displaySnap = $derived(isKeyboardOpen && snap !== "closed" ? "full" : snap);
 
 const peekHeight = 160;
+/** A touch on the handle that moves less than this and lets go within this time is a tap. */
+const TAP_SLOP_PX = 6;
+const TAP_MAX_MS = 500;
 const halfHeight = $derived(Math.round(effectiveHeight * 0.52));
 const fullHeight = $derived(
   isKeyboardOpen
@@ -74,6 +79,10 @@ function updateViewport(): void {
 }
 
 onMount(() => {
+  // Move focus into the sheet (its dialog, which is not itself a control) and give it back to the
+  // button that opened the sheet when it closes, so Tab continues from where the user was.
+  const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  queueMicrotask(() => dialogEl?.focus({ preventScroll: true }));
   updateViewport();
   window.addEventListener("resize", updateViewport);
   window.visualViewport?.addEventListener("resize", updateViewport);
@@ -91,6 +100,7 @@ onMount(() => {
     window.visualViewport?.removeEventListener("resize", updateViewport);
     window.visualViewport?.removeEventListener("scroll", updateViewport);
     window.removeEventListener("keydown", onKeyDown);
+    if (opener !== null && opener.isConnected) opener.focus({ preventScroll: true });
   };
 });
 
@@ -128,7 +138,10 @@ function handlePointerUp(e: PointerEvent): void {
 
   let nextSnap: SnapPoint = snap;
 
-  if (velocity > 0.45) {
+  if (e.type === "pointerup" && Math.abs(delta) < TAP_SLOP_PX && elapsed < TAP_MAX_MS) {
+    // A tap, not a drag: the button for what a drag up or down does.
+    nextSnap = toggledSnap();
+  } else if (velocity > 0.45) {
     // Fling down
     if (snap === "full") nextSnap = "half";
     else if (snap === "half") nextSnap = "peek";
@@ -158,6 +171,17 @@ function handlePointerUp(e: PointerEvent): void {
 
   dragTranslateY = null;
   setSnap(nextSnap);
+}
+
+/** The other height a tap on the handle (or Enter on it) asks for: full from anything lower, half from full. */
+function toggledSnap(): SnapPoint {
+  return snap === "full" ? "half" : "full";
+}
+
+function handleClick(e: MouseEvent): void {
+  // A touch or a mouse press was already acted on by the pointer handlers; a click with no press
+  // before it (the keyboard, a screen reader) has detail 0.
+  if (e.detail === 0) setSnap(toggledSnap());
 }
 
 function setSnap(next: SnapPoint): void {
@@ -196,8 +220,10 @@ function handleBackdropClick(): void {
     class="bottom-sheet"
     class:dragging={isDragging}
     role="dialog"
+    tabindex="-1"
     aria-label={title || "Panel sheet"}
     aria-modal={snap === "full"}
+    bind:this={dialogEl}
     style="
       height: {fullHeight}px;
       bottom: {keyboardOffset}px;
@@ -205,11 +231,13 @@ function handleBackdropClick(): void {
     "
     data-testid="bottom-sheet"
   >
-    <!-- Drag Handle Bar -->
+    <!-- Drag handle: a drag moves the sheet between its heights, a tap (or Enter) switches between half and full. -->
     <button
       type="button"
       class="sheet-handle-zone"
-      aria-label="Drag sheet handle"
+      aria-label={snap === "full" ? "Make the sheet half height" : "Make the sheet full height"}
+      aria-expanded={snap === "full"}
+      onclick={handleClick}
       onpointerdown={handlePointerDown}
       onpointermove={handlePointerMove}
       onpointerup={handlePointerUp}
@@ -219,8 +247,8 @@ function handleBackdropClick(): void {
       <span class="handle-bar"></span>
     </button>
 
-    <!-- Sheet Header -->
-    <header class="sheet-header">
+    <!-- Sheet header: a plain block, not a <header>, which would count as a second banner landmark next to the top bar's. -->
+    <div class="sheet-header">
       <h2 class="sheet-title">{title}</h2>
       <button
         type="button"
@@ -231,7 +259,7 @@ function handleBackdropClick(): void {
       >
         ✕
       </button>
-    </header>
+    </div>
 
     <!-- Sheet Scrollable Content Area -->
     <!-- The sheet is as tall as its full snap and moved down for the lower ones, so the part below the
@@ -283,6 +311,11 @@ function handleBackdropClick(): void {
 
   .bottom-sheet.dragging {
     transition: none;
+  }
+
+  /* Focus lands on the dialog itself when it opens; it is not a control, so it draws no ring. */
+  .bottom-sheet:focus {
+    outline: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

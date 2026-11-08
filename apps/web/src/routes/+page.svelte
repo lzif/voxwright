@@ -7,6 +7,7 @@ import { asset } from "$app/paths";
 import type { AssetPath } from "$app/types";
 import { decodePack, fetchPack } from "../lib/assets.ts";
 import { Autosave } from "../lib/autosave.svelte.ts";
+import type { SessionEvent } from "../lib/changes.ts";
 import BlockPalette from "../lib/components/BlockPalette.svelte";
 import BlockStatePanel from "../lib/components/BlockStatePanel.svelte";
 import BottomSheet from "../lib/components/BottomSheet.svelte";
@@ -20,7 +21,9 @@ import RestoreDialog from "../lib/components/RestoreDialog.svelte";
 import SelectionPanel from "../lib/components/SelectionPanel.svelte";
 import SiteFooter from "../lib/components/SiteFooter.svelte";
 import ThumbCluster from "../lib/components/ThumbCluster.svelte";
+import TouchIntro from "../lib/components/TouchIntro.svelte";
 import TouchReticle from "../lib/components/TouchReticle.svelte";
+import UndoToast from "../lib/components/UndoToast.svelte";
 import { describeVolume } from "../lib/describe.ts";
 import {
   CONFIRM_PLACE_KEY,
@@ -57,6 +60,17 @@ import {
   saveBlockList,
   toggleFavorite,
 } from "../lib/hotbar.ts";
+import {
+  HAPTICS_KEY,
+  hapticFor,
+  multiTapAction,
+  parseHaptics,
+  parseThreeFingerRedo,
+  parseTwoFingerUndo,
+  THREE_FINGER_REDO_KEY,
+  TWO_FINGER_UNDO_KEY,
+  vibrate,
+} from "../lib/mobile-settings.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import {
@@ -80,6 +94,17 @@ import {
   type StoredPack,
   saveUserPack,
 } from "../lib/user-pack.ts";
+import {
+  advanceIntro,
+  FRESH_INTRO,
+  INTRO_FINISH_MS,
+  type IntroEvent,
+  type IntroProgress,
+  introComplete,
+  shouldShowIntro,
+  TOUCH_INTRO_KEY,
+  TOUCH_INTRO_SEEN,
+} from "../lib/walkthrough.ts";
 
 // "webgl": the GPU renderer in render/webgl, drawing on this page's thread with a pool of mesher
 // workers. "cpu": the software rasterizer in a worker, for browsers without WebGL2.
@@ -108,6 +133,14 @@ let cursorOffset = $state(DEFAULT_CURSOR_OFFSET_PX);
 let confirmPlacement = $state(false);
 /** Does a two-finger twist turn the view? On unless the user turned it off; read by the gesture handler as it happens. */
 let twistEnabled = $state(true);
+/** Does an edit buzz the phone (where the browser can)? On unless the user turned it off. */
+let hapticsEnabled = $state(true);
+/** Do the optional multi-finger shortcuts run? Both off until the user turns them on; read as a gesture ends. */
+let twoFingerUndo = $state(false);
+let threeFingerRedo = $state(false);
+/** The first-run walkthrough: whether its card shows, and which of its steps are done. */
+let introVisible = $state(false);
+let introProgress = $state.raw<IntroProgress>(FRESH_INTRO);
 /** The Quality setting: how sharp the picture is drawn, and whether it gets less sharp while a gesture moves it. */
 let quality = $state<QualityMode>("auto");
 /** The Quality the renderer was created with: antialiasing is fixed then, so a change to or from Low waits for a reload. */
@@ -182,6 +215,66 @@ function setTwistEnabled(on: boolean): void {
   try {
     localStorage.setItem(TWIST_KEY, String(on));
   } catch {}
+}
+
+function setHaptics(on: boolean): void {
+  hapticsEnabled = on;
+  try {
+    localStorage.setItem(HAPTICS_KEY, String(on));
+  } catch {}
+}
+
+function setTwoFingerUndo(on: boolean): void {
+  twoFingerUndo = on;
+  try {
+    localStorage.setItem(TWO_FINGER_UNDO_KEY, String(on));
+  } catch {}
+}
+
+function setThreeFingerRedo(on: boolean): void {
+  threeFingerRedo = on;
+  try {
+    localStorage.setItem(THREE_FINGER_REDO_KEY, String(on));
+  } catch {}
+}
+
+// -- The first-run walkthrough ------------------------------------------------------------------
+
+/** Tick a step if the card is showing. */
+function noteIntro(event: IntroEvent): void {
+  if (introVisible) introProgress = advanceIntro(introProgress, event);
+}
+
+/** Close the card for good (the close button, or all three steps done): it does not come back on its own. */
+function closeIntro(): void {
+  introVisible = false;
+  try {
+    localStorage.setItem(TOUCH_INTRO_KEY, TOUCH_INTRO_SEEN);
+  } catch {}
+}
+
+/** "Show tips": the card again, with every step to do. */
+function showTips(): void {
+  introProgress = FRESH_INTRO;
+  introVisible = true;
+  activeSheet = "none";
+}
+
+// A finished card stays a moment so the last tick is seen.
+$effect(() => {
+  if (!introVisible || !introComplete(introProgress)) return;
+  const timer = window.setTimeout(closeIntro, INTRO_FINISH_MS);
+  return () => window.clearTimeout(timer);
+});
+
+/** What the session reports: a short buzz for a commit, a cancel or a refusal, and the walkthrough's steps. */
+function onSessionEvent(event: SessionEvent): void {
+  if (isMobileLayout && hapticsEnabled) {
+    const ms = hapticFor(event);
+    if (ms !== null) vibrate(ms);
+  }
+  if (event.kind === "commit") noteIntro("edit");
+  else if (event.kind === "undo") noteIntro("undo");
 }
 
 const QUALITY_LABELS: Record<QualityMode, string> = { auto: "Auto", high: "High", low: "Low" };
@@ -350,6 +443,8 @@ function startSession(r: WebglRenderer, v: Volume, dv: number | null, baseEdits:
     historyBytes: touchOnly ? TOUCH_HISTORY_BYTES : undefined,
   });
   s.onBlockChosen = recordRecent;
+  s.onEvent = onSessionEvent;
+  s.touchUi = isMobileLayout;
   stopSession = s.attach();
   session = s;
 }
@@ -395,6 +490,11 @@ $effect(() => {
   if (s === null) return;
   void s.revision;
   untrack(() => autosave.changed());
+});
+
+// Messages that name keys ("press Ctrl+C") say taps in the mobile layout.
+$effect(() => {
+  if (session) session.touchUi = isMobileLayout;
 });
 
 const when = (ms: number): string => new Date(ms).toLocaleString();
@@ -565,6 +665,12 @@ function setCamMode(mode: "orbit" | "fly"): void {
   if (mode === "fly") canvas.focus();
 }
 
+/** "Centre on the build": the view back on the middle of the whole build, at a distance that fits it. */
+function centreOnBuild(): void {
+  if (session) session.centreOnBuild();
+  else renderer?.frameCamera();
+}
+
 function setAngles(): void {
   renderer?.setOrbit({ azimuth, elevation });
 }
@@ -611,6 +717,7 @@ async function convert(): Promise<void> {
       conversionNotes = warnings;
       const edited = session !== null && session.editCount > 0;
       download(bytes, `${base}${edited ? "-edited" : ""}${ext}`);
+      noteIntro("export");
       session?.markSaved();
       void autosave.clear(); // exported: the file is the copy now, so the autosave is not needed
     } catch (err) {
@@ -801,7 +908,16 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
     }
   };
 
-  const router = new TouchRouter({ target: () => session, camera: cameraIntent });
+  // A quick tap with two or three fingers undoes or redoes, when the user turned that shortcut on.
+  // The router calls this after the tool's work (if the gesture began on a tool) was cancelled, so
+  // the tap never places anything.
+  const multiTap = (fingers: 2 | 3): void => {
+    const action = multiTapAction(fingers, { twoFingerUndo, threeFingerRedo });
+    if (action === "undo") session?.undo();
+    else if (action === "redo") session?.redo();
+  };
+
+  const router = new TouchRouter({ target: () => session, camera: cameraIntent, multiTap });
 
   const onDown = (e: PointerEvent): void => {
     c.focus({ preventScroll: true });
@@ -947,7 +1063,15 @@ onMount(() => {
     confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
     twistEnabled = parseTwist(localStorage.getItem(TWIST_KEY));
     quality = parseQuality(localStorage.getItem(QUALITY_KEY));
+    hapticsEnabled = parseHaptics(localStorage.getItem(HAPTICS_KEY));
+    twoFingerUndo = parseTwoFingerUndo(localStorage.getItem(TWO_FINGER_UNDO_KEY));
+    threeFingerRedo = parseThreeFingerRedo(localStorage.getItem(THREE_FINGER_REDO_KEY));
   } catch {}
+  try {
+    introVisible = shouldShowIntro(localStorage.getItem(TOUCH_INTRO_KEY));
+  } catch {
+    introVisible = true; // storage is blocked: show it this visit, it can be closed
+  }
   recentBlocks = loadBlockList(blockStore(), RECENT_KEY, RECENT_LIMIT);
   favoriteBlocks = loadBlockList(blockStore(), FAVORITE_KEY, FAVORITE_LIMIT);
 
@@ -1067,10 +1191,13 @@ onMount(() => {
       onremove={() => void removePack()}
     />
   {:else}
-    <!-- Hidden persistent file input accessible for test automation in mobile mode -->
+    <!-- Hidden persistent file input for test automation in mobile mode. It is out of the accessibility tree
+         and the tab order: the "Open a schematic" button of the welcome card and of the menu are the ones people use. -->
     <input
       type="file"
       class="sr-only"
+      tabindex="-1"
+      aria-hidden="true"
       accept=".nbt,.schem,.schematic,.litematic,application/octet-stream,*/*"
       data-testid="file"
       onchange={(e) => {
@@ -1236,8 +1363,12 @@ onMount(() => {
   <TouchReticle {session} />
 {/if}
 
-<!-- Mobile floating thumb controls and docked toolbar -->
-{#if isMobileLayout && session}
+<!-- Everything the mobile layout floats over the picture (the thumb cluster, the nudge pad, the quick row, the
+     toolbar, the toast, the first-run card and the sheets) is one labelled region, so no control lies outside a
+     landmark and a screen reader can jump to it. -->
+{#if isMobileLayout}
+<div class="mobile-controls" role="region" aria-label="Editing controls">
+{#if session}
   <ThumbCluster
     {session}
     {leftHanded}
@@ -1256,10 +1387,18 @@ onMount(() => {
     {activeSheet}
     ontogglesheet={(s) => toggleSheet(s)}
   />
+  <!-- Under the top bar, away from everything at the bottom: the first-run card (until it is closed or
+       finished), and below it the toast with Undo after each edit. Both mirror with the left-handed
+       setting; neither has a backdrop, so the picture stays usable. -->
+  <div class="top-overlays" class:left-handed={leftHanded} data-testid="top-overlays">
+    {#if introVisible}
+      <TouchIntro progress={introProgress} onclose={closeIntro} />
+    {/if}
+    <UndoToast {session} {leftHanded} />
+  </div>
 {/if}
 
 <!-- Mobile bottom sheets for Palette, State, Selection, and Menu -->
-{#if isMobileLayout}
   {#if activeSheet === "palette" && session}
     <BottomSheet snap="half" title="Block Palette" onclose={() => (activeSheet = "none")}>
       <BlockPalette {session} touch favorites={favoriteBlocks} recents={recentBlocks} ontogglefavorite={toggleFavoriteBlock} />
@@ -1331,6 +1470,9 @@ onMount(() => {
               <button type="button" onclick={() => zoom(1 / 1.2)} data-testid="mobile-zoom-in">Zoom in</button>
               <button type="button" onclick={() => zoom(1.2)} data-testid="mobile-zoom-out">Zoom out</button>
             </div>
+            {#if info}
+              <button type="button" class="menu-btn" onclick={centreOnBuild} data-testid="mobile-centre">Centre on the build</button>
+            {/if}
           {/if}
           {#if info}
             <h4>Layers</h4>
@@ -1342,6 +1484,7 @@ onMount(() => {
         <section class="menu-grp">
           <h3>Texture Pack</h3>
           <PackPanel
+            touch
             hasSitePack={sitePack !== null}
             user={userPack}
             busy={packBusy}
@@ -1376,6 +1519,20 @@ onMount(() => {
             <span>Twist with two fingers to turn</span>
           </label>
           <p class="menu-hint">Turn two fingers like a dial to turn the view. Moving two fingers up and down still pans; tilt stays on the Tilt slider.</p>
+          <label class="menu-checkbox" data-testid="haptics-toggle">
+            <input type="checkbox" checked={hapticsEnabled} onchange={(e) => setHaptics(e.currentTarget.checked)} data-testid="haptics-input" />
+            <span>Vibrate on edits</span>
+          </label>
+          <p class="menu-hint">A short buzz when an edit is made, and a longer one when it is cancelled or refused, on phones whose browser allows it. Nothing needs it.</p>
+          <label class="menu-checkbox" data-testid="two-finger-undo-toggle">
+            <input type="checkbox" checked={twoFingerUndo} onchange={(e) => setTwoFingerUndo(e.currentTarget.checked)} data-testid="two-finger-undo-input" />
+            <span>Two-finger tap undoes</span>
+          </label>
+          <label class="menu-checkbox" data-testid="three-finger-redo-toggle">
+            <input type="checkbox" checked={threeFingerRedo} onchange={(e) => setThreeFingerRedo(e.currentTarget.checked)} data-testid="three-finger-redo-input" />
+            <span>Three-finger tap redoes</span>
+          </label>
+          <p class="menu-hint">Shortcuts for the Undo and Redo buttons, both off until you turn them on: a quick tap with two fingers undoes, with three fingers redoes. Moving the fingers makes it a pan, pinch or twist instead.</p>
           <div class="menu-field" data-testid="quality-setting">
             <span class="field-label" id="quality-label">Quality</span>
             <div class="menu-seg" role="group" aria-labelledby="quality-label" data-testid="quality-seg">
@@ -1409,6 +1566,18 @@ onMount(() => {
           </div>
         </section>
 
+        <section class="menu-grp" aria-labelledby="touch-help-title">
+          <h3 id="touch-help-title">Help</h3>
+          <div class="menu-help" data-testid="touch-help">
+            <p>With a tool chosen in the bottom bar, one finger uses it. A cursor shows above your fingertip, so the finger does not hide the block: lift to apply. A tap uses the tool once, a drag paints along a surface, and holding still picks the block under the cursor. The distance is in Settings.</p>
+            <p>Line, Rectangle and Select take two taps, one for each corner. The arrow pad moves the corner one block at a time, A and B switch corners, and the check mark applies the shape. The cross drops it.</p>
+            <p>With View, one finger turns the picture, a tap shows a block, and two quick taps zoom to it. Two fingers move the picture and pinch to zoom, and twisting two fingers turns it.</p>
+            <p>Every gesture has a button. The Turn and Tilt sliders, Zoom in, Zoom out and Centre on the build are in View &amp; Camera above. Zoom, beside the block's name in the line above the toolbar, does what a double tap does. Pick is a tool. Undo and Redo are the round buttons by the picture, and a bar with Undo follows every edit for a few seconds. A quick tap with two fingers (Undo) or three fingers (Redo) can be turned on in Settings.</p>
+            <p>Edits stay in this page until you export from this menu: the file you opened is never changed. A copy is kept in this browser so a closed tab can be restored; undo history is not kept.</p>
+          </div>
+          <button type="button" class="menu-btn" onclick={showTips} disabled={!session} data-testid="show-tips">Show tips</button>
+        </section>
+
         {#if session}
           <section class="menu-grp">
             <h3>Autosave</h3>
@@ -1427,11 +1596,12 @@ onMount(() => {
         {/if}
 
         <div class="menu-footer">
-          <SiteFooter />
+          <SiteFooter embedded />
         </div>
       </div>
     </BottomSheet>
   {/if}
+</div>
 {/if}
 
 <RestoreDialog
@@ -1592,7 +1762,8 @@ onMount(() => {
     color: #f4f1eb;
   }
 
-  .mobile-status {
+  /* #status (below, for the desktop line) has the higher specificity, so the id is repeated here. */
+  #status.mobile-status {
     margin: 0;
     font-size: 0.76rem;
     color: #a8a194;
@@ -1755,6 +1926,47 @@ onMount(() => {
   }
   .menu-footer {
     padding-top: 8px;
+  }
+  .menu-btn {
+    min-height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 8px;
+    background: #e2dccf;
+    color: #2b2925;
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .menu-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .menu-help p {
+    margin: 0 0 8px;
+    font-size: 0.86rem;
+    color: #2b2925;
+  }
+
+  /* The first-run card and the undo toast: a column under the top bar. It ignores the pointer
+     except on its children, so the picture under the gaps stays usable. */
+  .top-overlays {
+    position: fixed;
+    z-index: 36;
+    top: calc(58px + env(safe-area-inset-top, 0px));
+    left: calc(8px + env(safe-area-inset-left, 0px));
+    right: calc(8px + env(safe-area-inset-right, 0px));
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .top-overlays.left-handed {
+    align-items: flex-start;
   }
 
   .mobile-edit-note {

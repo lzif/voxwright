@@ -49,7 +49,10 @@ the mouse tools pick and place only in the visible ones; selection actions (fill
 replace, move, rotate, mirror) act on the whole box, hidden layers included. Edits live in the page: Export writes a new
 file (the one you opened is never changed), and the page asks before you leave or
 open another file with unexported edits. A browser
-without WebGL2 keeps the page a viewer (mobile touch editing is in progress; see
+without WebGL2 keeps the page a viewer. On a phone or a narrow window the page
+switches to a touch layout with the same editor (the offset cursor, the nudge pad,
+sheets for blocks, block state and selection, an Undo toast, a quick-start card;
+see the [user guide](docs/user-guide.md), section 5, and
 [docs/mobile-editor-plan.md](docs/mobile-editor-plan.md)). Drawing uses WebGL2
 (`@voxwright/render/webgl`: our own section mesher in a pool of workers, drawn
 with three.js); without WebGL2 the page falls back to a software rasterizer in a
@@ -68,7 +71,9 @@ once with the GPU off, once through the editor (real mouse and key events on a
 `.litematic`, then the exported file is read back and compared cell by cell), and
 once for the release work (footer, autosave, your own resource pack, accessibility
 with axe-core, a phone-sized window). `node apps/web/test/touch-e2e.ts` drives the
-mobile touch shell and gestures in a 390 x 844 touch-emulated viewport. Build the site first. `node apps/web/test/perf.ts` and
+mobile touch editor in a 390 x 844 touch-emulated viewport (gestures, placement,
+selection, block state, the camera, quality, and polish with axe-core on the whole
+page); CI runs it after `e2e.ts`, on the same build. Build the site first. `node apps/web/test/perf.ts` and
 `node apps/web/scripts/measure.ts` measure a generated 256-wide build.
 
 Guides: the [user guide](docs/user-guide.md) for people using the app, and the
@@ -158,7 +163,8 @@ where the code differs from the v1 spec and what was decided about each.
 Not done yet:
 
 - `.schem` files saved by a real tool, a check of an edited file in Litematica
-  itself, and a run on a real GPU and a real phone.
+  itself, and a run on a real GPU and a real phone (the touch editor has only been
+  driven by emulated touch so far; `docs/phone-test-checklist.md` lists what to try).
 - The 0.1.0 release: the version bump, tag and npm publish.
 - Deferred, not in 0.1.0: `mcbuild view` (after 0.1.0) and the parts catalog (the
   spec names it, nothing defines it, so it needs a definition first).

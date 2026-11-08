@@ -338,6 +338,44 @@ node --input-type=module -e "import {writeSchem} from '@voxwright/core'; import 
 
 ---
 
+## 3g. Manual Test Checklist (MB8: polish, accessibility and the first minute)
+
+MB8 was built and checked in the VM with emulated touch and axe-core only; nobody has tried it on a phone. Use a fresh browser profile, or clear this site's data first, so the quick start card shows. Open `Rafeals_house.nbt`.
+
+**The timed run (the exit criterion).** Start a stopwatch when the file is on the screen and stop it when the exported file is in your downloads. Do only what the quick start card says: choose **Place**, tap the picture, tap **Undo**, open **Menu** and press **Export and download**. It should take under a minute, and the card should tick each step by itself and close when the third is done. Write the time down: ______ s. If it took longer, say where you hesitated.
+
+| Step                        | Action                                                                                                         | Expected Result                                                                                                                                          |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. The card**             | Open the file in a fresh profile                                                                               | A small card under the top bar lists three steps, none ticked. It does not dim the picture, and the Menu button, the toolbar and Undo are uncovered.     |
+| **2. Place**                | Choose **Place**, tap the picture                                                                              | A block appears, the first step ticks, a bar under the top bar says "Placed 1 block" with an **Undo** button, and the phone buzzes briefly.              |
+| **3. Undo**                 | Tap **Undo** (the round button by the picture)                                                                 | The block goes, the second step ticks, the bar disappears.                                                                                               |
+| **4. Export**               | **Menu**, **Export and download**                                                                              | The third step ticks, the card closes after a moment, and it is gone after you reload the page.                                                          |
+| **5. Show tips**            | **Menu**, scroll to **Help**, tap **Show tips**                                                                | The menu closes and the card is back with every step unticked. The **✕** closes it and it stays closed after a reload.                                   |
+| **6. The toast**            | Place two blocks one after the other, then tap the bar's **Undo**                                              | The bar shows the newest edit. Its **Undo** removes only the second block. Wait: the bar goes by itself after about four seconds.                        |
+| **7. A stroke and a line**  | Drag with **Place** along a wall; draw a **Line** and confirm it                                               | The bar says how many blocks ("Placed 5 blocks", "Drew a line of 7 blocks") and the number is right. One press of its **Undo** takes the whole step.     |
+| **8. Where the bar sits**   | Make an edit while the nudge pad is up                                                                         | The bar is under the top bar. It covers neither the thumb cluster, the pad, the line above the toolbar nor the toolbar.                                  |
+| **9. Vibration**            | **Menu**, **Settings**: **Vibrate on edits** is on. Place a block, then cancel a line with the cross           | A short buzz for the edit, a slightly longer one for the cross. Turn the setting off: no buzz. Chrome may refuse to buzz until you have tapped the page. |
+| **10. Two-finger tap**      | Place a block. Tap the picture lightly with two fingers at once                                                | Nothing happens (the shortcut is off at the start). Turn **Two-finger tap undoes** on, place a block, tap with two fingers: it is undone.                |
+| **11. Three-finger tap**    | Turn **Three-finger tap redoes** on, undo a block, tap with three fingers                                      | The block comes back. A tap with two fingers that moves is a pan and undoes nothing.                                                                     |
+| **12. During a tool**       | With **Place** chosen and the shortcut on, put one finger on the picture, then a second, and lift both quickly | The last block is undone and no block is placed at the cursor.                                                                                           |
+| **13. Left-handed**         | **Menu**, **Settings**, **Left-handed controls**. Place a block, begin a line                                  | The thumb cluster, the nudge pad, the quick row of blocks and the bar are all on the left side, each the mirror image of before.                         |
+| **14. Zoom button**         | In **View**, tap a block, then press **Zoom** beside the block's name                                          | The view centres on the block and comes half as close, as a double tap does. It works with other tools too.                                              |
+| **15. Centre on the build** | Move the picture away with two fingers, then **Menu**, **View & Camera**, **Centre on the build**              | The picture is back on the middle of the build; the turn and the tilt stay.                                                                              |
+| **16. Sheet handle**        | Open the **Menu**; tap the handle at the top of the sheet                                                      | The sheet switches between half and full height. Dragging it still works.                                                                                |
+| **17. Help**                | **Menu**, **Help**                                                                                             | The text speaks of fingers and taps, never of clicks or keys.                                                                                            |
+| **18. Screen reader**       | Turn on TalkBack. Walk through the toolbar, the thumb cluster, a sheet and the menu by swiping                 | Every button has a name; the sheet's title is read on opening; the toast text is read out after an edit without losing your place.                       |
+| **19. Reduced motion**      | Android settings, **Remove animations**; make an edit                                                          | The bar appears without sliding.                                                                                                                         |
+
+Questions to answer while testing (write the answers into the log):
+
+- Is the bar's four seconds right? Is it in the way at the top, or would you rather have it somewhere else?
+- Do you want the vibration stronger, weaker or not at all? Does your browser buzz at all?
+- Do you use the two- and three-finger taps? Do they fire when you did not mean them (a palm, two fingers resting on the picture)?
+- Does the quick start card tell you enough to be done in a minute? Is it in the way where it is?
+- Does anything still need a gesture you cannot find a button for?
+
+---
+
 ## 4. Baseline Telemetry Log & Decision 4 Template (FEAT-MB1-04)
 
 ### Background & Objective (Decision 4)

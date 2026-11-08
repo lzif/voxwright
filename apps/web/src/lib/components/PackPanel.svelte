@@ -10,6 +10,7 @@ let {
   error,
   onadd,
   onremove,
+  touch = false,
 }: {
   hasSitePack: boolean;
   user: StoredPack | null;
@@ -18,6 +19,8 @@ let {
   error: string;
   onadd: (file: File) => void;
   onremove: () => void;
+  /** The mobile menu: no mention of dropping a file on the page. */
+  touch?: boolean;
 } = $props();
 
 const mb = (bytes: number): string => `${(bytes / 1e6).toFixed(1)} MB`;
@@ -42,7 +45,7 @@ const mb = (bytes: number): string => `${(bytes / 1e6).toFixed(1)} MB`;
       <input type="file" class="sr-only" accept=".zip,.jar" disabled={busy} data-testid="pack-file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) onadd(f); }} />
     </label>
     {#if user}<button class="ghost" onclick={onremove} disabled={busy} data-testid="pack-remove">Remove my pack</button>{/if}
-    <span class="hint">A resource pack (.zip) or a Minecraft client .jar, chosen here or dropped on the page. It is read in your browser and never uploaded.</span>
+    <span class="hint">A resource pack (.zip) or a Minecraft client .jar, chosen here{touch ? "" : " or dropped on the page"}. It is read in your browser and never uploaded.</span>
   </div>
   <div aria-live="polite" data-testid="pack-status">
     {#if busy}<p class="hint">Reading the pack…</p>{/if}

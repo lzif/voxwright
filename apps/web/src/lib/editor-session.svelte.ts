@@ -38,6 +38,7 @@ import {
   type Volume,
 } from "@voxwright/core";
 import type { Box as MarkBox, WebglRenderer } from "@voxwright/render/webgl";
+import { type LastChange, makeChange, type SessionEvent } from "./changes.ts";
 import {
   boxBetween,
   cellOnPlane,
@@ -123,6 +124,8 @@ type Drag =
       layer: number;
       last: Vec3 | null;
       touched: Set<string>;
+      /** Blocks the stroke has changed so far, for the undo toast. */
+      changed: number;
     }
   | { kind: "line"; a: Vec3; b: Vec3 }
   | { kind: "rectangle"; a: Vec3; b: Vec3; axis: 0 | 1 | 2; at: number }
@@ -185,8 +188,22 @@ export class EditSession {
    * selection, an armed cell, or a paste origin. `null` when nothing waits. Replaced, never changed.
    */
   pending = $state.raw<Pending | null>(null);
+  /**
+   * The newest entry in the undo history, while it is still the newest: set by every edit that adds
+   * one (a tap, a stroke, a confirmed pending action, a fill, replace, paste, move, rotate, mirror,
+   * a block-state change), `null` once anything undoes or redoes. The undo toast shows it.
+   */
+  lastChange = $state.raw<LastChange | null>(null);
+  /**
+   * Told about what happens in the session that the page may want to feel or show: a commit, a
+   * cancel, a refusal, an undo, a redo (the vibration and the walkthrough use it). Never required.
+   */
+  onEvent: ((event: SessionEvent) => void) | null = null;
+  /** Is the page in the touch layout? Words messages for taps instead of keys. Set by the page. */
+  touchUi = false;
 
   private readonly renderer: WebglRenderer;
+  private changeSeq = 0;
   private readonly canvas: HTMLCanvasElement;
   private drag: Drag | null = null;
   private slice: { y0: number; y1: number } | null = null;
@@ -343,6 +360,8 @@ export class EditSession {
     this.touchIdle();
     this.cancelDrag();
     this.pending = null;
+    this.lastChange = null;
+    this.onEvent = null;
     this.detach?.();
     this.detach = null;
     cancelAnimationFrame(this.frame);
@@ -373,7 +392,9 @@ export class EditSession {
 
   setTool(tool: ToolId): void {
     if (tool === "paste" && this.editor.clipboard === null) {
-      this.message = "Nothing copied yet: select blocks and press Ctrl+C.";
+      this.message = this.touchUi
+        ? "Nothing copied yet: select blocks, then tap Copy in the Selection sheet."
+        : "Nothing copied yet: select blocks and press Ctrl+C.";
       return;
     }
     this.cancelDrag();
@@ -499,6 +520,7 @@ export class EditSession {
       layer: axis === null ? 0 : (cell[axis] as number),
       last: null,
       touched: new Set(),
+      changed: 0,
     };
     this.drag = drag;
     this.brushTo(drag, hit);
@@ -527,6 +549,7 @@ export class EditSession {
           : placeCells(v, cells, this.block, drag.tool === "place" ? "place" : "replace block");
       for (const c of cells) drag.touched.add(keyOf(c));
       drag.stroke.apply(command);
+      drag.changed += commandCellCount(command);
       this.afterChange(command);
     } catch (err) {
       this.error = errorText(err);
@@ -652,6 +675,7 @@ export class EditSession {
             this.message = touch
               ? `${drag.stroke.label} done`
               : `${drag.stroke.label} done (Ctrl+Z undoes it)`;
+            this.noteChange(drag.stroke.label, drag.changed);
           }
           break;
         case "line":
@@ -860,6 +884,30 @@ export class EditSession {
     return true;
   }
 
+  /**
+   * "Zoom to this block": the double tap's focus from a button, on the inspected block, with any
+   * tool. Returns false with no inspected block (or in the fly camera).
+   */
+  focusInspected(): boolean {
+    const p = this.inspected;
+    if (this.cameraMode !== "orbit" || p === null || this.inspectedBlock === null) return false;
+    this.focusCell(p);
+    this.say(`Zoomed in on ${cellText(p)}`);
+    return true;
+  }
+
+  /**
+   * "Centre on the build": the orbit target back on the middle of the whole build, at the distance
+   * that fits it (the renderer's own framing, as when the file opened; the turn and tilt stay). The
+   * button that stands in for the two-finger pan.
+   */
+  centreOnBuild(): boolean {
+    if (this.cameraMode !== "orbit") return false;
+    this.renderer.frameCamera();
+    this.say("Centred on the build");
+    return true;
+  }
+
   /** Put the orbit target at the centre of a cell and bring the camera half as close (see `focusDistance`). */
   private focusCell(cell: Vec3): void {
     this.renderer.focusOn(
@@ -890,11 +938,15 @@ export class EditSession {
   }
 
   private touchStop(): void {
+    // A stroke or a corner drag that is taken back is a cancel the finger should feel; a gesture
+    // that ends with nothing in progress (a plain preview) is not.
+    const reverted = this.drag !== null || this.cornerDrag !== null;
     this.touchIdle();
     this.touchDragging = false;
     this.revertCornerDrag();
     if (this.drag !== null) this.cancelDrag();
     else this.refreshHighlight();
+    if (reverted) this.emit({ kind: "cancel" });
   }
 
   /** The once-per-frame work of a touch gesture: pick under the cursor, move the outline and the cursor drawing. */
@@ -1128,6 +1180,7 @@ export class EditSession {
   private refuse(text: string): void {
     this.error = text;
     this.message = "";
+    this.emit({ kind: "refuse" });
   }
 
   /** Turn the Confirm each placement setting on or off. Turning it off drops an armed cell. */
@@ -1230,6 +1283,7 @@ export class EditSession {
     if (this.pending === null) return;
     this.clearPending(true);
     this.say("Cancelled");
+    this.emit({ kind: "cancel" });
   }
 
   /** Run a freshly built command as one undo step. False only when it failed; "nothing to change" counts as finished. */
@@ -1242,12 +1296,14 @@ export class EditSession {
   private applyCell(p: CellPending): boolean {
     const label = p.tool === "place" ? "place" : p.tool === "paint" ? "replace block" : "erase";
     const stroke = this.editor.beginStroke(label);
+    let changed = 0;
     try {
       const command =
         p.tool === "erase"
           ? eraseCells(this.volume, [p.cell], { toAir: true }, "erase")
           : placeCells(this.volume, [p.cell], this.block, label);
       stroke.apply(command);
+      changed = commandCellCount(command);
       this.afterChange(command);
     } catch (err) {
       stroke.cancel();
@@ -1258,6 +1314,7 @@ export class EditSession {
     if (stroke.commit()) {
       this.revision++;
       this.say(`${label} done`);
+      this.noteChange(label, changed);
     } else {
       this.say("That would not change anything.");
     }
@@ -1353,8 +1410,10 @@ export class EditSession {
     this.cancelDrag();
     this.clearPending(true);
     if (this.editor.undo()) {
+      this.lastChange = null; // the toast's entry is gone, and so is its Undo
       this.message = "Undone";
       this.afterHistory();
+      this.emit({ kind: "undo" });
     }
   }
 
@@ -1362,9 +1421,23 @@ export class EditSession {
     this.cancelDrag();
     this.clearPending(true);
     if (this.editor.redo()) {
+      this.lastChange = null;
       this.message = "Redone";
       this.afterHistory();
+      this.emit({ kind: "redo" });
     }
+  }
+
+  /**
+   * The Undo of the toast: take back exactly the entry the toast describes, and only if it is still
+   * the newest. Anything undone, redone or edited since has replaced or cleared `lastChange`, and
+   * then this does nothing and returns false.
+   */
+  undoChange(id: number): boolean {
+    const change = this.lastChange;
+    if (change === null || change.id !== id || !this.editor.history.canUndo) return false;
+    this.undo();
+    return true;
   }
 
   private afterHistory(): void {
@@ -1382,7 +1455,19 @@ export class EditSession {
     }
     this.afterChange(command);
     this.message = `${command.label}: ${blocksText(commandCellCount(command))} changed`;
+    this.noteChange(command.label, commandCellCount(command));
     return true;
+  }
+
+  /** An entry was added to the undo history: remember it for the toast and tell the page. */
+  private noteChange(label: string, count: number): void {
+    const change = makeChange(++this.changeSeq, label, count);
+    this.lastChange = change;
+    this.onEvent?.({ kind: "commit", change });
+  }
+
+  private emit(event: SessionEvent): void {
+    this.onEvent?.(event);
   }
 
   /** Tell the renderer which sections to rebuild, keep the pick bounds covering the volume, and refresh the panels. */
@@ -1549,7 +1634,9 @@ export class EditSession {
   }
 
   private needSelection(): false {
-    this.message = "Select blocks first (Select tool, drag between two blocks).";
+    this.message = this.touchUi
+      ? "Select blocks first (Select tool, tap two corners, then the check mark)."
+      : "Select blocks first (Select tool, drag between two blocks).";
     return false;
   }
 

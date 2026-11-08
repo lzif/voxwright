@@ -74,6 +74,13 @@ export interface TouchRouterOptions {
   target: () => TouchTarget | null;
   /** Everything a camera-owned gesture does with the arbiter's intents (orbit, pan, pinch). */
   camera: (intent: GestureIntent) => void;
+  /**
+   * A quick tap with two or three fingers (the arbiter's `multiFingerTap`) ended. The page maps it to
+   * Undo or Redo when the user turned that shortcut on. Called once, after every finger is up, and
+   * also when the gesture began on a touch tool: the second finger had cancelled the tool's work by
+   * then, so the tap changes nothing but what this does. Never called for a tool-owned gesture.
+   */
+  multiTap?: (fingers: 2 | 3) => void;
   /** Thresholds and timers for the arbiter, for tests. */
   arbiter?: Omit<GestureArbiterConfig, "onIntent">;
   /** Longest gap between a tap's lift and the next finger down for a double tap, ms (default `DOUBLE_TAP_MAX_MS`). */
@@ -86,6 +93,7 @@ export class TouchRouter {
   private readonly arbiter: GestureArbiter;
   private readonly getTarget: () => TouchTarget | null;
   private readonly camera: (intent: GestureIntent) => void;
+  private readonly multiTap: ((fingers: 2 | 3) => void) | undefined;
   private readonly fingers = new Set<number>();
   private target: TouchTarget | null = null;
   private owner: TouchOwner = "none";
@@ -102,6 +110,7 @@ export class TouchRouter {
   constructor(options: TouchRouterOptions) {
     this.getTarget = options.target;
     this.camera = options.camera;
+    this.multiTap = options.multiTap;
     this.doubleTapMaxMs = options.doubleTapMaxMs ?? DOUBLE_TAP_MAX_MS;
     this.doubleTapSlopPx = options.doubleTapSlopPx ?? DOUBLE_TAP_SLOP_PX;
     this.arbiter = new GestureArbiter({
@@ -237,6 +246,7 @@ export class TouchRouter {
       } else {
         this.lastTap = null; // a drag, pan, pinch, twist, long press or cancel in between
       }
+      if (intent.type === "multiFingerTap") this.multiTap?.(intent.fingers);
       return;
     }
     const target = this.target;

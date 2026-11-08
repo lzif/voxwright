@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import { TOOLS, toolTitle } from "../editing.ts";
+import { TOOLS, touchToolTitle } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
 
 export type SheetType = "none" | "palette" | "blockstate" | "selection" | "menu";
@@ -98,7 +98,16 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     {/if}
   </div>
   {#if showChip}
-    <!-- Outside the live region: a button does not belong in a status line. -->
+    <!-- Outside the live region: a button does not belong in a status line. Zoom is the double tap's
+         focus without the gesture: the camera comes closer to the inspected block and centres on it. -->
+    <button
+      type="button"
+      class="state-chip"
+      aria-label="Zoom to this block"
+      title="Zoom to this block: bring the camera closer, as a double tap does"
+      onclick={() => session.focusInspected()}
+      data-testid="zoom-chip"
+    >Zoom</button>
     <button
       type="button"
       class="state-chip"
@@ -144,7 +153,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
           class:active={session.tool === t.id}
           aria-pressed={session.tool === t.id}
           onclick={() => session.setTool(t.id)}
-          title={toolTitle(t)}
+          title={touchToolTitle(t)}
           data-testid={`tool-${t.id}`}
           data-tool={t.id}
           aria-label={t.label}
@@ -163,7 +172,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
       class:active={activeSheet === "blockstate"}
       onclick={() => ontogglesheet?.("blockstate")}
       data-testid="mobile-state-toggle"
-      aria-label="Toggle block state sheet"
+      aria-label="State: show or hide the block state sheet"
     >
       State
     </button>
@@ -174,7 +183,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
       class:active={activeSheet === "selection"}
       onclick={() => ontogglesheet?.("selection")}
       data-testid="mobile-selection-toggle"
-      aria-label="Toggle selection sheet"
+      aria-label="Select: show or hide the selection sheet"
     >
       Select
     </button>

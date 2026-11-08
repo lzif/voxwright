@@ -24,6 +24,8 @@ export interface ToolInfo {
   key: string | null;
   /** One line for the tooltip and the help text. */
   help: string;
+  /** The same for a finger: what a tap and a drag do with this tool in the mobile layout. */
+  touchHelp: string;
 }
 
 export const TOOLS: readonly ToolInfo[] = [
@@ -32,54 +34,67 @@ export const TOOLS: readonly ToolInfo[] = [
     label: "View",
     key: "v",
     help: "Look around only; clicks do not change anything",
+    touchHelp:
+      "Look around only: one finger turns the view, a tap shows the block, two taps zoom to it",
   },
   {
     id: "place",
     label: "Place",
     key: "p",
     help: "Click a face to put the chosen block next to it; drag to paint along that surface",
+    touchHelp: "Tap to put the chosen block next to a face; drag to paint along that surface",
   },
   {
     id: "paint",
     label: "Replace",
     key: "b",
     help: "Click a block to turn it into the chosen block; drag to paint along that surface",
+    touchHelp: "Tap a block to turn it into the chosen block; drag to paint along that surface",
   },
   {
     id: "erase",
     label: "Erase",
     key: "x",
     help: "Click a block to remove it; drag to clear along that surface",
+    touchHelp: "Tap a block to remove it; drag to clear along that surface",
   },
   {
     id: "eyedropper",
     label: "Pick",
     key: "i",
     help: "Click a block to choose its type, then switch to Place",
+    touchHelp: "Tap a block to choose its type, then switch to Place",
   },
   {
     id: "line",
     label: "Line",
     key: "l",
     help: "Drag from one face to another to draw a straight line of the chosen block",
+    touchHelp:
+      "Tap the two ends of a straight line, move them with the pad, then tap the check mark",
   },
   {
     id: "rectangle",
     label: "Rectangle",
     key: "r",
     help: "Drag across a surface to draw a flat rectangle, filled or hollow",
+    touchHelp:
+      "Tap two corners of a flat rectangle, move them with the pad, then tap the check mark",
   },
   {
     id: "select",
     label: "Select",
     key: "m",
     help: "Drag from one block to another to select the box between them",
+    touchHelp: "Tap two blocks to select the box between them, then tap the check mark",
   },
   {
     id: "paste",
     label: "Paste",
     key: null,
     help: "Click where the copied blocks should go (Ctrl+V starts it)",
+    touchHelp:
+      "Tap where the copied blocks should go, move them with the pad, then tap the check mark",
   },
 ];
 
@@ -160,6 +175,9 @@ export function focusDistance(current: number): number {
 export function toolTitle(tool: ToolInfo): string {
   return tool.key === null ? tool.help : `${tool.help} (${tool.key.toUpperCase()})`;
 }
+
+/** The tooltip for a tool in the mobile layout: what a finger does with it. No shortcut: there is no keyboard. */
+export const touchToolTitle = (tool: ToolInfo): string => tool.touchHelp;
 
 /** What a key press means to the editor, or `null` when it is not ours. */
 export type KeyAction =

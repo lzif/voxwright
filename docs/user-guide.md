@@ -12,10 +12,11 @@ Everything runs in your browser. Files you open are read on your machine and are
 2. [The viewer](#2-the-viewer)
 3. [Converting and the loss report](#3-converting-and-the-loss-report)
 4. [The editor](#4-the-editor)
-5. [Exporting](#5-exporting)
-6. [Autosave and restore](#6-autosave-and-restore)
-7. [Your own resource pack or client jar](#7-your-own-resource-pack-or-client-jar)
-8. [Known limits](#8-known-limits)
+5. [Using a touch screen](#5-using-a-touch-screen)
+6. [Exporting](#6-exporting)
+7. [Autosave and restore](#7-autosave-and-restore)
+8. [Your own resource pack or client jar](#8-your-own-resource-pack-or-client-jar)
+9. [Known limits](#9-known-limits)
 
 ## 1. Opening a file
 
@@ -86,56 +87,9 @@ In that mode:
 - There is no Orbit/Fly choice and no zoom buttons, and the tilt slider runs from 0 to 90 degrees.
 - There is no editor. The page says "Editing needs WebGL2; the software renderer is a viewer."
 
-### Touch-only devices
+### Touch screens
 
-On a phone or tablet with WebGL2, the page uses a mobile layout: a full-screen picture, a top bar with a **Menu** button (for opening files, texture packs, view settings and exporting), a bottom toolbar for choosing tools and opening the block palette, a floating **Undo** / **Redo** cluster with a check mark and a cross for confirming or dropping what you have begun (it can be moved to the left side for left-handed use), and draggable bottom sheets (with peek, half and full heights) for the palette, block state and selection panels.
-
-On a touch screen in Orbit with the **View** tool, one finger turns the build, pinching with two fingers zooms, and moving two fingers together pans the build across the screen. With any other tool, one finger drives the tool (see below), and two fingers still pan and zoom. If you lift one finger after a two-finger gesture, the remaining finger keeps turning the build without jumping (it never places, picks or taps). A long press (about half a second, without moving) on a block chooses that block for the drawing tools and says "Picked …"; it does not disturb a line, rectangle or selection you have begun.
-
-**Getting closer, and turning the view with two fingers.** With the **View** tool, **double tap** a block (two quick taps, the second within about 0.3 seconds of the first and within about 24 pixels of it): the centre of the view moves onto that block and the camera comes half as close, down to 4 blocks away and no further, so a few double taps in a row bring a small detail up close. The first tap still outlines the block as a single tap does. A double tap on empty space does nothing, and a double tap with any other tool belongs to that tool (it never moves the camera). **Twist two fingers** like a dial to turn the view: the build turns the way your fingers turn (clockwise fingers, clockwise build, seen from above). Nothing moves until the twist passes about 10 degrees, which keeps a plain pinch or pan from turning the view by accident; after that the view follows every further turn of your fingers one for one, so it stays about 10 degrees behind them (it never jumps to catch up), and the pinch and the two-finger pan keep working during the same gesture. Moving two fingers up and down still pans the build, and the tilt is on the **Tilt** slider. If the twist gets in your way, turn off **Twist with two fingers to turn** in **Menu**, **Settings** (it is on at the start and kept in this browser).
-
-**Placing blocks by touch.** With **Place**, **Replace**, **Erase** or **Pick** chosen in the bottom toolbar, one finger on the picture does not turn the build. It drives a cursor that sits about 64 pixels above your fingertip (you can change that, see below), so your finger does not cover the block you are aiming at. A ring marks the cursor, and the block under it is outlined (with a ghost block next to it for Place):
-
-- **Tap** applies the tool once at the cursor, as one undo step. Pick chooses the block under the cursor and switches to Place.
-- **Drag** paints a stroke along the surface where it began, like the mouse does; lifting the finger ends it, and one **Undo** removes the whole stroke. A drag with Pick only moves the cursor.
-- **Long press** chooses the block under the cursor as the current block and keeps the tool you have.
-- **A second finger** cancels the stroke at once (the blocks it painted are removed) and the two fingers pan and zoom the view. A finger left down after that does not paint; it keeps turning the build.
-- **Sliding the finger onto the bottom toolbar, the Undo and Redo buttons or a sheet, or sliding the cursor off the top or a side of the picture,** cancels the stroke the same way.
-
-Choose **View** to turn the build with one finger again. The line above the toolbar says "place done" (or "erase done", and so on) after each edit; **Undo** is in the thumb cluster.
-
-**Lines, rectangles and selections by touch.** **Line**, **Rectangle** and **Select** take two corners. Nothing changes until you confirm:
-
-- **Tap** a block: that sets corner **A** (Line and Rectangle use the cell next to the face you tapped, Select the block itself). The corner is outlined in yellow and the **nudge pad** appears next to the thumb cluster. **Tap** again: that sets corner **B**, and the result is previewed (a green box for a line or a rectangle, the blue selection box for Select). A rectangle's B is the cell under the cursor on A's plane, so it can be over empty space. Later taps move the corner that is active.
-- **Drag** one finger to move the active corner with the cursor, live; lifting leaves it there. A drag before corner A exists sets A where you lift. A second finger puts the corner back where it was before the drag, and the two fingers pan and zoom the view as always; the line, rectangle or selection you began stays, even after you pinch, pan or turn the view.
-- The **check mark** in the thumb cluster draws the line or rectangle (one **Undo** removes it) or makes the selection ("Selected 3 × 3 × 3"). With only corner A set it uses one block. The **cross** drops everything and changes nothing (Select goes back to the selection you had before corner A). Both are greyed out while nothing is pending. Choosing another tool, **Undo** or **Redo** also drops what you began.
-- The **line above the toolbar** shows the corners and the size, for example `A 6,8,3 ▸B 10,8,6 · 5×1×4` (the arrow marks the active corner), and the message next to it says what just happened.
-
-**The nudge pad.** Four arrows move the active corner one block along the ground the way they point on the screen (left, right, away from you, toward you), **Up** and **Down** move it one layer, and the **A B** button in the middle switches the corner the pad moves (the active letter is highlighted). Hold a button to repeat it (after about half a second, then ten times a second). With a rectangle, **Up** and **Down** move the whole rectangle one layer, and a **Hollow** button turns the hollow setting on and off. A move that would leave the visible layers, or make the build longer than 512 blocks, is refused with a message and nothing moves. The arrows follow the view: turn the view and "right" is still the way the screen's right points (when the view is exactly diagonal, "away" is along z and "right" along x). With **Left-handed controls** on, the pad and the thumb cluster move to the left side. The **Zoom** button in the bottom-left corner of the pad ("Zoom to the armed cell") brings the camera closer to the cell you are working on: it centres the view on the armed cell, the paste origin or the active corner (corner A while B is not set) and halves the distance to it, to no less than 4 blocks. It changes nothing pending, so you can zoom, nudge the cell by a block, and zoom again; the message line says "Zoomed in on 6, 1, 7".
-
-**Selection steppers.** Open the **Selection** sheet (the **Select** button in the bottom toolbar) while a selection exists. Under its size, each of the six faces has **+1** (one more layer on that side) and **−1** (one layer less): **West** and **East** (the x faces), **Bottom** and **Top** (y), **North** and **South** (z). A selection cannot get smaller than one block in any direction, cannot grow outside the visible layers, and is at most 512 blocks long. These are not undo steps; a selection is not an edit.
-
-**Confirm each placement.** In **Menu**, **Settings**, turn on **Confirm each placement** (kept in this browser, off at the start). Then **Place**, **Replace** and **Erase** no longer act on a tap: a tap, or lifting the finger at the end of a drag, arms the cell under the cursor (a drag paints nothing), the nudge pad can move it, and the check mark applies the tool to that one cell (one **Undo** step). The cross drops it. **Pick** is not affected.
-
-**Paste.** After **Copy** in the Selection sheet, **Paste** there chooses the Paste tool and closes the sheet, so the picture is free for the tap. A tap arms the paste origin and draws the copied box as a green ghost; the nudge pad moves it; the check mark pastes (one **Undo** step; the "leave the target alone where there is air" setting applies), the cross cancels.
-
-**Looking at a block's state.** With **View**, a short tap on a block (not a drag, and not a long press) outlines it and shows an **Edit state ›** button at the right end of the line above the toolbar, next to the block's name and position. A tap on empty space clears both. With any other tool, the block you last tapped, armed or set a corner on is the one the button refers to. The button opens the **Block State** sheet (the **State** button in the toolbar opens the same sheet). The sheet covers the line above the toolbar, so it shows its own message line at the top ("set facing=north: 1 block changed").
-
-**The Block State sheet on a touch screen.** Each property of the block has the control that fits its values; every tap applies at once and is one **Undo** step:
-
-- A true / false property (`open`, `waterlogged`, `powered`, `lit`, ...) is a **switch**: tap to flip it.
-- A property with a few named values (`facing`, `half`, `shape`, `axis`, `type`, `hinge`, ...) is a row of **chips**, the current value pressed; long lists wrap onto more lines. Tapping the chip that is already pressed does nothing.
-- A number is a **stepper** (minus, the value, plus) when the property has many values (`rotation` and `power` run from 0 to 15 and stop at both ends); a number whose range is not known (`age`, `level`, ...) steps up from 0 with no top, since the editor cannot know where it ends. A number with eight values or fewer would be chips.
-- **Rotate block** turns a block clockwise: `facing` goes north, east, south, west and north again; `axis` goes x, y, z and x again. A block that faces up or down, or has neither property, has no such button.
-- **Other…** opens a text field for every property (any value can be typed) and a row to add a property that the block does not have yet. The field applies when you leave it.
-
-**The Selection sheet on a touch screen.** Fill, Replace, Rotate ↺ ↻, Mirror E–W and N–S, Move, Copy, Paste, Select all and Clear are all buttons of at least 44 px. **Replace** takes the block to replace from the text field, or from **Use inspected block**, which copies the block you last tapped. **Copy** says how many blocks it copied. **Move** is a pad of six arrows (the four ground directions as the screen shows them, **Up** and **Down**): each press moves the selected blocks one block and is one **Undo** step; hold a button to repeat it (each repeat is a step too); **×8** makes a step eight blocks. The typed block position and the typed selection corners are at the bottom of the sheet, for the rare case that needs them.
-
-**Recent blocks and favourites.** The palette sheet has a row of chips above its search field: the blocks you starred (with a ★), then the last eight you chose, newest first. Tap a chip to choose that block; the sheet stays open. Every block in the list has a star on its right: tap it to add the block to your favourites (up to 32) or to remove it. A block counts as chosen when you tap it in the palette, tap a chip, pick it with **Pick**, or long press it. Whenever the row has something in it, the same chips are also shown in one row above the line over the toolbar (hidden while a corner or armed cell waits for confirmation, and while a sheet is open); it scrolls sideways inside itself. Both lists are kept in this browser only.
-
-To change how far above your fingertip the cursor sits, open the **Menu** sheet and move **Cursor distance** under **Settings**: it goes from 0 to 128 pixels in steps of 8 (the readout shows "64 px" at the start), and 0 puts the cursor right under your finger. The setting takes effect at once and is kept in this browser. The **Turn**, **Tilt** and zoom controls in the **Menu** sheet work too, and **Fly** mode is hidden on touch devices. Adding `?perf=1` to the address shows a small performance overlay: frame rate, triangle count, frame time, heap memory, the device's pixel ratio (DPR), the pixel ratio the picture is drawn with right now (Ratio), the Quality setting, the number of mesher workers and the cap on the undo history.
-
-**Quality.** In the **Menu** sheet, under **Settings**, **Quality** has three choices (kept in this browser, Auto at the start) for a phone that struggles with a big build. **Auto** draws sharp when the picture is still and at a lower resolution (one pixel per screen pixel instead of up to two) while you turn, pan, zoom or twist it with your fingers; the picture goes sharp again about a fifth of a second after you stop, even if your fingers stay on the glass. **High** always draws sharp. **Low** always draws at the lower resolution and without anti-aliasing (the smoothing of jagged edges), which is the lightest on a slow phone. The resolution changes at once when you choose. Anti-aliasing is fixed when the page loads, so changing to or from **Low** shows a note, and the smoothing changes the next time you open the page. On a phone or tablet with only a touchscreen the editor also uses at most two background workers for building the picture and keeps the last 16 MB of undo steps (a mouse and keyboard machine keeps the larger default, 64 MB, so the oldest undo steps of a very large edit go sooner on a phone).
+On a phone or tablet with WebGL2 the page switches to a layout made for fingers, with the same editor behind it: a full-screen picture, a **Menu** button, a bottom toolbar, round buttons for Undo, Redo, the check mark and the cross, and sheets that slide up for the palette, block state and selection. It is described in section 5. Without WebGL2 the page is still a viewer (see above). The **Turn** and **Tilt** sliders and the zoom buttons also exist in the **Menu** sheet.
 
 ## 3. Converting and the loss report
 
@@ -184,7 +138,7 @@ Block states are translated by rule, for stairs, slabs, doors, beds, logs and ot
 
 ## 4. The editor
 
-With a mouse and keyboard, a WebGL2 browser and a file open, the toolbar appears above the picture, and a column of panels appears on its left: the block palette, the block-state panel and the selection panel (which also holds **Block at coordinates**). The editor works in the **Orbit** camera only.
+With a mouse and keyboard, a WebGL2 browser and a file open, the toolbar appears above the picture, and a column of panels appears on its left: the block palette, the block-state panel and the selection panel (which also holds **Block at coordinates**). The editor works in the **Orbit** camera only. This section is about the desktop layout, with a mouse and keyboard; on a phone or tablet the same editor is driven by fingers, as section 5 describes.
 
 ### How the mouse works
 
@@ -289,7 +243,138 @@ The editor keeps block entities (chest contents, signs and so on) and entities b
 
 Edits live in the page. The browser asks before you close the tab, and the page asks before you open another file, if there are edits you have not exported. Exporting counts as saving. Undoing every edit also counts as nothing to lose.
 
-## 5. Exporting
+## 5. Using a touch screen
+
+The page uses the touch layout on a phone or tablet, or whenever the window is narrower than 1000 pixels or **Menu**, **Settings**, **Layout mode** says Mobile. It needs WebGL2, like the editor on a computer. Everything below is also available without a mouse or a keyboard. Section 4 describes the editor itself; this section is how a finger drives it.
+
+### 5.1 The layout
+
+- The **top bar** has the **Menu** button on the left and the file's status in the middle.
+- The **bottom toolbar** has the current block (tap it to open the palette), the tools (View, Place, Replace, Erase, Pick, Line, Rectangle, Select), and the **State** and **Select** buttons that open the Block State and Selection sheets. The tools are 48 pixel buttons; the row scrolls sideways if the screen is narrow.
+- The **line above the toolbar** shows the cell and block under the cursor, or what you have begun, and a short message after each action. With a block tapped, **Zoom** and **Edit state ›** sit at its right end.
+- The **thumb cluster** (bottom right) has **Undo**, **Redo**, the **cross** (drop what you began) and the **check mark** (apply it). The **nudge pad** appears beside it while something waits for the check mark. With **Left-handed controls** on in the settings, the cluster, the pad, the quick row of blocks and the toast all move to the left side.
+- **Sheets** slide up from the bottom for the palette, block state, selection and the menu. Drag the handle to resize a sheet, or tap it (or press Enter on it) to switch between half and full height. The **✕** button, a tap beside the sheet and Esc close it. Only one sheet is open at a time.
+- A **toast** with an Undo button appears under the top bar after every edit (section 5.6).
+
+### 5.2 Gestures
+
+What a finger does depends on the tool. One finger **uses the tool** when a tool other than View is chosen, and **turns the picture** with View. Two fingers always move the picture.
+
+| Gesture                      | With View                                                  | With another tool                                           |
+| ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
+| One finger, drag             | Turns the picture                                          | Paints a stroke (Place, Replace, Erase) or moves the cursor |
+| Tap                          | Outlines the block and shows **Edit state ›** and **Zoom** | Uses the tool once at the cursor, or sets a corner          |
+| Double tap                   | Moves the centre of the view to the block and comes closer | Belongs to the tool (the camera does not move)              |
+| Long press                   | Chooses the block under the finger                         | Chooses the block under the cursor, and keeps the tool      |
+| Two fingers, drag            | Move the picture sideways                                  | The same                                                    |
+| Pinch                        | Zoom                                                       | The same                                                    |
+| Twist                        | Turns the view like a dial                                 | The same                                                    |
+| Two-finger tap (optional)    | Undo                                                       | The same                                                    |
+| Three-finger tap (optional)  | Redo                                                       | The same                                                    |
+| A finger left after two lift | Keeps turning the picture, without a jump                  | The same; it never paints                                   |
+
+A second finger that lands while a tool is working cancels what the tool began (a stroke is taken back at once) and the two fingers move the picture instead. A two-finger tap during a tool gesture therefore never places anything.
+
+### 5.3 Placing blocks
+
+With **Place**, **Replace**, **Erase** or **Pick** chosen in the bottom toolbar, one finger on the picture does not turn the build. It drives a cursor that sits about 64 pixels above your fingertip (you can change that, see below), so your finger does not cover the block you are aiming at. A ring marks the cursor, and the block under it is outlined (with a ghost block next to it for Place):
+
+- **Tap** applies the tool once at the cursor, as one undo step. Pick chooses the block under the cursor and switches to Place.
+- **Drag** paints a stroke along the surface where it began, like the mouse does; lifting the finger ends it, and one **Undo** removes the whole stroke. A drag with Pick only moves the cursor.
+- **Long press** chooses the block under the cursor as the current block and keeps the tool you have.
+- **A second finger** cancels the stroke at once (the blocks it painted are removed) and the two fingers pan and zoom the view. A finger left down after that does not paint; it keeps turning the build.
+- **Sliding the finger onto the bottom toolbar, the Undo and Redo buttons or a sheet, or sliding the cursor off the top or a side of the picture,** cancels the stroke the same way.
+
+Choose **View** to turn the build with one finger again. The line above the toolbar says "place done" (or "erase done", and so on) after each edit; **Undo** is in the thumb cluster.
+
+### 5.4 Lines, rectangles, selections and the nudge pad
+
+**Line**, **Rectangle** and **Select** take two corners. Nothing changes until you confirm:
+
+- **Tap** a block: that sets corner **A** (Line and Rectangle use the cell next to the face you tapped, Select the block itself). The corner is outlined in yellow and the **nudge pad** appears next to the thumb cluster. **Tap** again: that sets corner **B**, and the result is previewed (a green box for a line or a rectangle, the blue selection box for Select). A rectangle's B is the cell under the cursor on A's plane, so it can be over empty space. Later taps move the corner that is active.
+- **Drag** one finger to move the active corner with the cursor, live; lifting leaves it there. A drag before corner A exists sets A where you lift. A second finger puts the corner back where it was before the drag, and the two fingers pan and zoom the view as always; the line, rectangle or selection you began stays, even after you pinch, pan or turn the view.
+- The **check mark** in the thumb cluster draws the line or rectangle (one **Undo** removes it) or makes the selection ("Selected 3 × 3 × 3"). With only corner A set it uses one block. The **cross** drops everything and changes nothing (Select goes back to the selection you had before corner A). Both are greyed out while nothing is pending. Choosing another tool, **Undo** or **Redo** also drops what you began.
+- The **line above the toolbar** shows the corners and the size, for example `A 6,8,3 ▸B 10,8,6 · 5×1×4` (the arrow marks the active corner), and the message next to it says what just happened.
+
+**The nudge pad.** Four arrows move the active corner one block along the ground the way they point on the screen (left, right, away from you, toward you), **Up** and **Down** move it one layer, and the **A B** button in the middle switches the corner the pad moves (the active letter is highlighted). Hold a button to repeat it (after about half a second, then ten times a second). With a rectangle, **Up** and **Down** move the whole rectangle one layer, and a **Hollow** button turns the hollow setting on and off. A move that would leave the visible layers, or make the build longer than 512 blocks, is refused with a message and nothing moves. The arrows follow the view: turn the view and "right" is still the way the screen's right points (when the view is exactly diagonal, "away" is along z and "right" along x). With **Left-handed controls** on, the pad and the thumb cluster move to the left side. The **Zoom** button in the bottom-left corner of the pad ("Zoom to the armed cell") brings the camera closer to the cell you are working on: it centres the view on the armed cell, the paste origin or the active corner (corner A while B is not set) and halves the distance to it, to no less than 4 blocks. It changes nothing pending, so you can zoom, nudge the cell by a block, and zoom again; the message line says "Zoomed in on 6, 1, 7".
+
+**Confirm each placement.** In **Menu**, **Settings**, turn on **Confirm each placement** (kept in this browser, off at the start). Then **Place**, **Replace** and **Erase** no longer act on a tap: a tap, or lifting the finger at the end of a drag, arms the cell under the cursor (a drag paints nothing), the nudge pad can move it, and the check mark applies the tool to that one cell (one **Undo** step). The cross drops it. **Pick** is not affected.
+
+**Paste.** After **Copy** in the Selection sheet, **Paste** there chooses the Paste tool and closes the sheet, so the picture is free for the tap. A tap arms the paste origin and draws the copied box as a green ghost; the nudge pad moves it; the check mark pastes (one **Undo** step; the "leave the target alone where there is air" setting applies), the cross cancels.
+
+### 5.5 Sheets: block state, selection and blocks
+
+**Looking at a block's state.** With **View**, a short tap on a block (not a drag, and not a long press) outlines it and shows an **Edit state ›** button at the right end of the line above the toolbar, next to the block's name and position. A tap on empty space clears both. With any other tool, the block you last tapped, armed or set a corner on is the one the button refers to. The button opens the **Block State** sheet (the **State** button in the toolbar opens the same sheet). The sheet covers the line above the toolbar, so it shows its own message line at the top ("set facing=north: 1 block changed").
+
+**The Block State sheet on a touch screen.** Each property of the block has the control that fits its values; every tap applies at once and is one **Undo** step:
+
+- A true / false property (`open`, `waterlogged`, `powered`, `lit`, ...) is a **switch**: tap to flip it.
+- A property with a few named values (`facing`, `half`, `shape`, `axis`, `type`, `hinge`, ...) is a row of **chips**, the current value pressed; long lists wrap onto more lines. Tapping the chip that is already pressed does nothing.
+- A number is a **stepper** (minus, the value, plus) when the property has many values (`rotation` and `power` run from 0 to 15 and stop at both ends); a number whose range is not known (`age`, `level`, ...) steps up from 0 with no top, since the editor cannot know where it ends. A number with eight values or fewer would be chips.
+- **Rotate block** turns a block clockwise: `facing` goes north, east, south, west and north again; `axis` goes x, y, z and x again. A block that faces up or down, or has neither property, has no such button.
+- **Other…** opens a text field for every property (any value can be typed) and a row to add a property that the block does not have yet. The field applies when you leave it.
+
+**The Selection sheet on a touch screen.** Fill, Replace, Rotate ↺ ↻, Mirror E–W and N–S, Move, Copy, Paste, Select all and Clear are all buttons of at least 44 px. **Replace** takes the block to replace from the text field, or from **Use inspected block**, which copies the block you last tapped. **Copy** says how many blocks it copied. **Move** is a pad of six arrows (the four ground directions as the screen shows them, **Up** and **Down**): each press moves the selected blocks one block and is one **Undo** step; hold a button to repeat it (each repeat is a step too); **×8** makes a step eight blocks. The typed block position and the typed selection corners are at the bottom of the sheet, for the rare case that needs them.
+
+**Selection steppers.** Open the **Selection** sheet (the **Select** button in the bottom toolbar) while a selection exists. Under its size, each of the six faces has **+1** (one more layer on that side) and **−1** (one layer less): **West** and **East** (the x faces), **Bottom** and **Top** (y), **North** and **South** (z). A selection cannot get smaller than one block in any direction, cannot grow outside the visible layers, and is at most 512 blocks long. These are not undo steps; a selection is not an edit.
+
+**Recent blocks and favourites.** The palette sheet has a row of chips above its search field: the blocks you starred (with a ★), then the last eight you chose, newest first. Tap a chip to choose that block; the sheet stays open. Every block in the list has a star on its right: tap it to add the block to your favourites (up to 32) or to remove it. A block counts as chosen when you tap it in the palette, tap a chip, pick it with **Pick**, or long press it. Whenever the row has something in it, the same chips are also shown in one row above the line over the toolbar (hidden while a corner or armed cell waits for confirmation, and while a sheet is open); it scrolls sideways inside itself. Both lists are kept in this browser only.
+
+### 5.6 Moving the view, and the undo toast
+
+**Getting closer, and turning the view with two fingers.** With the **View** tool, **double tap** a block (two quick taps, the second within about 0.3 seconds of the first and within about 24 pixels of it): the centre of the view moves onto that block and the camera comes half as close, down to 4 blocks away and no further, so a few double taps in a row bring a small detail up close. The first tap still outlines the block as a single tap does. A double tap on empty space does nothing, and a double tap with any other tool belongs to that tool (it never moves the camera). **Twist two fingers** like a dial to turn the view: the build turns the way your fingers turn (clockwise fingers, clockwise build, seen from above). Nothing moves until the twist passes about 10 degrees, which keeps a plain pinch or pan from turning the view by accident; after that the view follows every further turn of your fingers one for one, so it stays about 10 degrees behind them (it never jumps to catch up), and the pinch and the two-finger pan keep working during the same gesture. Moving two fingers up and down still pans the build, and the tilt is on the **Tilt** slider. If the twist gets in your way, turn off **Twist with two fingers to turn** in **Menu**, **Settings** (it is on at the start and kept in this browser).
+
+**Zoom, and the centre of the build.** After you tap a block, the **Zoom** button in the line above the toolbar does what a double tap does (and with any tool, not only View): the centre of the view moves onto the block and the camera comes half as close, to no less than 4 blocks. **Menu**, **View & Camera** has **Centre on the build**, which puts the centre of the view back on the middle of the whole build at a distance that fits it (the turn and the tilt stay), the way to get back after moving the picture away. It is the button for the two-finger move, together with Zoom.
+
+**The undo toast.** After every edit that adds an undo step (a tap, a stroke, a confirmed line, rectangle or paste, a fill, replace, move, rotate or mirror, a change of block state) a small bar under the top bar says what happened and how many blocks: "Placed 12 blocks", "Erased 1 block", "Filled 27 blocks", "Drew a line of 5 blocks". Its **Undo** button takes back exactly that step. The bar goes away after about four seconds; it also goes as soon as you edit again (the new edit gets its own bar), or undo or redo by any other means, because then its step is no longer the newest. Screen readers announce the words without moving the focus, and the bar does not slide in if the system asks for less motion. It stays clear of the thumb cluster, the nudge pad, the line above the toolbar and the toolbar.
+
+**Vibration.** Where the browser allows it, the phone buzzes for a moment when an edit is made and for a little longer when something is cancelled or refused (a stroke taken back by a second finger, the cross, a nudge that is not allowed). Nothing depends on it; turn it off with **Vibrate on edits**.
+
+### 5.7 Settings
+
+All of these are in **Menu**, **Settings**, apply at once and are kept in this browser only.
+
+| Setting                        | Choices                 | At the start | What it does                                                                                |
+| ------------------------------ | ----------------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| Layout mode                    | Auto, Mobile, Desktop   | Auto         | Auto picks the touch layout for narrow windows and touch-only devices; the others force one |
+| Left-handed controls           | on, off                 | off          | Mirrors the thumb cluster, the nudge pad, the quick row of blocks and the toast             |
+| Confirm each placement         | on, off                 | off          | Place, Replace and Erase arm a cell and wait for the check mark                             |
+| Twist with two fingers to turn | on, off                 | on           | A two-finger twist turns the view                                                           |
+| Vibrate on edits               | on, off                 | on           | A short buzz on an edit, a longer one on a cancel or a refusal                              |
+| Two-finger tap undoes          | on, off                 | off          | A quick tap with two fingers is Undo                                                        |
+| Three-finger tap redoes        | on, off                 | off          | A quick tap with three fingers is Redo                                                      |
+| Quality                        | Auto, High, Low         | Auto         | How sharp the picture is drawn, and whether it is less sharp while it moves                 |
+| Cursor distance                | 0 to 128 px, steps of 8 | 64 px        | How far above the fingertip the cursor sits; 0 puts it under the finger                     |
+
+Also kept in this browser: the recent and starred blocks, and whether you have seen the quick start card. There is also a **Help** text in the menu that sums up this section, and **Show tips** (section 5.8).
+
+**Quality.** In the **Menu** sheet, under **Settings**, **Quality** has three choices (kept in this browser, Auto at the start) for a phone that struggles with a big build. **Auto** draws sharp when the picture is still and at a lower resolution (one pixel per screen pixel instead of up to two) while you turn, pan, zoom or twist it with your fingers; the picture goes sharp again about a fifth of a second after you stop, even if your fingers stay on the glass. **High** always draws sharp. **Low** always draws at the lower resolution and without anti-aliasing (the smoothing of jagged edges), which is the lightest on a slow phone. The resolution changes at once when you choose. Anti-aliasing is fixed when the page loads, so changing to or from **Low** shows a note, and the smoothing changes the next time you open the page. On a phone or tablet with only a touchscreen the editor also uses at most two background workers for building the picture and keeps the last 16 MB of undo steps (a mouse and keyboard machine keeps the larger default, 64 MB, so the oldest undo steps of a very large edit go sooner on a phone).
+
+### 5.8 The quick start card
+
+The first time you open a file in the touch layout, a small card under the top bar lists three steps, and each one ticks itself when you do it: **Choose Place and tap the picture**, **Tap Undo** and **Open Menu and Export**. The card has no backdrop and does not cover the buttons it mentions, so you can use the picture while it is there. It closes when all three steps are done, or when you press its **✕** button, and then it does not come back. **Menu**, **Help**, **Show tips** shows it again with every step to do. A person who has the steps in mind can place a block, undo it and export in under a minute.
+
+### 5.9 Every gesture has a button
+
+| Gesture                                | Button that does the same                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| One-finger orbit, the finger left down | **Turn** and **Tilt** sliders in **Menu**, **View & Camera**                                           |
+| Twist                                  | The **Turn** slider                                                                                    |
+| Pinch                                  | **Zoom in** and **Zoom out** in the same place                                                         |
+| Two-finger move                        | **Centre on the build** in the same place, and **Zoom** beside the block in the line above the toolbar |
+| Double tap                             | **Zoom** beside the block in the line above the toolbar (works with any tool)                          |
+| Long press                             | The **Pick** tool                                                                                      |
+| Tap on a block in View                 | The **Edit state ›** button after a tap; the **State** button in the toolbar                           |
+| Two-finger tap                         | The **Undo** button (or the toast's)                                                                   |
+| Three-finger tap                       | The **Redo** button                                                                                    |
+| Dragging a corner                      | The arrows of the nudge pad                                                                            |
+| Holding a pad button to repeat         | Pressing it again; **×8** on the move pad takes eight blocks a step                                    |
+| Dragging a sheet                       | Tapping its handle (or Enter on it), and its **✕** button                                              |
+| Tap on empty space beside the sheet    | The **✕** button                                                                                       |
+
+Every button is at least 44 pixels square (48 pixels for the main ones), has a name for screen readers and can be reached with the Tab key in the order it appears on the screen.
+
+## 6. Exporting
 
 In the editor, the side panel's conversion section is called **Export**, and the button **Export and download**. It writes the build as it is now, edits included, to a new file in the format you chose. The text under the button says how many edits are included.
 
@@ -297,9 +382,9 @@ In the editor, the side panel's conversion section is called **Export**, and the
 - With edits, the download is named `<name>-edited.<extension>`. Without edits it is `<name>.<extension>`.
 - The loss report appears as for any conversion (see section 3).
 - Export runs on the main thread, so the page pauses while a very large build is encoded.
-- After an export, the autosave copy is deleted (see section 6).
+- After an export, the autosave copy is deleted (see section 7).
 
-## 6. Autosave and restore
+## 7. Autosave and restore
 
 While you have unexported edits, the page copies the volume into the browser's own storage (IndexedDB). It writes a few seconds after your last change (about 2 s), at the latest every 8 s while changes keep coming, and when the tab is hidden. The **Autosave** section of the side panel says what is happening: "Saved in this browser at ...", or a warning if the storage is full or unavailable.
 
@@ -312,7 +397,7 @@ There is one slot: the build you are editing.
 
 Autosave is for the editor. A page that cannot edit (software renderer) does not offer a restore.
 
-## 7. Your own resource pack or client jar
+## 8. Your own resource pack or client jar
 
 The **Textures** section tells you what the page is using:
 
@@ -331,12 +416,14 @@ To use your own, press **Use my own pack** and choose a resource pack (`.zip`) o
 
 The software renderer (no WebGL2) also uses your pack.
 
-## 8. Known limits
+## 9. Known limits
 
 Editing:
 
 - No editing in Fly mode. Switch to Orbit.
-- No editing with the software renderer (no WebGL2). On a touch screen every tool except View works through the offset cursor; Line, Rectangle, Select and Paste take two taps or one and the check mark, block state and the selection actions have touch controls, and the palette has recent blocks and favourites (text only, no block pictures yet). Toasts are still to come (see `docs/mobile-editor-plan.md`).
+- No editing with the software renderer (no WebGL2). On a touch screen every tool except View works through the offset cursor (section 5); the palette has recent blocks and favourites, text only, with no block pictures yet.
+- The touch editor has been tried only in an emulated phone so far, not on a real one. How large a build it handles smoothly on a phone is not known yet and is the one open question of the touch plan (`docs/mobile-editor-plan.md`). The page reads a file on its main thread, so a large file freezes it for a moment, longer on a phone than the 0.4 s of the development machine.
+- Undo history is not kept when you close the tab (the autosave restores the edits, not the undo steps).
 - Selections are boxes. A drag chooses a box between two blocks, so you cannot select cells in empty air by dragging. Type the corners instead.
 - Mirror works east-west and north-south only. There is no vertical mirror.
 - Move uses typed offsets or the up and down buttons (on a touch screen, the move pad). There is no drag-to-move.

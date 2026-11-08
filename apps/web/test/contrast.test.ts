@@ -47,6 +47,13 @@ const PAIRS: [string, string, string][] = [
   ["#7a4f00", "#e2dccf", "the star on a favourite chip in the hotbar"],
   ["#ffd666", "#2b2925", "the star on a pressed hotbar chip and on the quick row over the picture"],
   ["#7a4f00", "#f4f1eb", "the star on a pressed chip of the quick row over the picture"],
+  ["#f4f1eb", "#2b2925", "the undo toast's words and the white-on-dark pill"],
+  ["#24221f", "#f4f1eb", "the Undo button in the toast"],
+  ["#2b2925", "#fffdf8", "the quick start card's title and steps; the help text in the menu"],
+  ["#5f594f", "#fffdf8", "a done step and the count in the quick start card"],
+  ["#ffffff", "#2e6930", "the tick of a done step in the quick start card"],
+  ["#2b2925", "#e2dccf", "Centre on the build and Show tips in the menu"],
+  ["#a8a194", "#24221f", "the file status in the top bar"],
   ["#1d4ed8", "#f4f1eb", "focus ring against the page (3:1 needed)"],
   ["#1d4ed8", "#fffdf8", "focus ring against the panels (3:1 needed)"],
 ];

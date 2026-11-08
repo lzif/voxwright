@@ -25,14 +25,14 @@ const size = $derived(big ? BIG_STEP : 1);
 const dirs = $derived(padDirections(azimuth));
 
 type Arrow = "away" | "left" | "right" | "toward" | "up" | "down";
-const arrows: readonly { id: Arrow; text: string; label: string }[] = [
-  { id: "away", text: "↑", label: "Move the selection away from the camera" },
-  { id: "left", text: "←", label: "Move the selection left" },
-  { id: "right", text: "→", label: "Move the selection right" },
-  { id: "toward", text: "↓", label: "Move the selection toward the camera" },
-  { id: "up", text: "Up", label: "Move the selection up" },
-  { id: "down", text: "Down", label: "Move the selection down" },
-];
+const arrow: Record<Arrow, { text: string; label: string }> = {
+  away: { text: "↑", label: "Move the selection away from the camera" },
+  left: { text: "←", label: "Move the selection left" },
+  right: { text: "→", label: "Move the selection right" },
+  toward: { text: "↓", label: "Move the selection toward the camera" },
+  up: { text: "Up", label: "Move the selection up" },
+  down: { text: "Down", label: "Move the selection down" },
+};
 
 // A press acts at once, again after a moment, then steadily. A step that changed nothing (no
 // selection, a move that failed) ends the repeat.
@@ -58,24 +58,27 @@ const clicked = (e: MouseEvent, to: AxisStep): void => {
 onDestroy(() => repeater.stop());
 </script>
 
+{#snippet arrowButton(id: Arrow)}
+  {@const a = arrow[id]}
+  <button
+    type="button"
+    class="pad-btn {id}"
+    aria-label={a.label}
+    title={a.label}
+    data-testid={`move-${id}`}
+    data-axis={dirs[id].axis}
+    data-step={dirs[id].step}
+    onpointerdown={(e) => hold(e, dirs[id])}
+    onpointerup={release}
+    onpointercancel={release}
+    onpointerleave={release}
+    onclick={(e) => clicked(e, dirs[id])}
+    oncontextmenu={(e) => e.preventDefault()}
+  >{a.text}</button>
+{/snippet}
+
+<!-- The buttons are in reading order (row by row, as the grid shows them), so Tab goes the way the eye does. -->
 <div class="move-pad" role="group" aria-label="Move the selection" data-testid="move-pad">
-  {#each arrows as a (a.id)}
-    <button
-      type="button"
-      class="pad-btn {a.id}"
-      aria-label={a.label}
-      title={a.label}
-      data-testid={`move-${a.id}`}
-      data-axis={dirs[a.id].axis}
-      data-step={dirs[a.id].step}
-      onpointerdown={(e) => hold(e, dirs[a.id])}
-      onpointerup={release}
-      onpointercancel={release}
-      onpointerleave={release}
-      onclick={(e) => clicked(e, dirs[a.id])}
-      oncontextmenu={(e) => e.preventDefault()}
-    >{a.text}</button>
-  {/each}
   <button
     type="button"
     class="pad-btn big"
@@ -86,7 +89,13 @@ onDestroy(() => repeater.stop());
     data-testid="move-big"
     onclick={() => (big = !big)}
   >×8</button>
+  {@render arrowButton("away")}
+  {@render arrowButton("up")}
+  {@render arrowButton("left")}
   <output class="step-size" data-testid="move-step">{size === 1 ? "1 block" : `${size} blocks`} a step</output>
+  {@render arrowButton("right")}
+  {@render arrowButton("toward")}
+  {@render arrowButton("down")}
 </div>
 
 <style>

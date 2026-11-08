@@ -29,6 +29,18 @@ const fixtures = fileURLToPath(new URL("../../../fixtures/real/rafeals-house/", 
 const chromium = findChromium();
 const { url, plainUrl, server } = await serveSite();
 
+/**
+ * MB8 added a first-run card to the mobile layout. It is marked as seen before the page's scripts run,
+ * so it does not sit over the picture in the checks below (they are about sheets and gestures).
+ */
+function markIntroSeen(): void {
+  try {
+    localStorage.setItem("voxwright.touchintro", "done");
+  } catch {
+    // storage blocked: nothing to mark
+  }
+}
+
 interface CheckResult {
   suite: string;
   name: string;
@@ -87,6 +99,7 @@ try {
   console.log("\n=== SUITE 1: Extreme Visual Viewport Shrink & Virtual Keyboard Resilience ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
 
@@ -368,6 +381,7 @@ try {
   console.log("\n=== SUITE 2: Rapid Sheet Open/Close Cycling & Direct Sheet Switching ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
 
@@ -593,6 +607,7 @@ try {
   console.log("\n=== SUITE 3: Rapid Tool Switching Under Touch Emulation ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
 

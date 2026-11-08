@@ -84,7 +84,7 @@ node apps/web/scripts/build-pack.ts --from <dir>/<version>/client/assets/minecra
 
 When the page starts, it requests `pack/pack.json` relative to its own address (`apps/web/src/lib/assets.ts`, `fetchPack`). It treats the pack as missing, and draws flat colours, if the request fails, is not a success, or the response's `Content-Type` does not contain `json`.
 
-Visitors can also bring their own pack or a client jar in the page (the **Textures** section, `apps/web/src/lib/user-pack.ts`). That file is read inside their browser, never uploaded, and kept in their browser's IndexedDB. It is laid over the site's pack, or used alone if the site has none. See the user guide, section 7.
+Visitors can also bring their own pack or a client jar in the page (the **Textures** section, `apps/web/src/lib/user-pack.ts`). That file is read inside their browser, never uploaded, and kept in their browser's IndexedDB. It is laid over the site's pack, or used alone if the site has none. See the user guide, section 8.
 
 ## 4. Build
 
@@ -147,7 +147,7 @@ To serve the site at `https://example.org/tools/voxwright/`:
 
 What has been checked: the build output (`200.html` carries the base path, `index.html` stays relative, and a value with a trailing slash stops the build). Not checked: opening the site in a browser under a sub-path. No test covers it.
 
-The browser needs WebGL2 for the full viewer and editor. Without it the page falls back to a software renderer that can view and convert but not edit.
+The browser needs WebGL2 for the full viewer and editor. Without it the page falls back to a software renderer that can view and convert but not edit. On a phone or tablet the same files serve the touch layout, which the browser chooses at run time from the window width and the pointer type; there is nothing to build or configure for it, and no extra header. Its settings, the walkthrough mark and the recent blocks are kept in the visitor's browser (`localStorage`), never sent to the server. The project's touch test (`apps/web/test/touch-e2e.ts`) runs in CI against the same build, in a phone-sized emulated window; it has not been run on a real phone.
 
 ## 6. The footer and the source link
 

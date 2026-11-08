@@ -103,3 +103,5 @@ jobs:
       - run: pnpm --filter @voxwright/web build
       - name: Open a real schematic in Chrome
         run: node apps/web/test/e2e.ts
+      - name: Edit with touch in a phone-sized Chrome
+        run: node apps/web/test/touch-e2e.ts

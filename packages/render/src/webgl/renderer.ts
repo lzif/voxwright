@@ -565,7 +565,11 @@ export class WebglRenderer implements Renderer {
     return this.mode;
   }
 
-  /** Fit the whole volume in view from the default angle. */
+  /**
+   * Put the orbit camera back on the whole build: the target at its centre and the distance that
+   * fits it. The turn and the tilt stay. Called when a volume is set; the mobile menu's "Centre on
+   * the build" calls it too, so it asks for a frame itself.
+   */
   frameCamera(): void {
     const b = this.scheduler.bounds();
     if (b === null) return;
@@ -585,7 +589,7 @@ export class WebglRenderer implements Renderer {
     this.camera.far = Math.max(4000, this.orbit.distance * 8);
     this.fly.speed = Math.max(12, radius * 0.4);
     this.mode = "orbit";
-    this.needsRender = true;
+    this.requestFrame();
   }
 
   /**

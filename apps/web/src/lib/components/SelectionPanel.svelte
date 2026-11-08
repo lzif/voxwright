@@ -76,13 +76,7 @@ function pasteByTouch(): void {
 const status = $derived(session.error !== "" ? session.error : session.message);
 </script>
 
-<!-- On touch the selection comes first: its size, the face steppers and the actions are what the sheet is
-     opened for; the typed coordinates and corners come last. -->
-<div class="panels" class:touch>
-{#if touch}
-  <!-- The readout line is under the sheet, so the sheet repeats what it says (the live region is that line). -->
-  <p class="status" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
-{/if}
+{#snippet coordsPanel()}
 <section data-testid="coords-panel" aria-labelledby="coords-title">
   <h2 id="coords-title">Block at coordinates</h2>
   <div class="move">
@@ -96,6 +90,19 @@ const status = $derived(session.error !== "" ? session.error : session.message);
   </div>
   <p class="hint">Works with the keyboard alone. {span} The block state panel then shows that block.</p>
 </section>
+{/snippet}
+
+<!-- On touch the selection comes first: its size, the face steppers and the actions are what the sheet is
+     opened for; the typed coordinates come last. They are last in the markup too, not only on screen, so
+     the tab order is the reading order. -->
+<div class="panels" class:touch>
+{#if touch}
+  <!-- The readout line is under the sheet, so the sheet repeats what it says (the live region is that line). -->
+  <p class="status" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
+{/if}
+{#if !touch}
+  {@render coordsPanel()}
+{/if}
 
 <section data-testid="selection-panel">
   <h2>Selection</h2>
@@ -111,14 +118,15 @@ const status = $derived(session.error !== "" ? session.error : session.message);
   {:else}
     <p class="size" data-testid="selection-size">{size.join(" × ")} blocks</p>
     {#if touch}
-      <!-- One block per press, on one face at a time. Growing adds a layer on that side; shrinking takes one away. -->
+      <!-- One block per press, on one face at a time. Growing adds a layer on that side; shrinking takes one away.
+           The accessible name starts with the visible text ("+1", "−1"), so a voice command that says what is on the button works (WCAG 2.5.3). -->
       <div class="faces" role="group" aria-label="Resize the selection by one block" data-testid="face-steppers">
         {#each FACES as f (f.name)}
           {@const name = f.name.toLowerCase()}
           <div class="face" role="group" aria-label={`${f.name} face`}>
             <span class="face-name">{f.name}</span>
-            <button type="button" class="step" aria-label={`Grow the ${name} face by one block`} title={`${f.name} +1: one more layer on the ${name} side`} data-testid={`face-${name}-grow`} onclick={() => session.stepSelectionFace(f.axis, f.side, true)}>+1</button>
-            <button type="button" class="step" aria-label={`Shrink the ${name} face by one block`} title={`${f.name} −1: take one layer off the ${name} side`} data-testid={`face-${name}-shrink`} onclick={() => session.stepSelectionFace(f.axis, f.side, false)}>−1</button>
+            <button type="button" class="step" aria-label={`+1 ${f.name}: grow the ${name} face by one block`} title={`${f.name} +1: one more layer on the ${name} side`} data-testid={`face-${name}-grow`} onclick={() => session.stepSelectionFace(f.axis, f.side, true)}>+1</button>
+            <button type="button" class="step" aria-label={`−1 ${f.name}: shrink the ${name} face by one block`} title={`${f.name} −1: take one layer off the ${name} side`} data-testid={`face-${name}-shrink`} onclick={() => session.stepSelectionFace(f.axis, f.side, false)}>−1</button>
           </div>
         {/each}
       </div>
@@ -204,11 +212,14 @@ const status = $derived(session.error !== "" ? session.error : session.message);
     </div>
   {/if}
 </section>
+
+{#if touch}
+  {@render coordsPanel()}
+{/if}
 </div>
 
 <style>
   .panels.touch { display: flex; flex-direction: column; }
-  .panels.touch > [data-testid="coords-panel"] { order: 2; }
   h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #5f594f; }
   h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1rem 0 0.2rem; color: #5f594f; }
   .size { margin: 0 0 0.3rem; font-weight: 600; }

@@ -14,6 +14,8 @@ interface Options {
   /** Double-tap thresholds, when a test wants others than the defaults. */
   doubleTapMaxMs?: number;
   doubleTapSlopPx?: number;
+  /** Called with the finger count of a quick multi-finger tap, when a test wants to see it. */
+  multiTap?: (fingers: 2 | 3) => void;
 }
 
 function createHarness(options: Options = {}) {
@@ -41,6 +43,7 @@ function createHarness(options: Options = {}) {
   const router = new TouchRouter({
     target: () => (options.noTarget ? null : target),
     camera: (intent) => camera.push(intent),
+    multiTap: options.multiTap,
     doubleTapMaxMs: options.doubleTapMaxMs,
     doubleTapSlopPx: options.doubleTapSlopPx,
     // The arbiter's own timers never run; tests advance its clock with `stepTime`.
@@ -746,5 +749,103 @@ describe("double tap (the camera's)", () => {
     tap(h, 100, 200, 100, 160);
     expect(h.log).toEqual([]);
     expect(types(h.camera)).toEqual(["tap", "tap"]);
+  });
+});
+
+describe("multi-finger taps (multiTap)", () => {
+  /** A harness whose multiTap notes the call in the same log as the tool's calls, in order. */
+  const view = (options: Options = {}) => {
+    const h = createHarness(options);
+    return h;
+  };
+  const withLog = (options: Options = {}) => {
+    const calls: Array<2 | 3> = [];
+    const h = createHarness({ ...options, multiTap: (f) => calls.push(f) });
+    return { ...h, calls };
+  };
+
+  it("two fingers tapping quickly call multiTap(2) once, after both are up", () => {
+    const h = withLog({ toolActive: false });
+    h.feed(1, "down", 100, 300, 0);
+    h.feed(2, "down", 160, 300, 10);
+    h.feed(1, "up", 100, 300, 80);
+    expect(h.calls).toEqual([]);
+    h.feed(2, "up", 160, 300, 90);
+    expect(h.calls).toEqual([2]);
+    expect(types(h.camera)).toContain("multiFingerTap");
+  });
+
+  it("three fingers tapping quickly call multiTap(3)", () => {
+    const h = withLog({ toolActive: false });
+    h.feed(1, "down", 100, 300, 0);
+    h.feed(2, "down", 160, 300, 10);
+    h.feed(3, "down", 220, 300, 20);
+    h.feed(1, "up", 100, 300, 90);
+    h.feed(2, "up", 160, 300, 95);
+    h.feed(3, "up", 220, 300, 100);
+    expect(h.calls).toEqual([3]);
+  });
+
+  it("when the gesture began on the tool, the tool is cancelled first and never taps", () => {
+    const h = withLog({ toolActive: true });
+    h.feed(1, "down", 100, 300, 0);
+    expect(h.router.currentOwner).toBe("tool");
+    h.feed(2, "down", 160, 300, 20);
+    expect(h.log).toEqual(["move 100,300", "cancel"]);
+    h.feed(1, "up", 100, 300, 90);
+    h.feed(2, "up", 160, 300, 100);
+    expect(h.calls).toEqual([2]);
+    expect(h.log.filter((l) => l.startsWith("tap"))).toEqual([]);
+    expect(h.log.filter((l) => l.startsWith("strokeEnd"))).toEqual([]);
+    expect(h.log.at(-1)).toBe("cancel"); // the router did not call touchEnd: the tool was spent
+  });
+
+  it("two fingers that move, or stay too long, are no multiTap", () => {
+    const moved = withLog({ toolActive: false });
+    moved.feed(1, "down", 100, 300, 0);
+    moved.feed(2, "down", 160, 300, 10);
+    moved.feed(1, "move", 100, 340, 60);
+    moved.feed(2, "move", 160, 340, 60);
+    moved.feed(1, "up", 100, 340, 120);
+    moved.feed(2, "up", 160, 340, 130);
+    expect(moved.calls).toEqual([]);
+
+    const slow = withLog({ toolActive: false });
+    slow.feed(1, "down", 100, 300, 0);
+    slow.feed(2, "down", 160, 300, 10);
+    slow.feed(1, "up", 100, 300, 600);
+    slow.feed(2, "up", 160, 300, 610);
+    expect(slow.calls).toEqual([]);
+  });
+
+  it("a single tap, with the tool or the camera, is no multiTap", () => {
+    const tool = withLog({ toolActive: true });
+    tool.feed(1, "down", 100, 300, 0);
+    tool.feed(1, "up", 100, 300, 60);
+    const camera = withLog({ toolActive: false });
+    camera.feed(1, "down", 100, 300, 0);
+    camera.feed(1, "up", 100, 300, 60);
+    expect(tool.calls).toEqual([]);
+    expect(camera.calls).toEqual([]);
+  });
+
+  it("without a multiTap option the taps still reach the camera and nothing throws", () => {
+    const h = view({ toolActive: false });
+    h.feed(1, "down", 100, 300, 0);
+    h.feed(2, "down", 160, 300, 10);
+    h.feed(1, "up", 100, 300, 80);
+    h.feed(2, "up", 160, 300, 90);
+    expect(types(h.camera)).toContain("multiFingerTap");
+  });
+
+  it("works again for the next gesture", () => {
+    const h = withLog({ toolActive: false });
+    for (const t0 of [0, 1000]) {
+      h.feed(1, "down", 100, 300, t0);
+      h.feed(2, "down", 160, 300, t0 + 10);
+      h.feed(1, "up", 100, 300, t0 + 80);
+      h.feed(2, "up", 160, 300, t0 + 90);
+    }
+    expect(h.calls).toEqual([2, 2]);
   });
 });

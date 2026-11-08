@@ -41,6 +41,18 @@ const fixtures = fileURLToPath(new URL("../../../fixtures/real/rafeals-house/", 
 const chromium = findChromium();
 const { url, plainUrl, server } = await serveSite();
 
+/**
+ * MB8 added a first-run card to the mobile layout. It is marked as seen before the page's scripts run,
+ * so it does not sit over the picture in the checks below (they are about sheets and gestures).
+ */
+function markIntroSeen(): void {
+  try {
+    localStorage.setItem("voxwright.touchintro", "done");
+  } catch {
+    // storage blocked: nothing to mark
+  }
+}
+
 interface CheckResult {
   suite: string;
   name: string;
@@ -117,6 +129,7 @@ try {
 
   for (const vp of VIEWPORTS) {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -350,6 +363,7 @@ try {
 
   for (const vp of [VIEWPORTS[0], VIEWPORTS[2]]) {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     await page.setViewport({
       width: vp.width,
       height: vp.height,
@@ -414,6 +428,7 @@ try {
   console.log("\n=== SUITE 3: Rapid Layout Mode Toggling & Canvas Preservation ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -567,6 +582,7 @@ try {
   console.log("\n=== SUITE 4: BottomSheet Drag Physics, Snap States & Fling Calculations ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -799,6 +815,7 @@ try {
   console.log("\n=== SUITE 5: Ergonomics, Left-Handed Mode & Toolbar Scroll ===");
   {
     const page = await browser.newPage();
+    await page.evaluateOnNewDocument(markIntroSeen);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
     page.on("console", (m) => m.type() === "error" && errors.push(m.text()));

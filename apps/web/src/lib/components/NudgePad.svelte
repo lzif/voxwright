@@ -21,14 +21,14 @@ const twoPoint = $derived(pending !== null && isTwoPoint(pending) ? pending : nu
 const dirs = $derived(padDirections(azimuth));
 
 type Arrow = "away" | "left" | "right" | "toward" | "up" | "down";
-const arrows: readonly { id: Arrow; text: string; label: string }[] = [
-  { id: "away", text: "↑", label: "Move away from the camera" },
-  { id: "left", text: "←", label: "Move left" },
-  { id: "right", text: "→", label: "Move right" },
-  { id: "toward", text: "↓", label: "Move toward the camera" },
-  { id: "up", text: "Up", label: "Move up" },
-  { id: "down", text: "Down", label: "Move down" },
-];
+const arrow: Record<Arrow, { text: string; label: string }> = {
+  away: { text: "↑", label: "Move away from the camera" },
+  left: { text: "←", label: "Move left" },
+  right: { text: "→", label: "Move right" },
+  toward: { text: "↓", label: "Move toward the camera" },
+  up: { text: "Up", label: "Move up" },
+  down: { text: "Down", label: "Move down" },
+};
 
 // A held button acts at once, again after a moment, then steadily; a refused step ends the repeat.
 const repeater = new HoldRepeater();
@@ -50,7 +50,27 @@ $effect(() => {
 onDestroy(() => repeater.stop());
 </script>
 
+{#snippet arrowButton(id: Arrow)}
+  {@const a = arrow[id]}
+  <button
+    type="button"
+    class="pad-btn {id}"
+    aria-label={a.label}
+    title={a.label}
+    data-testid={`nudge-${id}`}
+    data-axis={dirs[id].axis}
+    data-step={dirs[id].step}
+    onpointerdown={(e) => hold(e, dirs[id])}
+    onpointerup={release}
+    onpointercancel={release}
+    onpointerleave={release}
+    onclick={(e) => clicked(e, dirs[id])}
+    oncontextmenu={(e) => e.preventDefault()}
+  >{a.text}</button>
+{/snippet}
+
 {#if pending}
+  <!-- The buttons are in reading order (row by row, as the grid shows them), so Tab goes the way the eye does. -->
   <div
     class="nudge-pad"
     class:left-handed={leftHanded}
@@ -58,49 +78,6 @@ onDestroy(() => repeater.stop());
     aria-label="Nudge pad: move the armed cell"
     data-testid="nudge-pad"
   >
-    {#each arrows as a (a.id)}
-      <button
-        type="button"
-        class="pad-btn {a.id}"
-        aria-label={a.label}
-        title={a.label}
-        data-testid={`nudge-${a.id}`}
-        data-axis={dirs[a.id].axis}
-        data-step={dirs[a.id].step}
-        onpointerdown={(e) => hold(e, dirs[a.id])}
-        onpointerup={release}
-        onpointercancel={release}
-        onpointerleave={release}
-        onclick={(e) => clicked(e, dirs[a.id])}
-        oncontextmenu={(e) => e.preventDefault()}
-      >{a.text}</button>
-    {/each}
-
-    <button
-      type="button"
-      class="pad-btn zoom"
-      aria-label="Zoom to the armed cell"
-      title="Zoom in here: bring the camera closer to the armed cell"
-      data-testid="nudge-zoom"
-      onclick={() => session.focusPending()}
-    >Zoom</button>
-
-    {#if twoPoint}
-      {@const other = twoPoint.active === "a" ? "b" : "a"}
-      <button
-        type="button"
-        class="pad-btn corner"
-        aria-label={`Corner ${twoPoint.active.toUpperCase()} is active. Switch to corner ${other.toUpperCase()}`}
-        title="Switch corner"
-        data-testid="nudge-corner"
-        data-corner={twoPoint.active}
-        onclick={() => session.setActiveCorner(other)}
-      >
-        <span class="letter" class:on={twoPoint.active === "a"}>A</span>
-        <span class="letter" class:on={twoPoint.active === "b"}>B</span>
-      </button>
-    {/if}
-
     {#if pending.kind === "rectangle"}
       <button
         type="button"
@@ -112,6 +89,41 @@ onDestroy(() => repeater.stop());
         onclick={() => (session.hollow = !session.hollow)}
       >Hollow</button>
     {/if}
+
+    {@render arrowButton("away")}
+    {@render arrowButton("up")}
+    {@render arrowButton("left")}
+
+    {#if twoPoint}
+      {@const other = twoPoint.active === "a" ? "b" : "a"}
+      <!-- The name starts with the visible letters "A B" (WCAG 2.5.3, label in name). -->
+      <button
+        type="button"
+        class="pad-btn corner"
+        aria-label={`A B: corner ${twoPoint.active.toUpperCase()} is active. Switch to corner ${other.toUpperCase()}`}
+        title="Switch corner"
+        data-testid="nudge-corner"
+        data-corner={twoPoint.active}
+        onclick={() => session.setActiveCorner(other)}
+      >
+        <span class="letter" class:on={twoPoint.active === "a"}>A</span>
+        <span class="letter" class:on={twoPoint.active === "b"}>B</span>
+      </button>
+    {/if}
+
+    {@render arrowButton("right")}
+
+    <button
+      type="button"
+      class="pad-btn zoom"
+      aria-label="Zoom to the armed cell"
+      title="Zoom in here: bring the camera closer to the armed cell"
+      data-testid="nudge-zoom"
+      onclick={() => session.focusPending()}
+    >Zoom</button>
+
+    {@render arrowButton("toward")}
+    {@render arrowButton("down")}
   </div>
 {/if}
 

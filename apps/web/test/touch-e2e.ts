@@ -15,10 +15,13 @@
 // the two-finger twist with its setting.
 // The sixth suite (MB7) checks the Quality setting, dynamic resolution while a gesture moves the view,
 // and the limits of a touch-only device (two mesher workers, a 16 MB undo history).
+// The seventh suite (MB8) checks the undo toast, haptics, the optional multi-finger shortcuts, the
+// left-handed mirror, the first-run walkthrough, the buttons that stand in for gestures, the touch help,
+// and axe-core on the whole page in every mobile state, with the focus order of the sheets.
 // Run after `pnpm --filter @voxwright/web build`:
 //
 //   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
-//     [--only viewer|placement|two-point|selection-state|camera|quality]
+//     [--only viewer|placement|two-point|selection-state|camera|quality|polish]
 
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
@@ -29,9 +32,11 @@ import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { readLitematic, type Volume } from "@voxwright/core";
 import puppeteer, {
+  type Browser,
   type CDPSession,
   type ElementHandle,
   type KeyInput,
+  type Page,
   type TouchHandle,
 } from "puppeteer-core";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
@@ -53,7 +58,7 @@ const { values } = parseArgs({
   options: {
     shots: { type: "string" },
     chromium: { type: "string" },
-    /** Run one suite only while working on it: viewer, placement, two-point, selection-state, camera or quality. */
+    /** Run one suite only while working on it: viewer, placement, two-point, selection-state, camera, quality or polish. */
     only: { type: "string" },
   },
 });
@@ -68,6 +73,25 @@ export const ok = (cond: unknown, what: string): void => {
   if (!cond) throw new Error(`FAILED: ${what}`);
   checks.push(what);
 };
+
+/**
+ * A page of `browser` on which the mobile layout's first-run card (MB8) is marked as seen before the
+ * page's own scripts run, so it does not sit over the picture in the suites that are about something
+ * else. The `polish` suite opens its pages with plain `browser.newPage()` to see the card.
+ */
+async function newPage(browser: Browser): Promise<Page> {
+  const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => {
+    try {
+      if (localStorage.getItem("voxwright.touchintro") === null) {
+        localStorage.setItem("voxwright.touchintro", "done");
+      }
+    } catch {
+      // storage blocked: nothing to mark
+    }
+  });
+  return page;
+}
 
 /** Helper: dispatch a multi-step touch drag gesture via CDP Input.dispatchTouchEvent */
 export async function cdpTouchDrag(
@@ -234,7 +258,7 @@ export async function touchViewerSuite(): Promise<void> {
   });
 
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
 
     const errors: string[] = [];
@@ -727,7 +751,7 @@ export async function touchViewerSuite(): Promise<void> {
     }
 
     // 6. Desktop 1280x800 layout verification (zero regressions)
-    const desktopPage = await browser.newPage();
+    const desktopPage = await newPage(browser);
     try {
       await desktopPage.setViewport({ width: 1280, height: 800 });
       await desktopPage.goto(url);
@@ -794,7 +818,7 @@ export async function touchViewerSuite(): Promise<void> {
     // =========================================================================
     // PART 2: ?perf=1 Telemetry Overlay Presence & Metrics Verification
     // =========================================================================
-    const perfPage = await browser.newPage();
+    const perfPage = await newPage(browser);
     await perfPage.setViewport(MOBILE_VIEWPORT);
     perfPage.on("pageerror", (e) => errors.push(String(e)));
     perfPage.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -946,7 +970,7 @@ export async function touchPlacementSuite(): Promise<void> {
     args: chromiumArgs(true),
   });
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -1969,7 +1993,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     args: chromiumArgs(true),
   });
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -2362,7 +2386,7 @@ export async function touchTwoPointSuite(): Promise<void> {
       return { w: r.width, h: r.height, name: el.getAttribute("aria-label") };
     });
     ok(
-      corner.w >= 47.99 && corner.h >= 47.99 && /Corner B is active/.test(corner.name ?? ""),
+      corner.w >= 47.99 && corner.h >= 47.99 && /^A B: corner B is active/.test(corner.name ?? ""),
       t(`so does the A / B toggle (${corner.name})`),
     );
     // At azimuth 45 (a tie) away is +z and right is -x; the other four follow.
@@ -2764,12 +2788,23 @@ export async function touchTwoPointSuite(): Promise<void> {
     );
     const stepperNames = new Set(stepper.map((b) => b.name));
     ok(
-      ["west", "east", "bottom", "top", "north", "south"].every(
-        (f) =>
-          stepperNames.has(`Grow the ${f} face by one block`) &&
-          stepperNames.has(`Shrink the ${f} face by one block`),
+      ["west", "east", "bottom", "top", "north", "south"].every((f) => {
+        const label = f[0]?.toUpperCase() + f.slice(1);
+        return (
+          stepperNames.has(`+1 ${label}: grow the ${f} face by one block`) &&
+          stepperNames.has(`−1 ${label}: shrink the ${f} face by one block`)
+        );
+      }),
+      t(
+        "named +1 / −1 and the face first, then Grow / Shrink, for West, East, Bottom, Top, North and South",
       ),
-      t("named Grow / Shrink for West, East, Bottom, Top, North and South"),
+    );
+    ok(
+      stepper.every((b, i) => b.name.startsWith(i % 2 === 0 ? "+1" : "−1")) &&
+        (await page.$$eval('[data-testid="face-steppers"] button', (els) =>
+          els.every((el, i) => (el.textContent ?? "").trim() === (i % 2 === 0 ? "+1" : "−1")),
+        )),
+      t("each accessible name starts with the visible text of its button (WCAG 2.5.3)"),
     );
     const tapStep = (id: string): Promise<void> => tapButton(`[data-testid="${id}"]`);
     await tapStep("face-west-grow");
@@ -3207,7 +3242,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
   const DOOR_ON: Vec3 = [10, 4, 2]; // a tap with Place puts the door above this block: (10, 5, 2)
   const DOOR_AT: Vec3 = [10, 5, 2];
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -3491,17 +3526,9 @@ export async function touchSelectionStateSuite(): Promise<void> {
         ).axe;
         const root = document.querySelector(sel);
         if (root === null) return [`nothing matches ${sel}`];
-        // The sheet's own <header> counts as a second banner landmark next to the top bar's. That is
-        // BottomSheet's markup from MB3 and belongs to MB8's accessibility pass, so it is left out here.
-        // The face steppers of MB5 show "+1" and "-1" under longer names ("Grow the west face by one
-        // block"): axe's label-in-name rule objects, and the names are MB8's to settle.
-        const r = await axe.run(
-          { include: [root], exclude: [['[data-testid="face-steppers"]']] },
-          {
-            resultTypes: ["violations"],
-            rules: { "landmark-no-duplicate-banner": { enabled: false } },
-          },
-        );
+        // No rule is switched off and nothing is left out (MB8 fixed the two findings earlier
+        // milestones had excluded: the sheet's own <header> and the face steppers' names).
+        const r = await axe.run({ include: [root] }, { resultTypes: ["violations"] });
         return r.violations.map(
           (v) =>
             `${v.id} (${v.nodes
@@ -4578,7 +4605,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     // =========================================================================
     // The same edits through the desktop path, in a desktop-layout page
     // =========================================================================
-    const desk = await browser.newPage();
+    const desk = await newPage(browser);
     await desk.setViewport({ width: 1440, height: 900 });
     desk.on("pageerror", (e) => errors.push(String(e)));
     desk.on("console", (m) => m.type() === "error" && errors.push(m.text()));
@@ -4718,7 +4745,7 @@ export async function touchCameraSuite(): Promise<void> {
   });
   const TWIST_KEY = "voxwright.twist";
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -5499,7 +5526,7 @@ export async function touchQualitySuite(): Promise<void> {
   const KEY = "voxwright.quality";
   const MB = 1024 * 1024;
   try {
-    const page = await browser.newPage();
+    const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -5896,7 +5923,7 @@ export async function touchQualitySuite(): Promise<void> {
     );
 
     // -- the desktop page keeps the defaults ------------------------------------------------------
-    const desk = await browser.newPage();
+    const desk = await newPage(browser);
     try {
       desk.on("pageerror", (e) => errors.push(String(e)));
       await desk.setViewport({ width: 1280, height: 800, deviceScaleFactor: 3 });
@@ -5959,6 +5986,1542 @@ export async function touchQualitySuite(): Promise<void> {
   }
 }
 
+/**
+ * MB8, polish and accessibility: the undo toast, the haptics, the optional multi-finger shortcuts, the
+ * left-handed mirror of every floating control, the first-run walkthrough, the buttons that stand in
+ * for gestures, the touch help, and axe-core on the whole page in every mobile state (no rule
+ * switched off, nothing excluded), with the focus order of the sheets. Real touch events over CDP;
+ * `navigator.vibrate` is replaced by a recorder before the page's scripts run.
+ */
+export async function touchPolishSuite(): Promise<void> {
+  const t = (what: string): string => `[touch-polish] ${what}`;
+  const downloads = await mkdtemp(join(tmpdir(), "voxwright-mb8-"));
+  const browser = await puppeteer.launch({
+    executablePath: chromium,
+    headless: true,
+    args: chromiumArgs(true),
+  });
+  const INTRO_KEY = "voxwright.touchintro";
+  const HAPTICS_KEY = "voxwright.haptics";
+  const TWO_KEY = "voxwright.twofingerundo";
+  const THREE_KEY = "voxwright.threefingerredo";
+  const LEFT_KEY = "voxwright.lefthanded";
+  const VIEW_W = MOBILE_VIEWPORT.width;
+  type Rect = { x: number; y: number; w: number; h: number; right: number; bottom: number };
+  try {
+    // A plain page: the first-run card is shown to it, as to a first visit.
+    const page = await browser.newPage();
+    await page.setViewport(MOBILE_VIEWPORT);
+    await page.evaluateOnNewDocument(() => {
+      const w = window as unknown as { __vibes: number[] };
+      w.__vibes = [];
+      (navigator as unknown as { vibrate: (p: number) => boolean }).vibrate = (p: number) => {
+        w.__vibes.push(p);
+        return true;
+      };
+    });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+    page.on("dialog", (d) => void d.accept());
+    const cdp = await page.createCDPSession();
+    await cdp.send("Browser.setDownloadBehavior", {
+      behavior: "allow",
+      downloadPath: downloads,
+      eventsEnabled: true,
+    });
+
+    // -- helpers that talk to the page (as in the other suites) ---------------------------------
+    const tapButton = async (selector: string): Promise<void> => {
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ inline: "center", block: "center" });
+      }, selector);
+      const el = await page.$(selector);
+      let b = el === null ? null : await el.boundingBox();
+      for (let i = 0; el !== null && i < 30; i++) {
+        await sleep(40);
+        const next = await el.boundingBox();
+        const still = next !== null && b !== null && next.x === b.x && next.y === b.y;
+        b = next;
+        if (still) break;
+      }
+      if (b === null) throw new Error(`no box for ${selector}`);
+      await page.touchscreen.tap(b.x + b.width / 2, b.y + b.height / 2);
+      await sleep(150);
+    };
+    const startUp = async (): Promise<void> => {
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      await sleep(600);
+      if ((await page.$('[data-testid="restore-dialog"][open]')) !== null) {
+        await tapButton('[data-testid="discard"]');
+        await page.waitForFunction(
+          () => !document.querySelector('[data-testid="restore-dialog"][open]'),
+        );
+      }
+    };
+    const openFixture = async (): Promise<void> => {
+      const file = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await file.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await sleep(200);
+    };
+    const reload = async (): Promise<void> => {
+      await page.reload();
+      await startUp();
+      await openFixture();
+    };
+    const settleFrames = async (): Promise<void> => {
+      await sleep(150);
+      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    };
+    const tops = (): Promise<Top[]> =>
+      page.evaluate(() => {
+        const v = window.__voxwright as Vox;
+        const vol = v.volume();
+        const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
+        const [lo, hi] = vol.bounds() as [number[], number[]];
+        const out: Top[] = [];
+        for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+          for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+            for (let y = hi[1] as number; y >= (lo[1] as number); y--) {
+              const b = vol.get(x, y, z);
+              if (b === undefined || b === "minecraft:air") continue;
+              const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
+              const hit = pt === null ? null : s.pick(pt.x, pt.y);
+              if (
+                pt !== null &&
+                hit !== null &&
+                hit.position[0] === x &&
+                hit.position[1] === y &&
+                hit.position[2] === z &&
+                hit.normal[1] === 1
+              )
+                out.push({ pos: [x, y, z], pt, block: b });
+              break;
+            }
+          }
+        return out;
+      });
+    const pose = (): Promise<TouchPose> =>
+      page.evaluate(() =>
+        (
+          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
+        ).renderer.getPose(),
+      );
+    interface Snap {
+      tool: string;
+      block: string;
+      undoCount: number;
+      canUndo: boolean;
+      canRedo: boolean;
+      message: string;
+      error: string;
+      inspected: Vec3 | null;
+      pending: NonNullable<SessionView["pending"]> | null;
+      lastChange: SessionView["lastChange"];
+    }
+    const state = (): Promise<Snap> =>
+      page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session();
+        if (s === null) throw new Error("no editor session");
+        return JSON.parse(
+          JSON.stringify({
+            tool: s.tool,
+            block: s.block,
+            undoCount: s.undoCount,
+            canUndo: s.canUndo,
+            canRedo: s.canRedo,
+            message: s.message,
+            error: s.error,
+            inspected: s.inspected,
+            pending: s.pending,
+            lastChange: s.lastChange,
+          }),
+        ) as Snap;
+      });
+    const cells = async (): Promise<Map<string, string>> =>
+      new Map(
+        await page.evaluate(() => {
+          const v = (window.__voxwright as Vox).volume();
+          const [lo, hi] = v.placedBounds() as [number[], number[]];
+          const out: [string, string][] = [];
+          for (let x = lo[0] as number; x <= (hi[0] as number); x++)
+            for (let y = lo[1] as number; y <= (hi[1] as number); y++)
+              for (let z = lo[2] as number; z <= (hi[2] as number); z++) {
+                const b = v.get(x, y, z);
+                if (b !== undefined && b !== "minecraft:air") out.push([`${x},${y},${z}`, b]);
+              }
+          return out;
+        }),
+      );
+    const changed = async (before: Map<string, string>): Promise<string[]> => {
+      const now = await cells();
+      const keys = new Set([...before.keys(), ...now.keys()]);
+      return [...keys].filter((k) => before.get(k) !== now.get(k)).sort();
+    };
+    const setBlock = (block: string): Promise<void> =>
+      page.evaluate((b) => {
+        (window.__voxwright as Vox).session()!.chooseBlock(b); // as the palette does: the quick row learns it
+      }, block);
+    const quickTap = async (x: number, y: number): Promise<void> => {
+      const finger = await page.touchscreen.touchStart(x, y);
+      await sleep(40);
+      await finger.end();
+    };
+    const tapAt = async (x: number, y: number): Promise<void> => {
+      await quickTap(x, y);
+      await sleep(220);
+    };
+    const below = (p: { x: number; y: number }): { x: number; y: number } => ({
+      x: Math.round(p.x),
+      y: Math.round(p.y + OFFSET),
+    });
+    /** After a multi-finger gesture Chromium turns the next tap into a click only after a moment. */
+    const calm = (): Promise<void> => sleep(700);
+    /** Fingers down together for `hold` ms, then all up. */
+    const multiTap = async (points: { x: number; y: number }[], hold = 60): Promise<void> => {
+      const tp = points.map((p, i) => ({ x: p.x, y: p.y, id: i + 1 }));
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: tp });
+      await sleep(hold);
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      await calm();
+    };
+    const box = (sel: string): Promise<Rect> =>
+      page.$eval(sel, (el) => {
+        const b = el.getBoundingClientRect();
+        return { x: b.x, y: b.y, w: b.width, h: b.height, right: b.right, bottom: b.bottom };
+      });
+    const exists = async (sel: string): Promise<boolean> => (await page.$(sel)) !== null;
+    const overlaps = (a: Rect, b: Rect): boolean =>
+      a.x < b.right && b.x < a.right && a.y < b.bottom && b.y < a.bottom;
+    const stored = (k: string): Promise<string | null> =>
+      page.evaluate((name) => localStorage.getItem(name), k);
+    const vibes = (): Promise<number[]> =>
+      page.evaluate(() => (window as unknown as { __vibes: number[] }).__vibes.slice());
+    const clearVibes = (): Promise<void> =>
+      page.evaluate(() => {
+        (window as unknown as { __vibes: number[] }).__vibes.length = 0;
+      });
+    const text = (sel: string): Promise<string> =>
+      page.$eval(sel, (el) => (el.textContent ?? "").replace(/\s+/g, " ").trim());
+    const attr = (sel: string, name: string): Promise<string | null> =>
+      page.$eval(sel, (el, n) => el.getAttribute(n), name);
+    const openMenu = async (): Promise<void> => {
+      await tapButton('[data-testid="mobile-menu-btn"]');
+      await page.waitForSelector('[data-testid="menu-sheet"]', { timeout: 5000 });
+      await sleep(300);
+    };
+    const closeSheet = async (): Promise<void> => {
+      await tapButton('[data-testid="bottom-sheet-close"]');
+      await page.waitForFunction(
+        () => document.querySelector('[data-testid="bottom-sheet"]') === null,
+        { timeout: 5000 },
+      );
+    };
+    /** Tap a checkbox in the menu (opening the menu and closing it again). */
+    const setMenuCheckbox = async (testid: string, on: boolean): Promise<void> => {
+      await openMenu();
+      const sel = `[data-testid="${testid}"] input`;
+      const now = await page.$eval(sel, (el) => (el as HTMLInputElement).checked);
+      if (now !== on) await tapButton(sel);
+      await closeSheet();
+    };
+    const sheetRect = (): Promise<Rect> => box('[data-testid="bottom-sheet"]');
+    /** Put everything away: no sheet, no pending, View, nothing to undo. */
+    const reset = async (): Promise<void> => {
+      if (await exists('[data-testid="bottom-sheet"]')) await closeSheet();
+      await page.evaluate(() => {
+        const s = (window.__voxwright as Vox).session()!;
+        const raw = s as unknown as { cancelPending(): void };
+        raw.cancelPending();
+        s.setSelection(null);
+        s.setTool("navigate");
+        while (s.canUndo) s.undo();
+      });
+      await settleFrames();
+    };
+
+    // -- axe on the whole page, and the other checks every state gets ---------------------------
+    const axeSource = readFileSync(
+      createRequire(import.meta.url).resolve("axe-core/axe.min.js"),
+      "utf8",
+    );
+    const axeWhole = async (): Promise<{ violations: string[]; incomplete: number }> => {
+      await page.evaluate(axeSource);
+      return page.evaluate(async () => {
+        const axe = (
+          window as unknown as {
+            axe: {
+              run(
+                ctx: object,
+                options: object,
+              ): Promise<{
+                violations: { id: string; nodes: { target: unknown[] }[] }[];
+                incomplete: unknown[];
+              }>;
+            };
+          }
+        ).axe;
+        const r = await axe.run(document, { resultTypes: ["violations", "incomplete"] });
+        return {
+          violations: r.violations.map(
+            (v) =>
+              `${v.id} (${v.nodes
+                .slice(0, 3)
+                .map((n) => n.target.join(" "))
+                .join(" | ")})`,
+          ),
+          incomplete: r.incomplete.length,
+        };
+      });
+    };
+    /** Whole-page axe-core with every rule on, no horizontal scroll at 390 px, and a name on every control. */
+    const stateIsClean = async (label: string): Promise<void> => {
+      const r = await axeWhole();
+      ok(
+        r.violations.length === 0,
+        t(
+          `axe-core finds no violations on the whole page: ${label}${r.violations.length ? ` -- ${r.violations.join("; ")}` : ""}`,
+        ),
+      );
+      const wide = await page.evaluate(() => {
+        const sheet = document.querySelector('[data-testid="bottom-sheet-content"]');
+        return {
+          doc: document.documentElement.scrollWidth,
+          view: window.innerWidth,
+          sheet: sheet === null ? 0 : sheet.scrollWidth - sheet.clientWidth,
+        };
+      });
+      ok(
+        wide.doc <= wide.view && wide.sheet <= 0,
+        t(
+          `${label}: no horizontal scroll at ${wide.view} px (page ${wide.doc}, sheet +${wide.sheet})`,
+        ),
+      );
+      const unnamed = await page.evaluate(() => {
+        const out: string[] = [];
+        for (const el of document.querySelectorAll<HTMLElement>(
+          'button, [role="button"], [role="switch"], input:not([type="hidden"]), select, textarea',
+        )) {
+          const cs = getComputedStyle(el);
+          if (cs.display === "none" || cs.visibility === "hidden") continue;
+          if (el.closest('[aria-hidden="true"]') !== null) continue; // out of the accessibility tree
+          const labelled = el.getAttribute("aria-labelledby");
+          const byRef =
+            labelled !== null
+              ? labelled
+                  .split(/\s+/)
+                  .map((id) => document.getElementById(id)?.textContent ?? "")
+                  .join(" ")
+              : "";
+          const labels = (el as HTMLInputElement).labels;
+          const byLabel = labels && labels.length > 0 ? (labels[0]?.textContent ?? "") : "";
+          const name = (
+            el.getAttribute("aria-label") ||
+            byRef ||
+            byLabel ||
+            el.textContent ||
+            el.getAttribute("title") ||
+            ""
+          ).trim();
+          if (name === "") out.push(el.getAttribute("data-testid") ?? el.tagName.toLowerCase());
+        }
+        return out;
+      });
+      ok(
+        unnamed.length === 0,
+        t(`${label}: every control has a name${unnamed.length ? ` (${unnamed.join(", ")})` : ""}`),
+      );
+    };
+
+    // -- setup: a first visit ---------------------------------------------------------------------
+    await page.goto(url);
+    await startUp();
+    await openFixture();
+    const home = await pose();
+    const homeTarget = computeTarget(home);
+    const restoreCamera = async (): Promise<void> => {
+      await page.evaluate(
+        (p, target) => {
+          (window.__voxwright as Vox).renderer.setOrbit({
+            azimuth: p.azimuth,
+            elevation: p.elevation,
+            distance: p.distance,
+            target,
+          });
+        },
+        home,
+        homeTarget,
+      );
+      await settleFrames();
+    };
+    const all = await tops();
+    const canvasBox = await box('[data-testid="canvas"]');
+    /** Cells whose top a tap can reach with the cursor 64 px above the finger, well clear of the controls. */
+    const reachable = all
+      .filter((c) => {
+        const f = below(c.pt);
+        return f.y > 330 && f.y < 560 && f.x > 40 && f.x < 350 && c.pt.y > 250;
+      })
+      .sort(
+        (a, b) => Math.hypot(a.pt.x - 195, a.pt.y - 420) - Math.hypot(b.pt.x - 195, b.pt.y - 420),
+      );
+    const spread: Top[] = [];
+    for (const c of reachable) {
+      if (spread.every((o) => Math.hypot(o.pt.x - c.pt.x, o.pt.y - c.pt.y) > 36)) spread.push(c);
+      if (spread.length >= 8) break;
+    }
+    ok(spread.length >= 6, t(`the fixture has ${spread.length} well-spaced cells to tap`));
+    ok(canvasBox.w === VIEW_W, t("the canvas fills the 390 px viewport"));
+
+    // ==== 1. the first-run walkthrough ===========================================================
+    ok(await exists('[data-testid="touch-intro"]'), t("a first visit shows the quick start card"));
+    const steps = await page.$$eval('[data-testid="touch-intro"] li', (els) =>
+      els.map((el) => ({
+        text: (el.textContent ?? "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .replace(/^(Done|To do): /, ""),
+        done: el.getAttribute("data-done"),
+      })),
+    );
+    ok(
+      steps.length === 3 &&
+        steps[0]?.text === "Choose Place and tap the picture" &&
+        steps[1]?.text === "Tap Undo" &&
+        steps[2]?.text === "Open Menu and Export" &&
+        steps.every((s) => s.done === "false"),
+      t("it has the three steps, none done"),
+    );
+    ok(
+      (await text('[data-testid="touch-intro-count"]')) === "0 of 3 done",
+      t("and says 0 of 3 done"),
+    );
+    const intro = await box('[data-testid="touch-intro"]');
+    const topBar = await box('[data-testid="top-app-bar"]');
+    const barBottom = await box('[data-testid="bottom-toolbar"]');
+    const cluster = await box('[data-testid="thumb-cluster"]');
+    const menuBtn = await box('[data-testid="mobile-menu-btn"]');
+    const toolBtns = await page.$$eval('[data-testid="toolbar"] button', (els) =>
+      els.map((el) => {
+        const b = el.getBoundingClientRect();
+        return { x: b.x, y: b.y, w: b.width, h: b.height, right: b.right, bottom: b.bottom };
+      }),
+    );
+    ok(
+      intro.y >= topBar.bottom - 0.5 &&
+        !overlaps(intro, barBottom) &&
+        !overlaps(intro, cluster) &&
+        !overlaps(intro, menuBtn) &&
+        toolBtns.every((b) => !overlaps(intro, b)),
+      t(
+        `the card (y ${intro.y.toFixed(0)}-${intro.bottom.toFixed(0)}) covers none of the controls it points at: the Menu button, the tools, Undo`,
+      ),
+    );
+    ok(
+      !(await exists('[data-testid="bottom-sheet-backdrop"]')) &&
+        (await page.evaluate(
+          () => document.elementFromPoint(195, 420)?.getAttribute("data-testid") === "canvas",
+        )),
+      t("it has no backdrop: the picture under the screen's middle still gets the touch"),
+    );
+    const closeBtn = await box('[data-testid="touch-intro-close"]');
+    ok(
+      closeBtn.w >= 43.99 && closeBtn.h >= 43.99,
+      t(`its close button is at least 44 px (${closeBtn.w.toFixed(0)} x ${closeBtn.h.toFixed(0)})`),
+    );
+    ok(
+      (await attr('[data-testid="touch-intro-close"]', "aria-label")) === "Close the quick start",
+      t("and has a name"),
+    );
+    await stateIsClean("the walkthrough shown");
+
+    // Step 1: choose Place and tap the picture
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    const cell1 = spread[0] as Top;
+    const before1 = await cells();
+    await clearVibes();
+    await tapAt(below(cell1.pt).x, below(cell1.pt).y);
+    const s1 = await state();
+    const diff1 = await changed(before1);
+    ok(
+      s1.undoCount === 1 && diff1.length === 1,
+      t(`a tap with Place changes one block (${diff1.length})`),
+    );
+    ok(
+      (await attr('[data-testid="touch-intro"] li[data-step="edit"]', "data-done")) === "true" &&
+        (await attr('[data-testid="touch-intro"] li[data-step="undo"]', "data-done")) === "false" &&
+        (await text('[data-testid="touch-intro-count"]')) === "1 of 3 done",
+      t("the first step ticks itself: 1 of 3 done"),
+    );
+
+    // The toast that follows, and where it is
+    ok(
+      (await attr('[data-testid="undo-toast"]', "data-shown")) === "true" &&
+        (await text('[data-testid="undo-toast-text"]')) === "Placed 1 block",
+      t('the toast says "Placed 1 block"'),
+    );
+    ok(
+      s1.lastChange?.count === 1 && s1.lastChange.count === diff1.length,
+      t("and its count is the number of blocks the command changed"),
+    );
+    ok(
+      (await attr('[data-testid="undo-toast-text"]', "role")) === "status",
+      t("the words are in a role=status region"),
+    );
+    const toast = await box('[data-testid="undo-toast"]');
+    const readout = await box('[data-testid="bottom-toolbar"]');
+    const hotbar = (await exists('[data-testid="hotbar-compact"]'))
+      ? await box('[data-testid="hotbar-compact"]')
+      : null;
+    const cluster2 = await box('[data-testid="thumb-cluster"]');
+    ok(
+      toast.y >= topBar.bottom &&
+        !overlaps(toast, cluster2) &&
+        !overlaps(toast, readout) &&
+        (hotbar === null || !overlaps(toast, hotbar)) &&
+        !overlaps(toast, intro) &&
+        toast.bottom < cluster2.y,
+      t(
+        `the toast (y ${toast.y.toFixed(0)}-${toast.bottom.toFixed(0)}) is under the top bar and covers neither the thumb cluster, the readout line, the toolbar nor the walkthrough card`,
+      ),
+    );
+    const undoBtn = await box('[data-testid="undo-toast-undo"]');
+    ok(
+      undoBtn.h >= 47.99 && undoBtn.w >= 47.99,
+      t(`the toast's Undo is at least 48 px (${undoBtn.w.toFixed(0)} x ${undoBtn.h.toFixed(0)})`),
+    );
+    ok(
+      (await vibes()).join() === "10",
+      t(`one commit buzzed the phone for 10 ms (${(await vibes()).join(",")})`),
+    );
+    await stateIsClean("the toast and the walkthrough shown together");
+
+    // Step 2: tap Undo (the thumb cluster's)
+    await tapButton('[data-testid="undo"]');
+    const s2 = await state();
+    ok(s2.undoCount === 0 && (await changed(before1)).length === 0, t("Undo takes the block away"));
+    ok(
+      (await attr('[data-testid="touch-intro"] li[data-step="undo"]', "data-done")) === "true" &&
+        (await text('[data-testid="touch-intro-count"]')) === "2 of 3 done",
+      t("the second step ticks itself: 2 of 3 done"),
+    );
+    ok(
+      (await attr('[data-testid="undo-toast"]', "data-shown")) === "false" &&
+        (await text('[data-testid="undo-toast-text"]')) === "",
+      t("the toast is gone once the entry was undone another way"),
+    );
+    ok((await vibes()).join() === "10", t("undo does not buzz"));
+
+    // Step 3: open the menu and export
+    await openMenu();
+    ok(
+      (await attr('[data-testid="touch-intro"] li[data-step="export"]', "data-done")) === "false",
+      t("the card is still behind the menu with the third step undone"),
+    );
+    await tapButton('[data-testid="mobile-convert"]');
+    await page.waitForFunction(
+      () =>
+        document
+          .querySelector('[data-testid="touch-intro"] li[data-step="export"]')
+          ?.getAttribute("data-done") === "true" ||
+        document.querySelector('[data-testid="touch-intro"]') === null,
+      { timeout: 15000 },
+    );
+    ok(true, t("exporting ticks the third step"));
+    await page.waitForFunction(
+      () => document.querySelector('[data-testid="touch-intro"]') === null,
+      {
+        timeout: 5000,
+      },
+    );
+    ok(
+      (await stored(INTRO_KEY)) === "done",
+      t("with all three done the card closes by itself and the browser remembers it"),
+    );
+    await closeSheet();
+    await reload();
+    ok(
+      !(await exists('[data-testid="touch-intro"]')),
+      t("after a reload the card does not come back"),
+    );
+
+    // Show tips brings it back; closing it with the button is remembered too
+    await openMenu();
+    await tapButton('[data-testid="show-tips"]');
+    await sleep(200);
+    ok(
+      (await exists('[data-testid="touch-intro"]')) &&
+        !(await exists('[data-testid="bottom-sheet"]')) &&
+        (await text('[data-testid="touch-intro-count"]')) === "0 of 3 done",
+      t('"Show tips" in the menu shows the card again with every step to do, and closes the menu'),
+    );
+    await tapButton('[data-testid="touch-intro-close"]');
+    ok(
+      !(await exists('[data-testid="touch-intro"]')) && (await stored(INTRO_KEY)) === "done",
+      t("the close button closes it"),
+    );
+    await page.evaluate((k) => localStorage.removeItem(k), INTRO_KEY);
+    await reload();
+    ok(await exists('[data-testid="touch-intro"]'), t("without the stored mark it shows again"));
+    await tapButton('[data-testid="touch-intro-close"]');
+    await reload();
+    ok(
+      !(await exists('[data-testid="touch-intro"]')),
+      t("and a card closed with its button stays closed after a reload"),
+    );
+
+    // ==== 2. the undo toast ======================================================================
+    await clearVibes();
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    const before2 = await cells();
+    const cellA = spread[1] as Top;
+    const cellB = spread[2] as Top;
+    await tapAt(below(cellA.pt).x, below(cellA.pt).y);
+    const firstId = (await state()).lastChange?.id ?? -1;
+    await tapAt(below(cellB.pt).x, below(cellB.pt).y);
+    const s3 = await state();
+    ok(
+      s3.undoCount === 2 && (s3.lastChange?.id ?? -1) > firstId,
+      t("a second edit replaces the toast: it is the newest entry's"),
+    );
+    ok(
+      (await page.$$('[data-testid="undo-toast-undo"]')).length === 1,
+      t("there is one toast with one Undo"),
+    );
+    await tapButton('[data-testid="undo-toast-undo"]');
+    const s4 = await state();
+    const diff4 = await changed(before2);
+    ok(
+      s4.undoCount === 1 &&
+        diff4.length === 1 &&
+        diff4[0] === `${cellA.pos[0]},${cellA.pos[1] + 1},${cellA.pos[2]}`,
+      t(`the toast's Undo takes back only the newest edit; the first stays (${diff4.join(" ")})`),
+    );
+    ok(
+      (await attr('[data-testid="undo-toast"]', "data-shown")) === "false" &&
+        s4.lastChange === null,
+      t("and the toast is gone afterwards"),
+    );
+    ok(
+      (await vibes()).join() === "10,10",
+      t(`two commits buzzed twice, the Undo did not (${(await vibes()).join(",")})`),
+    );
+
+    // A stale toast cannot undo the wrong entry
+    const cellC = spread[3] as Top;
+    await tapAt(below(cellC.pt).x, below(cellC.pt).y);
+    const idC = (await state()).lastChange?.id ?? -1;
+    const staleUndone = await page.evaluate((id) => {
+      const s = (window.__voxwright as Vox).session() as unknown as {
+        undoChange(i: number): boolean;
+        undo(): void;
+      };
+      s.undo(); // the thumb cluster
+      return s.undoChange(id);
+    }, idC);
+    ok(
+      staleUndone === false && (await state()).undoCount === 1,
+      t("a toast whose entry was already undone cannot undo the one before it"),
+    );
+    await reset();
+
+    // The count is what the command changed: a stroke, a line
+    const run = ((): [Top, Top] | null => {
+      for (const a of all) {
+        const row = [1, 2, 3].map((d) =>
+          all.find(
+            (c) => c.pos[0] === a.pos[0] + d && c.pos[1] === a.pos[1] && c.pos[2] === a.pos[2],
+          ),
+        );
+        if (row.every((c) => c !== undefined)) {
+          const b = row[2] as Top;
+          const f = below(a.pt);
+          const g = below(b.pt);
+          if (
+            Math.min(f.y, g.y) > 200 &&
+            Math.max(f.y, g.y) < 620 &&
+            Math.min(f.x, g.x) > 20 &&
+            Math.max(f.x, g.x) < 370
+          )
+            return [a, b];
+        }
+      }
+      return null;
+    })();
+    ok(run !== null, t("the fixture has a straight run of four tops to paint along"));
+    if (run !== null) {
+      await tapButton('[data-testid="tool-place"]');
+      await setBlock(GOLD);
+      const beforeS = await cells();
+      const f = below(run[0].pt);
+      const g = below(run[1].pt);
+      await cdpTouchDrag(cdp, f, g, 10);
+      await sleep(300);
+      const sS = await state();
+      const dS = await changed(beforeS);
+      ok(
+        sS.undoCount === 1 &&
+          sS.lastChange !== null &&
+          sS.lastChange.count === dS.length &&
+          dS.length >= 2,
+        t(
+          `a stroke is one entry and the toast counts what it changed (${sS.lastChange?.text}, ${dS.length} cells)`,
+        ),
+      );
+      ok(
+        (await text('[data-testid="undo-toast-text"]')) === `Placed ${dS.length} blocks`,
+        t("and says so"),
+      );
+      const shownBefore = await attr('[data-testid="undo-toast"]', "data-shown");
+      await tapButton('[data-testid="undo-toast-undo"]');
+      const left = await changed(beforeS);
+      ok(
+        left.length === 0,
+        t(
+          `one press of the toast's Undo takes the whole stroke back (toast shown ${shownBefore}, ${left.length} cells left: ${left.join(" ")}, undo steps ${(await state()).undoCount})`,
+        ),
+      );
+    }
+    await reset();
+    {
+      await tapButton('[data-testid="tool-line"]');
+      await setBlock(GOLD);
+      const beforeL = await cells();
+      const a = spread[4] as Top;
+      const b = spread[5] as Top;
+      await tapAt(below(a.pt).x, below(a.pt).y);
+      await tapAt(below(b.pt).x, below(b.pt).y);
+      await tapButton('[data-testid="confirm"]');
+      const sL = await state();
+      const dL = await changed(beforeL);
+      ok(
+        sL.lastChange?.label === "line" &&
+          sL.lastChange.count === dL.length &&
+          /^Drew a line of \d+ blocks$/.test(await text('[data-testid="undo-toast-text"]')),
+        t(
+          `a confirmed line says "${sL.lastChange?.text}" and its count (${sL.lastChange?.count}) is the ${dL.length} cells that changed`,
+        ),
+      );
+      // the pad and the toast together: no overlap
+      await tapAt(below(spread[6]!.pt).x, below(spread[6]!.pt).y); // line armed again: corner A
+      await sleep(150);
+      const withPad =
+        (await exists('[data-testid="nudge-pad"]')) && (await state()).pending !== null;
+      const t2 = await box('[data-testid="undo-toast"]');
+      const shown = (await attr('[data-testid="undo-toast"]', "data-shown")) === "true";
+      if (withPad && shown) {
+        const pad = await box('[data-testid="nudge-pad"]');
+        const cl = await box('[data-testid="thumb-cluster"]');
+        const ro = await box('[data-testid="bottom-toolbar"]');
+        ok(
+          !overlaps(t2, pad) && !overlaps(t2, cl) && !overlaps(t2, ro),
+          t(
+            "with the nudge pad up too, the toast covers neither the pad, the cluster nor the toolbar",
+          ),
+        );
+        await stateIsClean("something pending with the toast shown");
+      } else {
+        ok(false, t(`the pad and the toast were up together (pad ${withPad}, toast ${shown})`));
+      }
+    }
+    await reset();
+
+    // The toast leaves by itself after about four seconds
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await tapAt(below((spread[7] as Top).pt).x, below((spread[7] as Top).pt).y);
+    ok((await attr('[data-testid="undo-toast"]', "data-shown")) === "true", t("a toast is up"));
+    await sleep(3000);
+    ok(
+      (await attr('[data-testid="undo-toast"]', "data-shown")) === "true",
+      t("it is still up after 3 s"),
+    );
+    await sleep(1500);
+    ok(
+      (await attr('[data-testid="undo-toast"]', "data-shown")) === "false" &&
+        (await state()).undoCount === 1,
+      t("and gone after about 4 s, with the edit kept"),
+    );
+    // It does not take the focus
+    const focusBefore = await page.evaluate(() => document.activeElement?.tagName ?? "");
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    const focusAfter = await page.evaluate(() => document.activeElement?.tagName ?? "");
+    ok(focusBefore === focusAfter, t(`showing a toast does not move the focus (${focusBefore})`));
+    // Reduced motion
+    const anim = (): Promise<string> =>
+      page.$eval('[data-testid="undo-toast"]', (el) => getComputedStyle(el).animationName);
+    await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "no-preference" }]);
+    await tapAt(below((spread[1] as Top).pt).x, below((spread[1] as Top).pt).y);
+    const withMotion = await anim();
+    await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
+    await tapAt(below((spread[2] as Top).pt).x, below((spread[2] as Top).pt).y);
+    const reduced = await anim();
+    ok(
+      withMotion !== "none" && reduced === "none",
+      t(`the toast slides in only without reduced motion (${withMotion} / ${reduced})`),
+    );
+    await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "no-preference" }]);
+    await reset();
+
+    // ==== 3. haptics =============================================================================
+    await openMenu();
+    ok(
+      (await page.$eval(
+        '[data-testid="haptics-input"]',
+        (el) => (el as HTMLInputElement).checked,
+      )) === true && (await stored(HAPTICS_KEY)) === null,
+      t('"Vibrate on edits" is on by default and nothing is stored yet'),
+    );
+    ok(
+      (await text('[data-testid="haptics-toggle"]')).includes("Vibrate on edits"),
+      t("it is named in the menu's Settings"),
+    );
+    await closeSheet();
+    await tapButton('[data-testid="tool-line"]');
+    await setBlock(GOLD);
+    await clearVibes();
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    await tapButton('[data-testid="cancel"]');
+    ok(
+      (await vibes()).join() === "20",
+      t(`cancelling a pending line buzzes for 20 ms (${(await vibes()).join(",")})`),
+    );
+    await clearVibes();
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    await tapAt(below((spread[1] as Top).pt).x, below((spread[1] as Top).pt).y);
+    await tapButton('[data-testid="confirm"]');
+    ok(
+      (await vibes()).join() === "10",
+      t(`confirming it buzzes for 10 ms (${(await vibes()).join(",")})`),
+    );
+    await reset();
+    // a refused nudge: only the layer above the cell is visible, so Down is refused
+    await tapButton('[data-testid="tool-line"]');
+    await tapAt(below((spread[3] as Top).pt).x, below((spread[3] as Top).pt).y);
+    await page.evaluate(
+      (y) => {
+        (window.__voxwright as Vox).session()!.setSlice({ y0: y, y1: y });
+      },
+      (spread[3] as Top).pos[1] + 1,
+    );
+    await clearVibes();
+    await tapButton('[data-testid="nudge-down"]');
+    const refused = await state();
+    ok(
+      refused.error !== "" && (await vibes()).join() === "20",
+      t(
+        `a refused nudge buzzes for 20 ms and says why (${(await vibes()).join(",")}: ${refused.error})`,
+      ),
+    );
+    await page.evaluate(() => {
+      (window.__voxwright as Vox).session()!.setSlice(null);
+    });
+    await reset();
+
+    // off: nothing buzzes, and it is remembered
+    await setMenuCheckbox("haptics-toggle", false);
+    ok((await stored(HAPTICS_KEY)) === "false", t("turning it off is stored as false"));
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await clearVibes();
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    ok(
+      (await state()).undoCount === 1 && (await vibes()).length === 0,
+      t("with it off an edit does not buzz"),
+    );
+    await reload();
+    await openMenu();
+    ok(
+      (await page.$eval(
+        '[data-testid="haptics-input"]',
+        (el) => (el as HTMLInputElement).checked,
+      )) === false,
+      t("and it stays off after a reload"),
+    );
+    await closeSheet();
+    await setMenuCheckbox("haptics-toggle", true);
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await clearVibes();
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    ok((await vibes()).join() === "10", t("turned on again, an edit buzzes"));
+    // A browser that refuses or throws changes nothing
+    await page.evaluate(() => {
+      (navigator as unknown as { vibrate: () => never }).vibrate = () => {
+        throw new Error("vibrate blocked");
+      };
+    });
+    const errorsBefore = errors.length;
+    await tapAt(below((spread[1] as Top).pt).x, below((spread[1] as Top).pt).y);
+    ok(
+      (await state()).undoCount === 2 && errors.length === errorsBefore,
+      t("a vibrate that throws neither stops the edit nor raises an error"),
+    );
+    await page.evaluate(() => {
+      delete (navigator as unknown as { vibrate?: unknown }).vibrate;
+      Object.defineProperty(navigator, "vibrate", { value: undefined, configurable: true });
+    });
+    await tapAt(below((spread[2] as Top).pt).x, below((spread[2] as Top).pt).y);
+    ok(
+      (await state()).undoCount === 3 && errors.length === errorsBefore,
+      t("and a browser without vibrate is fine too"),
+    );
+    await page.evaluate(() => {
+      (navigator as unknown as { vibrate: (p: number) => boolean }).vibrate = (p: number) => {
+        (window as unknown as { __vibes: number[] }).__vibes.push(p);
+        return true;
+      };
+    });
+    await reset();
+
+    // ==== 4. the multi-finger shortcuts ==============================================================
+    const openMenuSettings = async (): Promise<void> => {
+      await openMenu();
+      await page.$eval('[data-testid="two-finger-undo-toggle"]', (el) =>
+        el.scrollIntoView({ block: "center" }),
+      );
+      await sleep(200);
+    };
+    await openMenuSettings();
+    ok(
+      (await page.$eval(
+        '[data-testid="two-finger-undo-input"]',
+        (el) => (el as HTMLInputElement).checked,
+      )) === false &&
+        (await page.$eval(
+          '[data-testid="three-finger-redo-input"]',
+          (el) => (el as HTMLInputElement).checked,
+        )) === false &&
+        (await stored(TWO_KEY)) === null &&
+        (await stored(THREE_KEY)) === null,
+      t("both shortcuts are off by default"),
+    );
+    ok(
+      (await text('[data-testid="two-finger-undo-toggle"]')) === "Two-finger tap undoes" &&
+        (await text('[data-testid="three-finger-redo-toggle"]')) === "Three-finger tap redoes",
+      t('they are named "Two-finger tap undoes" and "Three-finger tap redoes"'),
+    );
+    await closeSheet();
+    const mid = { x: 195, y: 430 };
+    const two = [
+      { x: 150, y: 430 },
+      { x: 240, y: 430 },
+    ];
+    const three = [
+      { x: 120, y: 430 },
+      { x: 195, y: 430 },
+      { x: 270, y: 430 },
+    ];
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    ok((await state()).undoCount === 1, t("one block placed to undo"));
+    await multiTap(two);
+    ok((await state()).undoCount === 1, t("off: a two-finger tap does nothing"));
+    await page.evaluate(() => (window.__voxwright as Vox).session()!.undo());
+    await multiTap(three);
+    ok(
+      (await state()).canRedo === true && (await state()).undoCount === 0,
+      t("off: a three-finger tap does nothing"),
+    );
+    await page.evaluate(() => (window.__voxwright as Vox).session()!.redo());
+
+    await setMenuCheckbox("two-finger-undo-toggle", true);
+    ok(
+      (await stored(TWO_KEY)) === "true" && (await stored(THREE_KEY)) === null,
+      t("turning on the two-finger shortcut is stored, the other stays off"),
+    );
+    await multiTap(two);
+    ok(
+      (await state()).undoCount === 0 && (await state()).canRedo,
+      t("on: a two-finger tap undoes"),
+    );
+    await multiTap(three);
+    ok(
+      (await state()).undoCount === 0,
+      t("the two-finger setting does not make three fingers redo"),
+    );
+    await setMenuCheckbox("three-finger-redo-toggle", true);
+    await multiTap(three);
+    ok(
+      (await state()).undoCount === 1 && (await state()).canRedo === false,
+      t("on: a three-finger tap redoes"),
+    );
+    // A two-finger tap during a tool gesture never also places a block
+    const beforeT = await cells();
+    const f0 = below((spread[3] as Top).pt);
+    const second = { x: Math.min(350, f0.x + 90), y: f0.y };
+    const finger1 = await page.touchscreen.touchStart(f0.x, f0.y);
+    await sleep(80); // the tool's gesture has begun: the cursor shows
+    const reticleSeen = await page.evaluate(
+      () => (window.__voxwright as Vox).session()?.reticle !== null,
+    );
+    const finger2 = await page.touchscreen.touchStart(second.x, second.y);
+    await sleep(40);
+    await finger2.end();
+    await finger1.end();
+    await calm();
+    const afterT = await state();
+    const dT = await changed(beforeT);
+    ok(reticleSeen, t("(Place's cursor was showing when the second finger landed)"));
+    ok(
+      afterT.undoCount === 0 &&
+        !dT.some(
+          (k) =>
+            k ===
+            `${(spread[3] as Top).pos[0]},${(spread[3] as Top).pos[1] + 1},${(spread[3] as Top).pos[2]}`,
+        ),
+      t(
+        `a two-finger tap that began on Place undoes and places nothing at the cursor (undo steps ${afterT.undoCount}, changed ${dT.join(" ")})`,
+      ),
+    );
+    // In View too
+    await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session()!;
+      s.setTool("place");
+      s.placeAt([0, 0, 0], "minecraft:gold_block");
+      s.setTool("navigate");
+    });
+    const undoBefore = (await state()).undoCount;
+    await multiTap(two);
+    ok((await state()).undoCount === undoBefore - 1, t("and in View a two-finger tap undoes too"));
+    // moving fingers is not a tap
+    const undoNow = (await state()).undoCount;
+    await cdpTwoFingerPan(cdp, mid, { dx: 0, dy: 80 }, 80, 8);
+    await calm();
+    ok(
+      (await state()).undoCount === undoNow,
+      t("two fingers that move are a pan and undo nothing"),
+    );
+    await setMenuCheckbox("two-finger-undo-toggle", false);
+    await setMenuCheckbox("three-finger-redo-toggle", false);
+    ok(
+      (await stored(TWO_KEY)) === "false" && (await stored(THREE_KEY)) === "false",
+      t("turning them off again is stored"),
+    );
+    await reset();
+
+    // ==== 5. left-handed: every floating control mirrors ===================================================
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y); // fills the quick row and shows a toast
+    const rightHand = {
+      cluster: await box('[data-testid="thumb-cluster"]'),
+      toast: await box('[data-testid="undo-toast"]'),
+      hotbar: await box('[data-testid="hotbar-compact"]'),
+    };
+    ok(
+      rightHand.cluster.x > VIEW_W / 2 &&
+        rightHand.toast.right > VIEW_W - 20 &&
+        rightHand.hotbar.x < 20 &&
+        rightHand.hotbar.right <= rightHand.cluster.x,
+      t(
+        "right-handed: the cluster and the toast sit on the right, the quick row on the left of the cluster",
+      ),
+    );
+    await tapButton('[data-testid="tool-line"]');
+    await tapAt(below((spread[2] as Top).pt).x, below((spread[2] as Top).pt).y);
+    const padRight = await box('[data-testid="nudge-pad"]');
+    ok(
+      padRight.x > 0 && padRight.right <= (await box('[data-testid="thumb-cluster"]')).x,
+      t("right-handed: the pad is left of the cluster"),
+    );
+    await reset();
+    await setMenuCheckbox("left-handed-toggle", true);
+    ok((await stored(LEFT_KEY)) === "true", t("the left-handed setting is stored"));
+    await tapButton('[data-testid="tool-place"]');
+    await setBlock(GOLD);
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    const leftHand = {
+      cluster: await box('[data-testid="thumb-cluster"]'),
+      toast: await box('[data-testid="undo-toast"]'),
+      hotbar: await box('[data-testid="hotbar-compact"]'),
+      undo: await box('[data-testid="undo-toast-undo"]'),
+      text: await box('[data-testid="undo-toast-text"]'),
+    };
+    ok(
+      leftHand.cluster.right < VIEW_W / 2 &&
+        Math.abs(leftHand.cluster.x - (VIEW_W - rightHand.cluster.right)) < 1.5,
+      t("left-handed: the thumb cluster is the mirror image"),
+    );
+    ok(
+      leftHand.toast.x < 20 && Math.abs(leftHand.toast.x - (VIEW_W - rightHand.toast.right)) < 1.5,
+      t("left-handed: the toast is at the left edge, mirrored"),
+    );
+    ok(
+      leftHand.undo.right <= leftHand.text.x + 0.5 || leftHand.undo.x < leftHand.text.x,
+      t("and its Undo button is on the outer, thumb side"),
+    );
+    ok(
+      leftHand.hotbar.right > VIEW_W - 20 && leftHand.hotbar.x >= leftHand.cluster.right,
+      t("left-handed: the quick row is right of the cluster, against the right edge"),
+    );
+    await tapButton('[data-testid="tool-line"]');
+    await tapAt(below((spread[2] as Top).pt).x, below((spread[2] as Top).pt).y);
+    const padLeft = await box('[data-testid="nudge-pad"]');
+    const clusterL = await box('[data-testid="thumb-cluster"]');
+    ok(
+      padLeft.x >= clusterL.right && Math.abs(padLeft.x - (VIEW_W - padRight.right)) < 1.5,
+      t("left-handed: the nudge pad is right of the cluster, mirrored"),
+    );
+    await reset();
+    await setMenuCheckbox("left-handed-toggle", false);
+
+    // ==== 6. buttons for the gestures ================================================================
+    await restoreCamera();
+    // Zoom in the readout line = the double tap
+    const target = all.find(
+      (c) => c.pt.y > 300 && c.pt.y < 560 && c.pt.x > 60 && c.pt.x < 330,
+    ) as Top;
+    await reset();
+    await restoreCamera();
+    const doubleTapHere = async (): Promise<TouchPose> => {
+      await sleep(400);
+      await quickTap(target.pt.x, target.pt.y);
+      await sleep(80);
+      await quickTap(target.pt.x, target.pt.y);
+      await settleFrames();
+      return pose();
+    };
+    const byGesture = await doubleTapHere();
+    await restoreCamera();
+    await sleep(400);
+    await tapAt(target.pt.x, target.pt.y); // View: tap inspects
+    ok(
+      (await state()).inspected?.join() === target.pos.join() &&
+        (await exists('[data-testid="zoom-chip"]')),
+      t("tapping a block in View shows the Zoom button in the readout line"),
+    );
+    const zoomChip = await box('[data-testid="zoom-chip"]');
+    ok(
+      zoomChip.w >= 43.99 &&
+        zoomChip.h >= 43.99 &&
+        (await attr('[data-testid="zoom-chip"]', "aria-label")) === "Zoom to this block",
+      t(
+        `it is at least 44 px (${zoomChip.w.toFixed(0)} x ${zoomChip.h.toFixed(0)}) and named "Zoom to this block"`,
+      ),
+    );
+    ok(
+      (await text('[data-testid="zoom-chip"]')) === "Zoom",
+      t("and its visible text is in its name"),
+    );
+    const readoutBox = await box('[data-testid="bottom-toolbar"]');
+    ok(
+      zoomChip.bottom <= (await box('[data-testid="toolbar"]')).y + 1 && zoomChip.y >= readoutBox.y,
+      t("it sits in the readout line above the toolbar"),
+    );
+    await restoreCamera();
+    await tapAt(target.pt.x, target.pt.y);
+    await tapButton('[data-testid="zoom-chip"]');
+    await settleFrames();
+    const byButton = await pose();
+    const tg = computeTarget(byGesture);
+    const tb = computeTarget(byButton);
+    ok(
+      Math.hypot(tg[0] - tb[0], tg[1] - tb[1], tg[2] - tb[2]) < 0.05 &&
+        Math.abs(byGesture.distance - byButton.distance) < 0.05 &&
+        Math.abs(byButton.distance - home.distance / 2) < 0.05 &&
+        Math.hypot(
+          tb[0] - (target.pos[0] + 0.5),
+          tb[1] - (target.pos[1] + 0.5),
+          tb[2] - (target.pos[2] + 0.5),
+        ) < 0.05,
+      t(
+        `the Zoom button focuses exactly as a double tap does: target ${tb.map((v) => v.toFixed(2)).join(", ")}, distance ${byButton.distance.toFixed(2)}`,
+      ),
+    );
+    ok(
+      (await state()).message === `Zoomed in on ${target.pos.join(", ")}`,
+      t("and says what it did"),
+    );
+    // with a tool armed (a gesture would be the tool's)
+    await restoreCamera();
+    await tapButton('[data-testid="tool-erase"]');
+    await tapButton('[data-testid="zoom-chip"]');
+    await settleFrames();
+    ok(
+      Math.abs((await pose()).distance - home.distance / 2) < 0.05,
+      t("with a tool armed the button still zooms (a double tap would be the tool's)"),
+    );
+    await reset();
+    await restoreCamera();
+
+    // Centre on the build = what a pan is for
+    await page.evaluate((h) => {
+      (window.__voxwright as Vox).renderer.setOrbit({
+        target: [h[0] + 6, h[1] + 3, h[2] - 5],
+        distance: 6,
+      });
+    }, homeTarget);
+    await settleFrames();
+    const away = computeTarget(await pose());
+    await openMenu();
+    await tapButton('[data-testid="mobile-centre"]');
+    await settleFrames();
+    const centred = await pose();
+    const ct = computeTarget(centred);
+    ok(
+      Math.hypot(away[0] - homeTarget[0], away[1] - homeTarget[1], away[2] - homeTarget[2]) > 5 &&
+        Math.hypot(ct[0] - homeTarget[0], ct[1] - homeTarget[1], ct[2] - homeTarget[2]) < 0.5 &&
+        Math.abs(centred.distance - home.distance) < 1,
+      t(
+        `"Centre on the build" moves the target back to the middle of the build (from ${away.map((v) => v.toFixed(1)).join(", ")} to ${ct.map((v) => v.toFixed(1)).join(", ")})`,
+      ),
+    );
+    ok(
+      Math.abs(centred.azimuth - home.azimuth) < 0.5 &&
+        Math.abs(centred.elevation - home.elevation) < 0.5,
+      t("and leaves the turn and the tilt alone"),
+    );
+    const centreBtn = await box('[data-testid="mobile-centre"]');
+    ok(centreBtn.h >= 47.99, t("the button is at least 48 px tall"));
+    // The sliders and the zoom buttons
+    await page.$eval('[data-testid="mobile-azimuth"]', (el) => {
+      const input = el as HTMLInputElement;
+      input.value = "200";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await sleep(150);
+    ok(
+      Math.abs((await pose()).azimuth - 200) < 1,
+      t("the Turn slider turns the view (what a twist or a one-finger orbit does)"),
+    );
+    await page.$eval('[data-testid="mobile-elevation"]', (el) => {
+      const input = el as HTMLInputElement;
+      input.value = "20";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await sleep(150);
+    ok(Math.abs((await pose()).elevation - 20) < 1, t("the Tilt slider tilts it"));
+    const d0 = (await pose()).distance;
+    await tapButton('[data-testid="mobile-zoom-in"]');
+    const d1 = (await pose()).distance;
+    await tapButton('[data-testid="mobile-zoom-out"]');
+    await tapButton('[data-testid="mobile-zoom-out"]');
+    const d2 = (await pose()).distance;
+    ok(
+      d1 < d0 && d2 > d1 && Math.abs(d1 - d0 / 1.2) < 0.05,
+      t("Zoom in and Zoom out do what a pinch does"),
+    );
+    await closeSheet();
+    await restoreCamera();
+    // Pick tool = long press
+    const pickTarget = spread[0] as Top;
+    await tapButton('[data-testid="tool-eyedropper"]');
+    await setBlock("minecraft:stone");
+    await tapAt(below(pickTarget.pt).x, below(pickTarget.pt).y);
+    ok(
+      (await state()).block === (pickTarget.block.split("{")[0] as string),
+      t(
+        `the Pick tool chooses the block under the cursor (${(await state()).block}), as a long press does`,
+      ),
+    );
+    await reset();
+    // Undo and Redo buttons = the multi-finger taps
+    const ur = [await box('[data-testid="undo"]'), await box('[data-testid="redo"]')];
+    ok(
+      ur.every((b) => b.w >= 47.99 && b.h >= 47.99),
+      t("Undo and Redo are 48 px buttons, the stand-ins for the two- and three-finger taps"),
+    );
+    // The sheet's handle: tap or Enter instead of the drag
+    await tapButton('[data-testid="mobile-menu-btn"]');
+    await page.waitForSelector('[data-testid="menu-sheet"]');
+    await sleep(350);
+    const top0 = (await sheetRect()).y;
+    await tapButton('[data-testid="bottom-sheet-handle"]');
+    await sleep(350);
+    const top1 = (await sheetRect()).y;
+    await tapButton('[data-testid="bottom-sheet-handle"]');
+    await sleep(350);
+    const top2 = (await sheetRect()).y;
+    ok(
+      top1 < top0 - 100 && Math.abs(top2 - top0) < 2,
+      t(
+        `a tap on the sheet's handle switches it between half and full height (${top0.toFixed(0)} -> ${top1.toFixed(0)} -> ${top2.toFixed(0)})`,
+      ),
+    );
+    await page.focus('[data-testid="bottom-sheet-handle"]');
+    await page.keyboard.press("Enter");
+    await sleep(350);
+    const top3 = (await sheetRect()).y;
+    ok(top3 < top0 - 100, t("and so does Enter on it from a keyboard"));
+    ok(
+      (await attr('[data-testid="bottom-sheet-handle"]', "aria-expanded")) === "true",
+      t("which it announces with aria-expanded"),
+    );
+    await closeSheet();
+
+    // ==== 7. the touch help ===========================================================================
+    await openMenu();
+    const help = await text('[data-testid="touch-help"]');
+    ok(
+      /finger/.test(help) && /tap/i.test(help) && /Undo/.test(help) && /export/i.test(help),
+      t("the menu has a help text about fingers, taps, buttons and export"),
+    );
+    ok(
+      !/\b(click|mouse|Ctrl|Alt|Shift|right button|scroll|key)\b/i.test(help),
+      t("and it names no mouse, key or click"),
+    );
+    ok(
+      !(await exists('[data-testid="edit-help"]')),
+      t("the desktop help (edit-help) is not in the mobile layout"),
+    );
+    const titles = await page.$$eval('[data-testid="toolbar"] [data-tool]', (els) =>
+      els.map((el) => el.getAttribute("title") ?? ""),
+    );
+    ok(
+      titles.length === 8 && titles.every((x) => x !== "" && !/click|ctrl|\(\w\)$/i.test(x)),
+      t(`the tool tooltips speak of taps, with no click and no key (${titles.length})`),
+    );
+    await closeSheet();
+
+    // ==== 8. axe-core on the whole page in the mobile states, and the focus order ======================
+    await reset();
+    await restoreCamera();
+    await stateIsClean("editing, idle");
+
+    // palette sheet
+    await tapButton('[data-testid="active-block-swatch"]');
+    await page.waitForSelector('[data-testid="bottom-sheet"]');
+    await sleep(350);
+    await stateIsClean("the palette sheet open");
+    // block-state sheet (a stairs block)
+    await closeSheet();
+    const stairs = all.find(
+      (c) =>
+        c.block.includes("stairs") && c.pt.y > 260 && c.pt.y < 560 && c.pt.x > 40 && c.pt.x < 350,
+    ) as Top | undefined;
+    ok(stairs !== undefined, t("the fixture has a stairs block in reach"));
+    if (stairs !== undefined) {
+      await tapAt(stairs.pt.x, stairs.pt.y);
+      await tapButton('[data-testid="state-chip"]');
+      await page.waitForSelector('[data-testid="bottom-sheet"]');
+      await sleep(350);
+      await stateIsClean("the block-state sheet open");
+      await closeSheet();
+    }
+    await reset();
+    // selection sheet with the face steppers
+    await tapButton('[data-testid="tool-select"]');
+    await tapAt(below((spread[0] as Top).pt).x, below((spread[0] as Top).pt).y);
+    await tapAt(below((spread[1] as Top).pt).x, below((spread[1] as Top).pt).y);
+    await tapButton('[data-testid="confirm"]');
+    await tapButton('[data-testid="mobile-selection-toggle"]');
+    await page.waitForSelector('[data-testid="face-steppers"]');
+    await sleep(350);
+    ok(
+      (await page.$$('[data-testid="face-steppers"] button')).length === 12,
+      t("the selection sheet shows the face steppers"),
+    );
+    await stateIsClean("the selection sheet open, with the face steppers");
+    await closeSheet();
+    // something pending (the pad)
+    await reset();
+    await tapButton('[data-testid="tool-rectangle"]');
+    await setBlock(GOLD);
+    await tapAt(below((spread[4] as Top).pt).x, below((spread[4] as Top).pt).y);
+    ok(
+      await exists('[data-testid="nudge-pad"]'),
+      t("a rectangle's first corner brings up the pad"),
+    );
+    await sleep(4500); // let any toast go: this state is the pad alone
+    await stateIsClean(
+      "something pending, the nudge pad shown (a rectangle, with the Hollow toggle)",
+    );
+    await reset();
+    // the menu
+    await openMenu();
+    await stateIsClean("the menu sheet open");
+    await closeSheet();
+    // the walkthrough and the toast were checked above, in the states they showed in
+
+    // focus order in the sheets
+    const focusOrder = async (
+      label: string,
+      opts: { visual: boolean; max?: number },
+    ): Promise<void> => {
+      const info = await page.evaluate(() => {
+        const dlg = document.querySelector('[data-testid="bottom-sheet"]') as HTMLElement;
+        const content = dlg.querySelector('[data-testid="bottom-sheet-content"]') as HTMLElement;
+        content.scrollTop = 0;
+        const sel = "button, [href], input, select, textarea, [tabindex]";
+        const list = [...dlg.querySelectorAll<HTMLElement>(sel)].filter((el) => {
+          if (el === dlg || el.hasAttribute("disabled")) return false;
+          if (el.getAttribute("tabindex") === "-1") return false;
+          const cs = getComputedStyle(el);
+          // Not drawn at all (a parent is display: none) means Tab skips it.
+          if (el.getClientRects().length === 0 || cs.visibility === "hidden") return false;
+          if ((el as HTMLInputElement).type === "hidden") return false;
+          return true;
+        });
+        const rows = list.map((el, i) => {
+          el.setAttribute("data-fo", String(i));
+          const ref = el.getBoundingClientRect().width <= 2 ? (el.closest("label") ?? el) : el;
+          const r = ref.getBoundingClientRect();
+          return {
+            cy: r.top + r.height / 2,
+            left: r.left,
+            name: el.getAttribute("data-testid") ?? el.tagName,
+          };
+        });
+        return { rows, active: document.activeElement === dlg };
+      });
+      ok(info.active, t(`${label}: focus is in the sheet when it opens`));
+      const n = Math.min(info.rows.length, opts.max ?? info.rows.length);
+      const seen: number[] = [];
+      for (let i = 0; i < n; i++) {
+        await page.keyboard.press("Tab");
+        seen.push(
+          await page.evaluate(() => {
+            const a = document.activeElement;
+            const v = a?.getAttribute("data-fo");
+            return v === null || v === undefined ? -1 : Number(v);
+          }),
+        );
+      }
+      ok(
+        seen.every((v, i) => v === i),
+        t(
+          `${label}: Tab visits all ${n} controls in order, handle and close button first (${seen.join(",") === seen.map((_, i) => i).join(",") ? "in order" : seen.join(",")})`,
+        ),
+      );
+      ok(
+        info.rows[0]?.name === "bottom-sheet-handle" && info.rows[1]?.name === "bottom-sheet-close",
+        t(`${label}: the first two stops are the handle and the close button`),
+      );
+      if (opts.visual) {
+        const bad: string[] = [];
+        for (let i = 1; i < n; i++) {
+          const a = info.rows[i - 1] as { cy: number; left: number; name: string };
+          const b = info.rows[i] as { cy: number; left: number; name: string };
+          const lower = b.cy >= a.cy - 8;
+          const sameRow = Math.abs(b.cy - a.cy) <= 24;
+          if (!(lower && (!sameRow || b.left >= a.left - 2))) bad.push(`${a.name} -> ${b.name}`);
+        }
+        ok(
+          bad.length === 0,
+          t(
+            `${label}: the tab order is the visual order, top to bottom and left to right${bad.length ? ` (out of order: ${bad.join("; ")})` : ""}`,
+          ),
+        );
+      }
+    };
+    await openMenu();
+    await focusOrder("menu sheet", { visual: true });
+    await page.keyboard.press("Escape");
+    await sleep(300);
+    ok(
+      !(await exists('[data-testid="bottom-sheet"]')) &&
+        (await page.evaluate(() => document.activeElement?.getAttribute("data-testid"))) ===
+          "mobile-menu-btn",
+      t("Escape closes the sheet and the focus goes back to the Menu button"),
+    );
+    // selection sheet
+    await page.evaluate(() => {
+      const s = (window.__voxwright as Vox).session()!;
+      s.setSelection({ min: [2, 5, 2], max: [4, 6, 3] });
+    });
+    await tapButton('[data-testid="mobile-selection-toggle"]');
+    await page.waitForSelector('[data-testid="face-steppers"]');
+    await sleep(350);
+    await focusOrder("selection sheet", { visual: true });
+    await closeSheet();
+    // state sheet
+    if (stairs !== undefined) {
+      await tapAt(stairs.pt.x, stairs.pt.y);
+      await tapButton('[data-testid="state-chip"]');
+      await page.waitForSelector('[data-testid="bottom-sheet"]');
+      await sleep(350);
+      await focusOrder("block-state sheet", { visual: true });
+      await closeSheet();
+    }
+    // palette: narrow the list first, then every stop
+    await tapButton('[data-testid="active-block-swatch"]');
+    await page.waitForSelector('[data-testid="palette-search"]');
+    await sleep(350);
+    await tapButton('[data-testid="palette-search"]');
+    await page.keyboard.type("gold_b");
+    await sleep(300);
+    await page.evaluate(() => {
+      (document.querySelector('[data-testid="bottom-sheet-handle"]') as HTMLElement).focus();
+    });
+    await page.evaluate(() => {
+      (document.querySelector('[data-testid="bottom-sheet"]') as HTMLElement).focus();
+    });
+    await focusOrder("palette sheet", { visual: false });
+    await closeSheet();
+
+    // ==== 9. the desktop layout is not touched ==========================================================
+    const desk = await newPage(browser);
+    try {
+      desk.on("pageerror", (e) => errors.push(String(e)));
+      await desk.setViewport({ width: 1280, height: 800, deviceScaleFactor: 1 });
+      await desk.goto(url);
+      await desk.waitForFunction(
+        () =>
+          document
+            .querySelector('[data-testid="status"]')
+            ?.textContent?.startsWith("open a schematic"),
+        { timeout: 30000 },
+      );
+      const input = (await desk.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+      await input.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+      await desk.waitForFunction(
+        () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+        { timeout: 60000 },
+      );
+      const helpText = await desk.$eval('[data-testid="edit-help"]', (el) => el.textContent ?? "");
+      ok(
+        helpText.includes("hold Alt and drag to turn the view") &&
+          helpText.includes("Esc cancels") &&
+          !(await desk.$('[data-testid="touch-help"]')),
+        t("the desktop help text is unchanged and has no touch help"),
+      );
+      ok(
+        (await desk.$('[data-testid="undo-toast"]')) === null &&
+          (await desk.$('[data-testid="touch-intro"]')) === null &&
+          (await desk.$('[data-testid="top-overlays"]')) === null &&
+          (await desk.$('[data-testid="haptics-toggle"]')) === null,
+        t("the desktop layout has no toast, no walkthrough and no touch settings"),
+      );
+      await desk.evaluate(() => {
+        const s = (window.__voxwright as Vox).session()!;
+        s.placeAt([0, 0, 0], "minecraft:gold_block");
+      });
+      ok(
+        (await desk.evaluate(() => (window.__voxwright as Vox).session()?.lastChange?.text)) ===
+          "Placed 1 block" && (await desk.$('[data-testid="undo-toast"]')) === null,
+        t("an edit on desktop records the change but shows no toast"),
+      );
+    } finally {
+      await desk.close();
+    }
+
+    ok(
+      errors.length === 0,
+      t(
+        `no console errors throughout the polish run${errors.length ? `: ${errors.join(" | ")}` : ""}`,
+      ),
+    );
+  } finally {
+    await browser.close();
+    await rm(downloads, { recursive: true, force: true });
+  }
+}
+
 try {
   if (values.only === undefined || values.only === "viewer") await touchViewerSuite();
   if (values.only === undefined || values.only === "placement") await touchPlacementSuite();
@@ -5967,6 +7530,7 @@ try {
     await touchSelectionStateSuite();
   if (values.only === undefined || values.only === "camera") await touchCameraSuite();
   if (values.only === undefined || values.only === "quality") await touchQualitySuite();
+  if (values.only === undefined || values.only === "polish") await touchPolishSuite();
 } finally {
   server.close();
 }

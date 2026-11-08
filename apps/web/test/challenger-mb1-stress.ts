@@ -557,7 +557,7 @@ try {
   }
 
   console.log(
-    "\n--- TEST GROUP 6: Strict Coarse Pointer Desktop Toolbar Gating (MB1 Gate Invariant) ---",
+    "\n--- TEST GROUP 6: Coarse Pointer Gets The Mobile Editor, Not The Desktop Layout (MB1 viewer-only gate removed in MB3) ---",
   );
   {
     // 6A: Pure coarse pointer mobile session
@@ -596,61 +596,71 @@ try {
     );
     await mobilePage.evaluate(() => window.__voxwright?.renderer.whenIdle());
 
-    // In MB1, coarse pointer device MUST NOT mount toolbar, editor panels, or session
-    const mobileEditorGate = await mobilePage.evaluate(() => {
-      const tb = document.querySelector('[data-testid="toolbar"]');
+    // Since MB3 a touch-only device gets the mobile editor: a session, the bottom toolbar with the
+    // tools, Undo and Redo, and Export in the menu. What it must still NOT get is the desktop layout:
+    // the desktop tool bar, the side panels and the viewer-only note.
+    const mobileEditorGate = await mobilePage.evaluate(async () => {
+      const desktopTb = document.querySelector('[role="toolbar"][aria-label="Editing tools"]');
+      const mobileTb = document.querySelector(
+        '[role="toolbar"][aria-label="Mobile editing toolbar"]',
+      );
       const side = document.querySelector('[data-testid="editor-side"]');
       const undoBtn = document.querySelector('[data-testid="undo"]');
       const redoBtn = document.querySelector('[data-testid="redo"]');
       const toolBtns = document.querySelectorAll('[data-testid^="tool-"]');
-      const note = document.querySelector('[data-testid="edit-note"]')?.textContent ?? "";
-      const convertBtn =
-        document.querySelector('[data-testid="convert"]')?.textContent?.trim() ?? "";
+      const note = document.querySelector('[data-testid="edit-note"]');
       const sessionObj = window.__voxwright?.session();
+      (document.querySelector('[data-testid="mobile-menu-btn"]') as HTMLElement | null)?.click();
+      for (let i = 0; i < 50 && !document.querySelector('[data-testid="mobile-convert"]'); i++) {
+        await new Promise((r) => setTimeout(r, 40));
+      }
+      const convertBtn =
+        document.querySelector('[data-testid="mobile-convert"]')?.textContent?.trim() ?? "";
 
       return {
-        toolbarPresent: tb !== null,
+        desktopToolbarPresent: desktopTb !== null,
+        mobileToolbarPresent: mobileTb !== null,
         sidePanelsPresent: side !== null,
         undoPresent: undoBtn !== null,
         redoPresent: redoBtn !== null,
         toolCount: toolBtns.length,
-        hasViewerNote: note.includes("Editing needs a mouse and keyboard"),
-        isConvertMode: convertBtn === "Convert and download",
-        sessionIsNull: sessionObj === null,
+        hasViewerNote: note !== null,
+        isExportMode: convertBtn === "Export and download",
+        sessionIsActive: sessionObj !== null,
       };
     });
 
     check(
-      "Coarse pointer device strictly has NO desktop toolbar (MB1 gate)",
-      !mobileEditorGate.toolbarPresent,
-      `toolbarPresent=${mobileEditorGate.toolbarPresent}`,
+      "Coarse pointer device gets the mobile bottom toolbar and not the desktop tool bar (MB3)",
+      mobileEditorGate.mobileToolbarPresent && !mobileEditorGate.desktopToolbarPresent,
+      `mobile=${mobileEditorGate.mobileToolbarPresent}, desktop=${mobileEditorGate.desktopToolbarPresent}`,
     );
     check(
-      "Coarse pointer device strictly has NO editor side panels (MB1 gate)",
+      "Coarse pointer device strictly has NO editor side panels (desktop layout only)",
       !mobileEditorGate.sidePanelsPresent,
       `sidePanelsPresent=${mobileEditorGate.sidePanelsPresent}`,
     );
     check(
-      "Coarse pointer device has zero tool/undo/redo buttons",
-      !mobileEditorGate.undoPresent &&
-        !mobileEditorGate.redoPresent &&
-        mobileEditorGate.toolCount === 0,
-      `tools=${mobileEditorGate.toolCount}, undo=${mobileEditorGate.undoPresent}`,
+      "Coarse pointer device has the eight tool buttons and the Undo and Redo buttons (MB3)",
+      mobileEditorGate.undoPresent &&
+        mobileEditorGate.redoPresent &&
+        mobileEditorGate.toolCount === 8,
+      `tools=${mobileEditorGate.toolCount}, undo=${mobileEditorGate.undoPresent}, redo=${mobileEditorGate.redoPresent}`,
     );
     check(
-      "Coarse pointer displays viewer lockout hint note",
-      mobileEditorGate.hasViewerNote,
+      "Coarse pointer shows no viewer lockout note (it can edit)",
+      !mobileEditorGate.hasViewerNote,
       `hasViewerNote=${mobileEditorGate.hasViewerNote}`,
     );
     check(
-      "Coarse pointer displays 'Convert and download' instead of 'Export and download'",
-      mobileEditorGate.isConvertMode,
-      `isConvertMode=${mobileEditorGate.isConvertMode}`,
+      "Coarse pointer offers 'Export and download' in the menu instead of 'Convert and download'",
+      mobileEditorGate.isExportMode,
+      `isExportMode=${mobileEditorGate.isExportMode}`,
     );
     check(
-      "Coarse pointer session is strictly null in __voxwright hook",
-      mobileEditorGate.sessionIsNull,
-      `sessionIsNull=${mobileEditorGate.sessionIsNull}`,
+      "Coarse pointer has an editing session in the __voxwright hook",
+      mobileEditorGate.sessionIsActive,
+      `sessionIsActive=${mobileEditorGate.sessionIsActive}`,
     );
 
     await mobilePage.close();
