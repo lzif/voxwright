@@ -144,6 +144,21 @@ describe("modified UTF-8", () => {
     expect(() => decodeMutf8(Uint8Array.from([0xff]))).toThrow(NbtError);
     expect(() => decodeMutf8(Uint8Array.from([0xe2, 0x28, 0xa1]))).toThrow(NbtError);
   });
+
+  it("reads a character outside the BMP written as plain four-byte UTF-8", () => {
+    const plain = new TextEncoder().encode("🌼 Simple");
+    expect(decodeMutf8(plain)).toBe("🌼 Simple");
+    // what we write is still the six-byte surrogate form, and it reads back the same
+    expect(encodeMutf8("🌼")).toHaveLength(6);
+    expect(decodeMutf8(encodeMutf8("🌼"))).toBe("🌼");
+  });
+
+  it("rejects malformed four-byte sequences", () => {
+    expect(() => decodeMutf8(Uint8Array.from([0xf0, 0x9f, 0x8c]))).toThrow(NbtError); // truncated
+    expect(() => decodeMutf8(Uint8Array.from([0xf0, 0x80, 0x80, 0x80]))).toThrow(NbtError); // overlong
+    expect(() => decodeMutf8(Uint8Array.from([0xf4, 0x90, 0x80, 0x80]))).toThrow(NbtError); // > U+10FFFF
+    expect(() => decodeMutf8(Uint8Array.from([0xf8, 0x88, 0x80, 0x80, 0x80]))).toThrow(NbtError);
+  });
 });
 
 describe("gzip", () => {

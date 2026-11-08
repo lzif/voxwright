@@ -21,6 +21,12 @@ export function encodeMutf8(s: string): Uint8Array {
   return Uint8Array.from(out);
 }
 
+/**
+ * Decodes NBT strings. Besides modified UTF-8 it accepts a character outside the BMP written as
+ * one four-byte UTF-8 sequence, which several tools emit (for example an emoji in a schematic's
+ * name) instead of two three-byte surrogates. Encoding stays strict, so what we write is always
+ * valid modified UTF-8.
+ */
 export function decodeMutf8(bytes: Uint8Array): string {
   const units: number[] = [];
   let i = 0;
@@ -42,6 +48,13 @@ export function decodeMutf8(bytes: Uint8Array): string {
     } else if ((b & 0xf0) === 0xe0) {
       units.push(((b & 0x0f) << 12) | (cont(i + 1) << 6) | cont(i + 2));
       i += 3;
+    } else if ((b & 0xf8) === 0xf0) {
+      const cp = ((b & 0x07) << 18) | (cont(i + 1) << 12) | (cont(i + 2) << 6) | cont(i + 3);
+      // Refuse overlong forms and anything past U+10FFFF.
+      if (cp < 0x10000 || cp > 0x10ffff) throw new NbtError("invalid modified UTF-8 sequence");
+      const v = cp - 0x10000;
+      units.push(0xd800 | (v >> 10), 0xdc00 | (v & 0x3ff));
+      i += 4;
     } else {
       throw new NbtError("invalid modified UTF-8 sequence");
     }
