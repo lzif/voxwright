@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+name: pages
+
+# Publishes the web app at https://lzif.github.io/voxwright/.
+#
+# The site's texture pack is Faithful 32x (https://faithfulpack.net, Faithful License v4, copied to
+# pack/FAITHFUL-LICENSE.txt in the published site). Faithful ships textures only, so the block
+# states and block models come from Mojang's client assets, fetched here at build time. No Mojang
+# texture is published.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # Faithful-Resource-Pack/Faithful-32x-Java, branch 26.2. Bump this to take a newer pack.
+  FAITHFUL_REPO: https://github.com/Faithful-Resource-Pack/Faithful-32x-Java.git
+  FAITHFUL_COMMIT: dfe718ba6e714d51baa4bcd78781a529deec9d42
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mcbuilder
+          key: mcbuilder-assets-26.2
+      - name: Fetch vanilla assets (block states and models)
+        run: node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2
+      - name: Fetch Faithful 32x
+        run: |
+          git init -q "$RUNNER_TEMP/faithful"
+          cd "$RUNNER_TEMP/faithful"
+          git remote add origin "$FAITHFUL_REPO"
+          git sparse-checkout set --no-cone /LICENSE.txt /assets/minecraft/textures/block /assets/minecraft/textures/entity
+          git fetch --depth 1 --filter=blob:none origin "$FAITHFUL_COMMIT"
+          git checkout -q FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$FAITHFUL_COMMIT"
+      - name: Build the pack (vanilla JSON + Faithful textures)
+        run: |
+          V="$HOME/.cache/mcbuilder/26.2/client/assets/minecraft"
+          F="$RUNNER_TEMP/faithful"
+          A="$RUNNER_TEMP/pack-src"
+          mkdir -p "$A/models" "$A/textures"
+          cp -r "$V/blockstates" "$A/"
+          cp -r "$V/models/block" "$A/models/"
+          cp -r "$F/assets/minecraft/textures/block" "$F/assets/minecraft/textures/entity" "$A/textures/"
+          node apps/web/scripts/build-pack.ts --from "$A"
+          cp "$F/LICENSE.txt" apps/web/static/pack/FAITHFUL-LICENSE.txt
+      - run: pnpm --filter @voxwright/web build
+        env:
+          VOXWRIGHT_BASE_PATH: /voxwright
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

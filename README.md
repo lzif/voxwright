@@ -79,6 +79,16 @@ page); CI runs it after `e2e.ts`, on the same build. Build the site first. `node
 Guides: the [user guide](docs/user-guide.md) for people using the app, and the
 [self-hosting guide](docs/self-hosting.md) for people deploying their own copy.
 
+## Live site and credits
+
+The web app is published at https://lzif.github.io/voxwright/ by `.github/workflows/pages.yml`.
+
+Its built-in texture pack is [Faithful 32x](https://faithfulpack.net) (Faithful Resource Pack,
+[Faithful License](https://faithfulpack.net/license); a copy is published with the site at
+`pack/FAITHFUL-LICENSE.txt`). Faithful has textures only, so the block states and block models in
+that pack come from Minecraft's client assets, which belong to Mojang. They are fetched when the
+site is built and are not committed. Visitors can lay their own pack over it.
+
 ## Tooling
 
 - pnpm workspaces (`pnpm-workspace.yaml`)
