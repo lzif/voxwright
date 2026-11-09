@@ -1488,6 +1488,29 @@ onMount(() => {
     {/if}
   </div>
 
+<!-- Turn and Tilt where the thumb is, with no sheet to open: a small panel under the top bar, on the side the
+     left-handed setting leaves free. It gives way to every sheet. -->
+{#if isMobileLayout && info && activeSheet === "none"}
+  <div class="quick-view ore-panel" class:left-handed={leftHanded} role="group" aria-label="Turn and tilt" data-testid="quick-view">
+    <label class="ore-slider-field">
+      <span class="ore-field__label ore-type-caption">Turn</span>
+      <span class="ore-slider__control" style:--p={fraction(azimuth, 0, 359)}>
+        <input type="range" class="ore-slider__input" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="quick-azimuth" />
+        <span class="ore-slider__rail" aria-hidden="true"></span>
+      </span>
+      <output class="ore-slider__value ore-type-caption">{Math.round(azimuth)}°</output>
+    </label>
+    <label class="ore-slider-field">
+      <span class="ore-field__label ore-type-caption">Tilt</span>
+      <span class="ore-slider__control" style:--p={fraction(elevation, elevationMin, elevationMax)}>
+        <input type="range" class="ore-slider__input" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="quick-elevation" />
+        <span class="ore-slider__rail" aria-hidden="true"></span>
+      </span>
+      <output class="ore-slider__value ore-type-caption">{Math.round(elevation)}°</output>
+    </label>
+  </div>
+{/if}
+
 <!-- Mobile bottom sheets for Palette, State, Selection, and Menu -->
   {#if activeSheet === "palette" && session}
     <BottomSheet snap="half" title="Block palette" onclose={() => (activeSheet = "none")}>
@@ -1850,6 +1873,35 @@ onMount(() => {
 
   .mobile-engine {
     margin: 0;
+  }
+  .quick-view {
+    position: fixed;
+    z-index: 24;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    left: calc(8px + env(safe-area-inset-left, 0px));
+    width: min(240px, 62vw);
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .quick-view.left-handed {
+    left: auto;
+    right: calc(8px + env(safe-area-inset-right, 0px));
+  }
+  /* One line per slider: name, rail, value. */
+  .quick-view :global(label.ore-slider-field) {
+    grid-template-columns: 2.2rem minmax(0, 1fr) 2.6rem;
+    grid-template-areas: "name control value";
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .quick-view :global(.ore-slider__control) {
+    grid-area: control;
+  }
+  .quick-view :global(.ore-slider__value) {
+    grid-area: value;
+    text-align: right;
   }
   .view-actions {
     display: grid;

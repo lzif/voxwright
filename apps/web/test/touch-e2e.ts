@@ -3655,7 +3655,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     await axeClean("the readout line with the Edit state chip", '[data-testid="bottom-toolbar"]');
     // Empty space clears it
-    const sky = { x: 30, y: 130 };
+    const sky = { x: 350, y: 130 };
     ok(
       (await page.evaluate(
         (p) => (window.__voxwright as Vox).session()?.pick(p.x, p.y) ?? null,
