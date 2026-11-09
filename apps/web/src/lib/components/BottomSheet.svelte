@@ -10,12 +10,15 @@ let {
   title = "",
   onsnapchange,
   onclose,
+  peek = 160,
   children,
 }: {
   snap?: SnapPoint;
   title?: string;
   onsnapchange?: (snap: SnapPoint) => void;
   onclose?: () => void;
+  /** Height in px of the peek snap: a sheet that only holds a few controls can ask for more than the default. */
+  peek?: number;
   children?: Snippet;
 } = $props();
 
@@ -38,7 +41,7 @@ const isKeyboardOpen = $derived(
 );
 const displaySnap = $derived(isKeyboardOpen && snap !== "closed" ? "full" : snap);
 
-const peekHeight = 160;
+const peekHeight = $derived(peek);
 /** A touch on the handle that moves less than this and lets go within this time is a tap. */
 const TAP_SLOP_PX = 6;
 const TAP_MAX_MS = 500;

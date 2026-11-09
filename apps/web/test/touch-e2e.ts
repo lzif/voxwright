@@ -7221,7 +7221,9 @@ export async function touchPolishSuite(): Promise<void> {
     }, homeTarget);
     await settleFrames();
     const away = computeTarget(await pose());
-    await openMenu();
+    await tapButton('[data-testid="mobile-view-btn"]');
+    await page.waitForSelector('[data-testid="mobile-centre"]', { timeout: 5000 });
+    await sleep(300);
     await tapButton('[data-testid="mobile-centre"]');
     await settleFrames();
     const centred = await pose();

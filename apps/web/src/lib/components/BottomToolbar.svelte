@@ -3,7 +3,7 @@
 import { TOOLS, touchToolTitle } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
 
-export type SheetType = "none" | "palette" | "blockstate" | "selection" | "menu";
+export type SheetType = "none" | "palette" | "blockstate" | "selection" | "menu" | "view";
 
 let {
   session,

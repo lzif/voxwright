@@ -1197,6 +1197,13 @@ onMount(() => {
       <h1 class="mobile-logo ore-type-heading">voxwright</h1>
       <p id="status" class="mobile-status ore-type-caption" data-testid="status" role="status">{status}</p>
     </div>
+    <button
+      type="button"
+      class="mobile-view-btn ore-btn ore-btn--secondary ore-btn--touch ore-type-label"
+      onclick={() => toggleSheet("view")}
+      aria-label="Open view and camera"
+      data-testid="mobile-view-btn"
+    >View</button>
     <p class="engine mobile-engine ore-tag ore-type-caption" data-testid="renderer" data-kind={kind}>
       {kind === "webgl" ? "GPU" : kind === "cpu" ? "software" : ""}
     </p>
@@ -1494,6 +1501,56 @@ onMount(() => {
     <BottomSheet snap="half" title="Selection" onclose={() => (activeSheet = "none")}>
       <SelectionPanel {session} touch {azimuth} onpaste={() => (activeSheet = "none")} />
     </BottomSheet>
+  {:else if activeSheet === "view"}
+    <!-- A short sheet: the picture stays in sight above it while the camera is moved. Drag it up for more room. -->
+    <BottomSheet snap="peek" peek={350} title="View &amp; camera" onclose={() => (activeSheet = "none")}>
+      <div class="mobile-menu-body" data-testid="view-sheet">
+        {#if kind === "webgl"}
+          <div class="view-actions" role="group" aria-label="Zoom and centre">
+            <button type="button" class="ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={() => zoom(1 / 1.2)} data-testid="mobile-zoom-in">Zoom in</button>
+            <button type="button" class="ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={() => zoom(1.2)} data-testid="mobile-zoom-out">Zoom out</button>
+            {#if info}
+              <button type="button" class="ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={centreOnBuild} aria-label="Centre on the build" data-testid="mobile-centre">Centre</button>
+            {/if}
+          </div>
+        {/if}
+        <label class="ore-slider-field">
+          <span class="ore-field__label ore-type-label">Turn</span>
+          <span class="ore-slider__control" style:--p={fraction(azimuth, 0, 359)}>
+            <input type="range" class="ore-slider__input" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-azimuth" />
+            <span class="ore-slider__rail" aria-hidden="true"></span>
+          </span>
+          <output class="ore-slider__value ore-type-label">{Math.round(azimuth)}°</output>
+        </label>
+        <label class="ore-slider-field">
+          <span class="ore-field__label ore-type-label">Tilt</span>
+          <span class="ore-slider__control" style:--p={fraction(elevation, elevationMin, elevationMax)}>
+            <input type="range" class="ore-slider__input" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-elevation" />
+            <span class="ore-slider__rail" aria-hidden="true"></span>
+          </span>
+          <output class="ore-slider__value ore-type-label">{Math.round(elevation)}°</output>
+        </label>
+        {#if info}
+          <h4 class="ore-type-label">Layers</h4>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">From</span>
+            <span class="ore-slider__control" style:--p={fraction(yMin, 0, info.size[1] - 1)}>
+              <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymin" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{yMin}</output>
+          </label>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">To</span>
+            <span class="ore-slider__control" style:--p={fraction(yMax, 0, info.size[1] - 1)}>
+              <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymax" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{yMax}</output>
+          </label>
+        {/if}
+      </div>
+    </BottomSheet>
   {:else if activeSheet === "menu"}
     <BottomSheet snap="half" title="Menu" onclose={() => (activeSheet = "none")}>
       <div class="mobile-menu-body" data-testid="menu-sheet">
@@ -1540,54 +1597,6 @@ onMount(() => {
               <p class="hint ore-type-prose ore-muted" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
             {/if}
           </div>
-        </section>
-
-        <section class="menu-grp ore-panel">
-          <h3 class="ore-panel__header ore-type-heading">View &amp; camera</h3>
-          <label class="ore-slider-field">
-            <span class="ore-field__label ore-type-label">Turn</span>
-            <span class="ore-slider__control" style:--p={fraction(azimuth, 0, 359)}>
-              <input type="range" class="ore-slider__input" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-azimuth" />
-              <span class="ore-slider__rail" aria-hidden="true"></span>
-            </span>
-            <output class="ore-slider__value ore-type-label">{Math.round(azimuth)}°</output>
-          </label>
-          <label class="ore-slider-field">
-            <span class="ore-field__label ore-type-label">Tilt</span>
-            <span class="ore-slider__control" style:--p={fraction(elevation, elevationMin, elevationMax)}>
-              <input type="range" class="ore-slider__input" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-elevation" />
-              <span class="ore-slider__rail" aria-hidden="true"></span>
-            </span>
-            <output class="ore-slider__value ore-type-label">{Math.round(elevation)}°</output>
-          </label>
-          {#if kind === "webgl"}
-            <div class="pair" role="group" aria-label="Zoom">
-              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1 / 1.2)} data-testid="mobile-zoom-in">Zoom in</button>
-              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1.2)} data-testid="mobile-zoom-out">Zoom out</button>
-            </div>
-            {#if info}
-              <button type="button" class="menu-btn wide ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={centreOnBuild} data-testid="mobile-centre">Centre on the build</button>
-            {/if}
-          {/if}
-          {#if info}
-            <h4 class="ore-type-label">Layers</h4>
-            <label class="ore-slider-field">
-              <span class="ore-field__label ore-type-label">From</span>
-              <span class="ore-slider__control" style:--p={fraction(yMin, 0, info.size[1] - 1)}>
-                <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymin" />
-                <span class="ore-slider__rail" aria-hidden="true"></span>
-              </span>
-              <output class="ore-slider__value ore-type-label">{yMin}</output>
-            </label>
-            <label class="ore-slider-field">
-              <span class="ore-field__label ore-type-label">To</span>
-              <span class="ore-slider__control" style:--p={fraction(yMax, 0, info.size[1] - 1)}>
-                <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymax" />
-                <span class="ore-slider__rail" aria-hidden="true"></span>
-              </span>
-              <output class="ore-slider__value ore-type-label">{yMax}</output>
-            </label>
-          {/if}
         </section>
 
         <section class="menu-grp ore-panel">
@@ -1664,7 +1673,7 @@ onMount(() => {
             <p>With a tool chosen in the bottom bar, one finger uses it. A cursor shows above your fingertip, so the finger does not hide the block: lift to apply. A tap uses the tool once, a drag paints along a surface, and holding still picks the block under the cursor. The distance is in Settings.</p>
             <p>Line, Rectangle and Select take two taps, one for each corner. The arrow pad moves the corner one block at a time, A and B switch corners, and the check mark applies the shape. The cross drops it.</p>
             <p>With View, one finger turns the picture, a tap shows a block, and two quick taps zoom to it. Two fingers move the picture and pinch to zoom, and twisting two fingers turns it.</p>
-            <p>Every gesture has a button. The Turn and Tilt sliders, Zoom in, Zoom out and Centre on the build are in View &amp; camera above. Zoom, beside the block's name in the line above the toolbar, does what a double tap does. Pick is a tool. Undo and Redo are the round buttons by the picture, and a bar with Undo follows every edit for a few seconds. A quick tap with two fingers (Undo) or three fingers (Redo) can be turned on in Settings.</p>
+            <p>Every gesture has a button. The Turn and Tilt sliders, Zoom in, Zoom out and Centre on the build are in View &amp; camera, opened by the View button in the top bar. Zoom, beside the block's name in the line above the toolbar, does what a double tap does. Pick is a tool. Undo and Redo are the round buttons by the picture, and a bar with Undo follows every edit for a few seconds. A quick tap with two fingers (Undo) or three fingers (Redo) can be turned on in Settings.</p>
             <p>Edits stay in this page until you export from this menu: the file you opened is never changed. A copy is kept in this browser so a closed tab can be restored; undo history is not kept.</p>
           </div>
           <button type="button" class="menu-btn wide ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={showTips} disabled={!session} data-testid="show-tips">Show tips</button>
@@ -1841,6 +1850,15 @@ onMount(() => {
 
   .mobile-engine {
     margin: 0;
+  }
+  .view-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+  }
+  .mobile-view-btn {
+    margin-left: auto;
+    margin-right: var(--space-2);
   }
   /* Before the renderer is known there is nothing to say; the empty tag keeps its place but shows no fill. */
   .mobile-engine[data-kind="starting"] {
