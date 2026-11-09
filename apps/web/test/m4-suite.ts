@@ -973,6 +973,9 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       );
       ok(true, t("a zip without assets/minecraft is explained"));
       ok((await text(page, "pack-name")) === "client.jar", t("...and the pack in use stays"));
+      // The error notices can resize the 3D view, which blanks it until the next frame, so wait
+      // for the textured picture like every other texture check instead of taking one snapshot.
+      await waitColours(page, "pack");
       const picture = await colours(page);
       ok(picture.red > 50, t("...and the picture keeps its textures"));
 
