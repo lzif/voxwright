@@ -46,46 +46,45 @@ function rotate(): void {
 const status = $derived(session.error !== "" ? session.error : session.message);
 </script>
 
-<section data-testid="blockstate" class:touch>
-  <h2>Block state</h2>
+<section data-testid="blockstate" class:touch class:ore-panel={!touch}>
+  <h2 class="ore-panel__header ore-type-heading">Block state</h2>
   {#if touch}
     <!-- The readout line is under the sheet, so the sheet repeats what it says (the live region is that line). -->
-    <p class="status" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
+    <p class="status ore-type-caption" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
   {/if}
   {#if block === null || session.inspected === null}
     {#if touch}
-      <p class="hint">Tap a block to see and change its properties (facing, half, open, …). In View a tap is enough; with a tool, the last block you tapped is the one.</p>
+      <p class="hint ore-type-caption">Tap a block to see and change its properties (facing, half, open, …). In View a tap is enough; with a tool, the last block you tapped is the one.</p>
     {:else}
-      <p class="hint">Point at a block to see and change its properties (facing, half, waterlogged, …).</p>
+      <p class="hint ore-type-caption">Point at a block to see and change its properties (facing, half, waterlogged, …).</p>
     {/if}
   {:else}
-    <p class="name" data-testid="blockstate-name">{name.replace("minecraft:", "")} <span class="pos">at {session.inspected.join(", ")}</span></p>
+    <p class="name ore-type-body" data-testid="blockstate-name">{name.replace("minecraft:", "")} <span class="pos ore-type-caption">at {session.inspected.join(", ")}</span></p>
     {#if touch}
       {#if rotation !== null}
-        <button type="button" class="rotate" title={`Turn the ${rotation.key}: ${rotation.key} ${entries.find((p) => p.key === rotation.key)?.value} to ${rotation.value}`} onclick={rotate} data-testid="rotate-block">Rotate block</button>
+        <button type="button" class="rotate ore-btn ore-btn--primary ore-type-label" title={`Turn the ${rotation.key}: ${rotation.key} ${entries.find((p) => p.key === rotation.key)?.value} to ${rotation.value}`} onclick={rotate} data-testid="rotate-block">Rotate block</button>
       {/if}
       {#each entries as p (p.key)}
         {@const ctl = classifyProperty(p)}
-        <div class="prop" data-testid={`prop-row-${p.key}`}>
-          <span class="prop-name" id={`prop-label-${p.key}`}>{p.key}</span>
+        <div class="prop ore-panel" data-testid={`prop-row-${p.key}`}>
+          <span class="prop-name ore-type-label" id={`prop-label-${p.key}`}>{p.key}</span>
           {#if ctl.kind === "boolean"}
             <button
               type="button"
               role="switch"
-              class="switch"
-              class:on={ctl.on}
+              class="switch ore-switch"
               aria-checked={ctl.on}
               aria-labelledby={`prop-label-${p.key}`}
               onclick={() => apply(p.key, ctl.on ? "false" : "true", p.value)}
               data-testid={`prop-${p.key}`}
-            ><span class="switch-text" aria-hidden="true">{ctl.on ? "On" : "Off"}</span></button>
+            ><span class="ore-switch__track" aria-hidden="true"></span><span class="ore-switch__glyph" aria-hidden="true">{ctl.on ? "I" : "O"}</span><span class="ore-switch__thumb" aria-hidden="true"></span></button>
           {:else if ctl.kind === "enum" || (ctl.kind === "numeric" && ctl.chips !== null)}
             {@const values = ctl.kind === "enum" ? ctl.values : (ctl.kind === "numeric" ? (ctl.chips ?? []) : [])}
-            <div class="chips" role="group" aria-labelledby={`prop-label-${p.key}`} data-testid={`prop-${p.key}`}>
+            <div class="chips ore-toggle__group" role="group" aria-labelledby={`prop-label-${p.key}`} data-testid={`prop-${p.key}`}>
               {#each values as v (v)}
                 <button
                   type="button"
-                  class="chip"
+                  class="chip ore-seg ore-type-label"
                   aria-pressed={p.value === v}
                   onclick={() => apply(p.key, v, p.value)}
                   data-testid={`prop-${p.key}-${v}`}
@@ -96,27 +95,28 @@ const status = $derived(session.error !== "" ? session.error : session.message);
             {@const down = stepNumeric(ctl, p.value, -1)}
             {@const up = stepNumeric(ctl, p.value, 1)}
             <div class="stepper" role="group" aria-labelledby={`prop-label-${p.key}`} data-testid={`prop-${p.key}`}>
-              <button type="button" class="chip step" aria-label={`Decrease ${p.key}`} disabled={down === null} onclick={() => down !== null && apply(p.key, down, p.value)} data-testid={`prop-${p.key}-dec`}>−</button>
-              <output class="value" data-testid={`prop-${p.key}-value`}>{p.value}</output>
-              <button type="button" class="chip step" aria-label={`Increase ${p.key}`} disabled={up === null} onclick={() => up !== null && apply(p.key, up, p.value)} data-testid={`prop-${p.key}-inc`}>+</button>
-              {#if ctl.max !== null}<span class="range">{ctl.min} to {ctl.max}</span>{/if}
+              <button type="button" class="step ore-btn ore-btn--secondary ore-type-heading" aria-label={`Decrease ${p.key}`} disabled={down === null} onclick={() => down !== null && apply(p.key, down, p.value)} data-testid={`prop-${p.key}-dec`}>−</button>
+              <output class="value ore-type-body" data-testid={`prop-${p.key}-value`}>{p.value}</output>
+              <button type="button" class="step ore-btn ore-btn--secondary ore-type-heading" aria-label={`Increase ${p.key}`} disabled={up === null} onclick={() => up !== null && apply(p.key, up, p.value)} data-testid={`prop-${p.key}-inc`}>+</button>
+              {#if ctl.max !== null}<span class="range ore-type-caption">{ctl.min} to {ctl.max}</span>{/if}
             </div>
           {:else}
-            <span class="free-value" data-testid={`prop-${p.key}`}>{p.value} <span class="range">(edit under Other…)</span></span>
+            <span class="free-value ore-type-body" data-testid={`prop-${p.key}`}>{p.value} <span class="range ore-type-caption">(edit under Other…)</span></span>
           {/if}
         </div>
       {:else}
-        <p class="hint">This block has no properties.</p>
+        <p class="hint ore-type-caption">This block has no properties.</p>
       {/each}
 
-      <button type="button" class="other-toggle" aria-expanded={other} aria-controls="state-other" onclick={() => (other = !other)} data-testid="prop-other-toggle">Other…</button>
+      <button type="button" class="other-toggle ore-btn ore-btn--secondary ore-type-label" aria-expanded={other} aria-controls="state-other" onclick={() => (other = !other)} data-testid="prop-other-toggle">Other…</button>
       {#if other}
         <div id="state-other" class="other" data-testid="prop-other">
           {#each entries as p (p.key)}
             <label class="row">
-              <span>{p.key}</span>
+              <span class="ore-type-label">{p.key}</span>
               <input
                 type="text"
+                class="ore-input ore-type-body"
                 value={p.value}
                 spellcheck="false"
                 autocomplete="off"
@@ -126,24 +126,25 @@ const status = $derived(session.error !== "" ? session.error : session.message);
             </label>
           {/each}
           <div class="row add">
-            <input type="text" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
-            <input type="text" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
-            <button type="button" onclick={add} data-testid="prop-add">Add</button>
+            <input type="text" class="ore-input ore-type-body" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
+            <input type="text" class="ore-input ore-type-body" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
+            <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={add} data-testid="prop-add">Add</button>
           </div>
-          <p class="hint">Any value can be typed here, and a new property added. Leave the field to apply it.</p>
+          <p class="hint ore-type-caption">Any value can be typed here, and a new property added. Leave the field to apply it.</p>
         </div>
       {/if}
     {:else}
       {#each entries as p (p.key)}
-        <label class="row">
-          <span>{p.key}</span>
+        <label class="row" class:dd={p.exact && p.options}>
+          <span class="ore-type-label">{p.key}</span>
           {#if p.exact && p.options}
-            <select value={p.value} onchange={(e) => commit(p.key, e)} data-testid={`prop-${p.key}`}>
+            <select class="ore-btn ore-btn--secondary ore-type-body" value={p.value} onchange={(e) => commit(p.key, e)} data-testid={`prop-${p.key}`}>
               {#each p.options as o}<option value={o}>{o}</option>{/each}
             </select>
           {:else}
             <input
               type="text"
+              class="ore-input ore-type-body"
               value={p.value}
               list={p.options ? `opts-${p.key}` : undefined}
               spellcheck="false"
@@ -157,52 +158,70 @@ const status = $derived(session.error !== "" ? session.error : session.message);
           {/if}
         </label>
       {:else}
-        <p class="hint">This block has no properties.</p>
+        <p class="hint ore-type-caption">This block has no properties.</p>
       {/each}
       <div class="row add">
-        <input type="text" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
-        <input type="text" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
-        <button onclick={add} data-testid="prop-add">Add</button>
+        <input type="text" class="ore-input ore-type-body" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
+        <input type="text" class="ore-input ore-type-body" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
+        <button class="ore-btn ore-btn--secondary ore-type-label" onclick={add} data-testid="prop-add">Add</button>
       </div>
-      <p class="hint">Suggested values are only a guess; any value can be typed. Press Enter to apply.</p>
+      <p class="hint ore-type-caption">Suggested values are only a guess; any value can be typed. Press Enter to apply.</p>
     {/if}
   {/if}
 </section>
 
 <style>
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #5f594f; }
-  .name { margin: 0 0 0.3rem; font-weight: 600; }
-  .pos { font-weight: 400; color: #5f594f; font-size: 0.8rem; }
-  .row { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.4rem; align-items: center; margin: 0.2rem 0; font-size: 0.85rem; }
-  .row.add { grid-template-columns: 1fr 1fr auto; }
-  input, select { box-sizing: border-box; min-width: 0; width: 100%; padding: 0.25rem 0.4rem; font: inherit; font-size: 0.85rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }
-  button { background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.3rem 0.6rem; cursor: pointer; font: inherit; font-size: 0.85rem; }
-  .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
+  /* The design's classes (ore-panel, ore-btn, ore-seg, ore-switch, ore-input, ore-toggle__group) come from the
+     page's stylesheet; what is below places them and states what the design has no class for. On desktop the
+     section is a panel. On touch the sheet is the panel, so each property is a tile of its own. */
+  section { min-width: 0; }
+  .name { margin: 0; color: var(--ink); }
+  .pos { color: var(--ink-muted); }
+  .hint { margin: var(--space-2) 0 0; color: var(--ink-muted); }
+  .row { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: var(--space-2); align-items: center; margin: var(--space-2) 0 0; color: var(--ink); }
+  .row > span { overflow-wrap: anywhere; }
+  .row.add { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-top: var(--space-4); }
+  .row.add button { grid-column: 1 / -1; }
+  .ore-input { min-width: 0; }
 
-  /* Touch: every control at least 44 px; the sheet is one column that wraps, never scrolls sideways. */
-  /* top -12px: flush with the top of the scrolling sheet (its padding is 12px), so nothing scrolls past above it */
-  .status { position: sticky; top: -12px; z-index: 1; margin: 0 0 0.3rem; padding: 12px 0 0.25rem; background: #fffdf8; color: #5f594f; font-size: 0.85rem; font-weight: 600; }
-  .status.bad { color: #7a1f16; }
+  /* The desktop drop-down: a native select in the design's dropdown face (the secondary button), with the
+     chevron drawn on its label, because a select takes no pseudo-element. */
+  select { display: block; min-width: 0; width: 100%; text-align: left; text-overflow: ellipsis; -webkit-appearance: none; appearance: none; padding: 0 calc(var(--space-4) + 16px) 4px var(--space-3); }
+  select:active:not(:disabled) { min-height: 44px; margin-top: 0; padding-bottom: 4px; box-shadow: inset 0 -4px 0 var(--be), inset 2px 2px 0 var(--bh), inset -2px -6px 0 var(--bl); }
+  select option { background: var(--light-200); color: var(--ink-dark); }
+  .row.dd { position: relative; }
+  .row.dd::after { content: ""; position: absolute; right: var(--space-4); top: 50%; box-sizing: border-box; width: 8px; height: 8px; margin-top: -7px; border: solid var(--ink-dark); border-width: 0 2px 2px 0; transform: rotate(45deg); pointer-events: none; }
+
+  /* Touch: every control at least 44 px, the sheet one column that wraps, never scrolls sideways. */
+  /* top -12px: a sticky offset counts from the content box, so this is flush with the top of the scrolling sheet (its padding is 12px) and nothing scrolls past above it */
+  .status { position: sticky; top: -12px; z-index: 1; margin: 0 0 var(--space-3); padding: var(--space-2) var(--space-3); background: var(--surface-panel); color: var(--ink); }
+  .status.bad { background: var(--yellow); color: var(--ink-dark); }
   .status[hidden] { display: none; }
-  .touch button { min-height: 44px; min-width: 44px; font-size: 0.95rem; touch-action: manipulation; }
-  .touch .rotate { width: 100%; min-height: 48px; margin: 0.2rem 0 0.4rem; }
-  .prop { display: grid; gap: 0.3rem; margin: 0.6rem 0; }
-  .prop-name { font-size: 0.85rem; font-weight: 600; color: #2b2925; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .chip { min-width: 44px; padding: 0 14px; background: #e2dccf; color: #2b2925; }
-  .chip[aria-pressed="true"] { background: #2b2925; color: #f4f1eb; font-weight: 600; }
-  .stepper { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-  .stepper .step { font-size: 1.3rem; padding: 0; }
-  .stepper .step:disabled { opacity: 0.45; cursor: default; }
-  .value { min-width: 2.2rem; text-align: center; font-size: 1.1rem; font-weight: 600; color: #2b2925; }
-  .range { color: #5f594f; font-size: 0.8rem; font-weight: 400; }
-  .free-value { color: #2b2925; font-size: 0.95rem; word-break: break-word; }
-  .switch { min-width: 84px; padding: 0 14px; background: #e2dccf; color: #2b2925; display: inline-flex; align-items: center; justify-content: center; justify-self: start; }
-  .switch.on { background: #2e6930; color: #ffffff; }
-  .switch-text { font-weight: 600; }
-  .other-toggle { width: 100%; margin-top: 0.4rem; background: #e2dccf; color: #2b2925; }
-  .other { margin-top: 0.3rem; }
-  .touch .other input { min-height: 44px; font-size: 1rem; }
-  .touch .other .row { grid-template-columns: 6rem 1fr; }
-  .touch .other .row.add { grid-template-columns: 1fr; gap: 8px; }
+  .rotate { width: 100%; min-height: 48px; margin: var(--space-2) 0 0; }
+  .rotate:active:not(:disabled) { min-height: 44px; }
+  .prop { display: grid; gap: var(--space-2); margin: var(--space-2) 0 0; padding: var(--space-3) var(--space-4); }
+  .prop > * { margin: 0; }
+  .prop-name { color: var(--ink); }
+  .chips { flex-wrap: wrap; gap: var(--space-2); }
+  .chip { flex: 0 1 auto; min-width: 44px; max-width: 100%; touch-action: manipulation; }
+  .chip + .chip { margin-left: 0; }
+  /* ore-seg draws its pressed state from aria-checked; these are toggle buttons, so they read aria-pressed.
+     The box stays 44 px tall: the band closes, the face does not drop. */
+  .chip.ore-seg[aria-pressed="true"], .chip.ore-seg[aria-pressed="true"]:active:not(:disabled) { --bf: var(--green); --bh: var(--green-hi); --bl: var(--green-lo); --bt: var(--ink); min-height: 44px; padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+  .chip.ore-seg[aria-pressed="true"]:hover:not(:disabled) { --bf: var(--green-hover); --bh: var(--green-hover-hi); --bl: var(--green-hover-lo); }
+  .chip.ore-seg[aria-pressed="true"]::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 44px; height: 2px; margin-left: -22px; background: var(--ink); }
+  .stepper { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+  .step { min-width: 44px; padding: 0 0 4px; touch-action: manipulation; }
+  .value { min-width: 2.2rem; text-align: center; color: var(--ink); }
+  .range { color: var(--ink-muted); }
+  .free-value { color: var(--ink); overflow-wrap: anywhere; }
+  .switch { height: 44px; justify-self: start; touch-action: manipulation; }
+  .switch .ore-switch__track, .switch .ore-switch__glyph, .switch .ore-switch__thumb { bottom: 8px; }
+  .other-toggle { width: 100%; margin: var(--space-2) 0 0; touch-action: manipulation; }
+  .other { margin: var(--space-2) 0 0; }
+  /* 16 px keeps iOS from zooming into a field it focuses */
+  .touch .other .ore-input { font-size: 1rem; }
+  .touch .other .row { grid-template-columns: 6rem minmax(0, 1fr); }
+  .touch .other .row.add { grid-template-columns: minmax(0, 1fr); margin-top: var(--space-2); }
+  .touch .other .row.add button { grid-column: auto; }
 </style>

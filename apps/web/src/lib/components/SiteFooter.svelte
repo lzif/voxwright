@@ -20,13 +20,17 @@ const short = buildInfo.commit.length > 12 ? buildInfo.commit.slice(0, 9) : buil
 {/snippet}
 
 {#if embedded}
-  <div class="site-footer" data-testid="footer">{@render body()}</div>
+  <div class="site-footer ore-type-prose" data-testid="footer">{@render body()}</div>
 {:else}
-  <footer class="site-footer" data-testid="footer">{@render body()}</footer>
+  <footer class="site-footer ore-type-prose" data-testid="footer">{@render body()}</footer>
 {/if}
 
 <style>
-  .site-footer { max-width: 1500px; margin: 0 auto; padding: 1rem 1.2rem 1.6rem; border-top: 1px solid #e2dccf; font-size: 0.85rem; color: #4d483f; }
-  p { margin: 0.2rem 0; }
-  a { color: #1d3f9a; }
+  /* Long copy in the design's prose face. A link is white with an underline (the colour of the text
+     around it is the muted one), so it is told apart by more than colour. */
+  .site-footer { max-width: 1500px; margin: 0 auto; padding: var(--space-4) var(--space-8) var(--space-6); border-top: 2px solid var(--panel-hi); color: var(--ink-muted); }
+  @media (max-width: 1000px) { .site-footer { padding-inline: var(--space-4); } }
+  p { margin: var(--space-1) 0; }
+  strong { color: var(--ink); }
+  a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; }
 </style>

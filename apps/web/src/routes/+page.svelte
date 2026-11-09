@@ -94,6 +94,7 @@ import {
   type StoredPack,
   saveUserPack,
 } from "../lib/user-pack.ts";
+import { VIEW_BACKGROUND } from "../lib/view-background.ts";
 import {
   advanceIntro,
   FRESH_INTRO,
@@ -310,6 +311,12 @@ let renderMs = $state(0);
 
 let azimuth = $state(45);
 let elevation = $state(35);
+/** The Tilt slider's range: the GPU renderer can look from below, the software one cannot. */
+const elevationMin = $derived(kind === "webgl" ? -89 : 0);
+const elevationMax = $derived(kind === "webgl" ? 89 : 90);
+/** Where `value` lies between `min` and `max`, 0 to 1: the filled part of a slider's rail (`--p`). */
+const fraction = (value: number, min: number, max: number): number =>
+  max === min ? 0 : Math.min(1, Math.max(0, (value - min) / (max - min)));
 let yMin = $state(0);
 let yMax = $state(0);
 let format = $state<FormatId>("litematic");
@@ -984,6 +991,7 @@ async function startGpu(): Promise<boolean> {
     const r = createWebglRenderer({
       pack: decoded,
       input: isTouch ? "external" : "builtin",
+      background: VIEW_BACKGROUND,
       ...rendererOptionsFor(quality, dpr),
       ...(isTouch ? { workers: touchWorkerCount(defaultWorkerCount()) } : {}),
     });
@@ -1141,13 +1149,43 @@ onMount(() => {
 });
 </script>
 
-<a class="skip" href="#view" data-testid="skip-link">Skip to the picture</a>
+{#snippet tick()}
+  <svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+    <path d="M2 6.5l3 3 5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" />
+  </svg>
+{/snippet}
+
+<!-- The file-format list: a native <select> drawn as the design's dropdown (app.css). -->
+{#snippet formatSelect(testid: string)}
+  <div class="ore-dd">
+    <select bind:value={format} aria-label="File format" class="ore-btn ore-btn--secondary ore-dd__btn ore-dd__select ore-type-body" data-testid={testid}>
+      {#each FORMATS as f}<option value={f.id}>{f.label}</option>{/each}
+    </select>
+    <svg class="ore-dd__chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+      <path d="M3 5.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" />
+    </svg>
+  </div>
+{/snippet}
+
+<!-- A setting of the mobile menu: the design's checkbox around the native input, with its help text below. -->
+{#snippet setting(testid: string, label: string, checked: boolean, onchange: (on: boolean) => void, inputTestid?: string, help?: string)}
+  <div class="ore-choice">
+    <label class="ore-choice__row menu-row" data-testid={testid}>
+      <input type="checkbox" class="ore-choice__input" {checked} onchange={(e) => onchange(e.currentTarget.checked)} data-testid={inputTestid} />
+      <span class="ore-box" aria-hidden="true">{@render tick()}</span>
+      <span class="ore-choice__text ore-type-label">{label}</span>
+    </label>
+    {#if help}<p class="ore-field__help ore-choice__help ore-type-prose">{help}</p>{/if}
+  </div>
+{/snippet}
+
+<a class="skip ore-btn ore-btn--secondary ore-type-label" href="#view" data-testid="skip-link">Skip to the picture</a>
 
 {#if isMobileLayout}
   <header class="mobile-top-bar" data-testid="top-app-bar">
     <button
       type="button"
-      class="mobile-menu-btn"
+      class="mobile-menu-btn ore-btn ore-btn--secondary ore-btn--touch ore-type-label"
       onclick={() => toggleSheet("menu")}
       aria-label="Open menu"
       data-testid="mobile-menu-btn"
@@ -1156,10 +1194,10 @@ onMount(() => {
       <span class="menu-label">Menu</span>
     </button>
     <div class="mobile-bar-center">
-      <h1 class="mobile-logo">voxwright</h1>
-      <p id="status" class="mobile-status" data-testid="status" role="status">{status}</p>
+      <h1 class="mobile-logo ore-type-heading">voxwright</h1>
+      <p id="status" class="mobile-status ore-type-caption" data-testid="status" role="status">{status}</p>
     </div>
-    <p class="engine mobile-engine" data-testid="renderer" data-kind={kind}>
+    <p class="engine mobile-engine ore-tag ore-type-caption" data-testid="renderer" data-kind={kind}>
       {kind === "webgl" ? "GPU" : kind === "cpu" ? "software" : ""}
     </p>
   </header>
@@ -1167,18 +1205,18 @@ onMount(() => {
 
 <main class:mobile-layout={isMobileLayout} ondragover={(e) => e.preventDefault()} ondrop={onDrop}>
   {#if !isMobileLayout}
-    <header>
-      <h1>voxwright</h1>
-      <p id="status" data-testid="status" role="status">{status}</p>
-      <p class="engine" data-testid="renderer" data-kind={kind}>{kind === "webgl" ? "GPU renderer" : kind === "cpu" ? "software renderer (no WebGL2)" : ""}</p>
+    <header class="page-header">
+      <h1 class="ore-type-display">voxwright</h1>
+      <p id="status" class="ore-type-label ore-muted" data-testid="status" role="status">{status}</p>
+      <p class="engine ore-type-caption ore-muted" data-testid="renderer" data-kind={kind}>{kind === "webgl" ? "GPU renderer" : kind === "cpu" ? "software renderer (no WebGL2)" : ""}</p>
     </header>
 
     <section class="open" aria-label="Open a file">
-      <label class="button">
+      <label class={["button", "ore-btn", info ? "ore-btn--primary ore-type-label" : "ore-btn--hero ore-type-heading"]}>
         Open a schematic
         <input type="file" class="sr-only" accept=".nbt,.schem,.schematic,.litematic,application/octet-stream,*/*" data-testid="file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) void load(f); }} />
       </label>
-      <span>or drop a <code>.nbt</code>, <code>.schem</code>, <code>.litematic</code> or <code>.mcstructure</code> file here. Nothing is uploaded: the file is read in your browser.</span>
+      <span class="ore-type-prose ore-muted">or drop a <code>.nbt</code>, <code>.schem</code>, <code>.litematic</code> or <code>.mcstructure</code> file here. Nothing is uploaded: the file is read in your browser.</span>
     </section>
 
     <PackPanel
@@ -1208,10 +1246,10 @@ onMount(() => {
     />
 
     {#if !info}
-      <div class="mobile-welcome-card">
-        <h2>Welcome to voxwright</h2>
-        <p>In-browser 3D schematic editor</p>
-        <label class="button mobile-card-btn">
+      <div class="mobile-welcome-card ore-panel">
+        <h2 class="ore-panel__header ore-type-heading">Welcome to voxwright</h2>
+        <p class="ore-type-prose ore-muted">In-browser 3D schematic editor</p>
+        <label class="button mobile-card-btn ore-btn ore-btn--hero ore-btn--touch ore-type-heading">
           Open a schematic
           <input
             type="file"
@@ -1228,7 +1266,9 @@ onMount(() => {
     {/if}
   {/if}
 
-  {#if error}<p class="error" data-testid="error" role="alert">{error}</p>{/if}
+  <!-- On the desktop the error is a bar under the header. In the mobile layout main is a fixed, full-screen box
+       whose picture covers its flow content, so there the same bar is in the top overlays, above the picture. -->
+  {#if error && !isMobileLayout}<p class="error ore-notice ore-notice--important ore-type-label" data-testid="error" role="alert">{error}</p>{/if}
 
   <div class="stage" class:editable={session !== null} class:mobile={isMobileLayout}>
     {#if !isMobileLayout && session}
@@ -1262,91 +1302,130 @@ onMount(() => {
       <p id="canvas-summary" class="sr-only" data-testid="canvas-summary">{summary}</p>
       {#if !isMobileLayout}
         {#if session}
-          <p class="hint" data-testid="edit-help">
+          <p class="hint ore-type-prose ore-muted" data-testid="edit-help">
             With a tool selected: click to use it, hold Alt and drag to turn the view, hold Shift (or use the right button) and drag to move sideways, scroll to zoom. Choose View to look around without editing. Tools work in the Orbit camera. Shortcuts are in each button's tooltip; Esc cancels. Without a mouse, the Selection panel changes blocks by typed coordinates. Edits stay in this page until you export: the file you opened is never changed. A copy is kept in this browser so a closed tab can be restored; undo history is not kept.
           </p>
         {:else if info && kind === "cpu"}
-          <p class="hint" data-testid="edit-note">Editing needs WebGL2; the software renderer is a viewer.</p>
+          <p class="hint ore-type-prose ore-muted" data-testid="edit-note">Editing needs WebGL2; the software renderer is a viewer.</p>
         {/if}
       {:else if info && kind === "cpu"}
-        <p class="hint mobile-edit-note" data-testid="edit-note">Editing needs WebGL2; the software renderer is a viewer.</p>
+        <p class="hint mobile-edit-note ore-notice ore-notice--info ore-type-label" data-testid="edit-note">Editing needs WebGL2; the software renderer is a viewer.</p>
       {/if}
     </div>
 
     {#if !isMobileLayout && info}
-      <aside aria-label="View, export and block counts">
-        <h2>View</h2>
-        {#if kind === "webgl"}
-          <div class="seg" role="group" aria-label="Camera">
-            <button class:on={camMode === "orbit"} aria-pressed={camMode === "orbit"} onclick={() => setCamMode("orbit")} data-testid="mode-orbit">Orbit</button>
-            <button class:on={camMode === "fly"} aria-pressed={camMode === "fly"} onclick={() => setCamMode("fly")} data-testid="mode-fly">Fly</button>
-          </div>
-          <p class="hint" data-testid="camera-hint">{camMode === "orbit" ? "Drag to turn, scroll to zoom, shift-drag or right-drag to move sideways. With the picture focused: arrow keys turn it, + and - zoom." : "Click the picture, then W A S D to move, Space and C for up and down, Shift to go faster, scroll to change speed. Esc lets go of the mouse."}</p>
-        {/if}
-        <label>Turn <input type="range" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="azimuth" /> <output>{Math.round(azimuth)}°</output></label>
-        <label>Tilt <input type="range" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="elevation" /> <output>{Math.round(elevation)}°</output></label>
-        {#if kind === "webgl"}
-          <div class="seg" role="group" aria-label="Zoom">
-            <button onclick={() => zoom(1 / 1.2)} data-testid="zoom-in">Zoom in</button>
-            <button onclick={() => zoom(1.2)} data-testid="zoom-out">Zoom out</button>
-          </div>
-        {/if}
-        {#if kind === "cpu"}<p class="hint">You can also drag the picture to turn it. {renderMs ? `Last frame: ${renderMs} ms.` : ""}</p>{/if}
-
-        <h2>Layers</h2>
-        <label>From <input type="range" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="ymin" /> <output>{yMin}</output></label>
-        <label>To <input type="range" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="ymax" /> <output>{yMax}</output></label>
-
-        <h2>{session ? "Export" : "Convert"}</h2>
-        <select bind:value={format} aria-label="File format" data-testid="format">
-          {#each FORMATS as f}<option value={f.id}>{f.label}</option>{/each}
-        </select>
-        <button onclick={convert} data-testid="convert">{session ? "Export and download" : "Convert and download"}</button>
-        {#if session}<p class="hint" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
-        <div aria-live="polite" data-testid="loss-region">
-          <h3>Loss report</h3>
-          {#if lossLines.length}
-            <ul data-testid="loss">
-              {#each lossLines as line}<li>{line}</li>{/each}
-            </ul>
-          {:else}
-            <p class="hint" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
+      <aside class="side" aria-label="View, export and block counts">
+        <div class="ore-panel">
+          <h2 class="ore-panel__header ore-type-heading">View</h2>
+          {#if kind === "webgl"}
+            <div class="ore-toggle__group" role="group" aria-label="Camera">
+              <button type="button" class="ore-seg ore-type-label" aria-pressed={camMode === "orbit"} onclick={() => setCamMode("orbit")} data-testid="mode-orbit">Orbit</button>
+              <button type="button" class="ore-seg ore-type-label" aria-pressed={camMode === "fly"} onclick={() => setCamMode("fly")} data-testid="mode-fly">Fly</button>
+            </div>
+            <p class="hint ore-type-prose ore-muted" data-testid="camera-hint">{camMode === "orbit" ? "Drag to turn, scroll to zoom, shift-drag or right-drag to move sideways. With the picture focused: arrow keys turn it, + and - zoom." : "Click the picture, then W A S D to move, Space and C for up and down, Shift to go faster, scroll to change speed. Esc lets go of the mouse."}</p>
           {/if}
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">Turn</span>
+            <span class="ore-slider__control" style:--p={fraction(azimuth, 0, 359)}>
+              <input type="range" class="ore-slider__input" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="azimuth" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{Math.round(azimuth)}°</output>
+          </label>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">Tilt</span>
+            <span class="ore-slider__control" style:--p={fraction(elevation, elevationMin, elevationMax)}>
+              <input type="range" class="ore-slider__input" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="elevation" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{Math.round(elevation)}°</output>
+          </label>
+          {#if kind === "webgl"}
+            <div class="pair" role="group" aria-label="Zoom">
+              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1 / 1.2)} data-testid="zoom-in">Zoom in</button>
+              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1.2)} data-testid="zoom-out">Zoom out</button>
+            </div>
+          {/if}
+          {#if kind === "cpu"}<p class="hint ore-type-prose ore-muted">You can also drag the picture to turn it. {renderMs ? `Last frame: ${renderMs} ms.` : ""}</p>{/if}
         </div>
-        {#if session}
-          <h2>Autosave</h2>
-          <p class="hint" data-testid="autosave" role="status">
-            {#if autosave.state === "failed" || autosave.state === "unavailable"}
-              <span class="bad">{autosave.problem}</span>
-            {:else if autosave.state === "saved" && autosave.savedAt !== null}
-              Saved in this browser at {new Date(autosave.savedAt).toLocaleTimeString()}. Undo history is not kept.
-            {:else if session.unsaved}
-              Edits are copied to this browser a few seconds after you stop. Undo history is not kept.
+
+        <div class="ore-panel">
+          <h2 class="ore-panel__header ore-type-heading">Layers</h2>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">From</span>
+            <span class="ore-slider__control" style:--p={fraction(yMin, 0, info.size[1] - 1)}>
+              <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="ymin" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{yMin}</output>
+          </label>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">To</span>
+            <span class="ore-slider__control" style:--p={fraction(yMax, 0, info.size[1] - 1)}>
+              <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="ymax" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{yMax}</output>
+          </label>
+        </div>
+
+        <div class="ore-panel">
+          <h2 class="ore-panel__header ore-type-heading">{session ? "Export" : "Convert"}</h2>
+          {@render formatSelect("format")}
+          <button type="button" class="ore-btn ore-btn--primary ore-type-label wide" onclick={convert} data-testid="convert">{session ? "Export and download" : "Convert and download"}</button>
+          {#if session}<p class="hint ore-type-prose ore-muted" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included. This writes a new file; the one you opened is not changed.</p>{/if}
+          <div class="loss-region" aria-live="polite" data-testid="loss-region">
+            <h3 class="ore-type-label">Loss report</h3>
+            {#if lossLines.length}
+              <ul class="ore-type-prose" data-testid="loss">
+                {#each lossLines as line}<li>{line}</li>{/each}
+              </ul>
             {:else}
-              Edits are copied to this browser a few seconds after you stop. Nothing to save yet.
+              <p class="hint ore-type-prose ore-muted" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
             {/if}
-          </p>
+          </div>
+        </div>
+
+        {#if session}
+          <div class="ore-panel">
+            <h2 class="ore-panel__header ore-type-heading">Autosave</h2>
+            <p class="hint ore-type-prose ore-muted" data-testid="autosave" role="status">
+              {#if autosave.state === "failed" || autosave.state === "unavailable"}
+                <span class="bad ore-field__error">{autosave.problem}</span>
+              {:else if autosave.state === "saved" && autosave.savedAt !== null}
+                Saved in this browser at {new Date(autosave.savedAt).toLocaleTimeString()}. Undo history is not kept.
+              {:else if session.unsaved}
+                Edits are copied to this browser a few seconds after you stop. Undo history is not kept.
+              {:else}
+                Edits are copied to this browser a few seconds after you stop. Nothing to save yet.
+              {/if}
+            </p>
+          </div>
         {/if}
 
         {#if kind === "webgl" && stats}
-          <h2>Renderer</h2>
-          <p class="hint" data-testid="stats">
-            {stats.sections} sections, {stats.fps.toFixed(0)} fps · opened in {Math.round(timings.parseMs)} ms,
-            on screen after {Math.round(timings.firstFrameMs)} ms · {stats.gpu}
-          </p>
-          {#if placeholders.length}
-            <p class="hint" data-testid="placeholders">Drawn as magenta placeholder cubes (no model): {placeholders.join(", ")}.</p>
-          {/if}
+          <div class="ore-panel">
+            <h2 class="ore-panel__header ore-type-heading">Renderer</h2>
+            <p class="hint ore-type-caption ore-muted" data-testid="stats">
+              {stats.sections} sections, {stats.fps.toFixed(0)} fps · opened in {Math.round(timings.parseMs)} ms,
+              on screen after {Math.round(timings.firstFrameMs)} ms · {stats.gpu}
+            </p>
+            {#if placeholders.length}
+              <p class="hint ore-type-prose ore-muted" data-testid="placeholders">Drawn as magenta placeholder cubes (no model): {placeholders.join(", ")}.</p>
+            {/if}
+          </div>
         {/if}
 
-        <h2>Blocks</h2>
-        <ol class="counts" data-testid="counts">
-          {#each info.counts.slice(0, 12) as [name, n]}<li><span>{n}</span> {name.replace("minecraft:", "")}</li>{/each}
-        </ol>
+        <div class="ore-panel">
+          <h2 class="ore-panel__header ore-type-heading">Blocks</h2>
+          <ol class="counts ore-type-label" data-testid="counts">
+            {#each info.counts.slice(0, 12) as [name, n]}<li><span>{n}</span> {name.replace("minecraft:", "")}</li>{/each}
+          </ol>
+        </div>
       </aside>
     {/if}
   </div>
-  {#if busy}<p class="busy" role="status">working…</p>{/if}
+  {#if busy}<p class="busy ore-notice ore-notice--info ore-type-label" role="status">working…</p>{/if}
 </main>
 
 {#if !isMobileLayout}
@@ -1387,24 +1466,28 @@ onMount(() => {
     {activeSheet}
     ontogglesheet={(s) => toggleSheet(s)}
   />
-  <!-- Under the top bar, away from everything at the bottom: the first-run card (until it is closed or
-       finished), and below it the toast with Undo after each edit. Both mirror with the left-handed
-       setting; neither has a backdrop, so the picture stays usable. -->
-  <div class="top-overlays" class:left-handed={leftHanded} data-testid="top-overlays">
-    {#if introVisible}
-      <TouchIntro progress={introProgress} onclose={closeIntro} />
-    {/if}
-    <UndoToast {session} {leftHanded} />
-  </div>
 {/if}
+  <!-- Under the top bar, away from everything at the bottom: an error of the page (a file that could not be
+       opened, which can happen with no editing session yet), the first-run card (until it is closed or
+       finished), and below it the toast with Undo after each edit. The card and the toast mirror with the
+       left-handed setting; none has a backdrop, so the picture stays usable. -->
+  <div class="top-overlays" class:left-handed={leftHanded} data-testid="top-overlays">
+    {#if error}<p class="error ore-notice ore-notice--important ore-type-label" data-testid="error" role="alert">{error}</p>{/if}
+    {#if session}
+      {#if introVisible}
+        <TouchIntro progress={introProgress} onclose={closeIntro} />
+      {/if}
+      <UndoToast {session} {leftHanded} />
+    {/if}
+  </div>
 
 <!-- Mobile bottom sheets for Palette, State, Selection, and Menu -->
   {#if activeSheet === "palette" && session}
-    <BottomSheet snap="half" title="Block Palette" onclose={() => (activeSheet = "none")}>
+    <BottomSheet snap="half" title="Block palette" onclose={() => (activeSheet = "none")}>
       <BlockPalette {session} touch favorites={favoriteBlocks} recents={recentBlocks} ontogglefavorite={toggleFavoriteBlock} />
     </BottomSheet>
   {:else if activeSheet === "blockstate" && session}
-    <BottomSheet snap="half" title="Block State" onclose={() => (activeSheet = "none")}>
+    <BottomSheet snap="half" title="Block state" onclose={() => (activeSheet = "none")}>
       <BlockStatePanel {session} touch />
     </BottomSheet>
   {:else if activeSheet === "selection" && session}
@@ -1414,9 +1497,9 @@ onMount(() => {
   {:else if activeSheet === "menu"}
     <BottomSheet snap="half" title="Menu" onclose={() => (activeSheet = "none")}>
       <div class="mobile-menu-body" data-testid="menu-sheet">
-        <section class="menu-grp">
-          <h3>File</h3>
-          <label class="button menu-action-btn">
+        <section class="menu-grp ore-panel">
+          <h3 class="ore-panel__header ore-type-heading">File</h3>
+          <label class="button menu-action-btn ore-btn ore-btn--primary ore-btn--touch ore-type-label">
             Open a schematic
             <input
               type="file"
@@ -1434,55 +1517,81 @@ onMount(() => {
             />
           </label>
           {#if info}
-            <p class="menu-hint">{info.name} · {info.size[0]}×{info.size[1]}×{info.size[2]} · {info.blocks} blocks</p>
+            <p class="ore-type-caption ore-muted">{info.name} · {info.size[0]}×{info.size[1]}×{info.size[2]} · {info.blocks} blocks</p>
           {/if}
         </section>
 
-        <section class="menu-grp">
-          <h3>{session ? "Export" : "Convert"}</h3>
-          <select bind:value={format} aria-label="File format" data-testid="mobile-format">
-            {#each FORMATS as f}<option value={f.id}>{f.label}</option>{/each}
-          </select>
-          <button type="button" class="button menu-action-btn" onclick={convert} data-testid="mobile-convert">
+        <section class="menu-grp ore-panel">
+          <h3 class="ore-panel__header ore-type-heading">{session ? "Export" : "Convert"}</h3>
+          {@render formatSelect("mobile-format")}
+          <button type="button" class="button menu-action-btn ore-btn ore-btn--primary ore-btn--touch ore-type-label" onclick={convert} data-testid="mobile-convert">
             {session ? "Export and download" : "Convert and download"}
           </button>
           {#if session}
-            <p class="hint" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included.</p>
+            <p class="hint ore-type-caption ore-muted" data-testid="export-note">{session.editCount} edit{session.editCount === 1 ? "" : "s"} included.</p>
           {/if}
-          <div aria-live="polite" data-testid="loss-region">
-            <h4>Loss report</h4>
+          <div class="loss-region" aria-live="polite" data-testid="loss-region">
+            <h4 class="ore-type-label">Loss report</h4>
             {#if lossLines.length}
-              <ul data-testid="loss">
+              <ul class="ore-type-prose" data-testid="loss">
                 {#each lossLines as line}<li>{line}</li>{/each}
               </ul>
             {:else}
-              <p class="hint" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
+              <p class="hint ore-type-prose ore-muted" data-testid="loss-none">{conversionNotes === null ? "Nothing was lost reading this file." : "Nothing was lost."}</p>
             {/if}
           </div>
         </section>
 
-        <section class="menu-grp">
-          <h3>View & Camera</h3>
-          <label>Turn <input type="range" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-azimuth" /> <output>{Math.round(azimuth)}°</output></label>
-          <label>Tilt <input type="range" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-elevation" /> <output>{Math.round(elevation)}°</output></label>
+        <section class="menu-grp ore-panel">
+          <h3 class="ore-panel__header ore-type-heading">View &amp; camera</h3>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">Turn</span>
+            <span class="ore-slider__control" style:--p={fraction(azimuth, 0, 359)}>
+              <input type="range" class="ore-slider__input" min="0" max="359" bind:value={azimuth} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-azimuth" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{Math.round(azimuth)}°</output>
+          </label>
+          <label class="ore-slider-field">
+            <span class="ore-field__label ore-type-label">Tilt</span>
+            <span class="ore-slider__control" style:--p={fraction(elevation, elevationMin, elevationMax)}>
+              <input type="range" class="ore-slider__input" min={kind === "webgl" ? -89 : 0} max={kind === "webgl" ? 89 : 90} bind:value={elevation} onchange={() => kind === "cpu" && draw(request(false))} oninput={() => (kind === "webgl" ? setAngles() : draw(request(true)))} data-testid="mobile-elevation" />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </span>
+            <output class="ore-slider__value ore-type-label">{Math.round(elevation)}°</output>
+          </label>
           {#if kind === "webgl"}
-            <div class="menu-seg" role="group" aria-label="Zoom">
-              <button type="button" onclick={() => zoom(1 / 1.2)} data-testid="mobile-zoom-in">Zoom in</button>
-              <button type="button" onclick={() => zoom(1.2)} data-testid="mobile-zoom-out">Zoom out</button>
+            <div class="pair" role="group" aria-label="Zoom">
+              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1 / 1.2)} data-testid="mobile-zoom-in">Zoom in</button>
+              <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={() => zoom(1.2)} data-testid="mobile-zoom-out">Zoom out</button>
             </div>
             {#if info}
-              <button type="button" class="menu-btn" onclick={centreOnBuild} data-testid="mobile-centre">Centre on the build</button>
+              <button type="button" class="menu-btn wide ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={centreOnBuild} data-testid="mobile-centre">Centre on the build</button>
             {/if}
           {/if}
           {#if info}
-            <h4>Layers</h4>
-            <label>From <input type="range" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymin" /> <output>{yMin}</output></label>
-            <label>To <input type="range" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymax" /> <output>{yMax}</output></label>
+            <h4 class="ore-type-label">Layers</h4>
+            <label class="ore-slider-field">
+              <span class="ore-field__label ore-type-label">From</span>
+              <span class="ore-slider__control" style:--p={fraction(yMin, 0, info.size[1] - 1)}>
+                <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMin} oninput={() => { if (kind === "webgl") { if (yMin > yMax) yMax = yMin; applySlice(); } }} onchange={() => { if (yMin > yMax) yMax = yMin; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymin" />
+                <span class="ore-slider__rail" aria-hidden="true"></span>
+              </span>
+              <output class="ore-slider__value ore-type-label">{yMin}</output>
+            </label>
+            <label class="ore-slider-field">
+              <span class="ore-field__label ore-type-label">To</span>
+              <span class="ore-slider__control" style:--p={fraction(yMax, 0, info.size[1] - 1)}>
+                <input type="range" class="ore-slider__input" min="0" max={info.size[1] - 1} bind:value={yMax} oninput={() => { if (kind === "webgl") { if (yMax < yMin) yMin = yMax; applySlice(); } }} onchange={() => { if (yMax < yMin) yMin = yMax; if (kind === "cpu") void draw(request(false)); }} data-testid="mobile-ymax" />
+                <span class="ore-slider__rail" aria-hidden="true"></span>
+              </span>
+              <output class="ore-slider__value ore-type-label">{yMax}</output>
+            </label>
           {/if}
         </section>
 
-        <section class="menu-grp">
-          <h3>Texture Pack</h3>
+        <section class="menu-grp ore-panel">
+          <h3 class="ore-panel__header ore-type-heading">Texture pack</h3>
           <PackPanel
             touch
             hasSitePack={sitePack !== null}
@@ -1495,95 +1604,78 @@ onMount(() => {
           />
         </section>
 
-        <section class="menu-grp">
-          <h3>Settings</h3>
-          <div class="menu-field">
-            <span class="field-label">Layout mode:</span>
-            <div class="menu-seg" role="group" aria-label="Layout override" data-testid="layout-override">
-              <button type="button" class:on={layoutOverride === "auto"} onclick={() => setLayoutMode("auto")}>Auto</button>
-              <button type="button" class:on={layoutOverride === "mobile"} onclick={() => setLayoutMode("mobile")}>Mobile</button>
-              <button type="button" class:on={layoutOverride === "desktop"} onclick={() => setLayoutMode("desktop")}>Desktop</button>
+        <section class="menu-grp ore-panel">
+          <h3 class="ore-panel__header ore-type-heading">Settings</h3>
+          <div class="ore-field">
+            <span class="ore-field__label field-label ore-type-label">Layout mode:</span>
+            <div class="ore-toggle__group" role="group" aria-label="Layout override" data-testid="layout-override">
+              <button type="button" class="ore-seg ore-type-label" class:on={layoutOverride === "auto"} onclick={() => setLayoutMode("auto")}>Auto</button>
+              <button type="button" class="ore-seg ore-type-label" class:on={layoutOverride === "mobile"} onclick={() => setLayoutMode("mobile")}>Mobile</button>
+              <button type="button" class="ore-seg ore-type-label" class:on={layoutOverride === "desktop"} onclick={() => setLayoutMode("desktop")}>Desktop</button>
             </div>
           </div>
-          <label class="menu-checkbox" data-testid="left-handed-toggle">
-            <input type="checkbox" checked={leftHanded} onchange={(e) => setLeftHanded(e.currentTarget.checked)} />
-            <span>Left-handed controls (mirror thumb cluster)</span>
-          </label>
-          <label class="menu-checkbox" data-testid="confirm-place-toggle">
-            <input type="checkbox" checked={confirmPlacement} onchange={(e) => setConfirmPlacement(e.currentTarget.checked)} />
-            <span>Confirm each placement</span>
-          </label>
-          <p class="menu-hint">Place, Replace and Erase then wait for the check mark: a tap or the end of a drag arms the cell, the nudge pad moves it, and nothing changes until you confirm.</p>
-          <label class="menu-checkbox" data-testid="twist-toggle">
-            <input type="checkbox" checked={twistEnabled} onchange={(e) => setTwistEnabled(e.currentTarget.checked)} data-testid="twist-input" />
-            <span>Twist with two fingers to turn</span>
-          </label>
-          <p class="menu-hint">Turn two fingers like a dial to turn the view. Moving two fingers up and down still pans; tilt stays on the Tilt slider.</p>
-          <label class="menu-checkbox" data-testid="haptics-toggle">
-            <input type="checkbox" checked={hapticsEnabled} onchange={(e) => setHaptics(e.currentTarget.checked)} data-testid="haptics-input" />
-            <span>Vibrate on edits</span>
-          </label>
-          <p class="menu-hint">A short buzz when an edit is made, and a longer one when it is cancelled or refused, on phones whose browser allows it. Nothing needs it.</p>
-          <label class="menu-checkbox" data-testid="two-finger-undo-toggle">
-            <input type="checkbox" checked={twoFingerUndo} onchange={(e) => setTwoFingerUndo(e.currentTarget.checked)} data-testid="two-finger-undo-input" />
-            <span>Two-finger tap undoes</span>
-          </label>
-          <label class="menu-checkbox" data-testid="three-finger-redo-toggle">
-            <input type="checkbox" checked={threeFingerRedo} onchange={(e) => setThreeFingerRedo(e.currentTarget.checked)} data-testid="three-finger-redo-input" />
-            <span>Three-finger tap redoes</span>
-          </label>
-          <p class="menu-hint">Shortcuts for the Undo and Redo buttons, both off until you turn them on: a quick tap with two fingers undoes, with three fingers redoes. Moving the fingers makes it a pan, pinch or twist instead.</p>
-          <div class="menu-field" data-testid="quality-setting">
-            <span class="field-label" id="quality-label">Quality</span>
-            <div class="menu-seg" role="group" aria-labelledby="quality-label" data-testid="quality-seg">
+          {@render setting("left-handed-toggle", "Left-handed controls (mirror thumb cluster)", leftHanded, setLeftHanded)}
+          {@render setting("confirm-place-toggle", "Confirm each placement", confirmPlacement, setConfirmPlacement, undefined, "Place, Replace and Erase then wait for the check mark: a tap or the end of a drag arms the cell, the nudge pad moves it, and nothing changes until you confirm.")}
+          {@render setting("twist-toggle", "Twist with two fingers to turn", twistEnabled, setTwistEnabled, "twist-input", "Turn two fingers like a dial to turn the view. Moving two fingers up and down still pans; tilt stays on the Tilt slider.")}
+          {@render setting("haptics-toggle", "Vibrate on edits", hapticsEnabled, setHaptics, "haptics-input", "A short buzz when an edit is made, and a longer one when it is cancelled or refused, on phones whose browser allows it. Nothing needs it.")}
+          {@render setting("two-finger-undo-toggle", "Two-finger tap undoes", twoFingerUndo, setTwoFingerUndo, "two-finger-undo-input")}
+          {@render setting("three-finger-redo-toggle", "Three-finger tap redoes", threeFingerRedo, setThreeFingerRedo, "three-finger-redo-input")}
+          <p class="ore-field__help ore-type-prose">Shortcuts for the Undo and Redo buttons, both off until you turn them on: a quick tap with two fingers undoes, with three fingers redoes. Moving the fingers makes it a pan, pinch or twist instead.</p>
+          <div class="ore-field" data-testid="quality-setting">
+            <span class="ore-field__label ore-type-label" id="quality-label">Quality</span>
+            <div class="ore-toggle__group" role="group" aria-labelledby="quality-label" data-testid="quality-seg">
               {#each QUALITY_MODES as mode (mode)}
-                <button type="button" class:on={quality === mode} aria-pressed={quality === mode} onclick={() => setQuality(mode)} data-testid={`quality-${mode}`}>{QUALITY_LABELS[mode]}</button>
+                <button type="button" class="ore-seg ore-type-label" aria-pressed={quality === mode} onclick={() => setQuality(mode)} data-testid={`quality-${mode}`}>{QUALITY_LABELS[mode]}</button>
               {/each}
             </div>
-            <p class="menu-hint" data-testid="quality-hint">Auto draws sharp when the picture is still and at a lower resolution while you turn, pan or zoom it. High always draws sharp. Low always draws at a lower resolution and without anti-aliasing, for a slow phone. Anti-aliasing is set when the page loads, so turning it on or off takes effect the next time you open the page.</p>
+            <p class="ore-field__help ore-type-prose" data-testid="quality-hint">Auto draws sharp when the picture is still and at a lower resolution while you turn, pan or zoom it. High always draws sharp. Low always draws at a lower resolution and without anti-aliasing, for a slow phone. Anti-aliasing is set when the page loads, so turning it on or off takes effect the next time you open the page.</p>
             {#if antialiasChangesOnReload(createdQuality, quality)}
-              <p class="menu-hint" role="status" data-testid="quality-reload-hint">Anti-aliasing changes the next time the page loads. The resolution has changed already.</p>
+              <p class="ore-field__help ore-type-prose" role="status" data-testid="quality-reload-hint">Anti-aliasing changes the next time the page loads. The resolution has changed already.</p>
             {/if}
           </div>
-          <div class="menu-field menu-range" data-testid="cursor-offset">
-            <div class="menu-range-head">
-              <span class="field-label">Cursor distance</span>
-              <output for="cursor-offset-input" data-testid="cursor-offset-value">{cursorOffset} px</output>
+          <div class="ore-slider-field" data-testid="cursor-offset">
+            <div class="ore-slider__head">
+              <span class="ore-field__label field-label ore-type-label">Cursor distance</span>
+              <output class="ore-slider__value ore-type-label" for="cursor-offset-input" data-testid="cursor-offset-value">{cursorOffset} px</output>
             </div>
-            <input
-              id="cursor-offset-input"
-              type="range"
-              min={MIN_CURSOR_OFFSET_PX}
-              max={MAX_CURSOR_OFFSET_PX}
-              step={CURSOR_OFFSET_STEP_PX}
-              value={cursorOffset}
-              aria-label="Cursor distance above the finger"
-              aria-valuetext="{cursorOffset} px"
-              oninput={(e) => setCursorOffset(e.currentTarget.valueAsNumber)}
-              data-testid="cursor-offset-input"
-            />
-            <p class="menu-hint">How far above your fingertip the cursor sits when you place or erase blocks. 0 puts it under the finger.</p>
+            <div class="ore-slider__control" style:--p={fraction(cursorOffset, MIN_CURSOR_OFFSET_PX, MAX_CURSOR_OFFSET_PX)}>
+              <input
+                id="cursor-offset-input"
+                type="range"
+                class="ore-slider__input"
+                min={MIN_CURSOR_OFFSET_PX}
+                max={MAX_CURSOR_OFFSET_PX}
+                step={CURSOR_OFFSET_STEP_PX}
+                value={cursorOffset}
+                aria-label="Cursor distance above the finger"
+                aria-valuetext="{cursorOffset} px"
+                oninput={(e) => setCursorOffset(e.currentTarget.valueAsNumber)}
+                data-testid="cursor-offset-input"
+              />
+              <span class="ore-slider__rail" aria-hidden="true"></span>
+            </div>
+            <p class="ore-field__help ore-type-prose">How far above your fingertip the cursor sits when you place or erase blocks. 0 puts it under the finger.</p>
           </div>
         </section>
 
-        <section class="menu-grp" aria-labelledby="touch-help-title">
-          <h3 id="touch-help-title">Help</h3>
-          <div class="menu-help" data-testid="touch-help">
+        <section class="menu-grp ore-panel" aria-labelledby="touch-help-title">
+          <h3 id="touch-help-title" class="ore-panel__header ore-type-heading">Help</h3>
+          <div class="menu-help ore-type-prose" data-testid="touch-help">
             <p>With a tool chosen in the bottom bar, one finger uses it. A cursor shows above your fingertip, so the finger does not hide the block: lift to apply. A tap uses the tool once, a drag paints along a surface, and holding still picks the block under the cursor. The distance is in Settings.</p>
             <p>Line, Rectangle and Select take two taps, one for each corner. The arrow pad moves the corner one block at a time, A and B switch corners, and the check mark applies the shape. The cross drops it.</p>
             <p>With View, one finger turns the picture, a tap shows a block, and two quick taps zoom to it. Two fingers move the picture and pinch to zoom, and twisting two fingers turns it.</p>
-            <p>Every gesture has a button. The Turn and Tilt sliders, Zoom in, Zoom out and Centre on the build are in View &amp; Camera above. Zoom, beside the block's name in the line above the toolbar, does what a double tap does. Pick is a tool. Undo and Redo are the round buttons by the picture, and a bar with Undo follows every edit for a few seconds. A quick tap with two fingers (Undo) or three fingers (Redo) can be turned on in Settings.</p>
+            <p>Every gesture has a button. The Turn and Tilt sliders, Zoom in, Zoom out and Centre on the build are in View &amp; camera above. Zoom, beside the block's name in the line above the toolbar, does what a double tap does. Pick is a tool. Undo and Redo are the round buttons by the picture, and a bar with Undo follows every edit for a few seconds. A quick tap with two fingers (Undo) or three fingers (Redo) can be turned on in Settings.</p>
             <p>Edits stay in this page until you export from this menu: the file you opened is never changed. A copy is kept in this browser so a closed tab can be restored; undo history is not kept.</p>
           </div>
-          <button type="button" class="menu-btn" onclick={showTips} disabled={!session} data-testid="show-tips">Show tips</button>
+          <button type="button" class="menu-btn wide ore-btn ore-btn--secondary ore-btn--touch ore-type-label" onclick={showTips} disabled={!session} data-testid="show-tips">Show tips</button>
         </section>
 
         {#if session}
-          <section class="menu-grp">
-            <h3>Autosave</h3>
-            <p class="hint" data-testid="autosave" role="status">
+          <section class="menu-grp ore-panel">
+            <h3 class="ore-panel__header ore-type-heading">Autosave</h3>
+            <p class="hint ore-type-prose ore-muted" data-testid="autosave" role="status">
               {#if autosave.state === "failed" || autosave.state === "unavailable"}
-                <span class="bad">{autosave.problem}</span>
+                <span class="bad ore-field__error">{autosave.problem}</span>
               {:else if autosave.state === "saved" && autosave.savedAt !== null}
                 Saved in this browser at {new Date(autosave.savedAt).toLocaleTimeString()}.
               {:else if session.unsaved}
@@ -1615,16 +1707,14 @@ onMount(() => {
 <PerfOverlay {renderer} {quality} historyBytes={session?.historyBytes ?? null} />
 
 <style>
-  :global(body) { margin: 0; font: 15px/1.45 system-ui, sans-serif; color: #2b2925; background: #f4f1eb; min-height: 100vh; overscroll-behavior: none; }
-  :global(:focus-visible) { outline: 3px solid #1d4ed8; outline-offset: 2px; }
-  .skip { position: absolute; left: 0.5rem; top: -4rem; background: #2b2925; color: #f4f1eb; padding: 0.5rem 0.8rem; border-radius: 6px; z-index: 50; }
-  .skip:focus { top: 0.5rem; }
-  :global(.sr-only) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-  /* Nothing here moves on its own; this keeps it so if a transition or animation is ever added. */
-  @media (prefers-reduced-motion: reduce) {
-    :global(*, *::before, *::after) { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  }
-  main { max-width: 1500px; margin: 0 auto; padding: 1.2rem; }
+  /* The Ore UI Study design system is loaded by +layout.svelte (tokens.css, ore-ui.css, app.css), so the
+     ore-* classes used above are global. What is here is the page's own layout, and every colour is a
+     token. */
+  .skip { position: absolute; left: var(--space-2); top: -4rem; z-index: 50; }
+  .skip:focus { top: var(--space-2); }
+
+  main { max-width: 1500px; margin: 0 auto; padding: var(--space-8); }
+  @media (max-width: 1000px) { main { padding: var(--space-4); } }
   main.mobile-layout {
     position: fixed;
     inset: 0;
@@ -1636,21 +1726,21 @@ onMount(() => {
     padding: 0;
     max-width: none;
     overflow: hidden;
-    background: #1e1d1a;
+    background: var(--surface-page);
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
-  header { display: flex; align-items: baseline; gap: 1.2rem; }
-  h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.02em; }
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 1.2rem 0 0.4rem; color: #6b655b; }
-  h3 { font-size: 0.9rem; margin: 0.8rem 0 0.2rem; }
-  #status { color: #6b655b; margin: 0; }
-  .open { margin: 0.8rem 0 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-  .button, button { background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.5rem 0.9rem; cursor: pointer; font: inherit; }
-  .button { position: relative; }
-  .button:focus-within { outline: 3px solid #1d4ed8; outline-offset: 2px; }
-  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1.2rem; align-items: start; }
+
+  .page-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-4); }
+  .page-header h1 { margin: 0; text-transform: uppercase; }
+  #status { margin: 0; }
+  .engine { margin: 0 0 0 auto; }
+
+  .open { margin: var(--space-6) 0; display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap; }
+  .open code { font-family: var(--type-code-family); font-size: var(--type-code-size); color: var(--ink); }
+
+  .stage { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--space-6); align-items: start; }
   .stage.mobile { display: block; gap: 0; margin: 0; padding: 0; }
   .center.mobile { display: block; margin: 0; padding: 0; }
   .canvas-host { width: 100%; position: relative; }
@@ -1673,31 +1763,37 @@ onMount(() => {
     border: 0 !important;
     border-radius: 0 !important;
     touch-action: none !important;
-    background: #1e1d1a !important;
+    background: var(--surface-page) !important;
   }
-  canvas { width: 100%; max-height: 80vh; object-fit: contain; background: #f4f1eb; border: 1px dashed #c9c3b6; border-radius: 8px; min-height: 240px; touch-action: none; }
-  canvas.ready { border-style: solid; cursor: grab; }
-  aside { background: #fffdf8; border: 1px solid #e2dccf; border-radius: 8px; padding: 0.2rem 1rem 1rem; }
-  aside label { display: grid; grid-template-columns: 3rem 1fr 3rem; align-items: center; gap: 0.4rem; margin: 0.2rem 0; }
-  select, aside button { width: 100%; margin: 0.25rem 0; }
-  select { padding: 0.4rem; font: inherit; }
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; }
-  .seg button { background: #e2dccf; color: #2b2925; }
-  .seg button.on { background: #2b2925; color: #f4f1eb; }
-  .engine { margin: 0 0 0 auto; font-size: 0.8rem; color: #5f594f; }
+  /* The picture is a well: the page colour inside a 2px outline. The renderers fill it with the same colour. */
+  canvas { display: block; box-sizing: border-box; width: 100%; max-height: 80vh; object-fit: contain; background: var(--surface-page); border: 2px solid var(--outline); border-radius: var(--radius-none); min-height: 240px; touch-action: none; }
+  canvas.ready { cursor: grab; }
+  canvas.editing { cursor: crosshair; }
+  canvas.gl { height: min(72vh, 760px); max-height: none; }
   .stage.editable { grid-template-columns: 280px minmax(0, 1fr) 280px; }
   .stage.editable.mobile { grid-template-columns: none; display: block; }
   .center { min-width: 0; }
-  .tools { background: #fffdf8; border: 1px solid #e2dccf; border-radius: 8px; padding: 0.9rem 1rem 1rem; max-height: 86vh; overflow: auto; }
-  canvas.editing { cursor: crosshair; }
-  canvas.gl { height: min(72vh, 760px); max-height: none; }
-  .hint { color: #5f594f; font-size: 0.85rem; margin: 0.3rem 0 0; }
-  .bad { color: #7a1f16; }
-  .error { background: #fbe3e0; color: #7a1f16; padding: 0.6rem 0.8rem; border-radius: 6px; }
-  .counts { padding-left: 1.2rem; margin: 0; } .counts span { display: inline-block; min-width: 2.6rem; text-align: right; color: #6b655b; }
-  ul { margin: 0; padding-left: 1.2rem; font-size: 0.88rem; }
-  .busy { position: fixed; right: 1rem; bottom: 1rem; background: #2b2925; color: #f4f1eb; padding: 0.4rem 0.8rem; border-radius: 6px; z-index: 50; }
+  /* The three editing panels are the design's panels themselves. The column is as tall as they are and the page
+     scrolls; it has no scrollbar of its own, so no panel is cut off or can be missed behind one. */
+  .tools { display: flex; flex-direction: column; gap: var(--space-6); }
+  .side { display: flex; flex-direction: column; gap: var(--space-6); }
   @media (max-width: 1000px) { .stage, .stage.editable { grid-template-columns: 1fr; } }
+
+  .hint { margin: var(--space-2) 0 0; }
+  .ore-panel > :not(.ore-panel__header) + .hint { margin-top: var(--space-2); }
+  .ore-panel > .ore-panel__header + .hint { margin-top: 0; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+  .wide { width: 100%; }
+  .loss-region h3, .loss-region h4 { margin: 0 0 var(--space-1); }
+  .loss-region .hint { margin-top: 0; }
+  ul { margin: 0; padding-left: var(--space-4); }
+  .counts { margin: 0; padding-left: var(--space-6); }
+  .counts span { display: inline-block; min-width: 3rem; text-align: right; color: var(--ink-muted); }
+  .error { margin: var(--space-4) 0; }
+  /* In the top overlays (mobile layout) the bar is the width of the column, takes the pointer (the column ignores
+     it) and has no outer margin. */
+  .top-overlays .error { align-self: stretch; margin: 0; pointer-events: auto; }
+  .busy { position: fixed; right: var(--space-4); bottom: var(--space-4); z-index: 50; margin: 0; }
 
   /* Mobile UI styling */
   .mobile-top-bar {
@@ -1705,45 +1801,20 @@ onMount(() => {
     top: 0;
     left: 0;
     right: 0;
-    height: 50px;
+    height: 56px;
     z-index: 25;
-    background: #24221f;
-    color: #f4f1eb;
-    border-bottom: 1px solid #3d3a34;
+    background: var(--surface-panel);
+    color: var(--ink);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: env(safe-area-inset-top, 0px) 12px 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-  }
-
-  .mobile-menu-btn {
-    min-width: 48px;
-    min-height: 48px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: #3d3a34;
-    color: #f4f1eb;
-    border: 0;
-    border-radius: 8px;
-    padding: 0 12px;
-    font: inherit;
-    font-size: 0.88rem;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .mobile-menu-btn:active {
-    background: #504c45;
+    padding: env(safe-area-inset-top, 0px) var(--space-3) 0;
+    box-shadow: var(--panel-tile);
   }
 
   .menu-icon {
-    font-size: 1.15rem;
+    font-size: var(--type-heading-size);
     line-height: 1;
-  }
-
-  .menu-label {
-    font-weight: 500;
   }
 
   .mobile-bar-center {
@@ -1751,22 +1822,17 @@ onMount(() => {
     flex-direction: column;
     align-items: center;
     overflow: hidden;
-    padding: 0 8px;
+    padding: 0 var(--space-2);
   }
 
   .mobile-logo {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #f4f1eb;
   }
 
-  /* #status (below, for the desktop line) has the higher specificity, so the id is repeated here. */
+  /* #status (above, for the desktop line) has the higher specificity, so the id is repeated here. */
   #status.mobile-status {
     margin: 0;
-    font-size: 0.76rem;
-    color: #a8a194;
+    color: var(--ink-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1774,14 +1840,11 @@ onMount(() => {
   }
 
   .mobile-engine {
-    font-size: 0.78rem;
-    color: #a8a194;
-    font-weight: 500;
     margin: 0;
-    padding: 2px 6px;
-    border: 1px solid #3d3a34;
-    border-radius: 4px;
-    background: #1e1d1a;
+  }
+  /* Before the renderer is known there is nothing to say; the empty tag keeps its place but shows no fill. */
+  .mobile-engine[data-kind="starting"] {
+    background: transparent;
   }
 
   .mobile-welcome-card {
@@ -1790,165 +1853,41 @@ onMount(() => {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 20;
-    background: #fffdf8;
-    color: #2b2925;
-    border: 1px solid #c9c3b6;
-    border-radius: 14px;
-    padding: 24px;
     text-align: center;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
     max-width: 320px;
-    width: calc(100% - 48px);
-  }
-  .mobile-welcome-card h2 {
-    margin: 0 0 6px;
-    font-size: 1.15rem;
-    color: #2b2925;
-    text-transform: none;
-    letter-spacing: normal;
-  }
-  .mobile-welcome-card p {
-    margin: 0 0 16px;
-    font-size: 0.88rem;
-    color: #5f594f;
+    width: calc(100% - 2 * var(--space-6));
   }
   .mobile-card-btn {
-    min-height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 100%;
-    box-sizing: border-box;
-    font-size: 0.95rem;
   }
 
   .mobile-menu-body {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--space-6);
   }
-  .menu-grp {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2dccf;
-  }
-  .menu-grp h3 {
-    margin: 0;
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #6b655b;
+  /* One panel per group. A panel puts a 16px gap between its rows; check rows are 44px tall already, so
+     they sit closer. */
+  .menu-grp > .ore-choice + .ore-choice {
+    margin-top: var(--space-1);
   }
   .menu-grp h4 {
-    margin: 8px 0 2px;
-    font-size: 0.8rem;
-    color: #6b655b;
-  }
-  .menu-grp label {
-    display: grid;
-    grid-template-columns: 3.5rem 1fr 3.5rem;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.88rem;
-    min-height: 44px;
+    margin-bottom: 0;
   }
   .menu-action-btn {
-    min-height: 48px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 100%;
-    box-sizing: border-box;
-    font-size: 0.92rem;
-    touch-action: manipulation;
   }
-  .menu-hint {
-    margin: 4px 0 0;
-    font-size: 0.82rem;
-    color: #5f594f;
-  }
-  .menu-seg {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-    gap: 6px;
-  }
-  .menu-seg button {
-    min-height: 44px;
-    background: #e2dccf;
-    color: #2b2925;
-    border: 0;
-    border-radius: 6px;
-    font-size: 0.86rem;
-    font-weight: 500;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .menu-seg button.on {
-    background: #2b2925;
-    color: #f4f1eb;
-  }
-  .menu-field {
+  .menu-row {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .field-label {
-    font-size: 0.85rem;
-    color: #5f594f;
-    font-weight: 500;
-  }
-  .menu-range-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-    font-size: 0.9rem;
-  }
-  .menu-range input[type="range"] {
-    width: 100%;
-    height: 44px;
-    margin: 0;
-    box-sizing: border-box;
-  }
-  .menu-checkbox {
-    display: inline-flex !important;
-    align-items: center;
-    gap: 10px;
-    min-height: 48px;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-  .menu-checkbox input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-  }
-  .menu-footer {
-    padding-top: 8px;
-  }
-  .menu-btn {
-    min-height: 48px;
-    width: 100%;
-    box-sizing: border-box;
-    border: 0;
-    border-radius: 8px;
-    background: #e2dccf;
-    color: #2b2925;
-    font: inherit;
-    font-size: 0.92rem;
-    font-weight: 500;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .menu-btn:disabled {
-    opacity: 0.5;
-    cursor: default;
   }
   .menu-help p {
-    margin: 0 0 8px;
-    font-size: 0.86rem;
-    color: #2b2925;
+    margin: 0 0 var(--space-2);
+  }
+  .menu-help p:last-child {
+    margin-bottom: 0;
+  }
+  .menu-footer {
+    padding-top: var(--space-2);
   }
 
   /* The first-run card and the undo toast: a column under the top bar. It ignores the pointer
@@ -1956,13 +1895,13 @@ onMount(() => {
   .top-overlays {
     position: fixed;
     z-index: 36;
-    top: calc(58px + env(safe-area-inset-top, 0px));
+    top: calc(64px + env(safe-area-inset-top, 0px));
     left: calc(8px + env(safe-area-inset-left, 0px));
     right: calc(8px + env(safe-area-inset-right, 0px));
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: var(--space-2);
     pointer-events: none;
   }
   .top-overlays.left-handed {
@@ -1972,13 +1911,9 @@ onMount(() => {
   .mobile-edit-note {
     position: fixed;
     bottom: 70px;
-    left: 12px;
-    right: 12px;
+    left: var(--space-3);
+    right: var(--space-3);
     z-index: 25;
-    background: #fbe3e0;
-    color: #7a1f16;
-    padding: 8px 12px;
-    border-radius: 6px;
-    text-align: center;
+    margin: 0;
   }
 </style>

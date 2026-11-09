@@ -503,7 +503,7 @@ try {
         { timeout: 3000 },
       );
 
-      // 2. State toggle -> Block State
+      // 2. State toggle -> Block state
       await page.evaluate(() => {
         document
           .querySelector('[data-testid="mobile-state-toggle"]')

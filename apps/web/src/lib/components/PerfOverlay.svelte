@@ -112,7 +112,7 @@ onDestroy(() => {
 </script>
 
 {#if active}
-  <aside class="perf-overlay" data-testid="perf-overlay" aria-label="Performance telemetry overlay">
+  <aside class="perf-overlay ore-type-code" data-testid="perf-overlay" aria-label="Performance telemetry overlay">
     <div class="row">
       <span class="label">FPS:</span>
       <span class="val" data-testid="perf-fps">{fps} <span class="dim">({frameMs}ms)</span></span>
@@ -159,6 +159,7 @@ onDestroy(() => {
 {/if}
 
 <style>
+  /* A surface-page panel in the code style: opaque, outlined, square. */
   .perf-overlay {
     position: fixed;
     top: calc(0.5rem + env(safe-area-inset-top, 0px));
@@ -166,32 +167,29 @@ onDestroy(() => {
     z-index: 9999;
     pointer-events: none;
     user-select: none;
-    background: rgba(18, 18, 18, 0.88);
-    color: #f4f1eb;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 6px;
-    padding: 0.45rem 0.65rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 11px;
-    line-height: 1.45;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    background: var(--surface-page);
+    color: var(--ink);
+    border: 2px solid var(--outline);
+    border-radius: var(--radius-none);
+    box-shadow: inset 0 2px 0 var(--panel-hi);
+    padding: var(--space-1) var(--space-3);
     min-width: 140px;
   }
   .row {
     display: flex;
     justify-content: space-between;
-    gap: 0.8rem;
+    gap: var(--space-3);
   }
   .label {
-    color: #a8a29e;
+    color: var(--ink-muted);
   }
   .val {
-    color: #4ade80;
-    font-weight: 600;
+    color: var(--ink);
+    font-weight: 700;
     text-align: right;
   }
   .dim {
-    color: #a8a29e;
+    color: var(--ink-muted);
     font-weight: 400;
   }
 </style>

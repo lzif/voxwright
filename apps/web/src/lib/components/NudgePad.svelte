@@ -54,7 +54,7 @@ onDestroy(() => repeater.stop());
   {@const a = arrow[id]}
   <button
     type="button"
-    class="pad-btn {id}"
+    class="pad-btn ore-btn ore-btn--secondary {id} {id === 'up' || id === 'down' ? 'ore-type-caption' : 'ore-type-title'}"
     aria-label={a.label}
     title={a.label}
     data-testid={`nudge-${id}`}
@@ -81,7 +81,7 @@ onDestroy(() => repeater.stop());
     {#if pending.kind === "rectangle"}
       <button
         type="button"
-        class="pad-btn hollow"
+        class="pad-btn hollow ore-seg ore-type-caption"
         class:on={session.hollow}
         aria-pressed={session.hollow}
         title="Draw only the frame of the rectangle"
@@ -99,7 +99,7 @@ onDestroy(() => repeater.stop());
       <!-- The name starts with the visible letters "A B" (WCAG 2.5.3, label in name). -->
       <button
         type="button"
-        class="pad-btn corner"
+        class="pad-btn corner ore-seg ore-type-label"
         aria-label={`A B: corner ${twoPoint.active.toUpperCase()} is active. Switch to corner ${other.toUpperCase()}`}
         title="Switch corner"
         data-testid="nudge-corner"
@@ -115,7 +115,7 @@ onDestroy(() => repeater.stop());
 
     <button
       type="button"
-      class="pad-btn zoom"
+      class="pad-btn zoom ore-btn ore-btn--secondary ore-type-caption"
       aria-label="Zoom to the armed cell"
       title="Zoom in here: bring the camera closer to the armed cell"
       data-testid="nudge-zoom"
@@ -141,7 +141,7 @@ onDestroy(() => repeater.stop());
       "hollow away up"
       "left corner right"
       "zoom toward down";
-    gap: 8px;
+    gap: var(--space-2);
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
@@ -152,30 +152,15 @@ onDestroy(() => repeater.stop());
     left: calc(12px + 104px + 8px + env(safe-area-inset-left, 0px));
   }
 
+  /* Secondary buttons (.ore-btn--secondary); Hollow and the A/B switch are toggle segments (.ore-seg).
+     The grid cell is 48 px and the button fills it, so the pressed face lowers inside the cell. */
   .pad-btn {
-    width: 48px;
-    height: 48px;
     min-width: 48px;
     min-height: 48px;
-    padding: 0;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: #2b2925;
-    color: #f4f1eb;
-    font: inherit;
-    font-size: 1.25rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
-    cursor: pointer;
+    padding-left: 0;
+    padding-right: 0;
     /* A press must reach the button whole: no scroll, zoom or long-press menu takes it away. */
     touch-action: none;
-  }
-
-  .pad-btn:active {
-    background: #504c45;
   }
 
   .away { grid-area: away; }
@@ -184,30 +169,49 @@ onDestroy(() => repeater.stop());
   .toward { grid-area: toward; }
   .up { grid-area: up; }
   .down { grid-area: down; }
-  .corner { grid-area: corner; gap: 2px; font-size: 1rem; font-weight: 700; }
-  .hollow { grid-area: hollow; font-size: 0.7rem; font-weight: 600; }
-  .zoom { grid-area: zoom; font-size: 0.7rem; font-weight: 600; background: #3d3a34; }
+  .corner { grid-area: corner; gap: 2px; }
+  .hollow { grid-area: hollow; }
+  .zoom { grid-area: zoom; }
 
-  .up,
-  .down {
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: #3d3a34;
+  /* Hollow on (aria-pressed) is the design's selected segment: green, the band closed, an underline.
+     .ore-seg reads aria-checked, which this button does not carry, so the variables are set here. */
+  .nudge-pad .pad-btn.ore-seg[aria-pressed="true"] {
+    --bf: var(--green);
+    --bh: var(--green-hi);
+    --bl: var(--green-lo);
+    --bt: var(--ink);
+    min-height: 48px;
+    padding-bottom: 0;
+    box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl);
+  }
+  .hollow[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 32px;
+    height: 2px;
+    margin-left: -16px;
+    background: var(--ink);
   }
 
+  /* A and B: two small tiles in one segment; the active corner is the green one. */
   .letter {
-    padding: 2px 5px;
-    border-radius: 6px;
-    color: #a8a194;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 22px;
+    padding: 0 var(--space-1);
+    border: 2px solid transparent;
+    color: var(--ink-dark);
   }
 
   .letter.on {
-    background: #f4f1eb;
-    color: #24221f;
-  }
-
-  .hollow.on {
-    background: #f4f1eb;
-    color: #24221f;
+    border-color: var(--outline);
+    background: var(--green);
+    color: var(--ink);
+    box-shadow: inset 2px 2px 0 var(--green-hi), inset -2px -2px 0 var(--green-lo);
   }
 </style>

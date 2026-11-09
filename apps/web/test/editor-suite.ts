@@ -177,9 +177,17 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
       });
     const settle = (): Promise<void> =>
       page.evaluate(() => (window.__voxwright as Vox).renderer.whenIdle());
-    /** Blocks whose top face the pointer reaches: where to click so that exactly that block is hit. */
-    const tops = (): Promise<{ pos: Vec; pt: { x: number; y: number }; block: string }[]> =>
-      page.evaluate(() => {
+    /**
+     * Blocks whose top face the pointer reaches: where to click so that exactly that block is hit. The
+     * picture is scrolled fully into the window first: the page has panels above and beside it, and a click
+     * on one of them (a button lower in a column, say) leaves the page scrolled, with part of the picture
+     * outside the window, where the mouse cannot go.
+     */
+    const tops = async (): Promise<{ pos: Vec; pt: { x: number; y: number }; block: string }[]> => {
+      await page.evaluate(() =>
+        document.querySelector('[data-testid="canvas"]')?.scrollIntoView({ block: "nearest" }),
+      );
+      return page.evaluate(() => {
         const v = window.__voxwright as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
@@ -206,6 +214,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
           }
         return out;
       });
+    };
     const hoverAt = async (pt: { x: number; y: number }): Promise<SessionView> => {
       await page.mouse.move(pt.x, pt.y, { steps: 3 });
       await sleep(120);

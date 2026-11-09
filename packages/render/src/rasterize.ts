@@ -24,6 +24,14 @@ import {
 import type { View } from "./views.ts";
 
 const BG_PRESENTATION: readonly [number, number, number] = [244, 241, 235];
+
+/** A 0xRRGGBB colour as the rasterizer's three channels. */
+const rgbOf = (hex: number): readonly [number, number, number] => [
+  (hex >> 16) & 255,
+  (hex >> 8) & 255,
+  hex & 255,
+];
+
 /** Output longest side in pixels for presentation renders. */
 export const PRESENTATION_LONGEST_PX = 2048;
 /** Supersample factor: rendered at this multiple, then downscaled. */
@@ -429,6 +437,8 @@ export interface RenderOptions {
   title?: string;
   /** The view label and north compass. Default true. */
   overlay?: boolean;
+  /** Background colour as 0xRRGGBB. Default 0xf4f1eb, the presentation background of the CLI previews. */
+  background?: number;
 }
 
 const TITLE_COLOR: Rgb3 = [110, 105, 95];
@@ -544,9 +554,10 @@ export function renderView(
   const ss = options.supersample ?? SUPERSAMPLE;
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
+  const bg = options.background === undefined ? BG_PRESENTATION : rgbOf(options.background);
   const crop = renderableBounds(dense);
   if (crop === null) {
-    const empty = newCanvas(512, 512, BG_PRESENTATION);
+    const empty = newCanvas(512, 512, bg);
     if (options.title) drawTitle(empty, options.title);
     return empty;
   }
@@ -580,7 +591,7 @@ export function renderView(
     pyRound((maxy - sy) * scale),
   ];
 
-  const canvas = newCanvas(W, H, BG_PRESENTATION);
+  const canvas = newCanvas(W, H, bg);
   if (options.shadow ?? true) {
     const foot: [number, number][] = [];
     for (const x of [x0, x1])

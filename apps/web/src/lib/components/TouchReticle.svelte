@@ -89,38 +89,44 @@ const showStem = $derived(reticle !== null && reticle.touchY - reticle.reticleY 
     pointer-events: none;
     z-index: 45;
   }
+  /* White marks with a hard 2 px halo in the outline colour (four offset copies, no blur), so they
+     read on a white wool block and on a black one alike. */
   .touch-reticle {
+    --halo: drop-shadow(2px 0 0 var(--outline)) drop-shadow(-2px 0 0 var(--outline))
+      drop-shadow(0 2px 0 var(--outline)) drop-shadow(0 -2px 0 var(--outline));
     width: 100%;
     height: 100%;
     pointer-events: none;
   }
   .reticle-stem {
-    stroke: #f4f1eb;
-    stroke-width: 1.5;
+    stroke: var(--ink);
+    stroke-width: 2;
     stroke-dasharray: 3 3;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+    filter: var(--halo);
   }
   .reticle-contact {
-    fill: rgba(244, 241, 235, 0.25);
-    stroke: rgba(244, 241, 235, 0.6);
-    stroke-width: 1.5;
+    fill: var(--ink);
+    fill-opacity: 0.25;
+    stroke: var(--ink-muted);
+    stroke-width: 2;
   }
+  /* Over a block the ring is green; over nothing it is the muted ink. */
   .reticle-target {
     fill: none;
-    stroke: #f4f1eb;
+    stroke: var(--ink-muted);
     stroke-width: 2;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+    filter: var(--halo);
     transition: stroke 0.1s ease;
   }
   .reticle-target.has-hit {
-    stroke: #4dedd5;
+    stroke: var(--tag-primary);
   }
   .reticle-tick {
-    stroke: #f4f1eb;
-    stroke-width: 1.5;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+    stroke: var(--ink);
+    stroke-width: 2;
+    filter: var(--halo);
   }
   .reticle-dot {
-    fill: #f4f1eb;
+    fill: var(--ink);
   }
 </style>

@@ -82,28 +82,33 @@ function onSearchKey(e: KeyboardEvent): void {
 }
 </script>
 
-<section class="palette" data-testid="palette">
-  <h2>Block</h2>
-  <label class="current">
-    <span class="sr">Chosen block</span>
+<section class="palette" class:ore-panel={!touch} data-testid="palette">
+  <h2 class="ore-panel__header ore-type-heading">Block</h2>
+  <label class="current ore-field">
+    <span class="ore-field__label ore-type-label">Chosen block</span>
     <input
       type="text"
+      class="ore-input ore-type-body"
       spellcheck="false"
       autocomplete="off"
       bind:value={session.block}
-      class:invalid={invalid !== ""}
+      class:is-error={invalid !== ""}
       aria-invalid={invalid !== ""}
       data-testid="block-input"
     />
   </label>
-  {#if invalid}<p class="hint bad">{invalid}</p>{:else}<p class="hint">Used by Place, Replace, Line, Rectangle, Fill and Replace-in-selection. Type any block, with properties if you like.</p>{/if}
+  {#if invalid}<p class="hint bad ore-notice ore-notice--important ore-type-caption" class:above-hotbar={touch}>{invalid}</p>{:else}<p class="hint ore-type-caption" class:above-hotbar={touch}>Used by Place, Replace, Line, Rectangle, Fill and Replace-in-selection. Type any block, with properties if you like.</p>{/if}
 
   {#if touch}
     <Hotbar {session} {favorites} {recents} />
   {/if}
 
+  <!-- Named by its aria-label; on touch the label stays out of sight, because the sheet is short and the placeholder says the same. -->
+  <label class="search-label ore-field__label ore-type-label" class:sr={touch} for="palette-search-input">Search blocks</label>
   <input
+    id="palette-search-input"
     type="search"
+    class="search ore-input ore-type-body"
     placeholder="Search blocks…"
     autocomplete="off"
     spellcheck="false"
@@ -115,12 +120,12 @@ function onSearchKey(e: KeyboardEvent): void {
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions: the keys come from the buttons inside this list -->
   <ul class="list" data-testid="palette-list" aria-label="Blocks (arrow keys move, Enter chooses)" bind:this={listEl} onkeydown={onListKey}>
     {#if offerTyped}
-      <li><button class="entry typed" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
+      <li class="ore-row"><button class="entry typed ore-type-label" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
     {/if}
     {#each found.shown as entry (entry.block)}
-      <li class:row={touch}>
+      <li class="ore-row" class:row={touch}>
         <button
-          class="entry"
+          class="entry ore-type-label"
           class:on={session.block === entry.block}
           class:build={entry.source === "build"}
           aria-pressed={session.block === entry.block}
@@ -135,7 +140,7 @@ function onSearchKey(e: KeyboardEvent): void {
           {@const full = !fav && favoritesFull(favorites)}
           <button
             type="button"
-            class="star"
+            class="star ore-seg ore-type-label"
             aria-pressed={fav}
             aria-label={`Favourite ${shortName(entry.block)}`}
             title={full ? `Favourites are full (${FAVORITE_LIMIT}): unstar one first` : `Star ${entry.block}`}
@@ -148,45 +153,54 @@ function onSearchKey(e: KeyboardEvent): void {
       </li>
     {/each}
   </ul>
-  <p class="hint">
+  <p class="hint ore-type-caption">
     {found.total} match{found.total === 1 ? "" : "es"}{found.total > found.shown.length ? `, first ${found.shown.length} shown` : ""}.
     {session.packBlocks.length === 0 ? "No texture pack: only this build's blocks are listed; type any other block above." : ""}
   </p>
 </section>
 
 <style>
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.4rem; color: #5f594f; }
-  input[type="text"], input[type="search"] { width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font: inherit; font-size: 0.9rem; border: 1px solid #c9c3b6; border-radius: 6px; background: #fff; }
-  input.invalid { border-color: #b3382b; }
-  .sr { position: absolute; left: -9999px; }
-  .current { display: block; margin-bottom: 0.2rem; }
-  .list { list-style: none; margin: 0.4rem 0 0; padding: 0; max-height: 17rem; overflow: auto; border: 1px solid #e2dccf; border-radius: 6px; background: #fff; }
-  .entry { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: transparent; color: #2b2925; border: 0; border-radius: 0; padding: 0.2rem 0.5rem; font: inherit; font-size: 0.85rem; cursor: pointer; }
-  .entry:hover { background: #f1ece0; }
-  .entry.on { background: #2b2925; color: #f4f1eb; }
-  .entry.build { font-weight: 600; }
-  .entry.typed { font-style: italic; }
-  .hint { color: #5f594f; font-size: 0.8rem; margin: 0.3rem 0 0; }
-  .bad { color: #7a1f16; }
+  /* The design's classes (ore-panel, ore-field, ore-input, ore-row, ore-seg, ore-notice) come from the page's
+     stylesheet; what is below only places them and states what the design has no class for. On touch the
+     sheet is the panel, so the root is not a tile there. */
+  .palette { min-width: 0; }
+  .current { margin: 0; }
+  .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .search-label { margin: var(--space-4) 0 0; }
+  .search-label.sr { margin: -1px; }
+  .search { margin: var(--space-1) 0 0; -webkit-appearance: none; appearance: none; }
 
-  /* Touch: a row is the block and its star side by side. */
-  li.row { display: flex; align-items: stretch; }
-  li.row .entry { flex: 1 1 auto; min-width: 0; }
-  .star { flex: 0 0 auto; width: 48px; min-width: 48px; min-height: 48px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #5f594f; font: inherit; font-size: 1.4rem; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; }
-  .star[aria-pressed="true"] { color: #7a4f00; }
-  .star:disabled { opacity: 0.45; cursor: default; }
+  /* The list is a well in surface-page; each entry is a row tile on it. */
+  .list { list-style: none; margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-1) var(--space-2); max-height: 17rem; overflow: auto; background: var(--surface-page); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: var(--field-well); }
+  .entry { display: block; flex: 1 1 auto; min-width: 0; width: 100%; box-sizing: border-box; min-height: 32px; margin: 0; padding: var(--space-1) var(--space-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: transparent; color: var(--ink); border: 0; border-radius: var(--radius-none); cursor: pointer; }
+  .entry:hover { background: var(--surface-raised); }
+  /* The chosen entry: a green face with a white underline, and aria-pressed for everything else. */
+  .entry.on, .entry.on:hover { background: var(--green); color: var(--ink); box-shadow: inset 0 -2px 0 var(--ink); }
+  .entry:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .entry.build { font-weight: 700; }
+  .entry.typed { font-style: italic; }
+
+  .hint { margin: var(--space-2) 0 0; color: var(--ink-muted); }
+  .hint.above-hotbar { margin-bottom: var(--space-3); }
+  /* An error is the design's important notice: the yellow bar, dark text, and the message itself. */
+  .hint.bad { justify-content: flex-start; min-height: 0; text-align: left; color: var(--ink-dark); }
+
+  /* Touch: a row is the block and its star cell side by side; a finger gets 48 px rows and a 44 px star. */
+  li.row { align-items: center; }
+  li.row .entry { align-self: stretch; min-height: 48px; }
+  .star { flex: 0 0 auto; width: 44px; min-width: 44px; min-height: 44px; margin: var(--space-1) var(--space-1) var(--space-1) var(--space-2); padding: 0 0 4px; font-size: var(--type-title-size); line-height: 1; touch-action: manipulation; }
+  /* ore-seg draws its pressed state from aria-checked; this is a toggle button, so it reads aria-pressed.
+     The box stays 44 px tall: the band closes, the face does not drop. */
+  .star.ore-seg[aria-pressed="true"] { --bf: var(--green); --bh: var(--green-hi); --bl: var(--green-lo); --bt: var(--ink); padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }
+  .star.ore-seg[aria-pressed="true"]:hover:not(:disabled) { --bf: var(--green-hover); --bh: var(--green-hover-hi); --bl: var(--green-hover-lo); }
+  .star.ore-seg[aria-pressed="true"]::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 44px; height: 2px; margin-left: -22px; background: var(--ink); }
 
   @media (pointer: coarse) {
-    input[type="search"] {
-      min-height: 44px;
-    }
     .entry {
       min-height: 48px;
       display: flex;
       align-items: center;
-      padding: 0 12px;
-      font-size: 0.95rem;
-      box-sizing: border-box;
+      padding: 0 var(--space-3);
     }
   }
 </style>

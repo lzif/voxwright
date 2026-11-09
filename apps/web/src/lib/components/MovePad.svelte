@@ -62,7 +62,7 @@ onDestroy(() => repeater.stop());
   {@const a = arrow[id]}
   <button
     type="button"
-    class="pad-btn {id}"
+    class="pad-btn ore-btn ore-btn--secondary {id} {id === 'up' || id === 'down' ? 'ore-type-caption' : 'ore-type-title'}"
     aria-label={a.label}
     title={a.label}
     data-testid={`move-${id}`}
@@ -81,7 +81,7 @@ onDestroy(() => repeater.stop());
 <div class="move-pad" role="group" aria-label="Move the selection" data-testid="move-pad">
   <button
     type="button"
-    class="pad-btn big"
+    class="pad-btn big ore-seg ore-type-label"
     class:on={big}
     aria-pressed={big}
     aria-label="×8: move 8 blocks per step"
@@ -92,7 +92,7 @@ onDestroy(() => repeater.stop());
   {@render arrowButton("away")}
   {@render arrowButton("up")}
   {@render arrowButton("left")}
-  <output class="step-size" data-testid="move-step">{size === 1 ? "1 block" : `${size} blocks`} a step</output>
+  <output class="step-size ore-type-caption" data-testid="move-step">{size === 1 ? "1 block" : `${size} blocks`} a step</output>
   {@render arrowButton("right")}
   {@render arrowButton("toward")}
   {@render arrowButton("down")}
@@ -107,37 +107,23 @@ onDestroy(() => repeater.stop());
       "big away up"
       "left size right"
       ". toward down";
-    gap: 8px;
+    gap: var(--space-2);
     justify-content: center;
-    margin: 0.5rem 0 0;
+    margin: var(--space-2) 0 0;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
   }
 
+  /* Secondary buttons (.ore-btn--secondary); ×8 is a toggle segment (.ore-seg). The grid cell is
+     48 px and the button fills it, so the pressed face lowers inside the cell. */
   .pad-btn {
-    width: 48px;
-    height: 48px;
     min-width: 48px;
     min-height: 48px;
-    padding: 0;
-    border-radius: 10px;
-    border: 0;
-    background: #2b2925;
-    color: #f4f1eb;
-    font: inherit;
-    font-size: 1.25rem;
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    padding-left: 0;
+    padding-right: 0;
     /* A press must reach the button whole: no scroll, zoom or long-press menu takes it away. */
     touch-action: none;
-  }
-
-  .pad-btn:active {
-    background: #504c45;
   }
 
   .away { grid-area: away; }
@@ -146,14 +132,28 @@ onDestroy(() => repeater.stop());
   .toward { grid-area: toward; }
   .up { grid-area: up; }
   .down { grid-area: down; }
-  .big { grid-area: big; font-size: 0.95rem; font-weight: 700; background: #e2dccf; color: #2b2925; }
-  .big.on { background: #2b2925; color: #f4f1eb; }
+  .big { grid-area: big; }
 
-  .up,
-  .down {
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: #3d3a34;
+  /* ×8 on (aria-pressed) is the design's selected segment: green, the band closed, an underline.
+     .ore-seg reads aria-checked, which this button does not carry, so the variables are set here. */
+  .move-pad .pad-btn.ore-seg[aria-pressed="true"] {
+    --bf: var(--green);
+    --bh: var(--green-hi);
+    --bl: var(--green-lo);
+    --bt: var(--ink);
+    min-height: 48px;
+    padding-bottom: 0;
+    box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl);
+  }
+  .big[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 32px;
+    height: 2px;
+    margin-left: -16px;
+    background: var(--ink);
   }
 
   .step-size {
@@ -162,8 +162,6 @@ onDestroy(() => repeater.stop());
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 0.7rem;
-    line-height: 1.15;
-    color: #5f594f;
+    color: var(--ink-muted);
   }
 </style>

@@ -35,7 +35,7 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
     {#each blocks as b (b.block)}
       <button
         type="button"
-        class="hot"
+        class="hot ore-btn ore-btn--secondary ore-type-label"
         class:fav={b.favorite}
         aria-pressed={session.block === b.block}
         aria-label={b.block}
@@ -44,9 +44,9 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
         data-testid={compact ? "hotbar-compact-chip" : "hotbar-chip"}
         data-block={b.block}
         data-favorite={b.favorite}
-      >{#if b.favorite}<span class="star" aria-hidden="true">★</span>{/if}<span class="hot-name">{shortName(b.block)}</span></button>
+      >{#if b.favorite}<span class="star ore-tag ore-tag--primary ore-type-caption" aria-hidden="true">★</span>{/if}<span class="hot-name">{shortName(b.block)}</span></button>
     {:else}
-      <p class="empty" data-testid="hotbar-empty">Blocks you choose or star show up here.</p>
+      <p class="empty ore-type-caption" data-testid="hotbar-empty">Blocks you choose or star show up here.</p>
     {/each}
   </div>
 {/if}
@@ -55,44 +55,53 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
   .hotbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 0 0 8px;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
     max-height: 160px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
+  /* A chip is a secondary button (.ore-btn--secondary); the block in use is the design's selected
+     state: green, the band closed, an underline. */
   .hot {
     flex: 0 0 auto;
     min-width: 44px;
     max-width: 100%;
     min-height: 44px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 8px;
-    background: #e2dccf;
-    color: #2b2925;
-    font: inherit;
-    font-size: 0.9rem;
-    display: inline-flex;
-    align-items: center;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
     gap: 6px;
-    cursor: pointer;
     touch-action: manipulation;
   }
 
-  .hot[aria-pressed="true"] {
-    background: #2b2925;
-    color: #f4f1eb;
-    font-weight: 600;
+  .hotbar .hot.ore-btn[aria-pressed="true"] {
+    --bf: var(--green);
+    --bh: var(--green-hi);
+    --bl: var(--green-lo);
+    --bt: var(--ink);
+    min-height: 44px;
+    padding-bottom: 0;
+    box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl);
+  }
+  .hotbar .hot.ore-btn[aria-pressed="true"]:active {
+    margin-top: 0;
+  }
+  .hot[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 24px;
+    height: 2px;
+    margin-left: -12px;
+    background: var(--ink);
   }
 
+  /* A starred block: the design's primary tag beside the name. The star is the word's stand-in, so
+     the marker never carries meaning by its colour alone. */
   .star {
-    color: #7a4f00;
-  }
-
-  .hot[aria-pressed="true"] .star {
-    color: #ffd666;
+    flex: none;
   }
 
   .hot-name {
@@ -104,8 +113,7 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
 
   .empty {
     margin: 0;
-    color: #5f594f;
-    font-size: 0.8rem;
+    color: var(--ink-muted);
   }
 
   /* Over the picture: one row, left of the thumb cluster, scrolling sideways inside itself. */
@@ -117,6 +125,7 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
     bottom: calc(108px + env(safe-area-inset-bottom, 0px));
     /* The thumb cluster is 104 px wide with 12 px beside it and 8 px between. */
     max-width: calc(100vw - 12px - 12px - 104px - 8px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
     flex-wrap: nowrap;
     margin: 0;
     max-height: none;
@@ -124,7 +133,8 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
     overflow-y: hidden;
     scrollbar-width: none;
     touch-action: pan-x;
-    padding: 0;
+    /* Room for the 2 px focus ring, which the scroll box would otherwise cut off. */
+    padding: 2px;
     user-select: none;
     -webkit-user-select: none;
   }
@@ -140,22 +150,5 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
 
   .compact .hot {
     max-width: 11rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-    background: #2b2925;
-    color: #f4f1eb;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-  }
-
-  .compact .hot[aria-pressed="true"] {
-    background: #f4f1eb;
-    color: #24221f;
-  }
-
-  .compact .star {
-    color: #ffd666;
-  }
-
-  .compact .hot[aria-pressed="true"] .star {
-    color: #7a4f00;
   }
 </style>

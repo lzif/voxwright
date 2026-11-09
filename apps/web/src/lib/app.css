@@ -1,0 +1,238 @@
+/* SPDX-License-Identifier: AGPL-3.0-only */
+
+/* The app's own rules on top of the Ore UI Study stylesheets.
+ *
+ * +layout.svelte loads tokens.css, then ore-ui.css (both kept as the design system supplies them),
+ * then this file. Every colour, space and radius below is a custom property from tokens.css. What is
+ * here is only what the two design files do not give: the page base, and the places where the app's
+ * native elements differ from the markup the design's React components make. See
+ * docs/design-system.md. */
+/* biome-ignore-all lint/complexity/noImportantStyles: the reduced-motion rule has to win over every component's own animation and transition */
+
+/* Base. The design defines the dark theme only. */
+html {
+  color-scheme: dark;
+  background: var(--surface-page);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overscroll-behavior: none;
+  background: var(--surface-page);
+  color: var(--ink);
+  font-family: var(--type-body-family);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+}
+
+/* Native controls take the page's font, so a type class on them (ore-type-label) is all they need. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Focus: a 2px ring in the focus token. The ore-* classes draw their own, tighter around the control;
+   this one is for everything else (the picture, links, the skip link). */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Nothing here moves on its own; this keeps it so if a transition or animation is ever added. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Text colour helpers for long copy and help: the type class sets the face, this sets the colour. */
+.ore-muted {
+  color: var(--ink-muted);
+}
+
+/* Help under a control sits close to it: the design's is a <div>, here it is often a <p>. */
+.ore-field__help {
+  margin: 0;
+}
+
+/* Buttons that are not <button> elements: a label around a hidden file input, or a link. */
+a.ore-btn,
+label.ore-btn {
+  text-decoration: none;
+}
+
+label.ore-btn:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+  z-index: 1;
+}
+
+label.ore-btn:has(input:disabled) {
+  --bf: var(--light-200);
+  border-color: var(--light-400);
+  color: var(--ink-disabled);
+  text-shadow: none;
+  cursor: not-allowed;
+  box-shadow: inset 0 -4px 0 var(--light-300);
+}
+
+label.ore-btn:has(input:disabled):active {
+  min-height: 44px;
+  margin-top: 0;
+  padding-bottom: 4px;
+  box-shadow: inset 0 -4px 0 var(--light-300);
+}
+
+/* Taps, not double-taps to zoom, on everything that is pressed. */
+.ore-btn,
+.ore-seg,
+.ore-tab,
+.ore-choice__row {
+  touch-action: manipulation;
+}
+
+/* The touch size: 48px for the main actions of the mobile layout (the design's 44px elsewhere). */
+.ore-btn--touch {
+  min-height: 48px;
+}
+
+.ore-btn--touch:active:not(:disabled) {
+  min-height: 44px;
+}
+
+/* A slider is a 44px target. The design's is 28px; here the rail and the thumb keep their 28px and sit in
+   the middle of the taller control. */
+.ore-slider__control,
+.ore-slider__input,
+.ore-slider__input::-webkit-slider-runnable-track {
+  height: 44px;
+}
+
+.ore-slider__input::-moz-range-track {
+  height: 44px;
+}
+
+.ore-slider__input::-webkit-slider-thumb {
+  margin-top: 8px;
+}
+
+/* A slider whose <label> wraps its text, its input and its value (the app's Turn, Tilt, From and To). The
+   first labelable element inside a <label> is the one it labels, and an <output> is labelable, so the
+   input has to come before the output in the DOM. The design puts the value in the head above the
+   control; here the label is a grid that puts it there. */
+label.ore-slider-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name value"
+    "control control";
+  gap: var(--space-2) var(--space-3);
+}
+
+label.ore-slider-field > .ore-field__label {
+  grid-area: name;
+  align-self: baseline;
+}
+
+label.ore-slider-field > .ore-slider__control {
+  grid-area: control;
+}
+
+label.ore-slider-field > .ore-slider__value {
+  grid-area: value;
+  align-self: baseline;
+}
+
+/* A checkbox or radio row is a 44px target, though its box is 24px. */
+.ore-choice__row {
+  min-height: 44px;
+}
+
+/* Toggle segments. The design's toggle is a radiogroup that reads aria-checked; the app's groups are
+   buttons with aria-pressed (the layout override has the .on class only). Same look as
+   .ore-seg[aria-checked="true"], with one difference: the pressed segment keeps its 44px height. The
+   design lowers its face by 4px, which would make the touch target 40px tall. Here the band closes
+   and the face fills it, the underline still marks the choice. */
+.ore-seg:is([aria-pressed="true"], .on) {
+  --bf: var(--green);
+  --bh: var(--green-hi);
+  --bl: var(--green-lo);
+  --bt: var(--ink);
+  padding-bottom: 0;
+  box-shadow:
+    inset 2px 2px 0 var(--bh),
+    inset -2px -2px 0 var(--bl);
+}
+
+.ore-seg:is([aria-pressed="true"], .on):hover:not(:disabled) {
+  --bf: var(--green-hover);
+  --bh: var(--green-hover-hi);
+  --bl: var(--green-hover-lo);
+}
+
+.ore-seg:is([aria-pressed="true"], .on)::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 44px;
+  height: 2px;
+  margin-left: -22px;
+  background: var(--ink);
+}
+
+.ore-seg:disabled:is([aria-pressed="true"], .on) {
+  --bf: var(--light-200);
+  --bh: var(--light-200-hi);
+  --bl: var(--light-200-lo);
+  --bt: var(--ink-disabled);
+  box-shadow: none;
+}
+
+.ore-seg:disabled:is([aria-pressed="true"], .on)::after {
+  background: var(--ink-disabled);
+}
+
+/* A native <select> drawn as the design's dropdown: the secondary button face, with the chevron as
+   an <svg class="ore-dd__chev"> beside it (the select's own arrow is switched off). The list that
+   opens is the browser's own, in the panel colours. */
+.ore-dd__select {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding-right: calc(var(--space-4) + 16px + var(--space-3));
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ore-dd__select option {
+  background: var(--surface-panel);
+  color: var(--ink);
+}
+
+.ore-dd > .ore-dd__chev {
+  position: absolute;
+  top: 12px;
+  right: var(--space-4);
+  pointer-events: none;
+}

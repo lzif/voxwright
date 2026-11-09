@@ -10,6 +10,7 @@ import { describeVolume } from "./describe.ts";
 import { type Carried, type FormatId, openFile, saveAs } from "./formats.ts";
 import { mergePacks, type Pack } from "./pack-extract.ts";
 import type { FromWorker, ToWorker } from "./protocol.ts";
+import { VIEW_BACKGROUND } from "./view-background.ts";
 
 let assets: AssetSource | null = null;
 let sitePack: Pack | null = null;
@@ -69,6 +70,7 @@ self.onmessage = async (e: MessageEvent<ToWorker>) => {
           supersample: m.supersample,
           shadow: m.shadow,
           overlay: false,
+          background: VIEW_BACKGROUND,
         });
         const rgba = new Uint8ClampedArray(img.width * img.height * 4);
         for (let i = 0; i < img.width * img.height; i++) {

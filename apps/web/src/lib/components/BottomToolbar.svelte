@@ -55,7 +55,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
   <div class="readout-row" class:has-chip={showChip}>
   <!-- Live cell readout bar -->
   <div
-    class="cell-readout-bar"
+    class="cell-readout-bar ore-type-caption"
     data-testid="live-cell-readout"
     role="status"
     aria-live="polite"
@@ -102,7 +102,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
          focus without the gesture: the camera comes closer to the inspected block and centres on it. -->
     <button
       type="button"
-      class="state-chip"
+      class="state-chip ore-btn ore-btn--secondary ore-type-caption"
       aria-label="Zoom to this block"
       title="Zoom to this block: bring the camera closer, as a double tap does"
       onclick={() => session.focusInspected()}
@@ -110,7 +110,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     >Zoom</button>
     <button
       type="button"
-      class="state-chip"
+      class="state-chip ore-btn ore-btn--secondary ore-type-caption"
       aria-label={chipLabel}
       onclick={() => ontogglesheet?.("blockstate")}
       data-testid="state-chip"
@@ -127,7 +127,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     <!-- Active block swatch: opens/toggles palette sheet -->
     <button
       type="button"
-      class="swatch-btn"
+      class="swatch-btn ore-btn ore-btn--secondary ore-type-label"
       class:active={activeSheet === "palette"}
       onclick={() => ontogglesheet?.("palette")}
       data-testid="active-block-swatch"
@@ -149,7 +149,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
       {#each shown as t (t.id)}
         <button
           type="button"
-          class="tool-btn"
+          class="tool-btn ore-seg ore-type-label"
           class:active={session.tool === t.id}
           aria-pressed={session.tool === t.id}
           onclick={() => session.setTool(t.id)}
@@ -168,7 +168,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     <!-- Quick sheet toggles for State and Selection -->
     <button
       type="button"
-      class="panel-btn"
+      class="panel-btn ore-seg ore-type-label"
       class:active={activeSheet === "blockstate"}
       onclick={() => ontogglesheet?.("blockstate")}
       data-testid="mobile-state-toggle"
@@ -179,7 +179,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
 
     <button
       type="button"
-      class="panel-btn"
+      class="panel-btn ore-seg ore-type-label"
       class:active={activeSheet === "selection"}
       onclick={() => ontogglesheet?.("selection")}
       data-testid="mobile-selection-toggle"
@@ -191,24 +191,27 @@ const swatchColor = $derived(blockColor(cleanBlockName));
 </div>
 
 <style>
+  /* The bar is a surface-page strip with the toolbar's own outline on top; the readout line is a
+     surface-panel tile above the buttons. Tool buttons are the design's toggle segments (.ore-seg),
+     the swatch and the chips are secondary buttons (.ore-btn--secondary). */
   .bottom-toolbar-container {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 30;
-    background: #24221f;
-    border-top: 1px solid #3d3a34;
+    background: var(--surface-page);
+    color: var(--ink);
+    border-top: 2px solid var(--outline);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.28);
   }
 
   .bottom-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     height: 56px;
-    padding: 0 12px;
+    padding: 0 var(--space-3);
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
@@ -218,85 +221,103 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     display: none;
   }
 
+  /* The segments touch (.ore-seg + .ore-seg overlaps their outlines by 2 px), as a toggle group does. */
   .tool-strip {
     display: flex;
     align-items: center;
-    gap: 6px;
     flex-shrink: 0;
   }
 
   .tool-btn,
   .panel-btn {
+    flex: 0 0 auto;
     min-width: 48px;
     min-height: 48px;
-    padding: 0 10px;
-    border: 0;
-    border-radius: 8px;
-    background: #3d3a34;
-    color: #f4f1eb;
-    font-size: 0.84rem;
-    font-weight: 500;
-    cursor: pointer;
-    touch-action: manipulation;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
     white-space: nowrap;
-    transition: background 0.15s ease, color 0.15s ease;
+    touch-action: manipulation;
   }
 
-  .tool-btn.active,
-  .panel-btn.active {
-    background: #f4f1eb;
-    color: #24221f;
-    font-weight: 600;
+  /* The armed tool (aria-pressed) and an open sheet (.active) are the design's selected segment:
+     green, the band closed, and the 2 px underline that says "selected" without colour. .ore-seg reads
+     aria-checked, which these buttons do not carry (they keep aria-pressed), so the same variables
+     are set here. The box stays 48 px tall: it is the touch target. */
+  .bottom-toolbar .tool-strip .tool-btn.ore-seg[aria-pressed="true"],
+  .bottom-toolbar .panel-btn.ore-seg.active {
+    --bf: var(--green);
+    --bh: var(--green-hi);
+    --bl: var(--green-lo);
+    --bt: var(--ink);
+    min-height: 48px;
+    padding-bottom: 0;
+    box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl);
+  }
+  .tool-btn[aria-pressed="true"]::after,
+  .panel-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 44px;
+    height: 2px;
+    margin-left: -22px;
+    background: var(--ink);
   }
 
-  .tool-btn:active,
-  .panel-btn:active {
-    filter: brightness(0.9);
+  /* State and Select are a group of two: the gap of the toolbar is taken back so their outlines overlap. */
+  .panel-btn + .panel-btn {
+    margin-left: calc(-1 * var(--space-2) - 2px);
   }
 
   .sep {
-    width: 1px;
+    width: 2px;
     height: 32px;
-    background: #4a463f;
+    background: var(--panel-hi);
     flex-shrink: 0;
   }
 
   .swatch-btn {
     min-width: 48px;
     min-height: 48px;
-    padding: 4px 12px;
-    border: 1px solid #4a463f;
-    border-radius: 8px;
-    background: #2f2c27;
-    color: #f4f1eb;
-    cursor: pointer;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
     touch-action: manipulation;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     flex-shrink: 0;
     max-width: 180px;
   }
 
-  .swatch-btn.active {
-    border-color: #f4f1eb;
-    background: #3d3a34;
+  /* Palette sheet open: the pressed secondary face (the dropdown's open look) and an underline. */
+  .bottom-toolbar .swatch-btn.ore-btn.active {
+    --bf: var(--light-300);
+    --bh: var(--light-300-hi);
+    --bl: var(--light-300-lo);
+    min-height: 48px;
+    padding-bottom: 0;
+    box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl);
+  }
+  .swatch-btn.active::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 44px;
+    height: 2px;
+    margin-left: -22px;
+    background: var(--ink-dark);
   }
 
+  /* The block's own colour, so it is data, not a design colour: set inline from the block name. */
   .swatch-indicator {
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    width: 24px;
+    height: 24px;
+    box-sizing: border-box;
+    border: 2px solid var(--outline);
+    border-radius: var(--radius-none);
     flex-shrink: 0;
   }
 
   .swatch-label {
-    font-size: 0.82rem;
-    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -306,30 +327,19 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     display: flex;
     align-items: stretch;
     min-height: 28px;
-    background: #1e1c19;
-    border-bottom: 1px solid #3d3a34;
+    background: var(--surface-panel);
+    box-shadow: var(--panel-tile);
   }
 
   .state-chip {
     flex: 0 0 auto;
     min-height: 44px;
     min-width: 44px;
-    margin: 0 8px 0 0;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 8px;
-    background: #3d3a34;
-    color: #f4f1eb;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
+    margin: 0 var(--space-2) 0 0;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
     white-space: nowrap;
-    cursor: pointer;
     touch-action: manipulation;
-  }
-
-  .state-chip:active {
-    filter: brightness(0.9);
   }
 
   .cell-readout-bar {
@@ -340,10 +350,8 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     justify-content: space-between;
     height: auto;
     min-height: 28px;
-    padding: 0 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.78rem;
-    color: #f4f1eb;
+    padding: 0 var(--space-3);
+    color: var(--ink);
     user-select: none;
     -webkit-user-select: none;
   }
@@ -351,23 +359,23 @@ const swatchColor = $derived(blockColor(cleanBlockName));
   .readout-cell {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--space-2);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .readout-coord {
-    font-weight: 600;
-    color: #4dedd5;
+    font-weight: 700;
+    color: var(--ink);
   }
 
   .readout-sep {
-    color: #858585;
+    color: var(--ink-muted);
   }
 
   .readout-block {
-    color: #f4f1eb;
+    color: var(--ink);
   }
 
   /* While something is pending the readout keeps its width and the message takes the rest. */
@@ -377,24 +385,32 @@ const swatchColor = $derived(blockColor(cleanBlockName));
   }
 
   .readout-msg {
-    font-size: 0.74rem;
-    color: #a8a29e;
+    color: var(--ink-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-left: 8px;
+    margin-left: var(--space-2);
     min-width: 0;
     flex: 1 1 0;
     text-align: right;
   }
 
+  /* A refusal: white text behind the design's 8 px red square (red text would not reach 4.5:1 on
+     surface-panel), as .ore-field__error does. */
   .readout-error {
-    font-size: 0.74rem;
-    color: #ef4444;
+    color: var(--ink);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-left: 8px;
+    margin-left: var(--space-2);
+  }
+  .readout-error::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 6px;
+    background: var(--red);
   }
 
   .readout-error.wide {

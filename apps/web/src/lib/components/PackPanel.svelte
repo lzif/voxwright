@@ -26,9 +26,10 @@ let {
 const mb = (bytes: number): string => `${(bytes / 1e6).toFixed(1)} MB`;
 </script>
 
-<section class="packs" aria-labelledby="packs-title" data-testid="pack-panel">
-  <h2 id="packs-title">Textures</h2>
-  <p data-testid="pack-state">
+<!-- A design panel. In the mobile menu the menu's own section is the panel, so this one draws no frame. -->
+<section class="packs ore-panel" class:touch aria-labelledby="packs-title" data-testid="pack-panel">
+  <h2 id="packs-title" class={["ore-panel__header", touch ? "ore-type-label" : "ore-type-heading"]}>Textures</h2>
+  <p class="ore-type-prose" data-testid="pack-state">
     {#if user}
       Using your pack <strong data-testid="pack-name">{user.name}</strong>
       ({user.counts.textures} textures, {user.counts.blockstates} blockstates, {user.counts.models} models; {mb(user.fileSize)} file){hasSitePack ? ", laid over this site's pack" : ""}.
@@ -40,29 +41,27 @@ const mb = (bytes: number): string => `${(bytes / 1e6).toFixed(1)} MB`;
     {/if}
   </p>
   <div class="row">
-    <label class="button">
+    <label class="button ore-btn ore-btn--secondary ore-type-label">
       {user ? "Replace my pack" : "Use my own pack"}
       <input type="file" class="sr-only" accept=".zip,.jar" disabled={busy} data-testid="pack-file" onchange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ""; if (f) onadd(f); }} />
     </label>
-    {#if user}<button class="ghost" onclick={onremove} disabled={busy} data-testid="pack-remove">Remove my pack</button>{/if}
-    <span class="hint">A resource pack (.zip) or a Minecraft client .jar, chosen here{touch ? "" : " or dropped on the page"}. It is read in your browser and never uploaded.</span>
+    {#if user}<button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={onremove} disabled={busy} data-testid="pack-remove">Remove my pack</button>{/if}
+    <span class="hint ore-type-prose ore-muted">A resource pack (.zip) or a Minecraft client .jar, chosen here{touch ? "" : " or dropped on the page"}. It is read in your browser and never uploaded.</span>
   </div>
   <div aria-live="polite" data-testid="pack-status">
-    {#if busy}<p class="hint">Reading the pack…</p>{/if}
-    {#if note}<p class="hint" data-testid="pack-note">{note}</p>{/if}
+    {#if busy}<p class="hint ore-type-prose ore-muted">Reading the pack…</p>{/if}
+    {#if note}<p class="hint ore-type-prose ore-muted" data-testid="pack-note">{note}</p>{/if}
   </div>
-  {#if error}<p class="error" role="alert" data-testid="pack-error">{error}</p>{/if}
+  {#if error}<p class="ore-notice ore-notice--important ore-type-label" role="alert" data-testid="pack-error">{error}</p>{/if}
 </section>
 
 <style>
-  .packs { margin: 0 0 1rem; }
-  h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 0.3rem; color: #5f594f; }
-  p { margin: 0.2rem 0; }
-  .row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 0.3rem; }
-  .button, button { position: relative; background: #2b2925; color: #f4f1eb; border: 0; border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; font: inherit; }
-  .button:focus-within { outline: 3px solid #1d4ed8; outline-offset: 2px; }
-  button.ghost { background: #e2dccf; color: #2b2925; }
-  button:disabled { opacity: 0.6; cursor: default; }
-  .hint { color: #5f594f; font-size: 0.85rem; }
-  .error { background: #fbe3e0; color: #7a1f16; padding: 0.5rem 0.8rem; border-radius: 6px; }
+  .packs { margin: 0 0 var(--space-6); }
+  .packs.touch { margin: 0; padding: 0; background: none; box-shadow: none; }
+  p { margin: 0; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); align-items: center; }
+  .hint { flex: 1 1 14rem; }
+  /* The live region has nothing in it most of the time, so it adds no gap of its own; its paragraphs do. */
+  [data-testid="pack-status"] { margin-top: 0; }
+  [data-testid="pack-status"] > p { margin-top: var(--space-2); }
 </style>

@@ -17,12 +17,12 @@ let {
 const done = $derived(introDoneCount(progress));
 </script>
 
-<section class="intro" aria-labelledby="intro-title" data-testid="touch-intro">
+<section class="intro ore-panel" aria-labelledby="intro-title" data-testid="touch-intro">
   <div class="intro-head">
-    <h2 id="intro-title" class="intro-title">Quick start</h2>
+    <h2 id="intro-title" class="intro-title ore-panel__header ore-type-heading">Quick start</h2>
     <button
       type="button"
-      class="intro-close"
+      class="intro-close ore-dialog__icon ore-dialog__icon--close"
       aria-label="Close the quick start"
       onclick={onclose}
       data-testid="touch-intro-close"
@@ -31,25 +31,21 @@ const done = $derived(introDoneCount(progress));
   <ol class="steps">
     {#each INTRO_STEPS as step (step.id)}
       <li class:done={progress[step.id]} data-step={step.id} data-done={progress[step.id]}>
-        <span class="tick" aria-hidden="true">{progress[step.id] ? "✓" : ""}</span>
-        <span class="step-text"><span class="sr-only">{progress[step.id] ? "Done: " : "To do: "}</span>{step.text}</span>
+        <span class="tick ore-box" aria-hidden="true">{progress[step.id] ? "✓" : ""}</span>
+        <span class="step-text ore-type-label"><span class="sr-only">{progress[step.id] ? "Done: " : "To do: "}</span>{step.text}</span>
       </li>
     {/each}
   </ol>
-  <p class="count" role="status" data-testid="touch-intro-count">{done} of {INTRO_STEPS.length} done</p>
+  <p class="count ore-type-caption" role="status" data-testid="touch-intro-count">{done} of {INTRO_STEPS.length} done</p>
 </section>
 
 <style>
+  /* The design's panel (.ore-panel: surface-panel tile, no outline). It floats over the picture with no
+     backdrop, so the picture stays usable. The close button is the dialog's close icon at 44 px. */
   .intro {
-    box-sizing: border-box;
     align-self: stretch;
     pointer-events: auto;
-    padding: 2px 4px 8px 14px;
-    border-radius: 14px;
-    border: 1px solid #c9c3b6;
-    background: #fffdf8;
-    color: #2b2925;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    padding: var(--space-1) var(--space-1) var(--space-3) var(--space-4);
     user-select: none;
     -webkit-user-select: none;
   }
@@ -58,84 +54,67 @@ const done = $derived(introDoneCount(progress));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--space-2);
   }
 
   .intro-title {
     margin: 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-    text-transform: none;
-    letter-spacing: normal;
-    color: #2b2925;
+    color: var(--ink);
   }
 
   .intro-close {
+    position: static;
     flex: 0 0 auto;
     width: 44px;
     height: 44px;
     min-width: 44px;
     min-height: 44px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: #2b2925;
-    font: inherit;
-    font-size: 1.1rem;
-    cursor: pointer;
+    margin: 0;
+    font-size: var(--type-heading-size);
+    line-height: 1;
     touch-action: manipulation;
   }
 
   .intro-close:active {
-    background: #e2dccf;
+    background: var(--panel-hi);
   }
 
   .steps {
     margin: 0;
-    padding: 0 10px 0 0;
+    padding: 0 var(--space-3) 0 0;
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--space-2);
   }
 
   .steps li {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 0.9rem;
-    line-height: 1.25;
+    gap: var(--space-3);
   }
 
+  /* A checkbox's look (.ore-box), not a control: the tick is a text glyph that shows once the step is
+     done, in the checked box's green. The words say Done or To do too (the .sr-only prefix). */
   .tick {
-    flex: 0 0 auto;
-    box-sizing: border-box;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    border: 2px solid #5f594f;
-    background: transparent;
-    color: #ffffff;
-    font-size: 0.85rem;
+    font-size: var(--type-label-size);
     font-weight: 700;
-    line-height: 18px;
-    text-align: center;
+    line-height: 1;
   }
 
   .steps li.done .tick {
-    border-color: #2e6930;
-    background: #2e6930;
+    background: var(--green);
+    color: var(--ink);
+    box-shadow: inset 2px 2px 0 var(--green-hi), inset -2px -2px 0 var(--green-lo);
   }
 
   .steps li.done .step-text {
-    color: #5f594f;
+    color: var(--ink-muted);
     text-decoration: line-through;
   }
 
   .count {
-    margin: 6px 0 0;
-    font-size: 0.8rem;
-    color: #5f594f;
+    margin: var(--space-2) 0 0;
+    color: var(--ink-muted);
   }
 </style>

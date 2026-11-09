@@ -248,11 +248,11 @@ function handleBackdropClick(): void {
     </button>
 
     <!-- Sheet header: a plain block, not a <header>, which would count as a second banner landmark next to the top bar's. -->
-    <div class="sheet-header">
-      <h2 class="sheet-title">{title}</h2>
+    <div class="sheet-header ore-dialog__header">
+      <h2 class="sheet-title ore-dialog__title ore-type-heading">{title}</h2>
       <button
         type="button"
-        class="sheet-close-btn"
+        class="sheet-close-btn ore-dialog__icon ore-dialog__icon--close"
         onclick={close}
         aria-label="Close sheet"
         data-testid="bottom-sheet-close"
@@ -277,17 +277,19 @@ function handleBackdropClick(): void {
 {/if}
 
 <style>
+  /* The design's dialog, docked to the bottom: an outlined frame, a surface-panel header (drag handle and
+     title), a surface-page body. Colours are tokens from tokens.css; the page loads it. */
   .sheet-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--outline);
     z-index: 40;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
   }
   .sheet-backdrop.active {
-    opacity: 1;
+    opacity: 0.7;
     pointer-events: auto;
   }
 
@@ -296,11 +298,12 @@ function handleBackdropClick(): void {
     left: 0;
     right: 0;
     z-index: 45;
-    background: #fffdf8;
-    color: #2b2925;
-    border-top: 1px solid #c9c3b6;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.22);
+    box-sizing: border-box;
+    background: var(--surface-page);
+    color: var(--ink);
+    border: 2px solid var(--outline);
+    border-bottom: 0;
+    border-radius: var(--radius-none);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -325,14 +328,16 @@ function handleBackdropClick(): void {
     }
   }
 
+  /* The handle sits in the header band: the same surface-panel as the title row beneath it. */
   .sheet-handle-zone {
     width: 100%;
     min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    background: var(--surface-panel);
     border: 0;
+    border-radius: var(--radius-none);
     padding: 0;
     cursor: grab;
     touch-action: none;
@@ -343,47 +348,37 @@ function handleBackdropClick(): void {
   .sheet-handle-zone:active {
     cursor: grabbing;
   }
+  .sheet-handle-zone:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -2px;
+  }
 
   .handle-bar {
     width: 44px;
-    height: 5px;
-    background: #a8a194;
-    border-radius: 3px;
+    height: 4px;
+    background: var(--light-400);
+    border-radius: var(--radius-none);
   }
 
+  /* .ore-dialog__header gives the centred title and the panel band; the handle above it already
+     draws the top edge, so only the divider beneath is kept. */
   .sheet-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px 8px;
-    border-bottom: 1px solid #e2dccf;
     flex-shrink: 0;
+    box-shadow: inset 0 -2px 0 var(--panel-hi);
   }
 
-  .sheet-title {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: #2b2925;
-  }
-
+  /* The dialog's close icon, at the 44 px a finger needs (the design's is 32 px). */
   .sheet-close-btn {
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 0;
-    border-radius: 50%;
-    color: #2b2925;
-    font-size: 1.15rem;
-    cursor: pointer;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    margin-top: -22px;
+    font-size: var(--type-heading-size);
+    line-height: 1;
     touch-action: manipulation;
   }
   .sheet-close-btn:active {
-    background: #e2dccf;
+    background: var(--panel-hi);
   }
 
   .sheet-content {
@@ -392,7 +387,7 @@ function handleBackdropClick(): void {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     touch-action: pan-y;
-    padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: var(--space-3) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
   }
 
   /* Host styling for embedded panels */
@@ -419,8 +414,7 @@ function handleBackdropClick(): void {
   :global(.sheet-content .palette input[type="search"]),
   :global(.sheet-content [data-testid="palette"] input[type="search"]) {
     min-height: 44px !important;
-    margin-bottom: 8px !important;
-    font-size: 1rem !important;
+    margin-bottom: var(--space-2) !important;
   }
 
   :global(.sheet-content .palette .list),
@@ -433,8 +427,7 @@ function handleBackdropClick(): void {
     min-height: 48px !important;
     display: flex !important;
     align-items: center !important;
-    padding: 0 12px !important;
-    font-size: 0.95rem !important;
+    padding: 0 var(--space-3) !important;
     box-sizing: border-box !important;
   }
 </style>

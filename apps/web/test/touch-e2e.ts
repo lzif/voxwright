@@ -24,7 +24,7 @@
 //     [--only viewer|placement|two-point|selection-state|camera|quality|polish]
 
 import { mkdirSync, readdirSync, readFileSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -3705,8 +3705,8 @@ export async function touchSelectionStateSuite(): Promise<void> {
     await sleep(350);
     ok(
       (await page.$eval('[data-testid="bottom-sheet"]', (el) => el.getAttribute("aria-label"))) ===
-        "Block State",
-      t("tapping the chip opens the Block State sheet"),
+        "Block state",
+      t("tapping the chip opens the Block state sheet"),
     );
     ok(
       (await page.$eval('[data-testid="blockstate-name"]', (el) => el.textContent?.trim())) ===
@@ -7516,6 +7516,103 @@ export async function touchPolishSuite(): Promise<void> {
     });
     await focusOrder("palette sheet", { visual: false });
     await closeSheet();
+
+    // ==== 8b. an error of the page shows in the mobile layout ==========================================
+    // The page's error used to be a paragraph in the flow of a fixed, full-screen <main>, so the picture
+    // covered it. In the mobile layout it is a notice in the top overlays, above the picture.
+    {
+      const bad = await newPage(browser);
+      try {
+        await bad.setViewport(MOBILE_VIEWPORT);
+        bad.on("pageerror", (e) => errors.push(String(e)));
+        await bad.goto(url);
+        await bad.waitForFunction(
+          () =>
+            document
+              .querySelector('[data-testid="status"]')
+              ?.textContent?.startsWith("open a schematic"),
+          { timeout: 30000 },
+        );
+        const junk = join(downloads, "junk.nbt");
+        await writeFile(junk, new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]));
+        const shown = async (): Promise<{
+          text: string;
+          role: string | null;
+          important: boolean;
+          inOverlays: boolean;
+          hit: boolean;
+          top: number;
+          barBottom: number;
+          width: number;
+          viewport: number;
+          count: number;
+        }> =>
+          bad.evaluate(() => {
+            const els = document.querySelectorAll('[data-testid="error"]');
+            const el = els[0] as HTMLElement;
+            const r = el.getBoundingClientRect();
+            const at = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            const bar = document.querySelector('[data-testid="top-app-bar"]') as HTMLElement;
+            return {
+              text: el.textContent?.trim() ?? "",
+              role: el.getAttribute("role"),
+              important: el.classList.contains("ore-notice--important"),
+              inOverlays: el.closest('[data-testid="top-overlays"]') !== null,
+              hit: at === el || (at !== null && el.contains(at)),
+              top: r.top,
+              barBottom: bar.getBoundingClientRect().bottom,
+              width: r.width,
+              viewport: window.innerWidth,
+              count: els.length,
+            };
+          });
+
+        // With no file open there is no editing session yet; the error has to show anyway.
+        const input = (await bad.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement>;
+        await input.uploadFile(junk);
+        await bad.waitForSelector('[data-testid="error"]', { timeout: 10000 });
+        const a = await shown();
+        ok(
+          a.count === 1 && a.text.length > 10 && a.role === "alert" && a.important,
+          t(
+            `opening a file that is not a schematic shows one alert notice ("${a.text.slice(0, 50)}")`,
+          ),
+        );
+        ok(
+          a.inOverlays && a.top >= a.barBottom - 0.5 && a.width > a.viewport - 40,
+          t(
+            `the notice is in the top overlays, under the top bar, across the screen (top ${a.top.toFixed(0)}, bar bottom ${a.barBottom.toFixed(0)}, ${a.width.toFixed(0)} wide)`,
+          ),
+        );
+        ok(
+          a.hit,
+          t("the element at the notice's centre is the notice: the picture does not cover it"),
+        );
+        if (values.shots) await bad.screenshot({ path: join(values.shots, "mobile-error.png") });
+
+        // A good file clears it, and with a session the notice still shows for the next bad file.
+        await input.uploadFile(join(fixtures, "Rafeals_house.nbt"));
+        await bad.waitForFunction(
+          () =>
+            document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
+          { timeout: 60000 },
+        );
+        ok(
+          (await bad.$('[data-testid="error"]')) === null,
+          t("opening a good file takes the notice away"),
+        );
+        await bad.evaluate(() => window.__voxwright?.renderer.whenIdle());
+        await input.uploadFile(junk);
+        await bad.waitForSelector('[data-testid="error"]', { timeout: 10000 });
+        const b = await shown();
+        ok(
+          b.count === 1 && b.inOverlays && b.hit && b.top >= b.barBottom - 0.5,
+          t("with a build open the notice shows too, above the picture and the toolbar"),
+        );
+      } finally {
+        await bad.close();
+      }
+    }
 
     // ==== 9. the desktop layout is not touched ==========================================================
     const desk = await newPage(browser);

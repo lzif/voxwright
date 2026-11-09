@@ -41,15 +41,17 @@ $effect(() => {
 <div
   class="toast"
   class:shown={shown !== null}
+  class:ore-notice={shown !== null}
+  class:ore-notice--info={shown !== null}
   class:left-handed={leftHanded}
   data-testid="undo-toast"
   data-shown={shown !== null}
 >
-  <span class="toast-text" role="status" data-testid="undo-toast-text">{shown?.text ?? ""}</span>
+  <span class="toast-text ore-type-label" role="status" data-testid="undo-toast-text">{shown?.text ?? ""}</span>
   {#if shown}
     <button
       type="button"
-      class="toast-undo"
+      class="toast-undo ore-btn ore-btn--secondary ore-type-label"
       aria-label="Undo"
       title={`Undo: ${shown.text}`}
       onclick={() => session.undoChange(shown.id)}
@@ -63,7 +65,7 @@ $effect(() => {
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     max-width: 100%;
     pointer-events: none;
     user-select: none;
@@ -74,24 +76,20 @@ $effect(() => {
     flex-direction: row-reverse;
   }
 
+  /* While a toast shows it is the design's info notice (blue, white text, outlined, square), with the
+     message left-aligned and the Undo button, a secondary one, at the end. */
   .toast.shown {
     pointer-events: auto;
-    padding: 4px 4px 4px 14px;
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: #2b2925;
-    color: #f4f1eb;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    justify-content: flex-start;
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-3);
+    text-align: left;
   }
 
   .toast.shown.left-handed {
-    padding: 4px 14px 4px 4px;
+    padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
   }
 
   .toast-text {
-    font-size: 0.9rem;
-    font-weight: 600;
-    line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -101,20 +99,7 @@ $effect(() => {
     flex: 0 0 auto;
     min-width: 64px;
     min-height: 48px;
-    padding: 0 16px;
-    border: 0;
-    border-radius: 24px;
-    background: #f4f1eb;
-    color: #24221f;
-    font: inherit;
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
     touch-action: manipulation;
-  }
-
-  .toast-undo:active {
-    filter: brightness(0.9);
   }
 
   /* A short slide-in, only for people who have not asked for less motion. */
