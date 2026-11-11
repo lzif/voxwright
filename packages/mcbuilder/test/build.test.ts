@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from "vitest";
-import { Build, type Geometry, type Point, shapes } from "../src/index.ts";
+import { Build, type Geometry, McbuilderError, type Point, shapes } from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
 import { call } from "./shapes.test.ts";
 
@@ -155,5 +155,229 @@ describe("Build against the Python oracle", () => {
     ).toThrow("boom");
     expect(() => b.set(2, 0, 0, "minecraft:stone")).toThrow(/inside/);
     expect(b.get(1, 0, 0)).toBe("minecraft:stone");
+  });
+});
+
+// Python `Build.floor` and the `tests/test_parts.py` cases that go through a Build.
+describe("Build floor, stairsRun and railing", () => {
+  const STAIR = "minecraft:oak_stairs";
+  const FENCE = "minecraft:oak_fence";
+
+  /** Every placed cell of `b`, sorted by position. */
+  const placed = (b: Build): [number, number, number, string][] => {
+    const out: [number, number, number, string][] = [];
+    b.grid.volume.eachCell((x, y, z, idx) => {
+      out.push([x, y, z, b.grid.volume.palette[idx] as string]);
+    });
+    return out.sort((p, q) => p[0] - q[0] || p[1] - q[1] || p[2] - q[2]);
+  };
+
+  describe("floor", () => {
+    it("is a slab one thick at the lower y, whatever order the corners come in", () => {
+      const lower = [1, 3, 0] as const;
+      const upper = [5, 7, 4] as const;
+      const expected: [number, number, number, string][] = [];
+      for (let x = 1; x <= 5; x++)
+        for (let z = 0; z <= 4; z++) expected.push([x, 3, z, "minecraft:oak_planks"]);
+
+      for (const [c1, c2] of [
+        [lower, upper],
+        [upper, lower],
+        [
+          [5, 3, 0],
+          [1, 7, 4],
+        ],
+        [
+          [1, 7, 4],
+          [5, 3, 0],
+        ],
+      ] as const) {
+        const b = new Build();
+        const geo = b.scope(() => b.floor(c1, c2, "minecraft:oak_planks"));
+        expect(placed(b), `${c1} ${c2}`).toEqual(expected);
+        expect(geo.cells().length).toBe(25);
+        expect(geo.bounds()).toEqual([
+          [1, 3, 0],
+          [5, 3, 4],
+        ]);
+        expect(b.bounds()).toEqual(geo.bounds());
+      }
+    });
+
+    it("is one cell when both corners are the same", () => {
+      const b = new Build();
+      b.scope(() => b.floor([2, 5, 2], [2, 5, 2], "minecraft:stone"));
+      expect(placed(b)).toEqual([[2, 5, 2, "minecraft:stone"]]);
+    });
+
+    it("resolves a palette with the Build seed, like a box one block high", () => {
+      const palette = [
+        "minecraft:oak_planks",
+        "minecraft:birch_planks",
+        "minecraft:spruce_planks",
+        "minecraft:jungle_planks",
+      ];
+      const floor = (seed: number) => {
+        const b = new Build({ seed });
+        b.scope(() => b.floor([0, 2, 0], [7, 9, 7], palette));
+        return placed(b);
+      };
+      const box = new Build({ seed: 5 });
+      box.scope(() => box.box([0, 2, 0], [7, 2, 7], palette));
+      expect(floor(5)).toEqual(placed(box));
+      expect(floor(5)).toEqual(
+        shapes
+          .box([0, 2, 0], [7, 2, 7], palette, { seed: 5 })
+          .cells()
+          .sort((p, q) => p[0] - q[0] || p[1] - q[1] || p[2] - q[2]),
+      );
+      expect(floor(6)).not.toEqual(floor(5));
+    });
+
+    it("needs a scope and three-int corners", () => {
+      const b = new Build();
+      expect(() => b.floor([0, 0, 0], [1, 0, 1], "minecraft:stone")).toThrow(/inside/);
+      b.scope(() => {
+        expect(() => b.floor([0, 0] as never, [1, 0, 1], "minecraft:stone")).toThrow(
+          McbuilderError,
+        );
+        expect(() => b.floor([0, 0, 0], [1, 0, 0.5], "minecraft:stone")).toThrow(McbuilderError);
+      });
+      expect(b.bounds()).toBeNull();
+    });
+  });
+
+  describe("stairsRun", () => {
+    it("places the run and returns it in absolute coordinates, top step on the target", () => {
+      const b = new Build();
+      const geo = b.scope(() =>
+        b.stairsRun([10, 20, 30], "south", STAIR, { target: [10, 22, 32] }),
+      );
+      const stair = "minecraft:oak_stairs[facing=south,half=bottom]";
+      expect(geo.cells()).toEqual([
+        [10, 20, 30, stair],
+        [10, 21, 31, stair],
+        [10, 22, 32, stair],
+      ]);
+      expect(geo.bounds()).toEqual([
+        [10, 20, 30],
+        [10, 22, 32],
+      ]);
+      expect(placed(b)).toEqual(geo.cells());
+    });
+
+    it("gives the same build for the length form and the target form, as stairs does", () => {
+      const run = (place: (b: Build) => unknown) => {
+        const b = new Build();
+        b.scope(() => place(b));
+        return placed(b);
+      };
+      const byLength = run((b) => b.stairsRun([0, 0, 5], "north", STAIR, { length: 3, width: 2 }));
+      expect(byLength).toEqual(
+        run((b) => b.stairs([0, 0, 5], "north", STAIR, { length: 3, width: 2 })),
+      );
+      expect(
+        run((b) => b.stairsRun([0, 0, 5], "north", STAIR, { target: [0, 2, 3], width: 2 })),
+      ).toEqual(byLength);
+      expect(byLength.length).toBe(6);
+    });
+
+    it("refuses a block with facing and places nothing", () => {
+      const b = new Build();
+      b.scope(() => {
+        expect(() =>
+          b.stairsRun([0, 0, 0], "north", "minecraft:oak_stairs[facing=east]", { length: 2 }),
+        ).toThrow(McbuilderError);
+      });
+      expect(b.bounds()).toBeNull();
+    });
+
+    it("resolves a palette with the Build seed, like stairs", () => {
+      const palette = ["minecraft:oak_stairs", "minecraft:spruce_stairs", "minecraft:birch_stairs"];
+      const a = new Build({ seed: 4 });
+      const c = new Build({ seed: 4 });
+      a.scope(() => a.stairsRun([0, 0, 0], "east", palette, { length: 12 }));
+      c.scope(() => c.stairs([0, 0, 0], "east", palette, { length: 12 }));
+      expect(placed(a)).toEqual(placed(c));
+    });
+  });
+
+  describe("railing", () => {
+    it("runs along x", () => {
+      const b = new Build();
+      const geo = b.scope(() => b.railing([0, 64, 0], [4, 64, 0], FENCE));
+      const expected = [0, 1, 2, 3, 4].map((x) => [x, 64, 0, FENCE]);
+      expect(geo.cells()).toEqual(expected);
+      expect(placed(b)).toEqual(expected);
+    });
+
+    it("runs along z with the end before the start", () => {
+      const b = new Build();
+      const geo = b.scope(() => b.railing([2, 64, 5], [2, 64, 2], FENCE));
+      const expected = [2, 3, 4, 5].map((z) => [2, 64, z, FENCE]);
+      expect(placed(b)).toEqual(expected);
+      expect(geo.cells().sort((p, q) => p[2] - q[2])).toEqual(expected);
+    });
+
+    it("is one cell when start equals end", () => {
+      const b = new Build();
+      const geo = b.scope(() => b.railing([1, 1, 1], [1, 1, 1], FENCE));
+      expect(geo.cells()).toEqual([[1, 1, 1, FENCE]]);
+      expect(placed(b)).toEqual([[1, 1, 1, FENCE]]);
+    });
+
+    it("places the same cells as Build.line on the same endpoints, seed included", () => {
+      const palette = [FENCE, "minecraft:birch_fence", "minecraft:spruce_fence"];
+      for (const [p1, p2] of [
+        [
+          [0, 64, 0],
+          [9, 64, 0],
+        ],
+        [
+          [3, 10, 8],
+          [3, 10, -2],
+        ],
+      ] as const) {
+        const r = new Build({ seed: 2 });
+        const l = new Build({ seed: 2 });
+        r.scope(() => r.railing(p1, p2, palette));
+        l.scope(() => l.line(p1, p2, palette));
+        expect(placed(r)).toEqual(placed(l));
+      }
+    });
+
+    it("names a y mismatch or a diagonal and places nothing", () => {
+      const b = new Build();
+      b.scope(() => {
+        expect(() => b.railing([0, 64, 0], [4, 65, 0], FENCE)).toThrow(/same y level/);
+        expect(() => b.railing([0, 64, 0], [4, 64, 3], FENCE)).toThrow(/axis-aligned/);
+        expect(() => b.railing([0, 64, 0], [4, 64, 3], FENCE)).toThrow(McbuilderError);
+      });
+      expect(b.bounds()).toBeNull();
+    });
+  });
+
+  it("composes a hut corner from pillar, stairsRun, railing and floor", () => {
+    const b = new Build();
+    b.scope(() => {
+      b.pillar([0, 0, 0], 4, "minecraft:oak_log[axis=y]");
+      b.stairsRun([0, 0, 5], "north", "minecraft:stone_brick_stairs", { length: 3, width: 2 });
+      b.railing([0, 4, -1], [2, 4, -1], FENCE);
+      // The corners differ in y; the slab sits at the lower one.
+      b.floor([2, 0, 1], [4, 2, 3], "minecraft:spruce_planks");
+    });
+
+    for (let i = 0; i < 4; i++) expect(b.get(0, i, 0)).toBe("minecraft:oak_log[axis=y]");
+    const stair = "minecraft:stone_brick_stairs[facing=north,half=bottom]";
+    for (let i = 0; i < 3; i++) for (let w = 0; w < 2; w++) expect(b.get(w, i, 5 - i)).toBe(stair);
+    for (let x = 0; x < 3; x++) expect(b.get(x, 4, -1)).toBe(FENCE);
+    for (let x = 2; x <= 4; x++)
+      for (let z = 1; z <= 3; z++) {
+        expect(b.get(x, 0, z)).toBe("minecraft:spruce_planks");
+        expect(b.get(x, 1, z)).toBeNull();
+      }
+
+    // Nothing else got placed: 4 logs + 6 stairs + 3 fences + a 3 x 3 slab.
+    expect(placed(b).length).toBe(4 + 6 + 3 + 9);
   });
 });

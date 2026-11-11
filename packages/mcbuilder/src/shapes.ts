@@ -195,8 +195,15 @@ export interface StairsOptions extends SeedOption {
  * Straight staircase climbing toward `direction`. Step `i` sits `i` blocks
  * toward `direction` and `i` blocks up. Give exactly one of `length` (number
  * of steps) or `target` (the cell the top step must occupy, on the 1:1
- * diagonal from `start`). Each step gets `facing=<direction>` and
- * `half=bottom`. `width` extends the run sideways toward +X or +Z.
+ * diagonal from `start`; `target` equal to `start` is a one-step run).
+ * `width` extends the run sideways toward +X or +Z.
+ *
+ * Facing rule (the canonical statement; `stairsRun` refers here): each step
+ * gets `facing=<direction>`, the ascent direction, and `half=bottom`, so the
+ * tall back sits uphill. The shape computes `facing`, so pass the stair
+ * block without it: a block that already carries `facing` is refused with
+ * `McbuilderError`, never overridden. Other properties and NBT on `block`
+ * are kept.
  */
 export function stairs(
   start: Point,
@@ -237,6 +244,61 @@ export function stairs(
     }
   }
   return geo;
+}
+
+/**
+ * Script-port alias of `stairs`: the port of Python `part.stairs_run` and
+ * `parts.stairs_run`, so a Python script calling `stairs_run` keeps the same
+ * method name. Behaviour is identical to `stairs`, which is canonical; see
+ * its doc comment for the facing rule. As in `stairs`, `length`, `target` and
+ * `width` go in the options object instead of being positional.
+ *
+ * Divergence from Python: given a block that already has `facing`, Python
+ * overrides it with the ascent direction, while this port refuses it with
+ * `McbuilderError`. The refusal is intentional, as in `stairs` and
+ * `roofGable`.
+ */
+export function stairsRun(
+  start: Point,
+  dir: string,
+  block: Material,
+  options: StairsOptions = {},
+): Geometry {
+  return stairs(start, dir, block, options);
+}
+
+/**
+ * Straight horizontal run from `start` to `end` (inclusive), in either
+ * direction. Port of Python `part.railing` and `parts.railing`. The run must
+ * be axis-aligned: `start` and `end` share the same y, and share x or z.
+ * Anything else throws `McbuilderError` naming the problem. The cells are
+ * those of `line` on the same endpoints.
+ *
+ * Meant for fences and walls. The structure stores the bare block (for
+ * example `minecraft:oak_fence`): the game resolves fence and wall
+ * connections at paste time, so they are not saved in the build. A preview
+ * that does not infer them draws fence posts without arms; the faithful
+ * preview infers them itself.
+ */
+export function railing(
+  start: Point,
+  end: Point,
+  block: Material,
+  { seed }: SeedOption = {},
+): Geometry {
+  const [x1, y1, z1] = point("railing: start", start);
+  const [x2, y2, z2] = point("railing: end", end);
+  if (y1 !== y2) {
+    throw new McbuilderError(
+      `railing: start and end must share the same y level (got y=${y1} and y=${y2})`,
+    );
+  }
+  if (x1 !== x2 && z1 !== z2) {
+    throw new McbuilderError(
+      `railing: run must be axis-aligned (x or z constant); got start=${show(start)} end=${show(end)}`,
+    );
+  }
+  return line(start, end, block, { seed });
 }
 
 // -- round shapes ------------------------------------------------------------

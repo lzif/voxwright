@@ -216,8 +216,33 @@ export class Build {
   line(p1: Point, p2: Point, block: Material, o?: shapes.SeedOption): Geometry {
     return this.stamp(shapes.line(p1, p2, block, this.opt(o)));
   }
+  /**
+   * One-block-thick slab at the lower Y of the corners `c1` and `c2`, covering
+   * their XZ rectangle. Corners may be in any order. Port of Python
+   * `Build.floor`: a `box` of height 1, so a palette spec resolves with the
+   * Build seed.
+   */
+  floor(c1: Point, c2: Point, block: Material, o?: shapes.SeedOption): Geometry {
+    const [x1, y1, z1] = ints("floor: c1", c1);
+    const [x2, y2, z2] = ints("floor: c2", c2);
+    const y = Math.min(y1, y2);
+    return this.box(
+      [Math.min(x1, x2), y, Math.min(z1, z2)],
+      [Math.max(x1, x2), y, Math.max(z1, z2)],
+      block,
+      o,
+    );
+  }
+  /** Straight horizontal run from `start` to `end`, axis-aligned only; see `shapes.railing`. */
+  railing(start: Point, end: Point, block: Material, o?: shapes.SeedOption): Geometry {
+    return this.stamp(shapes.railing(start, end, block, this.opt(o)));
+  }
   stairs(start: Point, direction: string, block: Material, o?: shapes.StairsOptions): Geometry {
     return this.stamp(shapes.stairs(start, direction, block, this.opt(o)));
+  }
+  /** Script-port alias of `stairs`; see `shapes.stairsRun` for the Python provenance and the facing divergence. */
+  stairsRun(start: Point, direction: string, block: Material, o?: shapes.StairsOptions): Geometry {
+    return this.stamp(shapes.stairsRun(start, direction, block, this.opt(o)));
   }
   cylinder(
     center: Point,
