@@ -10,8 +10,9 @@ Schematic files shared by all tests.
 
 - `real/rafeals-house/` holds one build saved by a real tool
   (bloxelizer.com) in three formats: `.nbt` (DataVersion 5023), `.mcstructure`
-  and `.litematic`. All three describe the same 762-block house, so once the
-  M2 codecs exist they can be checked against each other.
+  and `.litematic`. All three describe the same 762-block house, and
+  `packages/core/test/litematic.test.ts` and `mcstructure.test.ts` check the
+  other two against the `.nbt`.
 
 Still needed: files saved by real tools (two or three `.schem` from
 WorldEdit). Put them in a directory per tool and add tests that read them.

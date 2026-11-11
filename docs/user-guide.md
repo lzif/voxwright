@@ -89,7 +89,7 @@ In that mode:
 
 ### Touch screens
 
-On a phone or tablet with WebGL2 the page switches to a layout made for fingers, with the same editor behind it: a full-screen picture, a **Menu** button, a bottom toolbar, round buttons for Undo, Redo, the check mark and the cross, and sheets that slide up for the palette, block state and selection. It is described in section 5. Without WebGL2 the page is still a viewer (see above). The **Turn** and **Tilt** sliders and the zoom buttons also exist in the **Menu** sheet.
+On a phone or tablet with WebGL2 the page switches to a layout made for fingers, with the same editor behind it: a full-screen picture, a **Menu** button and a **View** button, a bottom toolbar, round buttons for Undo, Redo, the check mark and the cross, and sheets that slide up for the palette, block state and selection. It is described in section 5. Without WebGL2 the page is still a viewer (see above). The **Turn** and **Tilt** sliders and the zoom buttons also exist in the **View** sheet.
 
 ## 3. Converting and the loss report
 
@@ -249,11 +249,11 @@ The page uses the touch layout on a phone or tablet, or whenever the window is n
 
 ### 5.1 The layout
 
-- The **top bar** has the **Menu** button on the left and the file's status in the middle.
+- The **top bar** has the **Menu** button on the left, the file's status in the middle and the **View** button, which opens the View & camera sheet (zoom and centre buttons, **Turn** and **Tilt**, and the layer sliders).
 - The **bottom toolbar** has the current block (tap it to open the palette), the tools (View, Place, Replace, Erase, Pick, Line, Rectangle, Select), and the **State** and **Select** buttons that open the Block state and Selection sheets. The tools are 48 pixel buttons; the row scrolls sideways if the screen is narrow.
 - The **line above the toolbar** shows the cell and block under the cursor, or what you have begun, and a short message after each action. With a block tapped, **Zoom** and **Edit state ›** sit at its right end.
 - The **thumb cluster** (bottom right) has **Undo**, **Redo**, the **cross** (drop what you began) and the **check mark** (apply it). The **nudge pad** appears beside it while something waits for the check mark. With **Left-handed controls** on in the settings, the cluster, the pad, the quick row of blocks and the toast all move to the left side.
-- **Sheets** slide up from the bottom for the palette, block state, selection and the menu. Drag the handle to resize a sheet, or tap it (or press Enter on it) to switch between half and full height. The **✕** button, a tap beside the sheet and Esc close it. Only one sheet is open at a time.
+- **Sheets** slide up from the bottom for the palette, block state, selection, the view and the menu. Drag the handle to resize a sheet, or tap it (or press Enter on it) to switch between half and full height. The **✕** button, a tap beside the sheet and Esc close it. Only one sheet is open at a time.
 - A **toast** with an Undo button appears under the top bar after every edit (section 5.6).
 
 ### 5.2 Gestures
@@ -439,9 +439,9 @@ Files and conversion:
 - Block-state translation between Java and Bedrock covers the families named in section 3, not every block.
 - Pending block and fluid ticks are not carried over.
 
-Not yet checked by the project:
+Not yet checked by the project, or checked by hand only:
 
-- An exported `.litematic` has not been opened in Litematica itself. The project checks it by reading it back with its own reader.
+- An exported `.litematic` was opened in Litematica itself by the project's owner, by hand, on 2026-11-11. That was one manual check; the project's tests do not run Litematica and check the file by reading it back with their own reader.
 - Whether Minecraft and Litematica read the block entities and entities that were written is also unchecked.
 - `.schem` files saved by a real tool (WorldEdit, for example) have not been tested yet. The `.nbt`, `.litematic` and `.mcstructure` samples used for testing came from one web converter.
 

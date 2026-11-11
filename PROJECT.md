@@ -92,11 +92,11 @@ The mobile editor introduces full touch-first editing capabilities on mobile dev
 | MB1   | Phone baseline and test harness                | Mobile touch E2E test harness (`apps/web/test/touch-e2e.ts`), `?perf=1` telemetry overlay HUD, Termux checklist `docs/phone-test-checklist.md`                                                                                   | None         | DONE        |
 | MB2   | Input ownership and gesture arbiter            | WebGL renderer `input: "builtin" \| "external"`, public camera methods, `apps/web/src/lib/gestures.ts` state machine + Vitest tests, touch camera navigation                                                                     | MB1          | DONE        |
 | MB3   | Mobile layout shell                            | Remove coarse gate, full-viewport canvas (`100dvh`), top bar, bottom toolbar, thumb cluster, draggable bottom sheets with snap points & `visualViewport`, desktop breakpoint, update m4-suite coarse assertion                   | MB2          | DONE        |
-| MB4   | Touch placement with offset cursor             | Touch event handling in `EditSession`, ~64px offset cursor reticle (`TouchReticle.svelte` added), single-tap place/replace/erase, continuous brush stroke, drag-off/toolbar cancellation, second-finger cancel, long-press pick  | MB3          | IN PROGRESS |
-| MB5   | Armed cell, nudge pad & two-point tools        | Confirm mode, modal armed cell state, `NudgePad` d-pad steppers (±X, ±Y, ±Z), two-point Line tool, two-point Rectangle tool, two-point Box Selection, selection face steppers, paste ghost with nudge pad                        | MB4          | PLANNED     |
-| MB6   | Selection actions & block state by touch       | Selection bottom sheet (Fill, Replace, Copy, Paste, Rotate, Mirror, Move), block-state sheet (boolean switches, segmented chips, rotate block button), recent blocks hotbar + `localStorage` persistence, inspected follows taps | MB5          | PLANNED     |
-| MB7   | Phone performance pass                         | Dynamic resolution scaling during camera gestures, Auto/High/Low quality presets, demand-driven frame rendering, coarse-device history cap clamp, mobile worker pool clamp                                                       | MB6          | PLANNED     |
-| MB8   | Polish, accessibility and docs                 | Toasts with 4s Undo, haptic feedback (`navigator.vibrate`), left-handed toggle, optional multi-finger tap shortcuts, touch help/walkthrough, WCAG 2.5.5 touch target size pass, extended contrast suite, documentation           | MB7          | PLANNED     |
+| MB4   | Touch placement with offset cursor             | Touch event handling in `EditSession`, ~64px offset cursor reticle (`TouchReticle.svelte` added), single-tap place/replace/erase, continuous brush stroke, drag-off/toolbar cancellation, second-finger cancel, long-press pick  | MB3          | DONE, IN VM |
+| MB5   | Armed cell, nudge pad & two-point tools        | Confirm mode, modal armed cell state, `NudgePad` d-pad steppers (±X, ±Y, ±Z), two-point Line tool, two-point Rectangle tool, two-point Box Selection, selection face steppers, paste ghost with nudge pad                        | MB4          | DONE, IN VM |
+| MB6   | Selection actions & block state by touch       | Selection bottom sheet (Fill, Replace, Copy, Paste, Rotate, Mirror, Move), block-state sheet (boolean switches, segmented chips, rotate block button), recent blocks hotbar + `localStorage` persistence, inspected follows taps | MB5          | DONE, IN VM |
+| MB7   | Phone performance pass                         | Dynamic resolution scaling during camera gestures, Auto/High/Low quality presets, demand-driven frame rendering, coarse-device history cap clamp, mobile worker pool clamp                                                       | MB6          | DONE, IN VM |
+| MB8   | Polish, accessibility and docs                 | Toasts with 4s Undo, haptic feedback (`navigator.vibrate`), left-handed toggle, optional multi-finger tap shortcuts, touch help/walkthrough, WCAG 2.5.5 touch target size pass, extended contrast suite, documentation           | MB7          | DONE, IN VM |
 | FINAL | E2E test pass & adversarial coverage hardening | Pass 100% of E2E test suite (Tiers 1-4) across mobile & desktop, followed by Tier 5 adversarial coverage hardening loop                                                                                                          | MB1–MB8      | PLANNED     |
 
 ---
@@ -172,7 +172,7 @@ The mobile editor introduces full touch-first editing capabilities on mobile dev
 
 ## Code Layout
 
-- `apps/web/src/lib/gestures.ts`: Pure gesture arbiter state machine (Unit tests in `apps/web/src/lib/gestures.test.ts`).
+- `apps/web/src/lib/gestures.ts`: Pure gesture arbiter state machine (Unit tests in `apps/web/test/gestures.test.ts`).
 - `apps/web/src/lib/editor-session.svelte.ts`: Core touch input handling, offset reticle, armed cell lifecycle.
 - `apps/web/src/routes/+page.svelte`: Stage layout, breakpoint handling, app bars, sheet hosting.
 - `apps/web/src/lib/components/`:
@@ -182,7 +182,7 @@ The mobile editor introduces full touch-first editing capabilities on mobile dev
   - `NudgePad.svelte`: Coordinate steppers d-pad.
   - `Hotbar.svelte`: Recent blocks & favourites bar.
   - `PerfOverlay.svelte`: `?perf=1` telemetry HUD.
-  - `Toast.svelte`: Commit toasts with Undo action.
+  - `UndoToast.svelte`: Commit toasts with Undo action.
 - `packages/render/src/webgl/renderer.ts`: Additive `input: "builtin" | "external"`, public camera methods, dynamic resolution.
 - `apps/web/test/`:
   - `touch-e2e.ts`: Mobile touch-emulated test suite runner.

@@ -8,8 +8,9 @@ Not affiliated with Mojang or Microsoft.
 
 ## Monorepo layout
 
-This is a private pnpm monorepo. Workspace members live under `packages/*` and
-`apps/*`.
+This is a pnpm monorepo. The root and every package are marked `private` in their
+`package.json`, so none of them is published to npm. The GitHub repository itself is
+public. Workspace members live under `packages/*` and `apps/*`.
 
 | Path                 | Role                                                                                                                                                                                                                                    | State                    |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
@@ -81,7 +82,9 @@ Guides: the [user guide](docs/user-guide.md) for people using the app, and the
 
 ## Live site and credits
 
-The web app is published at https://lzif.github.io/voxwright/ by `.github/workflows/pages.yml`.
+The web app is published at https://lzif.github.io/voxwright/ by `.github/workflows/pages.yml`
+(GitHub redirects that address to https://luki.is-a.dev/voxwright/, the custom domain of the
+account's Pages site).
 
 Its built-in texture pack is [Faithful 32x](https://faithfulpack.net) (Faithful Resource Pack,
 [Faithful License](https://faithfulpack.net/license); a copy is published with the site at
@@ -172,9 +175,10 @@ where the code differs from the v1 spec and what was decided about each.
 
 Not done yet:
 
-- `.schem` files saved by a real tool, a check of an edited file in Litematica
-  itself, and a run on a real GPU and a real phone (the touch editor has only been
-  driven by emulated touch so far; `docs/phone-test-checklist.md` lists what to try).
+- `.schem` files saved by a real tool, and a run on a real phone (the touch editor
+  has only been driven by emulated touch so far; `docs/phone-test-checklist.md`
+  lists what to try). Luki checked an edited export in Litematica and smooth
+  navigation on a real GPU by hand on 2026-11-11; no GPU numbers were recorded.
 - The 0.1.0 release: the version bump, tag and npm publish.
 - Deferred, not in 0.1.0: `mcbuild view` (after 0.1.0) and the parts catalog (the
   spec names it, nothing defines it, so it needs a definition first).
