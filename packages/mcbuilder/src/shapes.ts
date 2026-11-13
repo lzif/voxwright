@@ -747,3 +747,118 @@ export function arch(start: Point, width: number, block: Material, options: Arch
   }
   return spandrel ? spandrel.geo.concat(geo) : geo;
 }
+
+// -- parapets ----------------------------------------------------------------
+
+export interface ParapetOptions extends SeedOption {
+  /** Width of each merlon along its side, in cells. Default 1. */
+  merlon?: number;
+  /** Width of each crenel (gap) along its side, in cells. Default 1. */
+  crenel?: number;
+  /** Merlon rows above the base course. Default 1. */
+  height?: number;
+  /** Continuous rows under the merlons, from `min y`. 0 is allowed. Default 1. */
+  base?: number;
+  /** Stair material (no `facing`): steps the parapet out 1 cell and carries it on upside-down stairs. */
+  corbel?: Material;
+}
+
+/**
+ * Crenellated parapet around the perimeter of the XZ footprint `c1`..`c2`
+ * (corners inclusive, any order). It starts at `min(c1.y, c2.y)`; the other y
+ * is ignored. A footprint 1 thick in X or Z (or 1x1) is a straight run (a
+ * single cell) rather than a ring: the whole footprint is the "side".
+ *
+ * Layout. The ring (the footprint's outline, or with `corbel` the outline
+ * grown by 1 cell on every side) is read side by side. On a side, count `d`
+ * cells from the nearer end (the corner), starting at 0: the cell is a merlon
+ * when `d % (merlon + crenel) < merlon`, else a crenel. So every side reads
+ * the same from both ends, corners are always merlons, and a side whose length
+ * does not fit the rhythm ends up with one wider merlon or crenel in the
+ * middle (1:1 on an even side doubles the middle merlon). Rows `y` ..
+ * `y + base - 1` are the base course: every ring cell. Rows above it, `height`
+ * of them, hold only the merlons. Crenels are left empty above the base.
+ *
+ * Corbel. With `corbel` set the ring moves out 1 cell (a footprint of w x d
+ * gives a ring of (w+2) x (d+2)), so the parapet overhangs the shaft whose
+ * wall top outline is the footprint. A ring of stairs under the overhang
+ * sits one row lower, at `y - 1`, on the same grown outline; it is the
+ * caller's wall that ends at `y - 1` on the footprint outline, beside it.
+ * Every corbel stair is upside-down (`half=top`) with its tall back toward the
+ * footprint, so the hanging half is against the wall and the lip thins
+ * outward; the corner cells face along X toward the centre. The footprint
+ * outline at `y` and the inside are left empty for you (floor, walkway). The
+ * `corbel` stair block must come without `facing`; a straight run cannot have
+ * one (no inside to step out from), so it needs a footprint of at least 2 x 2.
+ *
+ * Elevation, one side of a 7-wide ring, `merlon: 1`, `crenel: 1`, `height: 1`,
+ * `base: 1`, no corbel (`M` block, `.` empty; rows top first):
+ *
+ *   x=0 1 2 3 4 5 6
+ *     M . M . M . M    y+1
+ *     M M M M M M M    y
+ *
+ * Same with `corbel`, as a section through a 5-wide footprint (`x=0..4`) at a
+ * z where both side cells are merlons. The ring is `x=-1..5`; `S` is a
+ * stair (back toward the wall, `half=top`), `W` is your shaft wall, `.` is
+ * empty (nothing placed):
+ *
+ *   x=-1 0 1 2 3 4 5
+ *     M  . . . . . M   y+1
+ *     M  . . . . . M   y      (your walkway at x=0..4 sits on W below)
+ *     S  W . . . W S   y-1
+ *
+ * Defaults. `merlon` 1, `crenel` 1, `height` 1, `base` 1 are design choices:
+ * the frames show 1:1 (disruptive-builds f_226, f_307, f_317, heavy-tower
+ * f_007 upper ring) and about 2:1 (french-mansion f_048, heavy-tower f_005) and
+ * do not resolve the unit, so none of them is an observed constant. Corner
+ * merlons raised 2 courses (heavy-tower f_005, disruptive-builds f_550) are not
+ * a parameter: stack a second parapet or a `pillar`. The corbel block half and
+ * facing are not resolved in the frames (f_226, f_550 show a stair-like
+ * stepped underside); "back toward the wall" is a choice, as is the stair
+ * row at `y - 1`. Corbel flare of exactly 1 follows disruptive-builds f_550
+ * (3-wide shaft, 5-wide crown) and f_317.
+ */
+export function parapet(
+  c1: Point,
+  c2: Point,
+  block: Material,
+  options: ParapetOptions = {},
+): Geometry {
+  const [[x1, y0, z1], [x2, , z2]] = corners("parapet", c1, c2);
+  const merlon = positive("parapet: merlon", options.merlon ?? 1);
+  const crenel = positive("parapet: crenel", options.crenel ?? 1);
+  const height = positive("parapet: height", options.height ?? 1);
+  const base = positive("parapet: base", options.base ?? 1, 0);
+  const { seed } = options;
+  const corbel =
+    options.corbel === undefined ? null : stairMaterial("parapet", options.corbel, seed);
+  if (corbel && (x1 === x2 || z1 === z2)) {
+    throw new McbuilderError(
+      "parapet: corbel needs a footprint at least 2 x 2; a straight run has no inside to step out from",
+    );
+  }
+  const grow = corbel ? 1 : 0;
+  const [rx1, rx2, rz1, rz2] = [x1 - grow, x2 + grow, z1 - grow, z2 + grow];
+  const period = merlon + crenel;
+  const isMerlon = (x: number, z: number): boolean => {
+    const onZEdge = z === rz1 || z === rz2 || rz1 === rz2;
+    const d = onZEdge ? Math.min(x - rx1, rx2 - x) : Math.min(z - rz1, rz2 - z);
+    return d % period < merlon;
+  };
+  const p = new Painter(block, seed);
+  const geo = new Geometry();
+  for (let x = rx1; x <= rx2; x++) {
+    for (let z = rz1; z <= rz2; z++) {
+      const onRing = x === rx1 || x === rx2 || z === rz1 || z === rz2;
+      if (!onRing) continue;
+      for (let row = 0; row < base; row++) p.put(x, y0 + row, z);
+      if (isMerlon(x, z)) for (let row = 0; row < height; row++) p.put(x, y0 + base + row, z);
+      if (corbel) {
+        const facing = x === rx1 ? "east" : x === rx2 ? "west" : z === rz1 ? "south" : "north";
+        geo.set(x, y0 - 1, z, withProps(corbel(x, y0 - 1, z), { facing, half: "top" }));
+      }
+    }
+  }
+  return geo.concat(p.geo);
+}

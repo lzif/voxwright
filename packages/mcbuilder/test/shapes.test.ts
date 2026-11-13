@@ -469,3 +469,209 @@ describe("arch", () => {
     });
   });
 });
+
+describe("parapet", () => {
+  const B = "minecraft:stone_bricks";
+  const STAIR_B = "minecraft:stone_brick_stairs";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.parapet>): Cell[] =>
+    sortCells(shapes.parapet(...args).cells() as Cell[]);
+  const column = (x: number, y: number, z: number, n = 1): Cell[] =>
+    Array.from({ length: n }, (_, i): Cell => [x, y + i, z, B]);
+  /** `[x, z]` pairs to cells at `y`. */
+  const at = (y: number, ...xz: [number, number][]): Cell[] => xz.map(([x, z]) => [x, y, z, B]);
+
+  describe("straight run", () => {
+    it("alternates 1:1 from both ends, merlons at the ends", () => {
+      expect(cellsOf([0, 5, 0], [6, 5, 0], B)).toEqual(
+        sortCells([
+          ...at(5, [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0]),
+          ...at(6, [0, 0], [2, 0], [4, 0], [6, 0]),
+        ]),
+      );
+    });
+
+    it("takes the corners in any order and runs along z the same way", () => {
+      const a = cellsOf([0, 5, 6], [0, 5, 0], B);
+      expect(a).toEqual(
+        sortCells([
+          ...at(5, [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6]),
+          ...at(6, [0, 0], [0, 2], [0, 4], [0, 6]),
+        ]),
+      );
+    });
+
+    it("uses the lower y of the two corners as the start", () => {
+      expect(cellsOf([0, 9, 0], [0, 5, 0], B)).toEqual([
+        [0, 5, 0, B],
+        [0, 6, 0, B],
+      ]);
+    });
+
+    it("is one merlon on a 1x1 footprint", () => {
+      expect(cellsOf([3, 0, 3], [3, 0, 3], B)).toEqual(column(3, 0, 3, 2));
+    });
+
+    it("lays a 2:1 rhythm symmetrically, one wider crenel left in the middle", () => {
+      // 8 cells: distance from the nearer end 0 1 2 3 3 2 1 0, period 3, merlon width 2
+      expect(
+        cellsOf([0, 0, 0], [7, 0, 0], B, { merlon: 2, crenel: 1 })
+          .filter((c) => c[1] === 1)
+          .map((c) => c[0]),
+      ).toEqual([0, 1, 3, 4, 6, 7]);
+    });
+
+    it("widens crenels", () => {
+      // 9 cells: distances 0 1 2 3 4 3 2 1 0, period 3, merlon 1: merlons at d = 0 and 3
+      expect(
+        cellsOf([0, 0, 0], [8, 0, 0], B, { merlon: 1, crenel: 2 })
+          .filter((c) => c[1] === 1)
+          .map((c) => c[0]),
+      ).toEqual([0, 3, 5, 8]);
+    });
+
+    it("honours height and base", () => {
+      const cells = cellsOf([0, 0, 0], [2, 0, 0], B, { height: 2, base: 2 });
+      expect(cells.filter((c) => c[0] === 0).map((c) => c[1])).toEqual([0, 1, 2, 3]);
+      expect(cells.filter((c) => c[0] === 1).map((c) => c[1])).toEqual([0, 1]);
+      expect(cells.filter((c) => c[0] === 2).map((c) => c[1])).toEqual([0, 1, 2, 3]);
+    });
+
+    it("allows a base of 0, leaving only the merlons", () => {
+      expect(cellsOf([0, 4, 0], [4, 4, 0], B, { base: 0 })).toEqual(
+        sortCells(at(4, [0, 0], [2, 0], [4, 0])),
+      );
+    });
+  });
+
+  describe("ring", () => {
+    it("runs the rhythm along each side with the corners always merlons", () => {
+      // 5 x 4 footprint: top and bottom sides read M . M . M; the 2-cell side runs between corners
+      const cells = cellsOf([0, 0, 0], [4, 0, 3], B);
+      const base = cells.filter((c) => c[1] === 0);
+      expect(base).toHaveLength(14);
+      expect(cells.filter((c) => c[1] === 1)).toEqual(
+        sortCells(at(1, [0, 0], [2, 0], [4, 0], [0, 3], [2, 3], [4, 3])),
+      );
+    });
+
+    it("has no cell inside the ring", () => {
+      const cells = cellsOf([0, 0, 0], [4, 0, 4], B);
+      expect(cells.some((c) => c[0] > 0 && c[0] < 4 && c[2] > 0 && c[2] < 4)).toBe(false);
+    });
+
+    it("keeps a 2-wide footprint solid (all ring) and still pairs the corners", () => {
+      const cells = cellsOf([0, 0, 0], [1, 0, 1], B);
+      expect(cells.filter((c) => c[1] === 0)).toHaveLength(4);
+      expect(cells.filter((c) => c[1] === 1)).toHaveLength(4);
+    });
+  });
+
+  describe("corbel", () => {
+    const corbelCells = cellsOf([0, 5, 0], [2, 5, 2], B, { corbel: STAIR_B });
+    const stairs = corbelCells.filter((c) => c[1] === 4);
+    const stair = (facing: string): string => `${STAIR_B}[facing=${facing},half=top]`;
+
+    it("grows the ring by 1 and carries it on a ring of stairs one row down", () => {
+      expect(corbelCells.filter((c) => c[1] === 5)).toHaveLength(16);
+      expect(stairs).toHaveLength(16);
+      for (const [x, , z] of stairs) {
+        expect(Math.max(Math.abs(x - 1), Math.abs(z - 1))).toBe(2);
+      }
+    });
+
+    it("sets merlons on the grown outline: corners and side middles", () => {
+      expect(corbelCells.filter((c) => c[1] === 6)).toEqual(
+        sortCells(at(6, [-1, -1], [1, -1], [3, -1], [-1, 1], [3, 1], [-1, 3], [1, 3], [3, 3])),
+      );
+    });
+
+    it("points every stair back at the wall, upside-down, corners along X", () => {
+      const byCell = new Map(stairs.map((c) => [`${c[0]},${c[2]}`, c[3]]));
+      expect(byCell.get("1,-1")).toBe(stair("south"));
+      expect(byCell.get("1,3")).toBe(stair("north"));
+      expect(byCell.get("-1,1")).toBe(stair("east"));
+      expect(byCell.get("3,1")).toBe(stair("west"));
+      expect(byCell.get("-1,-1")).toBe(stair("east"));
+      expect(byCell.get("3,3")).toBe(stair("west"));
+    });
+
+    it("leaves the footprint outline and inside empty", () => {
+      expect(corbelCells.some((c) => c[0] >= 0 && c[0] <= 2 && c[2] >= 0 && c[2] <= 2)).toBe(false);
+    });
+
+    it("keeps other block properties on the stair", () => {
+      const wet = cellsOf([0, 0, 0], [1, 0, 1], B, { corbel: `${STAIR_B}[waterlogged=true]` });
+      expect(wet.find((c) => c[1] === -1)?.[3]).toBe(
+        `${STAIR_B}[facing=east,half=top,waterlogged=true]`,
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("refuses a corbel stair with facing", () => {
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { corbel: `${STAIR_B}[facing=north]` }),
+        /computes 'facing'/,
+      );
+    });
+
+    it("refuses a corbel on a straight run", () => {
+      refuses(() => shapes.parapet([0, 0, 0], [5, 0, 0], B, { corbel: STAIR_B }), /at least 2 x 2/);
+      refuses(() => shapes.parapet([0, 0, 0], [0, 0, 5], B, { corbel: STAIR_B }), /at least 2 x 2/);
+    });
+
+    it("refuses bad sizes and points", () => {
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { merlon: 0 }),
+        /merlon must be an int >= 1/,
+      );
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { crenel: 0 }),
+        /crenel must be an int >= 1/,
+      );
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { height: 0 }),
+        /height must be an int >= 1/,
+      );
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { base: -1 }),
+        /base must be an int >= 0/,
+      );
+      refuses(
+        () => shapes.parapet([0, 0, 0], [4, 0, 4], B, { merlon: 1.5 }),
+        /merlon must be an int/,
+      );
+      refuses(
+        () => shapes.parapet([0, 0] as never, [4, 0, 4], B, {}),
+        /parapet: c1 must be 3 ints/,
+      );
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [B, "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"];
+    const corbel = [STAIR_B, "minecraft:mossy_stone_brick_stairs"];
+
+    it("gives the same cells twice for the same seed", () => {
+      const run = () =>
+        shapes.parapet([0, 0, 0], [12, 0, 12], palette, { corbel, seed: 9, height: 2 }).cells();
+      expect(run()).toEqual(run());
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      const run = (seed: number) =>
+        sortCells(
+          shapes
+            .parapet([0, 0, 0], [12, 0, 12], palette, { corbel, seed, height: 2 })
+            .cells() as Cell[],
+        );
+      const [a, b] = [run(1), run(2)];
+      expect(a).not.toEqual(b);
+      expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+    });
+  });
+});
