@@ -228,7 +228,9 @@ export function javaToBedrock(canonical: string): ToBedrockResult {
     );
     states.set("head_piece_bit", byte(take("part") === "head" ? 1 : 0));
     states.set("occupied_bit", byte(flag(take("occupied"))));
-  } else if (name.endsWith("_stairs") && p.has("shape")) {
+  } else if (name.endsWith("_stairs")) {
+    // A stair written with only `facing` and `half` (what a build script places) is a stair too:
+    // the properties it leaves out are the Java defaults.
     states.set(
       "weirdo_direction",
       int(Math.max(STAIR_DIR.indexOf((take("facing") ?? "east") as (typeof STAIR_DIR)[number]), 0)),

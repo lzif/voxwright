@@ -130,6 +130,21 @@ describe(".mcstructure", () => {
     }
   });
 
+  it("translates a stair that leaves out its default properties", () => {
+    // What a build script places: no `shape`, sometimes no `half`.
+    const states = (java: string) =>
+      new Map([...javaToBedrock(java).block.states].map(([k, v]) => [k, v.value]));
+    const full = "minecraft:spruce_stairs[facing=west,half=top,shape=straight]";
+    expect(states("minecraft:spruce_stairs[facing=west,half=top]")).toEqual(states(full));
+    expect(javaToBedrock("minecraft:spruce_stairs[facing=west,half=top]").warnings).toEqual([]);
+    expect(states("minecraft:spruce_stairs[facing=north]")).toEqual(
+      states("minecraft:spruce_stairs[facing=north,half=bottom,shape=straight]"),
+    );
+    expect(
+      states("minecraft:spruce_stairs[facing=north]").has("minecraft:cardinal_direction"),
+    ).toBe(false);
+  });
+
   it("rejects files that are not structures", async () => {
     await expect(readMcstructure(Uint8Array.from([1, 2, 3]))).rejects.toThrow(CodecError);
     expect(() => writeMcstructure(new Volume())).toThrow(CodecError);
