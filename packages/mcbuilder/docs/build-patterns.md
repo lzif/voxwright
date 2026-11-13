@@ -524,7 +524,11 @@ unfinished.
   (shorter and the towers dwarf it into three towers); not when the span
   already terminates into terrain on both ends. Scoping C1: identical
   pairs terminate a *span*; hierarchies compose a *compound* (see next
-  bullet). (Disruptive builds ref: medieval dam.)
+  bullet). Exception (2026-11-13): where the span's deck carries a roofed
+  gallery, the end pavilions rise about one storey above the gallery deck, not
+  1.5–2×; the multiplier governs bare or open-railed decks (dam, f_064,
+  f_065, f_067; see technique 7's covered-gallery sub-entry). (Disruptive
+  builds ref: medieval dam.)
 - Compound tower hierarchy: in a walled compound, gate/flanking towers at
   2–3 stories plus exactly ONE dominant tower at 4–5 stories — placed at
   the rear or a corner, never center-front — with the dominant tower
@@ -1089,11 +1093,11 @@ Small functional-looking bits sell the scale:
   carries foot traffic and wants shelter and a destination (dams, bridges,
   aqueduct crowns). NOT when: the span is <3 wide (no room for a gallery;
   the simple parapet applies) or when the open deck above suits. Prevents:
-  a bare plank strip on top of a large stone mass. Open question, not
-  resolved here: the bookend-towers bullet in technique 4 sizes the end
+  a bare plank strip on top of a large stone mass. Note: the bookend-towers bullet in technique 4 sizes the end
   structures at 1.5–2× the span's height above its deck, but these pavilions
-  rise about one storey; which guard governs a covered gallery is for the
-  roast. Unresolved: gallery length and width, the roof profile between the
+  rise about one storey. Resolved 2026-11-13: for a covered gallery the
+  one-storey pavilion governs, and technique 4's bullet carries the exception.
+  Unresolved: gallery length and width, the roof profile between the
   pavilions, pavilion roof tiers, wood types. Rhythm note: the posts do not
   land on the arcade piers, see technique 45's sub-entry. (Disruptive builds
   ref: dam; f_064, f_065, f_067, f_070, f_071, f_073.)
@@ -1211,8 +1215,12 @@ half the composition.
   tended pond. Steaming water (campfires 1 block under the surface —
   narrated in the reel, not frame-verified) is a wild-water detail only.
   A chamfered stone rim on a muddy pond, or reeds in a geometric basin,
-  reads as indecision. (Disruptive builds ref: fountain — formal; pond —
-  formal rim; torii garden — wild edge.)
+  reads as indecision. Scope (2026-11-13): this governs the water's own edge,
+  rim and planting. The outline of the paving around a formal basin is a
+  separate ground treatment: the pond's cross-shaped basin, flush stone rim
+  and plank cross stand inside a ragged paved plaza (f_447; technique 5's
+  ragged-paving sub-entry), which is not a mixed water language. (Disruptive
+  builds ref: fountain — formal; pond — formal rim; torii garden — wild edge.)
 - Fountain garland ring + tiered abstract centerpiece: basin-first
   construction is this technique's formal-water verb; two details are new
   to it — a leaf + white-flower garland ring on the basin rim, and a

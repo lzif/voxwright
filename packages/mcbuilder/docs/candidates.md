@@ -154,8 +154,8 @@ Per build (drafted / already covered, with the technique number):
 - **07 pond (B7).** Drafted: none. Covered: stone rim and stepped entry, water
   language, plaza hub T8; bridge anatomy T17; rim lanterns T6; roofed shelter
   T12; ragged pad T5 sub (cross-ref). Open observation, not drafted: B7 pairs a
-  ragged paved rim with a formal plank cross, against T8's "never mix the
-  languages" guard (f_447); for the roast.
+  ragged paved plaza around a formal plank-cross basin; T8's guard is scoped to
+  the water's own edge (see "Contradictions fixed").
 - **08 fountain (B7 plaza, B8 column).** Drafted: none. Covered: basin-first,
   traversable cross, fountain-vs-pond T8; canopy T4; corner pillars T6.
   Not drafted: the B8 falling-water column around a stepped pillar (f_459–f_463);
@@ -213,12 +213,15 @@ agree):
    T19 (base entry and roofed-hoist sub-entry) and the finished-beam-ends
    bullet; the "same build or not" question is closed. The note's frame file is
    not in the workspace, so this is an identification, not a proof.
-
-Still open for the roast (not frame-vs-guide contradictions):
-1. **Covered gallery vs T4's bookend towers:** the dam's end pavilions rise one
-   storey, not 1.5-2x the span's height.
-2. **B7 pairs a ragged paved rim with a formal plank cross,** against T8's
-   "never mix the languages" guard (f_447).
+7. **Covered gallery vs T4's bookend towers.** Real: the dam's end pavilions
+   rise about one storey above the gallery deck (f_064, f_065, f_067). Fix:
+   Exception line in T4's bookend bullet (the 1.5-2x multiplier governs bare or
+   open-railed decks); the T7 sub-entry's open question is closed.
+8. **B7 pond vs T8's "never mix the languages".** Partly real: the water is
+   formal (cross-shaped basin, stone rim, plank cross) and only the paving
+   outline around it is ragged (f_447). Fix: scope line on T8's guard (it
+   governs the water edge, rim and planting; plaza paving is a separate ground
+   treatment, T5's ragged-paving sub-entry). No recipe change.
 
 ## Unanalyzed reels (formerly no stage-1; all three now folded)
 
