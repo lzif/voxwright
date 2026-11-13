@@ -1285,7 +1285,7 @@ onMount(() => {
     {#if !info}
       <div class="mobile-welcome-card ore-panel">
         <h2 class="ore-panel__header ore-type-heading">Welcome to voxwright</h2>
-        <p class="ore-type-prose ore-muted">In-browser 3D schematic editor</p>
+        <p class="ore-type-prose ore-muted">3D preview and editor for Minecraft builds</p>
         <label class="button mobile-card-btn ore-btn ore-btn--hero ore-btn--touch ore-type-heading">
           Open a schematic
           <input

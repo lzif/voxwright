@@ -2,7 +2,7 @@
   "name": "@voxwright/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Volume, NBT, block-state strings, rotation and schematic codecs. No DOM dependency.",
+  "description": "Volume, NBT, block-state strings, rotation and schematic codecs (.schem, .litematic, .nbt, .mcstructure) shared by the build engine and the web app. No DOM dependency.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "sideEffects": false,

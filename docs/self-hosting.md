@@ -2,7 +2,7 @@
 
 # voxwright: self-hosting guide
 
-This guide is for people who build and serve their own copy of the voxwright web app (`apps/web`). For using the app, see [user-guide.md](user-guide.md).
+This guide is for people who build and serve their own copy of the voxwright web app (`apps/web`), the browser viewer and editor that accompanies the build engine and Agent Skill. The build engine (`packages/mcbuilder`) is not part of the site: it runs on your machine, and this guide uses only its asset download command (section 3). For using the app, see [user-guide.md](user-guide.md).
 
 The app is a static site. It has no server code, and files that visitors open are read in their browser and never sent to your server. You build it once and put the output folder on any file host.
 

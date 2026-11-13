@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Voxwright is a Minecraft schematic viewer and in-browser editor built on Svelte 5 and Three.js/WebGL2.
+The Voxwright web app, the human-in-the-loop companion to the build engine, is a Minecraft schematic viewer and in-browser editor built on Svelte 5 and Three.js/WebGL2.
 The mobile editor introduces full touch-first editing capabilities on mobile devices (specifically Chrome on Android, WebGL2) without altering or degrading desktop mouse-and-keyboard workflows.
 
 ### Architectural Tiers & Boundaries

@@ -2,7 +2,7 @@
   "name": "voxwright",
   "version": "0.0.0",
   "private": true,
-  "description": "Browser schematic editor and a TypeScript port of mcbuilder.",
+  "description": "Programmatic Minecraft build engine and Agent Skill: AI agents script builds and export .schem, .litematic, .nbt and .mcstructure, with a browser 3D preview and editor.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "packageManager": "pnpm@12.16.1",

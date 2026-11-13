@@ -4,7 +4,7 @@
 
 Nov 2, 2026 · @Luki Zainur
 
-voxwright is one AGPL-3.0 pnpm monorepo holding a browser schematic editor and a TypeScript port of mcbuilder; M0 scaffolds `core` and the first two codecs, and the mcbuilder port comes last so the editor is not delayed.
+voxwright is one AGPL-3.0 pnpm monorepo holding a TypeScript port of mcbuilder (the programmatic build engine) and a browser schematic editor, its human-in-the-loop companion; M0 scaffolds `core` and the first two codecs, and the mcbuilder port comes last so the editor is not delayed.
 
 ## Decisions
 

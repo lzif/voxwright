@@ -2,7 +2,7 @@
   "name": "@voxwright/mcbuilder",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript port of mcbuilder: builder DSL, shapes, materials and reports.",
+  "description": "Programmatic Minecraft build engine, a TypeScript port of mcbuilder: builder DSL, shapes, materials, block validation and structure export, for AI agents and scripts.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "sideEffects": false,

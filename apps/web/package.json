@@ -2,7 +2,7 @@
   "name": "@voxwright/web",
   "version": "0.0.0",
   "private": true,
-  "description": "Browser viewer and converter for schematics.",
+  "description": "Browser 3D viewer and editor for Minecraft schematics: the human-in-the-loop companion for previewing, inspecting, fixing and exporting generated builds.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {

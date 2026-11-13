@@ -2,9 +2,23 @@
 
 # voxwright: user guide
 
-This guide is for people using the voxwright web app: opening a Minecraft schematic, looking at it, converting it to another format, and making quick edits. To run your own copy of the site, see [self-hosting.md](self-hosting.md).
+This guide is for people using the voxwright web app, the browser viewer and editor that accompanies the build engine. It covers opening a Minecraft schematic (often one an AI agent or a script generated), looking at it, inspecting its blocks and block states, fixing details by hand, and exporting it in the format you need. To run your own copy of the site, see [self-hosting.md](self-hosting.md).
 
 Everything runs in your browser. Files you open are read on your machine and are not uploaded.
+
+## Where the app fits in the workflow
+
+Voxwright is first a programmatic Minecraft build engine and an Agent Skill. An agent or a script writes a short recipe for the build engine (`packages/mcbuilder`), which validates the blocks and writes a schematic as `.schem`, `.litematic`, `.nbt` or `.mcstructure`. This app is the human-in-the-loop part of that workflow:
+
+1. An agent or a script produces a schematic.
+2. You look at it. Either run the preview command of the skill CLI, `node scripts/voxwright-cli.mjs preview <file>` (an agent that has the skill does this for you), which serves the app and the file together and opens the page, or open the page yourself and open the file (section 1).
+3. You inspect the build in 3D: block placement, block states, layers (section 2).
+4. You fix details by hand with the editor (section 4) or the touch layout (section 5).
+5. You export the result in the format Minecraft needs (section 6) and load it into the game.
+
+When the page is served by the preview command, a build can be opened by link with the `?open=` query parameter (the address ends in something like `?open=__preview/house.schem`). The preview command prints the exact link. The file named by `?open=` must come from the same address as the page, and it is opened as if you had dropped it on the page. Because the parameter stays in the address, refreshing the page reloads the file, which shows a rebuilt version of the same file.
+
+You can also use the app on its own, with any schematic from any source: it opens files, converts between the four formats and reports what a conversion could not carry (section 3).
 
 ## Contents
 

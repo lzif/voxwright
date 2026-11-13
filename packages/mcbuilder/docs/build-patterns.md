@@ -1,5 +1,14 @@
 # Minecraft Build Techniques — reference for mcbuilder designs
 
+This guide is written for agents and scripts that design builds with the
+mcbuilder engine: a recipe uses `Build`, `shapes` and materials to generate a
+structure, the engine validates the blocks, and the result is exported as
+`.schem`, `.litematic`, `.nbt` or `.mcstructure`. A person can then open the
+generated build in the Voxwright browser viewer and editor to inspect block
+placement and block states and fix details by hand before importing it into
+Minecraft. `SHAPE-MAPPING.md` (in the package root) says which shape makes each
+technique below.
+
 Techniques, not templates. The examples below come from house builds, but
 every technique transfers to any archetype — underwater, fantasy, modern,
 whatever. Take the *technique*, not the house shape. (This doc exists because
