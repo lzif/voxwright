@@ -1,0 +1,64 @@
+# Stage 1 — Pattern identification: Blockical Blockical Japanese house compound (received 2026-10-26 ~07:30 WIB)
+
+Guide read in full (25 techniques + anti-patterns). All 8 frames studied directly — real Minecraft build timelapse frames, block reads trustworthy except where flagged. Note: this reel is a timelapse, so some frames show mid-construction states; those are flagged, not treated as finished grammar.
+
+---
+
+## Stage 1 — Pattern identification: Japanese house compound (`~/workspace/japanese-house-reel/frames/`)
+
+**Build observed:** a walled Japanese estate compound, not a single house: a roofed perimeter wall with a gatehouse pavilion, a two-story main hall, a vermillion-red side hall, a white-tiled courtyard with sand garden beds, a bamboo garden, and a cherry grove backing the site. Palette is strict: white plaster + dark tile + timber brown, with saturated red as the single accent. Frame 01 is the site plan marked on grass; frame 08 is the finished compound.
+
+### 1. Compound site-plan marking — the whole estate drawn on the ground first (NEW — extends T2)
+- **Principle:** Technique 2 says "mark the footprint before placing anything" — for one house. This build scales that to the whole compound: before any vertical construction, every zone (perimeter, buildings, courtyard) is drawn on the grass as a flat outline plan, so the composition is decided in plan view, not discovered wall by wall.
+- **Recipe:** On flat grass, lay the site plan as 1-wide outline lines in a contrasting material (white lines for building/courtyard zones, a darker outline for the perimeter). Each rectangle is one future zone: main hall, wings, gatehouse, courtyard, garden. Build zones in sequence against the plan — the lines stay visible until their zone is built, then get absorbed into floors/paths. Keep the plan legible: outlines only, no fill — a filled zone reads as a floor, not a plan.
+- **Apply when:** compounds, estates, villages, any multi-building site. **NOT when:** a single standalone building (T2's corner-marking is enough); on sloped terrain (the plan lines break across terraces — flatten the site first or plan per terrace).
+- **Prevents:** the compound that grows by accident — wings at wrong angles, a courtyard too small for its buildings, a gate that lands on nothing. (Blockical ref: frame 01 — full zone outlines on grass, dark perimeter + white building zones, before any walls exist; frame 03/08 — the finished wall and gatehouse sit exactly on the planned lines.)
+
+### 2. East-Asian tiled roof grammar — layered eave bands + upturned corners (NEW)
+- **Principle:** Technique 4 covers dark stair-block roofs and two-tone striping, but no East-Asian roof construction. This roof's read comes from three things working together: the dark tile field, a stacked eave band, and corners that sweep upward instead of stopping flat.
+- **Recipe:** Roof field of dark stair blocks (deepslate tile family), hip or gable profile, overhanging the walls by 1–2 blocks. At the eave, stack 2–3 visible bands: dark tile overhang on top, a saturated red trim band beneath it, and a timber fascia band beneath that — the bands are what make the eave read as layered joinery rather than a slab edge. At each corner, step the eave courses upward 1 block over the last 2–3 blocks of run so the corner lifts — subtle (1 block of rise), never a horn. Finish the ridge with short red accent blocks at intervals (the red ridge ticks visible in frame 06).
+- **Apply when:** Japanese/Chinese/Korean-inspired builds, temple compounds, any build where the roof is the primary silhouette. **NOT when:** European medieval (use T4's gables + T15's arches); on small roofs <5 wide (the band stack eats the whole roof — use a single trim band instead).
+- **Prevents:** the "dark lid" roof — a flat dark slab that caps the building without detailing; and the straight-triangle gable on an East-Asian build, which reads as the wrong continent. (Blockical ref: frame 03 — dark tile + red + timber eave bands on the wall wing; frame 06 — upturned corners + red ridge ticks on the red hall; frame 08 — the layered eave on the gatehouse.)
+
+### 3. Roofed compound wall + gatehouse pavilion (NEW)
+- **Principle:** The compound's edge is not a fence or a bare wall — it's architecture: a roofed corridor wall with a gatehouse pavilion breaking it. The wall carries the compound's palette (white plaster, red trim, dark tile roof) so the boundary reads as part of the build, not as a property line.
+- **Recipe:** Perimeter wall: white plaster face, 1 red trim band at the base and 1 under the eave, dark tiled roof capping the full run, sitting on a white stone footing course. Height ~3–4 blocks plus roof. At the entrance, break the wall with a gatehouse pavilion: 4 timber pillars on a white stone platform, open on all sides, carrying its own tiled roof with the layered eave (candidate 2) — the pavilion is the door, not a hole in the wall. Keep the wall's roofline continuous except at the gatehouse, where the pavilion roof steps up above it.
+- **Apply when:** walled compounds, temple grounds, estates, palace sites. **NOT when:** villages (open edges read as lived-in — a roofed wall around a village reads as a fortress); single houses (the wall dwarfs the house — use a garden fence or hedge instead, T5).
+- **Prevents:** the fence-line compound — a bare wall that makes the estate read as a prison yard; and the hole-in-the-wall gate, which reads as damage rather than arrival. (Blockical ref: frame 03 — roofed wall wing with red base + eave bands and tiled roof; frame 08 — the open-pillared gatehouse pavilion breaking the wall line, platform + layered eave.)
+
+### 4. Tile-and-sand courtyard grid — formal sand rectangles inset in a tile field (NEW)
+- **Principle:** Technique 8's zen bed is restraint (one sand bed, 3–5 elements, negative space). This courtyard is the formal counterpart: a white tile field with MULTIPLE sand rectangles inset in dark borders, composed as a grid — the sand is a paving material here, not a meditation object.
+- **Recipe:** Pave the courtyard in white tiles (quartz/white concrete family). Inset 2–4 sand rectangles (yellow sand/gravel), each bordered by a 1-wide dark stone course, aligned to the courtyard's geometry (parallel to the main hall, never diagonal). Place exactly ONE vertical feature in the courtyard — here a central dark pillar — and keep all other verticals (lanterns, pots) at the courtyard's edges. Edge the courtyard with a low stone curb + bamboo rail caps, and enter it by a wide ceremonial stair (5–6 wide, stone, bamboo-railed curbs).
+- **Apply when:** formal courtyards, temple forecourts, palace grounds. **NOT when:** the garden story is wild/restrained (use T8's zen bed — one bed, negative space); small courtyards <7 wide (the grid chops the space into postage stamps — use a single sand bed instead).
+- **Prevents:** the empty-tile plaza (a big white floor with nothing in it reads as unfinished) and the sand-pit courtyard (unbordered sand reads as a beach, not a garden). (Blockical ref: frame 04 — white tile field, two dark-bordered sand rectangles, central dark pillar, wide bamboo-railed stairs.)
+
+### 5. Vermillion pavilion — one saturated building as the compound anchor (NEW — color-anchor rule, T10 family)
+- **Principle:** Technique 10 says one oversized anchor justifies the theme. This is the color version: in a monochrome compound (white + dark + timber), paint exactly ONE pavilion in a saturated accent — vermillion red on columns, beams, and trim — and it becomes the compound's focal building without any size advantage.
+- **Recipe:** Pick the secondary hall (never the main hall — the main hall owns the size hierarchy). Paint its full structural system in the accent: columns, beams, eave trim, door/window frames — structure, not decoration. Keep its walls white and its roof dark like the rest of the compound, so the accent reads as "the same building, in red" rather than a different style. One accent color only, one building only — a second red building splits the focal read instantly.
+- **Apply when:** compounds with 2+ halls, temple complexes, palace sites. **NOT when:** single buildings (a lone red house is just a red house — the anchor needs a monochrome context to contrast against); palettes that already run 3+ saturated colors (the accent drowns).
+- **Prevents:** the flat compound — three white halls in a row read as a barracks; one red hall gives the eye a destination. (Blockical ref: frame 06 — the fully red-columned hall on its stepped white plinth, against white walls and dark roofs everywhere else; frame 07 — the red hall seen through its bamboo screen.)
+
+### 6. Shoji panel windows — wood frame + pale infill, no glass (T7 VARIANT — folds into T7, not standalone)
+- **Principle:** Technique 7's window recipe is panes + shutters + flower box, with a mullion variant (dark cross over glass). This is the East-Asian window language: a timber frame grid with a pale opaque infill panel — no glass, no shutters, no flower box. The window reads as a lit paper screen, not a glazed opening.
+- **Recipe:** Frame the opening in timber (posts + lintel, same wood as the building's frame). Fill it with a pale panel (white concrete/quartz or light wood planks) — flat, no glass panes. Repeat the panel in a vertical column per bay, aligned to the pillar grid. At night the panels read as lit screens if a warm light sits one block behind them (inferred — no night frame in this reel).
+- **Apply when:** Japanese/Chinese-inspired builds. **NOT when:** European builds (use T7's pane + shutter recipe); on dark walls (the pale panel needs a white or timber wall to contrast — on dark stone it inverts and reads as a hole).
+- **Roast note:** this is a T7 variant, not a new technique — same slot (window language per facade), different filling. (Blockical ref: frame 06 — brown timber-framed pale panels on the red hall; frame 08 — white-framed pale openings on the main hall's upper story.)
+
+---
+
+**Deliberately not proposed (already in the guide — confirmed by this ref):**
+- Bamboo screens as living walls (T16) — tall bamboo clusters at varied heights screening the red hall's front, with flower beds and pots at their feet — confirms T16 verbatim, including the height variation. (Frame 07.)
+- Stepped civic plinth (T5) — the red hall sits on a 3-step white stone platform, and the main terrace is entered by wide stone stairs — confirms T5's stepped plinth + stair runs. (Frames 04, 06.)
+- Cherry grove as biome backdrop (T10) — massed pink cherry canopies on the hillside behind the compound, selling the biome by backdrop rather than rebuilt terrain — confirms T10's "sell the biome with cheap restraint." The cherry trees themselves are a T18 custom-tree palette variant (pink leaves), not a new construction. (Frames 01, 02, 08.)
+- Lighting rhythm (T6) — red hanging banner lanterns repeated per bay under the eaves, dark gate pillars with glowing teal lanterns, wall-mounted lanterns in the courtyard — confirms T6's "identical fixtures at regular intervals"; the banner lantern is a fixture variant, not a new grammar. (Frames 04, 05, 08.)
+- Skeleton-first framing (T2) — timber pillars + plates carrying the roofs, joints exposed, walls filling between — confirms T2 throughout (gatehouse frame in frame 02 is the clearest shot).
+- Material variation (T1) — white plaster + dark tile + timber + red accent, zoned by element (never mottled here — the variation language is zoning, not noise) — confirms T1's "band by section" branch.
+- Ground connection (T5) — white stone footings under every wall and pillar, platforms stepping down to grade — confirms throughout.
+
+**Deliberately not proposed (ideas, not techniques):**
+- "Build a Japanese house compound" itself — the idea; the techniques are the site plan, the roof, the wall, the courtyard, the vermillion anchor.
+- The timelapse editing (title card, zone-by-zone sequencing) — video editing, not build grammar.
+
+**Inference flags (summary):** all block reads are from real build footage and are trustworthy. Flagged: (a) the open upper rooms in frames 05/06 — the timelapse may show them mid-construction (roofs not yet placed) rather than as finished open-air rooms, so NO "rooftop garden room" technique is proposed from them; the finished shot (frame 08) shows complete dark roofs on the main hall. (b) The gatehouse frame in frame 02 is mid-construction (roof not yet placed) — its finished form is read from frame 08. (c) The exact zone-to-rectangle mapping of the frame-01 site plan is approximate — the dark outline reads as the perimeter and the white outlines as building zones, but individual rectangles can't be matched 1:1 to finished buildings from the top-down view alone. Nothing structural hinges on any flagged read.
+
+**No guide writes made** — identification only, ready for the roast stage.
