@@ -28,6 +28,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
       - run: pnpm run depcheck
+      # The skill CLI is committed as a bundle; it must match the sources it is built from.
+      - run: node scripts/build-skill.ts --check
 
   # Per-package jobs run only for packages that changed, or that depend on
   # one that changed (`...[ref]` selects dependents too), so a docs-only

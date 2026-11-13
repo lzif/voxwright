@@ -24,6 +24,15 @@ MIT License requires.
 
 ----------------------------------------------------------------------------
 
+The skill CLI bundle
+
+scripts/voxwright-cli.mjs is generated from packages/mcbuilder and
+packages/core by scripts/build-skill.ts. It also contains the third-party
+packages those sources use at run time, each with its licence text in the
+header of the file (at the time of writing: smol-toml, BSD-3-Clause).
+
+----------------------------------------------------------------------------
+
 Fonts
 
 The web app (apps/web) serves two typefaces from apps/web/static/fonts/, both

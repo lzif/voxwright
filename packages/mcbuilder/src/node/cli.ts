@@ -16,7 +16,6 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, extname, join, resolve, sep } from "node:path";
-import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import {
   type AirMode,
@@ -35,7 +34,6 @@ import {
   withCount,
 } from "@voxwright/render";
 import { directoryAssets, encodePng } from "@voxwright/render/node";
-import { Build } from "../build.ts";
 import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts";
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
 import { DiffError, formatDiff } from "../diff.ts";
@@ -46,6 +44,7 @@ import { Registry, RegistryError } from "../registry.ts";
 import { buildReport, reportToJson, viewEntry } from "../report.ts";
 import { AssetError, fetchAssets, type HttpGet } from "./assets.ts";
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
+import { blockCounts, dimensions, exists, loadScript, scanDeterminism } from "./script.ts";
 
 export class CliError extends Error {}
 
@@ -91,12 +90,6 @@ BUILD.scope(() => {
   BUILD.box([5, 1, 3], [5, peak + 1, 3], "minecraft:cobblestone");
 });
 `;
-
-const exists = (p: string): Promise<boolean> =>
-  stat(p).then(
-    () => true,
-    () => false,
-  );
 
 async function findConfig(startDir: string, home: string): Promise<McbuildConfig | null> {
   let dir = resolve(startDir);
@@ -188,38 +181,6 @@ function resolveCliViews(
   }
 }
 
-/** Import a builder script and return its exported `BUILD`. */
-async function loadScript(path: string): Promise<Build> {
-  const abs = resolve(path);
-  if (!(await exists(abs))) throw new CliError(`no such script: ${path}`);
-  let mod: Record<string, unknown>;
-  try {
-    mod = (await import(`${pathToFileURL(abs).href}?t=${Date.now()}`)) as Record<string, unknown>;
-  } catch (e) {
-    throw new CliError(`error in ${basename(path)}: ${e instanceof Error ? e.message : String(e)}`);
-  }
-  const build = mod.BUILD ?? mod.default;
-  if (!(build instanceof Build)) {
-    throw new CliError(
-      `${basename(path)} must export a Build as BUILD (export const BUILD = new Build(...))`,
-    );
-  }
-  return build;
-}
-
-/** Warn on raw randomness: `Build({ seed })` is the one source (`build.rng()`). */
-export function scanDeterminism(source: string, filename: string): string[] {
-  const hint = "use BUILD.rng() (from new Build({ seed })) for deterministic randomness";
-  const checks: [RegExp, string][] = [
-    [/\bMath\.random\s*\(/, "uses 'Math.random'"],
-    [/\bDate\.now\s*\(|\bnew\s+Date\s*\(/, "uses the current time"],
-    [/\bcrypto\.(randomUUID|getRandomValues|randomInt|randomBytes)\b/, "uses 'crypto' randomness"],
-  ];
-  const out: string[] = [];
-  for (const [re, what] of checks) if (re.test(source)) out.push(`${filename}: ${what} — ${hint}`);
-  return out;
-}
-
 interface Issue {
   message?: string;
   at?: string;
@@ -249,26 +210,6 @@ async function loadAndValidate(script: string, config: string | undefined, home:
     errors: errors as unknown as Issue[],
     warnings: [...warnings, ...detWarnings.map((message) => ({ message }))] as unknown as Issue[],
   };
-}
-
-function blockCounts(dense: ReturnType<Build["grid"]["toDense"]>): Record<string, number> {
-  const counts: Record<string, number> = {};
-  for (const v of dense.data) {
-    if (v < 0) continue;
-    const name = dense.palette[v] as string;
-    if (name === "minecraft:air") continue;
-    counts[name] = (counts[name] ?? 0) + 1;
-  }
-  return counts;
-}
-
-function dimensions(
-  build: Build,
-  dense: ReturnType<Build["grid"]["toDense"]>,
-): [number, number, number] {
-  const b = build.grid.bounds();
-  if (b === null) return [...dense.size] as [number, number, number];
-  return [b[1][0] - b[0][0] + 1, b[1][1] - b[0][1] + 1, b[1][2] - b[0][2] + 1];
 }
 
 async function nextRunDir(out: string): Promise<string> {

@@ -11,6 +11,8 @@
 //   inside the client jar (served by Mojang's Piston).
 // - `version.json`: from the jar root, carrying the authoritative DataVersion.
 //
+// `fetchRegistry(version, cacheDir)` downloads only `minecraft-data.json`.
+//
 // Nothing Mojang-owned is vendored in this repository: everything is
 // downloaded at the user's request. Downloads are idempotent: files that
 // already exist are skipped.
@@ -143,7 +145,7 @@ async function fallbackLayout(version: string, get: HttpGet): Promise<string> {
   return layout;
 }
 
-async function fetchRegistry(
+async function downloadRegistry(
   version: string,
   dest: string,
   force: boolean,
@@ -278,7 +280,24 @@ export async function fetchAssets(
   const dest = join(cacheDir, version);
   await mkdir(dest, { recursive: true });
   const get = options.get ?? defaultHttpGet;
-  await fetchRegistry(version, dest, options.force ?? false, get);
+  await downloadRegistry(version, dest, options.force ?? false, get);
   await fetchClient(version, dest, options.force ?? false, get);
   return dest;
+}
+
+/**
+ * Download only the block registry for `version` (no client jar) into
+ * `<cacheDir>/<version>/minecraft-data.json` and return that file's path.
+ * The cache layout is the one `fetchAssets` uses, so a later `fetchAssets`
+ * keeps this registry and adds the client assets.
+ */
+export async function fetchRegistry(
+  version: string,
+  cacheDir: string,
+  options: { force?: boolean; get?: HttpGet } = {},
+): Promise<string> {
+  const dest = join(cacheDir, version);
+  await mkdir(dest, { recursive: true });
+  await downloadRegistry(version, dest, options.force ?? false, options.get ?? defaultHttpGet);
+  return join(dest, "minecraft-data.json");
 }
