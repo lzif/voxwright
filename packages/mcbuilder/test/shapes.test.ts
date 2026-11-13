@@ -195,3 +195,277 @@ describe("railing", () => {
     refuses(() => shapes.railing([0, 64, 0], [4, 64, 0.5], FENCE), /end coordinates must be ints/);
   });
 });
+
+describe("arch", () => {
+  const OAK = "minecraft:oak_stairs";
+  const SLAB = "minecraft:oak_slab";
+  const BRICK = "minecraft:stone_bricks";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const stair = (facing: string): string => `${OAK}[facing=${facing},half=top]`;
+  const slab = (type: string): string => `${SLAB}[type=${type}]`;
+  /** The cells of `arch`, sorted so the expectations need not know the insertion order. */
+  const cellsOf = (...args: Parameters<typeof shapes.arch>): Cell[] =>
+    sortCells(shapes.arch(...args).cells() as Cell[]);
+
+  describe("stepped", () => {
+    it("is one upside-down stair per corner for a 3-wide span (T15)", () => {
+      expect(cellsOf([0, 10, 0], 3, OAK, { axis: "x", profile: "stepped" })).toEqual([
+        [0, 10, 0, stair("west")],
+        [2, 10, 0, stair("east")],
+      ]);
+    });
+
+    it("steps two rows up a 6-wide span and leaves the spandrel empty without fill", () => {
+      expect(cellsOf([0, 10, 0], 6, OAK, { axis: "x", profile: "stepped" })).toEqual([
+        [0, 10, 0, stair("west")],
+        [1, 11, 0, stair("west")],
+        [4, 11, 0, stair("east")],
+        [5, 10, 0, stair("east")],
+      ]);
+    });
+
+    it("fills the spandrel beside the upper stairs", () => {
+      expect(cellsOf([0, 10, 0], 6, OAK, { axis: "x", profile: "stepped", fill: BRICK })).toEqual([
+        [0, 10, 0, stair("west")],
+        [0, 11, 0, BRICK],
+        [1, 11, 0, stair("west")],
+        [4, 11, 0, stair("east")],
+        [5, 10, 0, stair("east")],
+        [5, 11, 0, BRICK],
+      ]);
+    });
+
+    it("honours rise 1 on a wide span", () => {
+      expect(cellsOf([0, 0, 0], 8, OAK, { axis: "x", profile: "stepped", rise: 1 })).toEqual([
+        [0, 0, 0, stair("west")],
+        [7, 0, 0, stair("east")],
+      ]);
+    });
+
+    it("runs along z, facing north then south, with the span toward +Z", () => {
+      expect(cellsOf([5, 0, 5], 4, OAK, { axis: "z", profile: "stepped" })).toEqual([
+        [5, 0, 5, stair("north")],
+        [5, 0, 8, stair("south")],
+        [5, 1, 6, stair("north")],
+        [5, 1, 7, stair("south")],
+      ]);
+    });
+
+    it("repeats identical layers for depth toward +Z (axis x) or +X (axis z)", () => {
+      const x = cellsOf([0, 0, 0], 3, OAK, { axis: "x", profile: "stepped", depth: 2 });
+      expect(x).toEqual([
+        [0, 0, 0, stair("west")],
+        [0, 0, 1, stair("west")],
+        [2, 0, 0, stair("east")],
+        [2, 0, 1, stair("east")],
+      ]);
+      const z = cellsOf([0, 0, 0], 3, OAK, { axis: "z", profile: "stepped", depth: 2 });
+      expect(z).toEqual([
+        [0, 0, 0, stair("north")],
+        [0, 0, 2, stair("south")],
+        [1, 0, 0, stair("north")],
+        [1, 0, 2, stair("south")],
+      ]);
+    });
+
+    it("refuses a rise that would cross, and a slab", () => {
+      refuses(
+        () => shapes.arch([0, 0, 0], 4, OAK, { axis: "x", profile: "stepped", rise: 3 }),
+        /allows rise <= 2/,
+      );
+      refuses(
+        () => shapes.arch([0, 0, 0], 6, OAK, { axis: "x", profile: "stepped", slab: SLAB }),
+        /slab is not used/,
+      );
+    });
+  });
+
+  describe("segmental", () => {
+    it("is haunch stairs under a bottom-slab crown for 4 clear, rise 2 (trixyblox f_001)", () => {
+      expect(cellsOf([0, 10, 0], 4, OAK, { axis: "x", profile: "segmental", slab: SLAB })).toEqual([
+        [0, 10, 0, stair("west")],
+        [1, 11, 0, slab("bottom")],
+        [2, 11, 0, slab("bottom")],
+        [3, 10, 0, stair("east")],
+      ]);
+    });
+
+    it("leaves the crown empty without a slab, and fills the spandrel", () => {
+      expect(cellsOf([0, 10, 0], 4, OAK, { axis: "x", profile: "segmental", fill: BRICK })).toEqual(
+        [
+          [0, 10, 0, stair("west")],
+          [0, 11, 0, BRICK],
+          [3, 10, 0, stair("east")],
+          [3, 11, 0, BRICK],
+        ],
+      );
+    });
+
+    it("takes a taller rise: two stair rows then a one-cell crown (5 wide, rise 3)", () => {
+      expect(
+        cellsOf([0, 0, 0], 5, OAK, {
+          axis: "x",
+          profile: "segmental",
+          slab: SLAB,
+          rise: 3,
+          fill: BRICK,
+        }),
+      ).toEqual([
+        [0, 0, 0, stair("west")],
+        [0, 1, 0, BRICK],
+        [0, 2, 0, BRICK],
+        [1, 1, 0, stair("west")],
+        [1, 2, 0, BRICK],
+        [2, 2, 0, slab("bottom")],
+        [3, 1, 0, stair("east")],
+        [3, 2, 0, BRICK],
+        [4, 0, 0, stair("east")],
+        [4, 1, 0, BRICK],
+        [4, 2, 0, BRICK],
+      ]);
+    });
+
+    it("runs along z", () => {
+      expect(cellsOf([2, 3, 4], 3, OAK, { axis: "z", profile: "segmental", slab: SLAB })).toEqual([
+        [2, 3, 4, stair("north")],
+        [2, 3, 6, stair("south")],
+        [2, 4, 5, slab("bottom")],
+      ]);
+    });
+
+    it("refuses a span too narrow for its rise, and a rise below 2", () => {
+      refuses(
+        () => shapes.arch([0, 0, 0], 2, OAK, { axis: "x", profile: "segmental" }),
+        /needs width >= 3/,
+      );
+      refuses(
+        () => shapes.arch([0, 0, 0], 6, OAK, { axis: "x", profile: "segmental", rise: 4 }),
+        /needs width >= 7/,
+      );
+      refuses(
+        () => shapes.arch([0, 0, 0], 6, OAK, { axis: "x", profile: "segmental", rise: 1 }),
+        /rise must be an int >= 2/,
+      );
+    });
+  });
+
+  describe("pointed", () => {
+    it("closes by itself on an even width: the 4, 3, 2, 1 lancet (trixyblox f_019)", () => {
+      expect(cellsOf([0, 10, 0], 4, OAK, { axis: "x", profile: "pointed", slab: SLAB })).toEqual([
+        [0, 10, 0, stair("west")],
+        [1, 11, 0, stair("west")],
+        [2, 11, 0, stair("east")],
+        [3, 10, 0, stair("east")],
+      ]);
+    });
+
+    it("caps an odd width with a top slab at the apex (5 wide)", () => {
+      expect(
+        cellsOf([0, 10, 0], 5, OAK, { axis: "x", profile: "pointed", slab: SLAB, fill: BRICK }),
+      ).toEqual([
+        [0, 10, 0, stair("west")],
+        [0, 11, 0, BRICK],
+        [1, 11, 0, stair("west")],
+        [2, 11, 0, slab("top")],
+        [3, 11, 0, stair("east")],
+        [4, 10, 0, stair("east")],
+        [4, 11, 0, BRICK],
+      ]);
+    });
+
+    it("bridges a 3-wide span with a top slab (T15)", () => {
+      expect(cellsOf([0, 0, 0], 3, OAK, { axis: "x", profile: "pointed", slab: SLAB })).toEqual([
+        [0, 0, 0, stair("west")],
+        [1, 0, 0, slab("top")],
+        [2, 0, 0, stair("east")],
+      ]);
+    });
+
+    it("is one pair of stairs for a 2-wide span, on z", () => {
+      expect(cellsOf([0, 0, 0], 2, OAK, { axis: "z", profile: "pointed", slab: SLAB })).toEqual([
+        [0, 0, 0, stair("north")],
+        [0, 0, 1, stair("south")],
+      ]);
+    });
+
+    it("accepts the rise it computes and refuses another, and needs a slab", () => {
+      expect(
+        cellsOf([0, 0, 0], 6, OAK, { axis: "x", profile: "pointed", slab: SLAB, rise: 3 }),
+      ).toHaveLength(6);
+      refuses(
+        () =>
+          shapes.arch([0, 0, 0], 6, OAK, { axis: "x", profile: "pointed", slab: SLAB, rise: 2 }),
+        /closes at rise 3/,
+      );
+      refuses(
+        () => shapes.arch([0, 0, 0], 4, OAK, { axis: "x", profile: "pointed" }),
+        /requires a slab block/,
+      );
+    });
+  });
+
+  describe("validation", () => {
+    it("refuses a stair block that carries facing", () => {
+      refuses(
+        () =>
+          shapes.arch([0, 0, 0], 4, "minecraft:oak_stairs[facing=east]", {
+            axis: "x",
+            profile: "stepped",
+          }),
+        /computes 'facing'/,
+      );
+    });
+
+    it("refuses a slab block that carries type", () => {
+      refuses(
+        () =>
+          shapes.arch([0, 0, 0], 4, OAK, {
+            axis: "x",
+            profile: "segmental",
+            slab: "minecraft:oak_slab[type=top]",
+          }),
+        /computes slab 'type'/,
+      );
+    });
+
+    it("refuses bad widths, depths, axes and profiles", () => {
+      const ok = { axis: "x", profile: "stepped" } as const;
+      refuses(() => shapes.arch([0, 0, 0], 1, OAK, ok), /width must be an int >= 2/);
+      refuses(() => shapes.arch([0, 0, 0], 2.5, OAK, ok), /width must be an int >= 2/);
+      refuses(() => shapes.arch([0, 0, 0], 4, OAK, { ...ok, depth: 0 }), /depth must be an int/);
+      refuses(() => shapes.arch([0, 0, 0], 4, OAK, { ...ok, axis: "y" as never }), /axis must be/);
+      refuses(
+        () => shapes.arch([0, 0, 0], 4, OAK, { ...ok, profile: "ogee" as never }),
+        /profile must be one of/,
+      );
+      refuses(() => shapes.arch([0, 0] as never, 4, OAK, ok), /start must be 3 ints/);
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [OAK, "minecraft:birch_stairs", "minecraft:spruce_stairs"];
+    const opts = { axis: "x", profile: "stepped", depth: 8 } as const;
+
+    it("gives the same cells twice for the same seed", () => {
+      const a = shapes.arch([0, 0, 0], 12, palette, { ...opts, seed: 4 }).cells();
+      const b = shapes.arch([0, 0, 0], 12, palette, { ...opts, seed: 4 }).cells();
+      expect(a).toEqual(b);
+    });
+
+    it("changes the picks with another seed, never the positions or facings", () => {
+      const a = sortCells(
+        shapes.arch([0, 0, 0], 12, palette, { ...opts, seed: 4 }).cells() as Cell[],
+      );
+      const b = sortCells(
+        shapes.arch([0, 0, 0], 12, palette, { ...opts, seed: 5 }).cells() as Cell[],
+      );
+      expect(a).not.toEqual(b);
+      expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+      const facing = (c: Cell) => c[3].match(/facing=(\w+)/)?.[1];
+      expect(a.map(facing)).toEqual(b.map(facing));
+    });
+  });
+});
