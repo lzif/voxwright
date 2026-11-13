@@ -531,3 +531,219 @@ export function roofHip(c1: Point, c2: Point, block: Material, options: RoofHipO
   }
   return geo.concat(hipP.geo).concat(capP.geo);
 }
+
+// -- arches ------------------------------------------------------------------
+
+/** Per-cell slab block resolver that refuses a caller-given `type`. */
+function slabMaterial(what: string, block: Material, seed: Seed): MaterialFn {
+  const at: MaterialFn = (x, y, z) => {
+    const b = resolveMaterial(block, x, y, z, seed);
+    if (parseBlockString(b).props.has("type")) {
+      throw new McbuilderError(
+        `${what} computes slab 'type' from the geometry; pass the slab block without a type property`,
+      );
+    }
+    return b;
+  };
+  at(0, 0, 0); // fail fast on a plain string with type
+  return at;
+}
+
+const ARCH_PROFILES = ["stepped", "segmental", "pointed"] as const;
+
+export interface ArchOptions extends SeedOption {
+  /** The axis the span runs along. */
+  axis: "x" | "z";
+  profile: (typeof ARCH_PROFILES)[number];
+  /** Rows the head occupies, from `start.y` up. Default and limits depend on `profile`. */
+  rise?: number;
+  /** Slab block (no `type`): the `segmental` crown, and the `pointed` apex cap. Required for `pointed`. */
+  slab?: Material;
+  /** Solid blocks for the masonry cells of the head outside the curve (the spandrel). */
+  fill?: Material | null;
+  /** Thickness through the wall, toward +X or +Z (the axis that is not `axis`). Default 1. */
+  depth?: number;
+}
+
+/**
+ * Arch head built from upside-down stairs (and, for `segmental`, slabs). It
+ * is the head only: it never places anything in the opening below the curve
+ * (the intrados), so carve the opening yourself and keep the jambs under it.
+ *
+ * Arguments. `start` is the cell at the left end of the span on the springing
+ * row, the lowest row of the head: the head sits directly on top of the
+ * opening, so `start.y` is the first row above the opening. The span covers
+ * `width` cells from `start` along `axis`, increasing (`axis: "x"` runs east,
+ * `axis: "z"` runs south); the head only occupies those columns, in rows
+ * `start.y` .. `start.y + rise - 1`. Jambs, if any, are the caller's, one cell
+ * outside each end. `block` is the stair material, without `facing`: the
+ * shape computes it and refuses a block that carries one.
+ *
+ * Stair rule (all three profiles): every stair is upside-down (`half=top`)
+ * and its hanging half sits on the jamb side, so the slanted underside opens
+ * toward the span centre. A stair in the left half gets `facing=west` (axis
+ * `x`) or `facing=north` (axis `z`), a stair in the right half the opposite.
+ * Seen from the front it reads as a gamma: the top half spans the whole cell,
+ * the lower half only the jamb-side half. One stair per row per side, stepping
+ * one cell inward and one cell up (45 degrees), which gives clear widths that
+ * shrink by one block per half-row: the "3 step chamfer" row, row+0.5,
+ * row+1.0 of trixyblox/f_001.
+ *
+ * Profiles. Let `w = width` and `rows = rise`. Row `i` (0 = springing) has
+ * its stairs in columns `i` and `w-1-i`; columns outside them are the
+ * spandrel (`fill`, left empty when `fill` is null); columns between them
+ * are the opening and stay empty.
+ *
+ * - `stepped`: a staircase of `rise` stairs per corner, then a flat soffit:
+ *   the row above the head (your lintel) closes the span. `rise` defaults to
+ *   `min(2, floor(w / 2))` and is limited to `floor(w / 2)`; any `w >= 2`.
+ *   Evidence: T15 (build-patterns.md, "Stair-block masonry arches": 3-wide is
+ *   one stair at each spring point, 2-wide is two stairs meeting at the
+ *   centre, which is `rise: 1`), french-mansion/f_044 and f_068 (two steps per
+ *   corner, rise 2), disruptive-builds/f_105 (3-wide niche: one stair per
+ *   upper corner, rise 1), disruptive-builds/f_533 (stepped timber arch),
+ *   dio-rods q04 (three-step chamfer; use `rise: 3`). The default 2 is a
+ *   choice made from f_044 and f_068 for any `w >= 4`, not an observation of
+ *   spans: the frames do not resolve any span in blocks.
+ * - `pointed`: the same staircase continued until the two sides meet, so
+ *   `rise = floor(w / 2)` is fixed by the width (passing another value throws;
+ *   use `stepped` for a flat-topped one). Any `w >= 2`. Clear width per
+ *   half-row above the shoulder: w-1, w-2, ... 1, a 1-wide apex half a block
+ *   tall, so w=4 is the "4, 3, 2, 1" lancet of trixyblox/f_019 (outline of
+ *   the window glass, from a 4x crop, grid lines at block centres), where the
+ *   4 is the opening below the head. Even widths close by themselves: the
+ *   last two stairs meet in the middle. An odd width leaves one open apex cell
+ *   (column `floor(w / 2)`, top row); `slab` fills it with a `type=top` slab,
+ *   which closes the head with a flat soffit half a block below the top of
+ *   the head (w=3 is T15's 3-wide recipe: a stair at each spring point, then
+ *   the span bridged across the top). `slab` is required for `pointed` (the
+ *   spec asks for it) but an even width has no cell for it: it is accepted
+ *   and unused there. Whether `slab` should do more on `pointed` is an open
+ *   question; the frames show the 4,3,2,1 outline from stairs alone. A flat
+ *   2-wide apex, as in arashy12/f_139-140, is the `segmental` profile with a
+ *   larger `rise`; the steep legs of that rib (rise > w / 2) are not made.
+ * - `segmental`: the staircase for `rise - 1` rows, then a crown row of
+ *   bottom slabs across the remaining middle columns (`i` .. `w-1-i` in the
+ *   top row `i = rise - 1`). `rise` defaults to 2: one row of haunch stairs
+ *   and one crown row, as in trixyblox/f_001 (4-wide, "Gamma" stairs at the
+ *   spring line, two bottom slabs above, soffit steps row, row+0.5,
+ *   row+1.0). Needs `w >= 2 * rise - 1` (3 for the default); a narrower
+ *   span throws, use `stepped` or `pointed`. Without `slab` the crown cells
+ *   are left empty. Same head reused on windows in trixyblox/f_008-f_010,
+ *   where it stands one block proud of the wall face: put the arch on the
+ *   layer in front of the wall, as T15 says, not in the wall itself. The
+ *   slab is `type=bottom`: the top half of each crown cell stays open.
+ *
+ * Options. `axis` and `profile` are required. `rise`: see above. `slab`: a
+ * slab material without `type` (the shape sets `type=bottom` for the
+ * segmental crown and `type=top` for the pointed apex cap); required for
+ * `pointed`, optional for `segmental` (default none: the crown stays empty),
+ * refused for `stepped`. `fill`: default null. `depth`: layers through
+ * the wall toward +X (axis `z`) or +Z (axis `x`), default 1, identical
+ * layers. `seed` salts weighted palettes.
+ *
+ * Facing and defaults: the jamb-side hanging half is read from the frames
+ * (trixyblox/f_001: upper half of the cell full, lower half only on the jamb
+ * side). T15 says the stairs face "inward / down-slope toward the center",
+ * which in Minecraft's own `facing` terms would hang the half on the centre
+ * side; the frames and this shape do the opposite. `rise` defaults are design
+ * choices, as is `depth`.
+ *
+ * Elevation, `axis: "x"`, start at x=0 (`Sw`/`Se` = upside-down stair whose
+ * hanging half is on the west/east side, `==` bottom slab, `##` fill, `..`
+ * opening; rows listed top first, the opening below is carved by the caller):
+ *
+ *   pointed, width 4 (rise 2)       segmental, width 4 (rise 2, f_001)
+ *     x=0  1  2  3                    x=0  1  2  3
+ *     ## Sw Se ##   y+1               ## == == ##   y+1
+ *     Sw .. .. Se   y                 Sw .. .. Se   y
+ *
+ *   stepped, width 6 (rise 2)       stepped, width 3 (rise 1, T15)
+ *     x=0  1  2  3  4  5              x=0  1  2
+ *     ## Sw .. .. Se ##   y+1         Sw .. Se   y
+ *     Sw .. .. .. .. Se   y
+ *
+ *   pointed, width 5 (rise 2)       pointed, width 3 (rise 1, T15)
+ *     x=0  1  2  3  4                 x=0  1  2
+ *     ## Sw St Se ##   y+1            Sw St Se   y
+ *     Sw .. .. .. Se   y
+ *
+ * (`St` is the `slab` with `type=top`; `Sw`/`Se` are placed over the first and
+ * last column of their row, as in the grids above.)
+ */
+export function arch(start: Point, width: number, block: Material, options: ArchOptions): Geometry {
+  const [sx, sy, sz] = point("arch: start", start);
+  const w = positive("arch: width", width, 2);
+  const { axis, profile, seed } = options;
+  if (axis !== "x" && axis !== "z") {
+    throw new McbuilderError(`arch: axis must be 'x' or 'z', got ${String(axis)}`);
+  }
+  if (!ARCH_PROFILES.includes(profile)) {
+    throw new McbuilderError(
+      `arch: profile must be one of [${ARCH_PROFILES.join(", ")}], got ${String(profile)}`,
+    );
+  }
+  const depth = positive("arch: depth", options.depth ?? 1);
+  const half = Math.floor(w / 2);
+
+  let rise: number;
+  if (profile === "segmental") {
+    rise = positive("arch: rise", options.rise ?? 2, 2);
+    if (w < 2 * rise - 1) {
+      throw new McbuilderError(
+        `arch: segmental with rise ${rise} needs width >= ${2 * rise - 1}, got ${w}; use 'stepped' or 'pointed' for a narrower span`,
+      );
+    }
+  } else if (profile === "pointed") {
+    rise = half;
+    if (options.rise !== undefined && options.rise !== rise) {
+      throw new McbuilderError(
+        `arch: pointed closes at rise ${rise} for width ${w} (floor(width / 2)); got rise ${show(options.rise)}, use 'stepped' for a flat-topped staircase`,
+      );
+    }
+  } else {
+    rise = positive("arch: rise", options.rise ?? Math.min(2, half));
+    if (rise > half) {
+      throw new McbuilderError(
+        `arch: stepped with width ${w} allows rise <= ${half}, got ${rise}; the two sides would cross`,
+      );
+    }
+  }
+  if (profile === "stepped" && options.slab !== undefined) {
+    throw new McbuilderError("arch: slab is not used by the 'stepped' profile");
+  }
+  if (profile === "pointed" && options.slab === undefined) {
+    throw new McbuilderError("arch: the 'pointed' profile requires a slab block");
+  }
+
+  const stair = stairMaterial("arch", block, seed);
+  const slab = options.slab ? slabMaterial("arch", options.slab, seed) : null;
+  const spandrel = options.fill ? new Painter(options.fill, seed) : null;
+  const geo = new Geometry();
+  // odd pointed widths leave one open cell at the apex; a top slab closes it
+  const apexCap = profile === "pointed" && w % 2 === 1 ? slab : null;
+  const [leftFacing, rightFacing] = axis === "x" ? ["west", "east"] : ["north", "south"];
+
+  const cell = (col: number, row: number, layer: number): Point =>
+    axis === "x" ? [sx + col, sy + row, sz + layer] : [sx + layer, sy + row, sz + col];
+
+  for (let layer = 0; layer < depth; layer++) {
+    for (let row = 0; row < rise; row++) {
+      const crown = profile === "segmental" && row === rise - 1;
+      for (let col = 0; col < w; col++) {
+        const [x, y, z] = cell(col, row, layer);
+        if (col < row || col > w - 1 - row) {
+          spandrel?.put(x, y, z);
+        } else if (crown) {
+          if (slab) geo.set(x, y, z, withProps(slab(x, y, z), { type: "bottom" }));
+        } else if (apexCap && row === rise - 1 && col === half) {
+          geo.set(x, y, z, withProps(apexCap(x, y, z), { type: "top" }));
+        } else if (col === row || col === w - 1 - row) {
+          const facing = col === row ? leftFacing : rightFacing;
+          geo.set(x, y, z, withProps(stair(x, y, z), { facing: facing as string, half: "top" }));
+        }
+      }
+    }
+  }
+  return spandrel ? spandrel.geo.concat(geo) : geo;
+}
