@@ -862,3 +862,135 @@ export function parapet(
   }
   return geo.concat(p.geo);
 }
+
+// -- skirt roofs -------------------------------------------------------------
+
+export interface SkirtRoofOptions extends SeedOption {
+  /** Cells the skirt projects beyond the footprint on every side. Default 2. */
+  overhang?: number;
+  /** Terrace courses stepping up toward the shaft, above the rim. 0 is a flat brim. Default 2. */
+  courses?: number;
+  /** Slab block (no `type`). When set each terrace course is half a block high instead of a full block. */
+  slab?: Material;
+  /** Material of the outer edge course (the rim). Default: `block`. */
+  rim?: Material;
+  /** Material of the dentil row under the rim; `null` leaves the row out. Default: `block`. */
+  dentil?: Material | null;
+  /** XZ corners (y ignored) of the upper stage's footprint, left open. Must lie inside the footprint. */
+  hole?: [Point, Point];
+}
+
+/**
+ * Flared skirt roof around a tower stage: a wide flat brim with a rim course
+ * on its outer edge, an optional dentil row under the rim, and low terraces
+ * stepping up toward the shaft that rises through it (technique 43).
+ *
+ * Arguments. `c1`..`c2` (any order, inclusive) is the XZ footprint of the
+ * shaft the skirt sits on, that is its top outline; the skirt starts at
+ * `min(c1.y, c2.y)`, the first row above that shaft. It covers the footprint
+ * grown by `overhang` on every side (a 7 x 7 footprint with the default
+ * overhang of 2 gives the 11 x 11 skirt of alixxa/f_015) less the optional
+ * `hole`, the footprint of the upper stage. With no `hole` the footprint is
+ * closed over, which is a flat-topped terraced roof.
+ *
+ * Layout. Count rings inward from the outer edge: ring 0 is the rim course,
+ * ring 1 the next cell in, and so on up to the `hole`. Let `r` be the rim row:
+ * `y` when `dentil` is null, else `y + 1`.
+ * - Ring 0 holds the rim, one full block high at row `r`.
+ * - With a dentil row, row `y` holds ring 0 as a dentil: counting `d` cells
+ *   from the nearer end of its side, the cell is a block when `d` is even and
+ *   a hole when odd, so corners are always blocks and the faces read "block,
+ *   hole, block, hole" (alixxa/f_017: 5 holes on an 11-wide face). Rings
+ *   beyond 0 fill row `y` as plain `block`, the underside of the brim.
+ * - Ring `i >= 1` is terrace level `t = min(i, courses)`. Without `slab` it is
+ *   full blocks from row `r` up to row `r + t`. With `slab` it is `t` half
+ *   steps above the rim top: full blocks up to row `r + floor(t / 2)`, and a
+ *   `type=bottom` slab on top, at row `r + floor(t / 2) + 1`, when `t` is odd.
+ *   (Ring 0 is level 0.)
+ * - Cells inside the `hole` are left empty.
+ *
+ * Elevation, a section through the middle of a side, footprint `x=0..6`
+ * (7 wide), default options, `hole` x=1..5 (`R` rim, `D` dentil, `B` block,
+ * `.` empty, the hole `[ ]` is the upper shaft, yours):
+ *
+ *   x=-2 -1  0 [1..5]  6  7  8
+ *     .   .  B  [   ]  B  .  .   y+3
+ *     .   B  B  [   ]  B  B  .   y+2
+ *     R   B  B  [   ]  B  B  R   y+1
+ *     D   B  B  [   ]  B  B  D   y
+ *
+ * Options and defaults. `overhang` 2 (alixxa/f_015, f_017: about 2 past the
+ * lower shaft, about 3 past the upper). `courses` 2 (a design choice, the
+ * frames read "about 2 terraces"). `slab`: none, so terraces are full blocks
+ * (a choice; the frames do not resolve stair, slab or block). `rim`: `block`.
+ * `dentil`: `block` (a choice; whether the real row is blocks, stairs or
+ * trapdoors is unresolved, pass a trapdoor-free block material or `null`).
+ * `hole`: none. There is no stair option: the stair `facing` and `half` are
+ * unresolved in the frames, so none are claimed. The hip ribs, corner posts
+ * and the trapdoor brackets and lanterns under the brim (f_016) are not
+ * part of the shape: place them yourself. `seed` salts weighted palettes.
+ *
+ * Evidence: alixxa-tower f_015 (skirt from above, 11 wide, rim and terrace),
+ * f_017 (finished tower, dentil row with 5 holes and the second skirt "hat"),
+ * f_016 (underside).
+ */
+export function skirtRoof(
+  c1: Point,
+  c2: Point,
+  block: Material,
+  options: SkirtRoofOptions = {},
+): Geometry {
+  const [[x1, y0, z1], [x2, , z2]] = corners("skirt_roof", c1, c2);
+  const overhang = positive("skirt_roof: overhang", options.overhang ?? 2);
+  const courses = positive("skirt_roof: courses", options.courses ?? 2, 0);
+  const { seed } = options;
+  let hole: [number, number, number, number] | null = null;
+  if (options.hole !== undefined) {
+    if (!Array.isArray(options.hole) || options.hole.length !== 2) {
+      throw new McbuilderError(
+        `skirt_roof: hole must be two corner points, got ${show(options.hole)}`,
+      );
+    }
+    const [[hx1, , hz1], [hx2, , hz2]] = corners("skirt_roof", options.hole[0], options.hole[1]);
+    if (hx1 < x1 || hx2 > x2 || hz1 < z1 || hz2 > z2) {
+      throw new McbuilderError(
+        `skirt_roof: hole [${[hx1, hz1].join(", ")}]..[${[hx2, hz2].join(", ")}] (x, z) must lie inside the footprint [${[x1, z1].join(", ")}]..[${[x2, z2].join(", ")}]`,
+      );
+    }
+    hole = [hx1, hx2, hz1, hz2];
+  }
+  const slab = options.slab ? slabMaterial("skirt_roof", options.slab, seed) : null;
+  const body = new Painter(block, seed);
+  const rim = options.rim ? new Painter(options.rim, seed) : body;
+  const dentil = options.dentil === null ? null : new Painter(options.dentil ?? block, seed);
+  const geo = new Geometry();
+  const [ox1, ox2, oz1, oz2] = [x1 - overhang, x2 + overhang, z1 - overhang, z2 + overhang];
+  const r = y0 + (dentil ? 1 : 0);
+  for (let x = ox1; x <= ox2; x++) {
+    for (let z = oz1; z <= oz2; z++) {
+      if (hole && x >= hole[0] && x <= hole[1] && z >= hole[2] && z <= hole[3]) continue;
+      const ring = Math.min(x - ox1, ox2 - x, z - oz1, oz2 - z);
+      if (ring === 0) {
+        if (dentil) {
+          const onZEdge = z === oz1 || z === oz2;
+          const d = onZEdge ? Math.min(x - ox1, ox2 - x) : Math.min(z - oz1, oz2 - z);
+          if (d % 2 === 0) dentil.put(x, y0, z);
+        }
+        rim.put(x, r, z);
+        continue;
+      }
+      if (dentil) body.put(x, y0, z);
+      const level = Math.min(ring, courses);
+      const full = slab ? Math.floor(level / 2) : level;
+      for (let row = 0; row <= full; row++) body.put(x, r + row, z);
+      if (slab && level % 2 === 1) {
+        const y = r + full + 1;
+        geo.set(x, y, z, withProps(slab(x, y, z), { type: "bottom" }));
+      }
+    }
+  }
+  let out = geo.concat(body.geo);
+  if (rim !== body) out = out.concat(rim.geo);
+  if (dentil) out = out.concat(dentil.geo);
+  return out;
+}

@@ -675,3 +675,177 @@ describe("parapet", () => {
     });
   });
 });
+
+describe("skirtRoof", () => {
+  const P = "minecraft:spruce_planks";
+  const SLAB = "minecraft:spruce_slab";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.skirtRoof>): Cell[] =>
+    sortCells(shapes.skirtRoof(...args).cells() as Cell[]);
+  const slab = (type: string): string => `${SLAB}[type=${type}]`;
+  const at = (y: number, ...xz: [number, number][]): Cell[] => xz.map(([x, z]) => [x, y, z, P]);
+  /** The 8 cells of the ring around the origin, as [x, z]. */
+  const around: [number, number][] = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+  ];
+
+  it("rings a 1x1 footprint with a rim and stacks the centre one terrace high (no dentil)", () => {
+    expect(cellsOf([0, 4, 0], [0, 4, 0], P, { overhang: 1, courses: 1, dentil: null })).toEqual(
+      sortCells([...at(4, ...around), ...at(4, [0, 0]), ...at(5, [0, 0])]),
+    );
+  });
+
+  it("starts at the lower y of the two corners and takes the corners in any order", () => {
+    const a = cellsOf([0, 9, 0], [2, 4, 2], P, { overhang: 1, dentil: null });
+    const b = cellsOf([2, 4, 2], [0, 9, 0], P, { overhang: 1, dentil: null });
+    expect(a).toEqual(b);
+    expect(Math.min(...a.map((c) => c[1]))).toBe(4);
+  });
+
+  it("puts the dentil row under the rim: blocks on even distances from a corner", () => {
+    // 5 x 5 skirt (3 x 3 footprint, overhang 1): ring 0 side reads D . D . D
+    const cells = cellsOf([0, 5, 0], [2, 5, 2], P, { overhang: 1, courses: 1 });
+    expect(
+      cells.filter((c) => c[1] === 5 && (c[0] === -1 || c[0] === 3 || c[2] === -1 || c[2] === 3)),
+    ).toEqual(
+      sortCells(at(5, [-1, -1], [-1, 1], [-1, 3], [1, -1], [1, 3], [3, -1], [3, 1], [3, 3])),
+    );
+    // the rim is a full ring one row above, and the interior starts at y with the underside
+    expect(
+      cells.filter((c) => c[1] === 6 && (c[0] === -1 || c[0] === 3 || c[2] === -1 || c[2] === 3)),
+    ).toHaveLength(16);
+    expect(cells).toHaveLength(8 + 16 + 9 + 18);
+  });
+
+  it("reads block, hole, block, hole on a face of 11: 6 blocks and 5 holes (alixxa f_017)", () => {
+    const cells = cellsOf([0, 0, 0], [6, 0, 6], P);
+    const front = cells.filter((c) => c[1] === 0 && c[2] === -2).map((c) => c[0]);
+    expect(front).toEqual([-2, 0, 2, 4, 6, 8]);
+  });
+
+  it("makes terraces half a block high with a slab", () => {
+    // 3 x 3 footprint, overhang 1, courses 2, no dentil: ring 1 is level 1, the centre level 2
+    const cells = cellsOf([0, 0, 0], [2, 0, 2], P, {
+      overhang: 1,
+      courses: 2,
+      dentil: null,
+      slab: SLAB,
+    });
+    const ring1 = cells.filter((c) => c[0] === 0 && c[2] === 0);
+    expect(ring1).toEqual([
+      [0, 0, 0, P],
+      [0, 1, 0, slab("bottom")],
+    ]);
+    const centre = cells.filter((c) => c[0] === 1 && c[2] === 1);
+    expect(centre).toEqual([
+      [1, 0, 1, P],
+      [1, 1, 1, P],
+    ]);
+    expect(
+      cells.filter((c) => c[1] === 0 && (c[0] === -1 || c[2] === -1)).every((c) => c[3] === P),
+    ).toBe(true);
+  });
+
+  it("caps a flat brim at the rim row with courses 0", () => {
+    const cells = cellsOf([0, 0, 0], [2, 0, 2], P, { overhang: 1, courses: 0, dentil: null });
+    expect(cells).toHaveLength(25);
+    expect(new Set(cells.map((c) => c[1]))).toEqual(new Set([0]));
+  });
+
+  it("leaves the hole open for the upper stage", () => {
+    const cells = cellsOf([0, 0, 0], [4, 0, 4], P, {
+      overhang: 1,
+      dentil: null,
+      hole: [
+        [1, 99, 1],
+        [3, -4, 3],
+      ],
+    });
+    expect(cells.filter((c) => c[0] >= 1 && c[0] <= 3 && c[2] >= 1 && c[2] <= 3)).toEqual([]);
+    // rim ring 24 + ring 1 (the 5 x 5 outline) 16, each 1 high at level min(1, 2)=1: rim 1, ring 1 two
+    expect(cells).toHaveLength(24 + 16 * 2);
+  });
+
+  it("uses the rim and dentil materials where given", () => {
+    const cells = cellsOf([0, 0, 0], [2, 0, 2], P, {
+      overhang: 1,
+      rim: "minecraft:dark_oak_planks",
+      dentil: "minecraft:oak_planks",
+    });
+    expect(cells.find((c) => c[0] === -1 && c[1] === 1 && c[2] === 0)?.[3]).toBe(
+      "minecraft:dark_oak_planks",
+    );
+    expect(cells.find((c) => c[0] === -1 && c[1] === 0 && c[2] === -1)?.[3]).toBe(
+      "minecraft:oak_planks",
+    );
+    expect(cells.find((c) => c[0] === 0 && c[1] === 0 && c[2] === 0)?.[3]).toBe(P);
+  });
+
+  describe("validation", () => {
+    it("refuses a slab that carries type", () => {
+      refuses(
+        () =>
+          shapes.skirtRoof([0, 0, 0], [4, 0, 4], P, { slab: "minecraft:spruce_slab[type=top]" }),
+        /computes slab 'type'/,
+      );
+    });
+
+    it("refuses bad sizes, a bad hole and a bad point", () => {
+      refuses(
+        () => shapes.skirtRoof([0, 0, 0], [4, 0, 4], P, { overhang: 0 }),
+        /overhang must be an int >= 1/,
+      );
+      refuses(
+        () => shapes.skirtRoof([0, 0, 0], [4, 0, 4], P, { courses: -1 }),
+        /courses must be an int >= 0/,
+      );
+      refuses(
+        () =>
+          shapes.skirtRoof([0, 0, 0], [4, 0, 4], P, {
+            hole: [
+              [1, 0, 1],
+              [5, 0, 3],
+            ],
+          }),
+        /must lie inside the footprint/,
+      );
+      refuses(
+        () => shapes.skirtRoof([0, 0, 0], [4, 0, 4], P, { hole: [[1, 0, 1]] as never }),
+        /two corner points/,
+      );
+      refuses(
+        () => shapes.skirtRoof([0, 0] as never, [4, 0, 4], P, {}),
+        /skirt_roof: c1 must be 3 ints/,
+      );
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [P, "minecraft:oak_planks", "minecraft:birch_planks"];
+    const run = (seed: number) =>
+      sortCells(
+        shapes
+          .skirtRoof([0, 0, 0], [8, 0, 8], palette, { seed, slab: [SLAB, "minecraft:oak_slab"] })
+          .cells() as Cell[],
+      );
+
+    it("gives the same cells twice for the same seed", () => {
+      expect(run(7)).toEqual(run(7));
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      expect(run(7)).not.toEqual(run(8));
+      expect(run(7).map((c) => c.slice(0, 3))).toEqual(run(8).map((c) => c.slice(0, 3)));
+    });
+  });
+});
