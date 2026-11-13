@@ -3,7 +3,8 @@
 Compiled 2026-11-11 from the stage-1 drafts in `reels/` and the Voxwright
 shape brief. Status: **queue, not guide**. Roast + lock stay with Luki; nothing
 below is a guide entry until he locks it. Updated 2026-11-13: Luki roasted and
-locked the 2026-11-13 drafts (see "Already folded"), and sent every
+locked the 2026-11-13 drafts and the disruptive-builds wave 2 (T48–T52 and
+its sub-entries, without roast at his request; see "Already folded"), and sent every
 disruptive build into the pipeline (see "Disruptive builds pattern wave 2"). Source files are the stage-1 drafts
 themselves — read them before acting on any row.
 
@@ -66,8 +67,8 @@ map-only until a stage-1 file exists.
 
 ### Disruptive builds 14-build tour (`reels/disruptive-builds/stage1/`)
 **All builds entered the pipeline 2026-11-13.** Pattern extraction is done and
-the drafts are in the guide, marked "draft — not roasted": see "Disruptive
-builds pattern wave 2" below. Transcripts for 13 of the 14 builds exist here
+the results are locked in the guide (without roast, at Luki's request): see
+"Disruptive builds pattern wave 2" below. Transcripts for 13 of the 14 builds exist here
 (build 12 has no stage-1 file; the frame evidence calls it the statue planter).
 
 ## Already folded (for reference — do not re-propose)
@@ -85,10 +86,21 @@ builds pattern wave 2" below. Transcripts for 13 of the 14 builds exist here
   base under T5 (Alixxa), the triplet slit windows under T7 (Alixxa), the arch
   profiles under T15 (TrixyBlox and others), the merlon/crenel rhythm under T32
   (Heavy Tower and others). Their draft markers are removed from the guide.
-- Disruptive builds, wave 1 → T14–T25 plus bullets inside T1–T13. Wave 2
-  drafts are not folded: see below.
+- Disruptive builds, wave 1 → T14–T25 plus bullets inside T1–T13.
+- **Disruptive builds, wave 2 (locked 2026-11-13 without roast at Luki's
+  request): T48–T52 and 14 sub-entries.** Techniques: T48 Curtain wall in
+  phase, T49 Torii gate with portal veil, T50 Trapdoor hardware on timber, T51
+  Raised stage with a stepped timber arch, T52 Abstract figure statue on a
+  planter base. Sub-entries by parent: T5 ragged-edged plaza paving; T6
+  lamp-post forms; T7 fence-lattice window, covered gallery crown with end
+  pavilions, posted stair-hood, furniture and counters from repurposed blocks,
+  attic neglect dressing; T9 accessible verticals and working alcove; T15
+  corbelled stepped forms; T17 hump footbridge; T19 roofed hoist; T25
+  crenellated corbel crown over a belfry; T32 more merlon/crenel data points;
+  T45 independent upper rhythm over an arcade. Their draft markers are removed
+  from the guide. Working notes kept below for reference.
 
-## Disruptive builds pattern wave 2 (2026-11-13, drafts, not roasted)
+## Disruptive builds pattern wave 2 (2026-11-13, locked without roast; working notes)
 
 Luki sent every disruptive build into the pipeline. Inputs: the corrected
 stage-1 notes (`reels/disruptive-builds/stage1/`, not the `*-ORIGINAL-misframed-*`
@@ -96,7 +108,7 @@ files), the frame evidence `C-disruptive.md` (segments the reel into B1–B15),
 `block-repurposing.md`, and the frames themselves (half-res, with full-res
 checks). Rule applied: wave 1 already folded T14–T25 and many bullets inside
 T1–T13, so most stage-1 candidates are covered; only what is genuinely absent
-became a draft. Nothing here is locked. T42 is unused and C2 stays BLOCKED.
+became a draft. Everything drafted here is now locked (see "Already folded"). T42 is unused and C2 stays BLOCKED.
 
 Build crosswalk (stage-1 file / name → frame-evidence segment): 01 dam → B1;
 02 library → B2; 03 torii → B3; 04 mining → B4; 05 fishing dock → B5; 06

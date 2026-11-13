@@ -716,7 +716,7 @@ The build must connect to the ground, never float.
   heights are estimates. (Alixxa ref: f_001 mound and patio before any wall;
   f_005 mound with the first floor on it; f_017 finished tower on the same
   mound.)
-- Ragged-edged plaza paving (sub-entry, draft — not roasted): Disruptive
+- Ragged-edged plaza paving (sub-entry): Disruptive
   builds wave 2. The shared-pad bullet above says the pad edge IS the
   boundary; this tour draws that boundary as a blobby, notched outline in a
   mix of pale stones, never a clean rectangle. Seen on seven builds: the
@@ -790,7 +790,7 @@ glowing wall.
 - Pier nodes: one identical fixture per station (shore root, hut door,
   platform end) — a lantern on every pile is a runway, not a rhythm.
   (Disruptive builds ref: fishing dock.)
-- Lamp-post forms (sub-entry, draft — not roasted): Disruptive builds wave 2.
+- Lamp-post forms (sub-entry): Disruptive builds wave 2.
   The pier-node and water-rim bullets above use one fixture, a fence post
   with a lantern on top. The tour shows two more freestanding forms, each
   reading as a different job. (a) Gate post: a stripped-log post on a 1×1
@@ -1064,7 +1064,7 @@ Small functional-looking bits sell the scale:
   assumed. (Alixxa ref: f_007 slits first visible; f_009 ground-floor window and
   door awning; f_010 upper awnings, boxes and mullions; f_013 upper-shaft
   slits; f_016 upper-shaft awnings.)
-- Fence-lattice window (sub-entry, draft — not roasted): Disruptive builds
+- Fence-lattice window (sub-entry): Disruptive builds
   wave 2. The window recipe above is glazed; this is the glassless
   alternative. In the riverside pier house the windows are filled with a
   grid of fence posts joined by horizontal fence connections, columns 1
@@ -1078,7 +1078,7 @@ Small functional-looking bits sell the scale:
   wood type, whether the exterior carries shutters (only interiors are shown).
   (Disruptive builds ref: ultimate fishing dock / riverside pier house;
   f_405–f_408.)
-- Covered gallery crown with end pavilions (sub-entry, draft — not roasted):
+- Covered gallery crown with end pavilions (sub-entry):
   Disruptive builds wave 2. The "crown deck on infrastructure" bullet above
   builds an OPEN railed walk. The dam in this reel instead carries a ROOFED
   timber gallery over its stone arcade, with a pavilion at each end. As seen:
@@ -1101,7 +1101,7 @@ Small functional-looking bits sell the scale:
   pavilions, pavilion roof tiers, wood types. Rhythm note: the posts do not
   land on the arcade piers, see technique 45's sub-entry. (Disruptive builds
   ref: dam; f_064, f_065, f_067, f_070, f_071, f_073.)
-- Posted stair-hood (sub-entry, draft — not roasted): Disruptive builds wave
+- Posted stair-hood (sub-entry): Disruptive builds wave
   2. The stair-hood bullet above says "No posts" for the mounted form; the
   bell tower shows the posted variant. Its hood is carried: slim wood posts
   stand under the outer ends of the wings and land on stone piers that flank
@@ -1112,7 +1112,7 @@ Small functional-looking bits sell the scale:
   enough to need carrying, as here. Unresolved: the post
   count per side (f_549 shows two, f_550 one per side), the post block, hood
   dimensions. (Disruptive builds ref: bell tower; f_549, f_550.)
-- Furniture and counters from repurposed blocks (sub-entry, draft — not roasted):
+- Furniture and counters from repurposed blocks (sub-entry):
   Disruptive builds wave 2. The modular sofa formula above uses
   stairs and slabs. The tour's interiors add a wider set, all from blocks
   used against their original function; block ids marked `?` are inferred.
@@ -1132,7 +1132,7 @@ Small functional-looking bits sell the scale:
   Unresolved: block ids under the shader tint, the hanging 3-wide cabinet unit
   in the kitchen (block unidentified, BLOCKED), which wood the trapdoors are.
   (Disruptive builds ref: library, ultimate fishing dock, mining outpost.)
-- Attic neglect dressing (sub-entry, draft — not roasted): Disruptive builds
+- Attic neglect dressing (sub-entry): Disruptive builds
   wave 2. The tour's attic is dressed as disused: cobwebs in the corners and
   across the room, with window seats and lecterns still in place so it reads
   as unused rather than empty (f_131–f_141; cobweb close-up f_136). Apply
@@ -1273,7 +1273,7 @@ post description only; material-level detail still pending his screenshots.)
   outpost — transcript.)
 - Let water unify: the waterfall feeding the flooded pit ties all the
   zones together visually.
-- Accessible verticals, working alcove (sub-entry, draft — not roasted):
+- Accessible verticals, working alcove (sub-entry):
   Disruptive builds wave 2. Stage-1 of the mining outpost proposed
   "if it looks climbable, make it climbable" from one aerial frame and the
   transcript; the frame sweep now shows the interior. Towers carry a ladder in
@@ -1513,7 +1513,7 @@ lintel says "doorway".
   - Spans and rises are unresolved for every profile except the two measured
     above (trixyblox f_001, f_019). The nave rib vault is out of scope here.
   - Shape: voxwright mcbuilder `shapes.arch` (draft, in progress).
-- Corbelled stepped forms (sub-entry, draft — not roasted): Disruptive builds
+- Corbelled stepped forms (sub-entry): Disruptive builds
   wave 2. The profiles above are heads over an opening. This reel adds stepped
   forms that are not openings. (A) Relieving frieze over an arcade: above the
   flat lintel course of each of the dam's 4 sluice bays, a sawtooth band, dark
@@ -1568,7 +1568,7 @@ destination).
   when the far side has no path — then it's a pier/dock (techniques 20–22),
   a different build. A bridge must connect path to path. (Disruptive
   builds ref: pond.)
-- Hump footbridge (sub-entry, draft — not roasted): Disruptive builds wave 2.
+- Hump footbridge (sub-entry): Disruptive builds wave 2.
   The recipe above is a flat deck 1 block above the water. The torii garden's
   bridge over a narrow pond arm is a hump: 3 plank-stair treads up on the
   approach (counted at f_186, f_196), a short flat top, and treads stepping
@@ -1633,7 +1633,7 @@ transfers to any hoist grammar — cranes, gallows, mine headframes.
   and pillory. Source note 2026-11-13: the two-post frame in this recipe was
   read by stage-1 from what the frames show as the pillory, f_533; the
   roofed well, f_487–f_499, is the sub-entry below.)
-- Roofed hoist (sub-entry, draft — not roasted): Disruptive builds wave 2.
+- Roofed hoist (sub-entry): Disruptive builds wave 2.
   The recipe above is two posts and a crossbeam with no roof. The reel's well
   (f_486–f_500) is a roofed version: 4 thick dark log posts, a plank gable
   roof with open-trapdoor plates at the roof corners and lanterns, post feet
@@ -1753,7 +1753,7 @@ distance.
   (see the sub-entry; f_550). Never glaze or light the openings: glass reads as
   windows, light reads as an occupied room — both kill the "hollow crown"
   read. (Disruptive builds ref: bell tower.)
-- Crenellated corbel crown over a belfry (sub-entry, draft — not roasted):
+- Crenellated corbel crown over a belfry (sub-entry):
   Disruptive builds wave 2. The bell tower itself is on the frame
   evidence as a small tower (f_538–f_569): the shaft is 3 wide on the front
   face (pier, opening, pier), with a 1-wide, 2-tall dark belfry opening on the
@@ -2027,7 +2027,7 @@ fighting platform.
     ratio. A 1:1 ratio is also reported by the evidence reader for another reel
     that is not cited here.
   - Shape: voxwright mcbuilder `shapes.parapet` (draft, in progress).
-- More merlon / crenel data points (sub-entry, draft — not roasted):
+- More merlon / crenel data points (sub-entry):
   Disruptive builds wave 2. The rhythm bullet above leaves the default ratio
   open. Two more readings: the castle curtain wall runs about 1:1 with a
   merlon cube above each pilaster and the crenel above each recessed bay (f_226,
@@ -2442,7 +2442,7 @@ stories.
   ≤10 wide; whether the pareidolia lint fires is for the roast.
 - (Hibouk ref: f_008 ground bay under construction; f_018 upper frame over it;
   f_026 and f_034 neighbouring bays; f_107 finished facade in the viewer.)
-- Independent upper rhythm over an arcade (sub-entry, draft — not roasted):
+- Independent upper rhythm over an arcade (sub-entry):
   Disruptive builds wave 2. The recipe above lands each post on a pier. The dam
   is the counter-case: 4 arcade bays below and 7 gallery posts above (6 post
   bays), counted at full resolution (f_067), so the posts do not land on the
@@ -2526,7 +2526,7 @@ scale. The construction is the cut.
   jitter, support beams, stairs; q06 stair, tunnel mouth and rim stock.)
 
 ### 48. Curtain wall in phase — pilaster, recess, hoarding slat and merlon on one period
-Status: draft — not roasted. Source: Disruptive builds reel, the castle
+Source: Disruptive builds reel, the castle
 gatehouse (the mining outpost; frame evidence B4, stage-1
 `reels/disruptive-builds/stage1/04-mining.md`). Band proposed: mid (a guess:
 wall length, bay and tower widths are unmeasured). Not in the band table.
@@ -2564,7 +2564,7 @@ the wall reads as engineered and not as a flat slab with a crenellated rim.
   stair feet, f_317 and f_208 whole front.)
 
 ### 49. Torii gate with portal veil
-Status: draft — not roasted. Source: Disruptive builds reel, the torii shrine
+Source: Disruptive builds reel, the torii shrine
 garden (frame evidence B3). Stage-1 (`stage1/03-torii.md`) studied the zen
 garden frame and not the gate, so this entry rests on the frame sweep. Band
 proposed: none (gate height, width and pillar size are unmeasured). Not in the
@@ -2604,7 +2604,7 @@ gate to somewhere.
   beam and cap, f_162 veil, f_186 from the approach.)
 
 ### 50. Trapdoor hardware on timber — beam-end plates and post-foot ribbing
-Status: draft — not roasted. Source: Disruptive builds reel, recurring on the
+Source: Disruptive builds reel, recurring on the
 dam gallery, the gazebo, the well and the torii gate (frame evidence rows
 TD05 and TD06 of `block-repurposing.md`). Band proposed: mini (a per-post
 detail). Not in the band table.
@@ -2637,7 +2637,7 @@ with one grammar.
 - (Disruptive builds ref: dam; gazebo; well; torii gate.)
 
 ### 51. Raised stage with a stepped timber arch (pillory)
-Status: draft — not roasted. Source: Disruptive builds reel, the pillory (frame
+Source: Disruptive builds reel, the pillory (frame
 evidence B14; no stage-1, and not among the 14 builds the guide's source list
 names). Band proposed: mini. Not in the band table.
 Technique 19 names a gallows as a hoist grammar and gives no construction;
@@ -2668,7 +2668,7 @@ and it fills a town square with a destination.
   are the clearest.)
 
 ### 52. Abstract figure statue on a planter base
-Status: draft — not roasted. Source: Disruptive builds reel, the statue and
+Source: Disruptive builds reel, the statue and
 garden (frame evidence B12; the guide's source list marks it "idea-only, no
 patterns extracted" and there is no stage-1). Five frames only (f_501–f_505),
 all frontal or oblique. Band proposed: mini. Not in the band table.
