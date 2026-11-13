@@ -107,3 +107,5 @@ jobs:
         run: node apps/web/test/e2e.ts
       - name: Edit with touch in a phone-sized Chrome
         run: node apps/web/test/touch-e2e.ts
+      - name: Open a build from the skill CLI's preview link
+        run: node apps/web/test/preview-e2e.ts

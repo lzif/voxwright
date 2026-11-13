@@ -71,6 +71,7 @@ import {
   TWO_FINGER_UNDO_KEY,
   vibrate,
 } from "../lib/mobile-settings.ts";
+import { fetchOpenLink, resolveOpenLink } from "../lib/open-link.ts";
 import { mergePacks, type Pack } from "../lib/pack-extract.ts";
 import type { FromWorker, Info, RenderRequest, ToWorker, WithoutId } from "../lib/protocol.ts";
 import {
@@ -767,6 +768,33 @@ function onBeforeUnload(e: BeforeUnloadEvent): void {
 
 const isPackFile = (f: File): boolean => /\.(zip|jar)$/i.test(f.name);
 
+/**
+ * `?open=<url>` (what `voxwright-cli preview` links to): fetch a file from this site and open it as if
+ * it were dropped. Runs once at startup, before the autosave offer, so the link is never held up by a
+ * prompt; the parameter stays in the address, so a refresh opens the file again.
+ */
+async function openFromAddress(): Promise<void> {
+  const link = resolveOpenLink(location.href);
+  if (link === null) return;
+  if ("error" in link) {
+    error = link.error;
+    return;
+  }
+  busy = true;
+  status = `downloading ${link.name}…`;
+  let file: File;
+  try {
+    file = await fetchOpenLink(link);
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+    status = "could not open that file";
+    return;
+  } finally {
+    busy = false;
+  }
+  await load(file);
+}
+
 /** A tab that is hidden may never come back: write the autosave now. */
 function onHidden(): void {
   if (document.visibilityState === "hidden") void autosave.flush();
@@ -1115,6 +1143,7 @@ onMount(() => {
       statsTimer = window.setInterval(refreshStats, 500);
       status = idleStatus();
       installTestHook();
+      await openFromAddress();
       await checkForSaved();
       return;
     }
@@ -1131,6 +1160,7 @@ onMount(() => {
       haveAssets = m.haveAssets;
       status = idleStatus();
       if (userPack) await applyPacks();
+      await openFromAddress();
     }
   })();
   return () => {
