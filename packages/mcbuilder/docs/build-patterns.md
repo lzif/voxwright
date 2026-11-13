@@ -539,8 +539,8 @@ unfinished.
   reads as a mistake. (Disruptive builds ref: gazebo.)
 - Finished beam ends: every exposed beam end gets an upside-down-stair
   step or half-slab cap — exactly 1 block, longer reads as antlers (same
-  cap logic as the rafter-tail rule). (Disruptive builds ref: well
-  crossbeam.)
+  cap logic as the rafter-tail rule). (Disruptive builds ref: stage-1's "well"
+  crossbeam, which the frames show as the pillory's stepped beam ends, f_533.)
 - Water-plaza variant of the one-vertical-accent rule: on a flat water
   plaza ≥9 wide with no other vertical element, a small 4-post timber
   canopy (3×3, ~5–6 high, hip roof overhanging 1 block, open on all four
@@ -757,7 +757,8 @@ glowing wall.
   dark ceilings, light strips behind perforated walls. The glow is
   visible, the source isn't. (Interior board.)
 - Never use a light-emitting block *as* a wall/window material (no glowstone
-  walls).
+  walls). Exception: a bounded portal veil filling one gate opening
+  (technique 49; f_153, f_162) is a focal accent, not a wall.
 - Wall-mount lanterns where posts can't go: at an entrance, one block above
   head height, project a short arm (1–2 fences or slabs) out of the wall
   and hang the lantern from its underside — or set it atop the arm. Keep
@@ -889,7 +890,9 @@ Small functional-looking bits sell the scale:
     stairs over a door, each course 1 block further out and 1 block lower
     than the last, spanning door width + 2, flanked by stair "wings"
     stepping down-and-out at 45° for 2–3 blocks on each side. No posts —
-    the hood is shallow enough to read as mounted; align its top course to
+    the hood is shallow enough to read as mounted (Variant: slim posts under
+    the outer ends of the wings, see the posted stair-hood sub-entry;
+    bell tower f_549, f_550); align its top course to
     a trim band or attachment plate (technique 2) if one exists. More than
     3 courses deep becomes a porch roof (needs posts); on wide facades a
     deep hood reads as a random brow. (Disruptive builds ref: bell tower.)
@@ -1095,13 +1098,14 @@ Small functional-looking bits sell the scale:
   land on the arcade piers, see technique 45's sub-entry. (Disruptive builds
   ref: dam; f_064, f_065, f_067, f_070, f_071, f_073.)
 - Posted stair-hood (sub-entry, draft — not roasted): Disruptive builds wave
-  2. The stair-hood bullet above says "No posts — the hood is shallow enough
-  to read as mounted". The bell tower's own hood is carried: slim wood posts
+  2. The stair-hood bullet above says "No posts" for the mounted form; the
+  bell tower shows the posted variant. Its hood is carried: slim wood posts
   stand under the outer ends of the wings and land on stone piers that flank
   the door and rise from the plinth with stair-chamfered tops (f_549, f_550,
   f_551, f_557, f_564). The hood itself is the 3-course stepped plank/stair
-  form with stair wings. Which of the two readings the guide keeps is for the
-  roast; this entry records only what the frames show. Unresolved: the post
+  form with stair wings. Both forms stand (resolved 2026-11-13): mounted with
+  no posts when the wings are shallow, posted when the wings step out far
+  enough to need carrying, as here. Unresolved: the post
   count per side (f_549 shows two, f_550 one per side), the post block, hood
   dimensions. (Disruptive builds ref: bell tower; f_549, f_550.)
 - Furniture and counters from repurposed blocks (sub-entry, draft — not roasted):
@@ -1468,7 +1472,10 @@ lintel says "doorway".
 - Apply when: gates, mine entrances, bridge spans, any masonry opening
   ≥2 wide. When NOT to apply: timber-framed builds (use technique 2's
   lintel/plate language); 1-wide openings (no span to arch). (Disruptive
-  builds ref: mining outpost.)
+  builds ref: library niche head, a stair-chamfered stone niche, f_105; the
+  pillory's stepped timber arch, f_533 and technique 51. The mining outpost
+  gate is NOT a stair arch: its head is a flat pale lintel, f_226, f_227,
+  f_317. Source corrected 2026-11-13.)
 - Arch profiles (sub-entry): the recipe above is one
   profile; the frames show three families, all built from stairs and slabs,
   none a smooth curve. Trixyblox has no stage-1 note yet, so its frames are
@@ -1513,13 +1520,11 @@ lintel says "doorway".
   pillory: see technique 51. Apply when: (A) arcades and sluice runs whose
   bays should not end in a plain slab; (B) wall niches too small for an arch.
   NOT when: the bays carry real arch heads (one head language per arcade).
-  Source check, for the roast: no arch of any profile appears in this reel's
-  gates. The castle gate head is a flat pale lintel course with a raised
-  centre block (f_226, f_227, f_317). Technique 15's base entry cites the
-  mining outpost for a stair-built arch; this sweep does not corroborate it,
-  and one possible explanation, not verified, is that the aerial frame
-  stage-1 used showed the half-height pieces at the passage's inner top
-  corners as an arch. Unresolved: bay and pier widths of the
+  Source check (resolved 2026-11-13): no arch of any profile appears in this
+  reel's gates. The castle gate head is a flat pale lintel course with a raised
+  centre block (f_226, f_227, f_317), so the base entry no longer cites the
+  mining outpost; its stair-arch reference is now the niche head (f_105) and
+  the pillory arch (f_533). Unresolved: bay and pier widths of the
   arcade (the pier reads 1 wide, the bay about twice that, oblique), frieze
   rise, block ids. (Disruptive builds ref: dam, library, mining outpost.)
 
@@ -1561,7 +1566,10 @@ destination).
   approach (counted at f_186, f_196), a short flat top, and treads stepping
   down the far side (f_172). No fence rails are visible on it, and lantern
   stands mark the foot (f_196). The rail rule above is therefore not
-  observed here; for the roast. Apply when: a narrow garden channel or pond
+  observed here. Variant (resolved 2026-11-13): a hump footbridge over a
+  narrow garden channel may go without rails, the lantern stands at the foot
+  marking the crossing (f_172, f_196); the rail rule above governs flat decks
+  and wide spans. Apply when: a narrow garden channel or pond
   arm where a flat deck would sit awkwardly on the path. NOT when: wide water
   (use the flat anatomy with both landings). Unresolved: span, whether the
   far-side treads match the near, the tread block (plank stairs read).
@@ -1613,8 +1621,10 @@ transfers to any hoist grammar — cranes, gallows, mine headframes.
 - Guards: the bucket must hang over a real shaft mouth — the dark shaft
   below was NOT frame-visible, so treat it as inferred well grammar, not
   observed construction. Never on decorative frames (a chain with no job
-  is a lie — that's a pergola, technique 12). (Disruptive builds ref:
-  well.)
+  is a lie — that's a pergola, technique 12). (Disruptive builds ref: well
+  and pillory. Source note 2026-11-13: the two-post frame in this recipe was
+  read by stage-1 from what the frames show as the pillory, f_533; the
+  roofed well, f_487–f_499, is the sub-entry below.)
 - Roofed hoist (sub-entry, draft — not roasted): Disruptive builds wave 2.
   The recipe above is two posts and a crossbeam with no roof. The reel's well
   (f_486–f_500) is a roofed version: 4 thick dark log posts, a plank gable
@@ -1625,12 +1635,17 @@ transfers to any hoist grammar — cranes, gallows, mine headframes.
   the front and a path to it (f_487–f_499; seen at f_490). The grammar of the
   entry above holds: frame, line, load, one implement. Apply when: a well that
   wants real shelter, in a civic plaza. NOT when: the two-post frame already
-  carries the hoist (one hoist grammar per structure). Open question: stage-1
-  describes a two-post well with a barrel on the chain; whether that and this
-  roofed well are the same build is unresolved. Unresolved: the hanging
-  object (stage-1 read a barrel, the frame evidence read a bell, which it
-  does not look like at f_490), shaft depth and width, roof profile beyond the
-  front gable. (Disruptive builds ref: well; f_487–f_499.)
+  carries the hoist (one hoist grammar per structure). Source correction
+  (2026-11-13): stage-1's "two-post well with a barrel on the chain" is not a
+  second well in this reel. Its features (two posts on stone collars, a
+  crossbeam with stepped ends, a chain from the beam centre to a brown
+  figure-sized load, a raised platform on a pale grey pad) match the pillory
+  (technique 51; f_533, f_573), so the base entry's two-post frame is
+  gallows-derived, and the reel's only well is this roofed one (an
+  identification from the note's description: its frame file is not in the
+  workspace). Unresolved: the hanging object (the frame evidence read a bell,
+  which it does not look like at f_490), shaft depth and width, roof profile
+  beyond the front gable. (Disruptive builds ref: well; f_487–f_499.)
 
 ### 20. Boat mooring — two recipes by width
 A boat tied alongside a straight pier swings into the walkway and blocks
@@ -1725,7 +1740,9 @@ distance.
   must read as load-bearing: darkest timber in the build.
 - When NOT to apply: occupiable tops (use technique 4's belvedere) or
   fortified tops (use technique 7's crenellated parapet) — one crown
-  grammar per tower. Never glaze or light the openings: glass reads as
+  grammar per tower. Exception: a belfry opening may sit in the shaft
+  directly below a crenellated corbel crown that replaces the stair-block cap
+  (see the sub-entry; f_550). Never glaze or light the openings: glass reads as
   windows, light reads as an occupied room — both kill the "hollow crown"
   read. (Disruptive builds ref: bell tower.)
 - Crenellated corbel crown over a belfry (sub-entry, draft — not roasted):
@@ -1739,10 +1756,14 @@ distance.
   (f_550, f_567). The recipe above caps the shaft with a small stair-block roof
   and says fortified tops use the crenellated parapet instead, one crown
   grammar per tower; this tower carries a belfry opening and a crenellated
-  corbel crown together. Whether that is a counter-example to the XOR guard
-  or the guard is too strict is for the roast, not settled here. Only the front
-  opening is visible in every frame, so the 4-face recipe above is not
-  corroborated. Unresolved: shaft height, the other faces, crown-course
+  corbel crown together. Variant (frames f_549, f_550, f_567): a 3-wide shaft
+  with ONE belfry opening on the front face, set below a crenellated corbel
+  crown that serves as the cap in place of the stair-block roof. The XOR guard
+  is narrowed to match: the crown is one grammar (the parapet); the belfry
+  opening is a shaft feature below it, not a second crown. Only the front
+  opening is visible in any frame, so the 4-face recipe above applies only
+  where all faces can be shown; for this variant treat one front opening as
+  observed. Unresolved: shaft height, the other faces, crown-course
   block types, the exact count of crown stages. (Disruptive builds ref: bell
   tower; f_549, f_550, f_567.)
 
@@ -2524,7 +2545,7 @@ the wall reads as engineered and not as a flat slab with a crenellated rim.
   builds; tower stage transitions (the gallery band, technique 32, owns those;
   inferred guard: one band language per face); a short wall of one or two bays,
   which reads as a single notch. The gate head here is a flat lintel; for an
-  arch head use technique 15, but see its source-check note in the sub-entry.
+  arch head use technique 15 (the gate here is not an example of it).
 - Prevents: the flat-slab-plus-rim wall, and hoarding slats or merlons placed
   at unrelated spacing, which read as damage.
 - Unresolved: wall length and height, pilaster depth, bay width, the corbel
@@ -2564,9 +2585,10 @@ gate to somewhere.
   palettes; small plots where the gate dwarfs the garden.
 - Prevents: a torii that reads as two red posts over a path, with nothing in
   the opening.
-- Open question, not settled here: the veil emits light and fills the opening,
-  and the guide's anti-patterns ban light-emitting blocks as wall or window
-  material. Whether a portal fill counts is for the roast.
+- Exception to the light-emitting-block ban (resolved 2026-11-13): the veil
+  glows and fills the opening, but it is one bounded gate fill used as a
+  focal accent, not wall or window material; the ban stays for walls and
+  windows. Use one veil per gate, never repeated across a facade.
 - Unresolved: gate height, width and pillar thickness; beam count and spacing;
   the exact tile-cap block; the identity of the dark socket cubes (a
   dispenser-like block); whether the veil frame is obsidian (hidden).
@@ -2671,7 +2693,8 @@ a small planted box.
   (≤9×9, ≤2 stories) is allowed ONLY with a mandatory finished edge —
   alternating slab heights, fascia trim, or rafter tails (technique 4's
   flat-roof entry). A bare flat lid is still unfinished.)
-- Light-emitting blocks used as wall/window material.
+- Light-emitting blocks used as wall/window material (a single portal veil
+  in a gate opening, technique 49, is the one exception).
 - Random dirt patches with no path logic ("ada tanah? wtf").
 - Floating builds with no foundation or ground connection.
 - Copying the *shape* of a reference (e.g. a gable roof on an underwater

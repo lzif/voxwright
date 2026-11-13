@@ -1,3 +1,5 @@
+> **Correction 2026-11-13 (frame-vs-guide check).** The build described below is probably NOT a well. Every feature listed (two posts on stone collars, a crossbeam with stepped ends, a chain from the beam centre, a load over the middle, a raised platform on a pale grey pad, open grass) matches the pillory in the reel (B14; f_529-f_537, f_573; clearest f_533), whose hanging figure reads as a "barrel-bucket" at low resolution. The reel's only well is the roofed 4-post bell well (B11, f_486-f_500: gable plank roof, hanging dark object over a stone-brick shaft, 3-step plinth at the front). This note's frame file (`11-well.jpg`) is not in the workspace, so this is an identification, not a proof. Treat the "two-post well", "barrel", "dark shaft" and "360-degree" claims below as unobserved; see technique 51 and the roofed-hoist sub-entry of technique 19 in `docs/build-patterns.md`.
+
 Confirmed: this frame shows a well — wooden post-and-beam frame, stone-collared post bases, hanging bucket on a chain, raised stone platform, on open grass. Proceeding with extraction.
 
 ## Stage 1 output: 7 techniques from the well ref (`~/workspace/disruptive-reel/frames/11-well.jpg`)

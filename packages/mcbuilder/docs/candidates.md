@@ -137,8 +137,9 @@ Per build (drafted / already covered, with the technique number):
   (accessible verticals, alcove), T32 sub (rhythm data points), T6 sub (gate
   lamp posts), T7 sub (smelter alcove in furniture entry). Covered: terrain-wrapping
   walls T5; leave the feature inside, rail junctions T9; raw-product piles
-  T11; tower hierarchy T4; worn path T5; stair arches T15 (but see the
-  discrepancy below).
+  T11; tower hierarchy T4; worn path T5. Not covered: stair arches, the gate
+  head is a flat lintel (T15's source was corrected, see "Contradictions
+  fixed").
 - **05 fishing dock (B5).** Drafted: T6 sub (arm post at the pier head). Covered:
   slip and finger piers T20; pile rhythm T5; counter hut T7; station
   sequencing T11; waterline band T1; casting edges T7; node lanterns T6; stone
@@ -170,8 +171,8 @@ Per build (drafted / already covered, with the technique number):
   canopy's lower edge in f_474, f_478; vine count unresolved).
 - **11 well (B11).** Drafted: T19 sub (roofed hoist), T50. Covered: hoist
   grammar T19; footings and plinth T5; finished beam ends T4; frontless siting T8.
-  Discrepancy: stage-1 describes a two-post well with a barrel; B11 is a
-  roofed 4-post well; same build or not is unresolved.
+  Stage-1's two-post well with a barrel is the pillory misread as a well (see
+  "Contradictions fixed"); B11 is the reel's only well.
 - **12 statue (B12, no stage-1).** Drafted: T52. Covered by anchors: T10
   landmark anchors, T8 frontless siting (the entry cross-refs them).
 - **13 market (B13).** Drafted: T5 sub (the pad is ragged, f_506). Covered:
@@ -187,22 +188,37 @@ Per build (drafted / already covered, with the technique number):
 - Not drafted, BLOCKED in the frames: mine rails on a stair slope (rail shape
   states not visible, f_270, f_273).
 
-Discrepancies and open questions for the roast (not resolved by the drafts):
-1. **T15 cites the mining outpost for a stair-built arch; the frame sweep does
-   not show one.** The gate head is a flat pale lintel with a raised centre
-   block (f_226, f_227, f_317). Recorded in the T15 sub-entry.
-2. **T25's recipe (stair-block cap, openings on all 4 faces, fortified tops
-   use the parapet instead) does not match the bell tower seen in f_549,
-   f_550, f_567:** a 3-wide shaft, one front belfry opening, a crenellated
-   corbel crown. Only the front opening is visible in any frame.
-3. **T7's stair-hood bullet says no posts;** the tower's hood has slim posts
-   under the wings (f_549, f_550).
-4. **T17 makes rails mandatory;** the hump footbridge shows none (f_196).
-5. **Covered gallery vs T4's bookend towers:** the dam's end pavilions rise one
-   storey, not 1.5–2× the span's height.
-6. **T49's portal veil** emits light and fills the opening; the anti-pattern
-   bans light-emitting wall or window material.
-7. **Well identity:** see build 11 above.
+Contradictions fixed 2026-11-13 (frames checked at full resolution; each
+contradiction was real; the fix is the smallest that makes guide and frames
+agree):
+1. **T15 cited the mining outpost for a stair arch.** The gate head is a flat
+   lintel (f_226, f_227, f_317). Fix: T15's reel reference now cites the library
+   niche head (f_105) and the pillory's stepped arch (f_533, T51); the source
+   note in the T15 sub-entry and T48's pointer are updated.
+2. **Bell tower vs T25's recipe and XOR guard** (3-wide shaft, one front belfry
+   opening, crenellated corbel crown, f_549, f_550, f_567). Fix: scoped
+   exception in T25's guard and a Variant line in its sub-entry; the 4-face
+   recipe is marked as not observed here.
+3. **Posted stair-hood vs T7's "no posts".** The bell tower hood has slim posts
+   (f_549, f_550). Fix: Variant note in T7's bullet; both forms stand.
+4. **Hump footbridge without rails vs T17.** No rails at f_172, f_196. Fix:
+   Variant line in T17's sub-entry: rails stay mandatory for flat decks and wide
+   spans.
+5. **T49's portal veil vs the light-emitting-block ban.** Fix: one-line
+   exception in the lighting guard and the anti-pattern list (one bounded
+   portal fill in a gate opening); T49's open question is closed.
+6. **Stage-1's "two-post well".** Not a second well. Its described features
+   match the pillory (f_533, f_573); the reel's only well is the roofed one
+   (f_486-f_500). Fix: correction header in `stage1/11-well.md`, source notes in
+   T19 (base entry and roofed-hoist sub-entry) and the finished-beam-ends
+   bullet; the "same build or not" question is closed. The note's frame file is
+   not in the workspace, so this is an identification, not a proof.
+
+Still open for the roast (not frame-vs-guide contradictions):
+1. **Covered gallery vs T4's bookend towers:** the dam's end pavilions rise one
+   storey, not 1.5-2x the span's height.
+2. **B7 pairs a ragged paved rim with a formal plank cross,** against T8's
+   "never mix the languages" guard (f_447).
 
 ## Unanalyzed reels (formerly no stage-1; all three now folded)
 
