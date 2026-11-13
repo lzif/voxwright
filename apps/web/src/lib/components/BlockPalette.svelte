@@ -82,13 +82,16 @@ function onSearchKey(e: KeyboardEvent): void {
 }
 </script>
 
-<section class="palette" class:ore-panel={!touch} data-testid="palette">
-  <h2 class="ore-panel__header ore-type-heading">Block</h2>
+<section class="palette ore-editor" class:ore-pane={!touch} class:ore-pane--floating={!touch} data-testid="palette">
+  {#if !touch}
+    <div class="ore-pane__header"><h2 class="ore-pane__title ore-type-ui">Block</h2></div>
+  {/if}
+  <div class="body" class:ore-pane__body={!touch}>
   <label class="current ore-field">
-    <span class="ore-field__label ore-type-label">Chosen block</span>
+    <span class="ore-field__label ore-type-ui">Chosen block</span>
     <input
       type="text"
-      class="ore-input ore-type-body"
+      class="ore-input ore-type-ui"
       spellcheck="false"
       autocomplete="off"
       bind:value={session.block}
@@ -97,35 +100,41 @@ function onSearchKey(e: KeyboardEvent): void {
       data-testid="block-input"
     />
   </label>
-  {#if invalid}<p class="hint bad ore-notice ore-notice--important ore-type-caption" class:above-hotbar={touch}>{invalid}</p>{:else}<p class="hint ore-type-caption" class:above-hotbar={touch}>Used by Place, Replace, Line, Rectangle, Fill and Replace-in-selection. Type any block, with properties if you like.</p>{/if}
+  {#if invalid}<p class="hint bad ore-notice ore-notice--important ore-type-ui-small" class:above-hotbar={touch}>{invalid}</p>{:else}<p class="hint ore-type-ui-small" class:above-hotbar={touch}>Used by Place, Replace, Line, Rectangle, Fill and Replace-in-selection. Type any block, with properties if you like.</p>{/if}
 
   {#if touch}
     <Hotbar {session} {favorites} {recents} />
   {/if}
 
   <!-- Named by its aria-label; on touch the label stays out of sight, because the sheet is short and the placeholder says the same. -->
-  <label class="search-label ore-field__label ore-type-label" class:sr={touch} for="palette-search-input">Search blocks</label>
-  <input
-    id="palette-search-input"
-    type="search"
-    class="search ore-input ore-type-body"
-    placeholder="Search blocks…"
-    autocomplete="off"
-    spellcheck="false"
-    bind:value={query}
-    onkeydown={onSearchKey}
-    aria-label="Search blocks"
-    data-testid="palette-search"
-  />
+  <label class="search-label ore-field__label ore-type-ui" class:sr={touch} for="palette-search-input">Search blocks</label>
+  <div class="search-wrap ore-search">
+    <input
+      id="palette-search-input"
+      type="search"
+      class="search ore-search__input ore-type-ui"
+      placeholder="Search blocks…"
+      autocomplete="off"
+      spellcheck="false"
+      bind:value={query}
+      onkeydown={onSearchKey}
+      aria-label="Search blocks"
+      data-testid="palette-search"
+    />
+    <!-- A pointer's shortcut: out of the tab order, which goes from the field to the list (Esc clears a search field from the keyboard). -->
+    {#if query !== ""}
+      <button type="button" tabindex="-1" class="ore-search__clear" aria-label="Clear search" onclick={() => (query = "")} data-testid="palette-search-clear"><svg class="ore-icon" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" fill="none" stroke="currentColor" stroke-width="2" /></svg></button>
+    {/if}
+  </div>
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions: the keys come from the buttons inside this list -->
   <ul class="list" data-testid="palette-list" aria-label="Blocks (arrow keys move, Enter chooses)" bind:this={listEl} onkeydown={onListKey}>
     {#if offerTyped}
-      <li class="ore-row"><button class="entry typed ore-type-label" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
+      <li class="ore-row"><button class="entry typed ore-type-ui" tabindex={tabbable === "\u0000typed" ? 0 : -1} onfocus={() => (roving = "\u0000typed")} onclick={() => choose(typed)} data-testid="palette-use-typed">Use “{typed}”</button></li>
     {/if}
     {#each found.shown as entry (entry.block)}
       <li class="ore-row" class:row={touch}>
         <button
-          class="entry ore-type-label"
+          class="entry ore-type-ui"
           class:on={session.block === entry.block}
           class:build={entry.source === "build"}
           aria-pressed={session.block === entry.block}
@@ -140,7 +149,7 @@ function onSearchKey(e: KeyboardEvent): void {
           {@const full = !fav && favoritesFull(favorites)}
           <button
             type="button"
-            class="star ore-seg ore-type-label"
+            class="star ore-seg ore-type-ui"
             aria-pressed={fav}
             aria-label={`Favourite ${shortName(entry.block)}`}
             title={full ? `Favourites are full (${FAVORITE_LIMIT}): unstar one first` : `Star ${entry.block}`}
@@ -153,10 +162,11 @@ function onSearchKey(e: KeyboardEvent): void {
       </li>
     {/each}
   </ul>
-  <p class="hint ore-type-caption">
+  <p class="hint ore-type-ui-small">
     {found.total} match{found.total === 1 ? "" : "es"}{found.total > found.shown.length ? `, first ${found.shown.length} shown` : ""}.
     {session.packBlocks.length === 0 ? "No texture pack: only this build's blocks are listed; type any other block above." : ""}
   </p>
+  </div>
 </section>
 
 <style>
@@ -168,10 +178,12 @@ function onSearchKey(e: KeyboardEvent): void {
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
   .search-label { margin: var(--space-4) 0 0; }
   .search-label.sr { margin: -1px; }
-  .search { margin: var(--space-1) 0 0; -webkit-appearance: none; appearance: none; }
+  .search-wrap { margin: var(--space-1) 0 0; }
+  .search { margin: 0; -webkit-appearance: none; appearance: none; }
+  .search::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 
-  /* The list is a well in surface-page; each entry is a row tile on it. */
-  .list { list-style: none; margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-1) var(--space-2); max-height: 17rem; overflow: auto; background: var(--surface-page); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: var(--field-well); }
+  /* The list is a well in surface-sunken; each entry is a row tile on it. */
+  .list { list-style: none; margin: var(--space-2) 0 0; padding: var(--space-1) var(--space-1) var(--space-2); max-height: 17rem; overflow: auto; background: var(--surface-sunken); border: 2px solid var(--outline); border-radius: var(--radius-none); box-shadow: var(--field-well); }
   .entry { display: block; flex: 1 1 auto; min-width: 0; width: 100%; box-sizing: border-box; min-height: 32px; margin: 0; padding: var(--space-1) var(--space-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; background: transparent; color: var(--ink); border: 0; border-radius: var(--radius-none); cursor: pointer; }
   .entry:hover { background: var(--surface-raised); }
   /* The chosen entry: a green face with a white underline, and aria-pressed for everything else. */
@@ -188,7 +200,7 @@ function onSearchKey(e: KeyboardEvent): void {
   /* Touch: a row is the block and its star cell side by side; a finger gets 48 px rows and a 44 px star. */
   li.row { align-items: center; }
   li.row .entry { align-self: stretch; min-height: 48px; }
-  .star { flex: 0 0 auto; width: 44px; min-width: 44px; min-height: 44px; margin: var(--space-1) var(--space-1) var(--space-1) var(--space-2); padding: 0 0 4px; font-size: var(--type-title-size); line-height: 1; touch-action: manipulation; }
+  .star { flex: 0 0 auto; width: 44px; min-width: 44px; min-height: 44px; margin: var(--space-1) var(--space-1) var(--space-1) var(--space-2); padding: 0; font-size: var(--type-title-size); line-height: 1; touch-action: manipulation; }
   /* ore-seg draws its pressed state from aria-checked; this is a toggle button, so it reads aria-pressed.
      The box stays 44 px tall: the band closes, the face does not drop. */
   .star.ore-seg[aria-pressed="true"] { --bf: var(--green); --bh: var(--green-hi); --bl: var(--green-lo); --bt: var(--ink); padding-bottom: 0; box-shadow: inset 2px 2px 0 var(--bh), inset -2px -2px 0 var(--bl); }

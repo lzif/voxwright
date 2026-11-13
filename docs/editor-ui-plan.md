@@ -2,7 +2,7 @@
 
 # Bedrock Editor UI adoption: plan (#20)
 
-Nov 12, 2026 · Drafted and VM-reviewed (`inherit` adversarial review + direct codebase/design-diff verification); **nothing in `apps/web` or `packages/*` is edited until the open items in section 5 are decided and locked** · base: `main` at `7941e36`
+Nov 12, 2026 · Drafted, locked (`D1=A1`, `D2=A`, `D3=A`, `D4=A`, `D5`), and implemented (`E1`–`E4`) · base: `main` at `7941e36`
 
 Goal: adopt Luki's Bedrock Editor design system (`Ore UI Study`, Editor group) in `apps/web` as a restyle-in-place of the existing editing panels and chrome, upgrading `tokens.json`, `ore-ui.css` and `NotoSans-Bold.woff2` from the supplied design-system export while preserving Svelte-only markup, keyboard access, mobile touch targets (`>= 44 px` / `48 px`), WCAG AA contrast, and all existing E2E suites. No React or `bundle.js` runtime code is introduced.
 
@@ -10,15 +10,15 @@ Milestones are named E1 to E4 (Editor UI E-series) so they do not collide with `
 
 ## Progress
 
-| Step                                                  | State                                                                                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Plan written (`docs/editor-ui-plan.md`)               | Done, 2026-11-12                                                                                                                      |
-| Adversarial `inherit` review & contradiction fixes    | Done, 2026-11-12 (first review flagged B1–B5, C1–C6, T1–T3, D1–D5 ambiguities; folded into §§1–5 below and queued for clean re-check) |
-| Decision lock (`D1`–`D5`)                             | **Pending clean re-check** — D1=`A1`, D2=`A`, D3=`A`, D4=`A`, D5=locked once `self` (`inherit`) confirms clean                        |
-| E1: Design assets, tokens & test baseline             | Not started (blocked on lock)                                                                                                         |
-| E2: Desktop Editor panels, toolbar & `app.css`        | Not started (blocked on lock)                                                                                                         |
-| E3: Viewport frame, `Hotbar`, & mobile sheet/bar work | Not started (blocked on lock)                                                                                                         |
-| E4: `docs/design-system.md` & full E2E sign-off       | Not started (blocked on lock)                                                                                                         |
+| Step                                                  | State                                                                                                   |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Plan written (`docs/editor-ui-plan.md`)               | Done, 2026-11-12                                                                                        |
+| Adversarial `inherit` review & contradiction fixes    | Done, 2026-11-12 (first review flagged B1–B5, C1–C6, T1–T3, D1–D5 ambiguities; folded into §§1–5 below) |
+| Decision lock (`D1`–`D5`)                             | Locked (`D1=A1`, `D2=A`, `D3=A`, `D4=A`, `D5`), 2026-11-13                                              |
+| E1: Design assets, tokens & test baseline             | Done, 2026-11-13                                                                                        |
+| E2: Desktop Editor panels, toolbar & `app.css`        | Done, 2026-11-13                                                                                        |
+| E3: Viewport frame, `Hotbar`, & mobile sheet/bar work | Done, 2026-11-13                                                                                        |
+| E4: `docs/design-system.md` & full E2E sign-off       | Done, 2026-11-13                                                                                        |
 
 ## 1. Current-state audit & source diff
 

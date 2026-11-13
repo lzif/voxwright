@@ -1299,6 +1299,7 @@ onMount(() => {
           class:ready={info !== null}
           class:gl={kind === "webgl"}
           class:editing={session?.interactive}
+          class:editable={!isMobileLayout && session !== null}
           onpointerdown={pointerDown}
           onpointermove={pointerMove}
           onpointerup={pointerUp}
@@ -1513,15 +1514,15 @@ onMount(() => {
 
 <!-- Mobile bottom sheets for Palette, State, Selection, and Menu -->
   {#if activeSheet === "palette" && session}
-    <BottomSheet snap="half" title="Block palette" onclose={() => (activeSheet = "none")}>
+    <BottomSheet snap="half" editor title="Block palette" onclose={() => (activeSheet = "none")}>
       <BlockPalette {session} touch favorites={favoriteBlocks} recents={recentBlocks} ontogglefavorite={toggleFavoriteBlock} />
     </BottomSheet>
   {:else if activeSheet === "blockstate" && session}
-    <BottomSheet snap="half" title="Block state" onclose={() => (activeSheet = "none")}>
+    <BottomSheet snap="half" editor title="Block state" onclose={() => (activeSheet = "none")}>
       <BlockStatePanel {session} touch />
     </BottomSheet>
   {:else if activeSheet === "selection" && session}
-    <BottomSheet snap="half" title="Selection" onclose={() => (activeSheet = "none")}>
+    <BottomSheet snap="half" editor title="Selection" onclose={() => (activeSheet = "none")}>
       <SelectionPanel {session} touch {azimuth} onpaste={() => (activeSheet = "none")} />
     </BottomSheet>
   {:else if activeSheet === "view"}
@@ -1801,6 +1802,8 @@ onMount(() => {
   canvas { display: block; box-sizing: border-box; width: 100%; max-height: 80vh; object-fit: contain; background: var(--surface-page); border: 2px solid var(--outline); border-radius: var(--radius-none); min-height: 240px; touch-action: none; }
   canvas.ready { cursor: grab; }
   canvas.editing { cursor: crosshair; }
+  /* The editor's picture is framed in the editor's accent (the Bedrock Editor viewport frame); the mobile picture is borderless. */
+  canvas.editable { border-color: var(--editor-accent); }
   canvas.gl { height: min(72vh, 760px); max-height: none; }
   .stage.editable { grid-template-columns: 280px minmax(0, 1fr) 280px; }
   .stage.editable.mobile { grid-template-columns: none; display: block; }

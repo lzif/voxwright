@@ -236,3 +236,165 @@ label.ore-slider-field > .ore-slider__value {
   right: var(--space-4);
   pointer-events: none;
 }
+
+/* The Bedrock Editor group (the Ore UI Study's Editor v3). `.ore-editor` marks a region that is drawn
+   flat and at 16px Noto Sans: --band is 0 there (ore-ui.css), so a raised control is a 44px face with no
+   band under it. What follows keeps the app's own controls (the toggle segment, the native <select>,
+   the touch size) in step with that. It is ordered by specificity, lowest first. */
+.ore-editor .ore-seg,
+.ore-editor .ore-input {
+  font-family: var(--font-text);
+}
+
+.ore-editor .ore-seg {
+  --bh: var(--editor-light-hi);
+  --bl: var(--editor-light-lo);
+  --be: var(--light-200);
+  padding: 0 var(--space-3);
+}
+
+.ore-editor .ore-seg:disabled {
+  box-shadow: none;
+}
+
+.ore-editor .ore-seg:is([aria-checked="true"], [aria-pressed="true"], .on) {
+  --bf: var(--green);
+  --bh: var(--green-hi);
+  --bl: var(--green-lo);
+  --bt: var(--ink);
+  min-height: 44px;
+  padding-bottom: 0;
+}
+
+.ore-editor .ore-seg:is([aria-checked="true"], [aria-pressed="true"], .on):hover:not(:disabled) {
+  --bf: var(--green-hover);
+  --bh: var(--green-hover-hi);
+  --bl: var(--green-hover-lo);
+}
+
+.ore-editor .ore-seg:is([aria-checked="true"], [aria-pressed="true"], .on):active:not(:disabled) {
+  --bf: var(--green);
+  --bh: var(--green-hi);
+  --bl: var(--green-lo);
+  --bt: var(--ink);
+  min-height: 44px;
+  margin-top: 0;
+  padding-bottom: 0;
+}
+
+.ore-editor .ore-seg:disabled:is([aria-checked="true"], [aria-pressed="true"], .on) {
+  --bf: var(--light-200);
+  --bh: var(--light-200-hi);
+  --bl: var(--light-200-lo);
+  --bt: var(--ink-disabled);
+  min-height: 44px;
+  box-shadow: none;
+}
+
+/* An editor panel is as wide as its column (the design's 252px is for its own window). */
+.tools .ore-pane,
+.sheet-content .ore-pane {
+  width: 100%;
+}
+
+/* The pane's rows sit on the page face; the search field's well and the number fields are the design's. */
+.tools .ore-num__input {
+  padding: 0 var(--space-1);
+}
+
+/* The axis letter of a coordinate field sits in a sunken badge, ringed like the field. */
+.ore-editor .ore-num__axis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 22px;
+  min-height: 28px;
+  background: var(--surface-sunken);
+  border: 2px solid var(--surface-raised);
+}
+
+.ore-editor .ore-num__axis[data-axis="x"] {
+  color: var(--axis-x);
+}
+
+.ore-editor .ore-num__axis[data-axis="y"] {
+  color: var(--axis-y);
+}
+
+.ore-editor .ore-num__axis[data-axis="z"] {
+  color: var(--axis-z);
+}
+
+/* The native <select> as the editor's 36px dropdown: the same face, with room for the chevron. */
+.ore-editor .ore-dd__btn.ore-dd__select {
+  padding: 0 calc(var(--space-4) + 16px + var(--space-3)) 0 var(--space-3);
+}
+
+.ore-editor .ore-dd > .ore-dd__chev {
+  top: 50%;
+  margin-top: -8px;
+}
+
+/* A pressed face of the editor's raised controls keeps its height: nothing in the layout moves, and a
+   touch target stays 48px (the design's own pressed 44px is for a pointer). */
+.ore-editor
+  .ore-seg:where(:not([aria-pressed="true"]):not(.on):not([aria-checked="true"])):active:not(
+    :disabled
+  ) {
+  min-height: 44px;
+  margin-top: 0;
+}
+
+.ore-editor .ore-btn--touch {
+  min-height: 48px;
+}
+
+.ore-editor .ore-btn--touch:active:not(:disabled) {
+  min-height: 48px;
+  margin-top: 0;
+}
+
+.ore-editor .ore-seg.ore-btn--touch:active:not(:disabled) {
+  min-height: 48px;
+  margin-top: 0;
+}
+
+.ore-editor .ore-dd__btn.ore-dd__select:active:not(:disabled) {
+  min-height: 36px;
+  margin-top: 0;
+}
+
+/* Touch: every control of an editor region is a 44px target, the select, the number fields, the pane's
+   own actions and a section's head. */
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-dd__btn,
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-num__input,
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-pane__action {
+  min-height: 44px;
+}
+
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-pane__action {
+  min-width: 44px;
+}
+
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-section__head {
+  height: auto;
+  min-height: 44px;
+}
+
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-search__input {
+  padding-right: 48px;
+}
+
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-search__clear {
+  right: 0;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0;
+  background: none;
+  z-index: 1;
+}
+
+:is(.sheet-content, .mobile-layout) .ore-editor .ore-dd__btn.ore-dd__select:active:not(:disabled) {
+  min-height: 44px;
+}

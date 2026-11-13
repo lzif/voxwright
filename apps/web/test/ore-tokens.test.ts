@@ -140,6 +140,14 @@ const TEXT_PAIRS: [string, string, string][] = [
   ["ink-dark", "tag-notice", "notice tag"],
   ["ink-dark", "tag-warning", "warning tag"],
   ["ink-dark", "tag-realms", "Realms tag"],
+  // The Editor group. `ink-faint` is for disabled and decorative text, so only its use on the sunken
+  // well (the search placeholder) is asserted; its 3.87:1 on the page and 2.72:1 on a panel are not.
+  ["ink", "surface-sunken", "sunken wells, number fields, the dark button's face"],
+  ["ink-muted", "surface-sunken", "hints inside sunken wells"],
+  ["ink-faint", "surface-sunken", "placeholder of the editor search field"],
+  ["axis-x", "surface-sunken", "X axis badge"],
+  ["axis-y", "surface-sunken", "Y axis badge"],
+  ["axis-z", "surface-sunken", "Z axis badge"],
 ];
 
 describe("Ore UI Study colour contrast", () => {
@@ -156,7 +164,7 @@ describe("Ore UI Study colour contrast", () => {
     });
   }
 
-  for (const bg of ["surface-page", "surface-panel"]) {
+  for (const bg of ["surface-page", "surface-panel", "surface-sunken"]) {
     it(`the focus ring against ${bg} is at least 3:1`, () => {
       expect(contrast(color("focus"), color(bg))).toBeGreaterThanOrEqual(3);
     });

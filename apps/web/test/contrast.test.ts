@@ -13,6 +13,8 @@
 //   ink on red-hover          2.4:1  hover face of the destructive button
 //   outline on surface-panel  1.85:1, outline on surface-page 1.30:1  control edges
 //   light-400 on surface-panel 2.7:1 (an unchecked box), green on surface-panel 2.0:1 (a green face)
+// `ink-faint` (disabled and decorative text only, 3.87:1 on the page and 2.72:1 on a panel) is asserted
+// only on `surface-sunken`, where the editor search placeholder sits.
 // The red square before an inline error (`.ore-field__error`) is a marker beside the words, which are
 // ink on the page or a panel; it is not text and is not measured.
 import { readFileSync } from "node:fs";
@@ -47,23 +49,25 @@ const PAIRS: [string, string, string][] = [
   [
     "ink",
     "surface-page",
-    "body text, the page title, field labels and slider values, the footer's name and links, the restore dialog's text, the sheet's body, the edit line's message",
+    "body text, the page title, field labels and slider values, the footer's name and links, the restore dialog's text, the sheet's body, dark buttons while pressed",
   ],
   [
     "ink-muted",
     "surface-page",
-    "the status line, the hints under the picture, the open-a-file text, the edit line's tool help, the footer text, the restore dialog's File, Saved and Edits labels",
+    "the status line, the hints under the picture, the open-a-file text, the footer text, the restore dialog's File, Saved and Edits labels",
   ],
   [
     "ink",
     "surface-panel",
-    "panel headers, rows and labels, the text of a check box, the top bar's title, the welcome card, the restore dialog's header and footer, the format list's open menu",
+    "panel headers, rows and labels, the text of a check box, the top bar's title, the welcome card, the restore dialog's header and footer, the format list's open menu, dark editor buttons at rest",
   ],
   [
     "ink-muted",
     "surface-panel",
     "hints in the panels (camera, export, autosave, pack), the block counts' numbers, the top bar's status line, the welcome card's line",
   ],
+  ["ink", "surface-panel", "the edit line's message (Editor status bar)"],
+  ["ink-muted", "surface-panel", "the edit line's tool help"],
   [
     "ink",
     "green",
@@ -92,8 +96,20 @@ const PAIRS: [string, string, string][] = [
   [
     "ink-placeholder",
     "surface-page",
-    "the placeholder of a text field (search, block, property, value, coordinates)",
+    "the placeholder of a text field (block, property, value, coordinates)",
   ],
+  // The Editor group (the `.ore-editor` scope): sunken wells, dark buttons, the axis badges.
+  ["ink", "surface-sunken", "the palette list and the number fields of the editor panels"],
+  ["ink-muted", "surface-sunken", "the block counts and hints inside the sunken wells"],
+  ["ink-faint", "surface-sunken", "the placeholder of the palette search (editor search field)"],
+  [
+    "ink",
+    "surface-raised",
+    "the hovered entry of the palette list, the raised faces of the editor",
+  ],
+  ["axis-x", "surface-sunken", "the X letter of a coordinate field's axis badge"],
+  ["axis-y", "surface-sunken", "the Y letter of a coordinate field's axis badge"],
+  ["axis-z", "surface-sunken", "the Z letter of a coordinate field's axis badge"],
 ];
 
 describe("colour contrast", () => {
@@ -104,9 +120,15 @@ describe("colour contrast", () => {
   }
 
   // The ring around a focused control is drawn on the page or on a panel.
-  for (const bg of ["surface-page", "surface-panel"]) {
+  for (const bg of ["surface-page", "surface-panel", "surface-sunken"]) {
     it(`the focus ring against ${bg} (the picture, links, the skip link, every ore-* control) is at least 3:1`, () => {
       expect(contrast(color("focus"), color(bg))).toBeGreaterThanOrEqual(3);
+    });
+  }
+
+  for (const bg of ["surface-page", "surface-sunken"]) {
+    it(`the editor accent border against ${bg} (desktop editable picture frame) is at least 3:1`, () => {
+      expect(contrast(color("editor-accent"), color(bg))).toBeGreaterThanOrEqual(3);
     });
   }
 });

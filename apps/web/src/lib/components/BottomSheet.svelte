@@ -8,6 +8,7 @@ export type SnapPoint = "closed" | "peek" | "half" | "full";
 let {
   snap = $bindable<SnapPoint>("closed"),
   title = "",
+  editor = false,
   onsnapchange,
   onclose,
   peek = 160,
@@ -15,6 +16,8 @@ let {
 }: {
   snap?: SnapPoint;
   title?: string;
+  /** The sheet holds an editor panel (palette, block state, selection): drawn in the Bedrock Editor style, a sunken header band and the editor's flat 16px type. */
+  editor?: boolean;
   onsnapchange?: (snap: SnapPoint) => void;
   onclose?: () => void;
   /** Height in px of the peek snap: a sheet that only holds a few controls can ask for more than the default. */
@@ -222,6 +225,7 @@ function handleBackdropClick(): void {
   <div
     class="bottom-sheet"
     class:dragging={isDragging}
+    class:ore-editor={editor}
     role="dialog"
     tabindex="-1"
     aria-label={title || "Panel sheet"}
@@ -252,7 +256,7 @@ function handleBackdropClick(): void {
 
     <!-- Sheet header: a plain block, not a <header>, which would count as a second banner landmark next to the top bar's. -->
     <div class="sheet-header ore-dialog__header">
-      <h2 class="sheet-title ore-dialog__title ore-type-heading">{title}</h2>
+      <h2 class="sheet-title ore-dialog__title {editor ? 'ore-type-ui' : 'ore-type-heading'}">{title}</h2>
       <button
         type="button"
         class="sheet-close-btn ore-dialog__icon ore-dialog__icon--close"
@@ -370,6 +374,16 @@ function handleBackdropClick(): void {
     box-shadow: inset 0 -2px 0 var(--panel-hi);
   }
 
+  /* An editor sheet: the handle and the title row are the editor's sunken header band, set off from the
+     body by the outline line. */
+  .bottom-sheet.ore-editor .sheet-handle-zone,
+  .bottom-sheet.ore-editor .sheet-header {
+    background: var(--surface-sunken);
+  }
+  .bottom-sheet.ore-editor .sheet-header {
+    box-shadow: inset 0 -2px 0 var(--outline);
+  }
+
   /* The dialog's close icon, at the 44 px a finger needs (the design's is 32 px). */
   .sheet-close-btn {
     right: 0;
@@ -406,18 +420,24 @@ function handleBackdropClick(): void {
   }
 
   :global(.sheet-content .palette > h2),
+  :global(.sheet-content [data-testid="palette"] > .ore-pane__header),
+  :global(.sheet-content [data-testid="blockstate"] > .ore-pane__header),
   :global(.sheet-content [data-testid="palette"] > h2),
   :global(.sheet-content .palette .current),
   :global(.sheet-content [data-testid="palette"] .current),
-  :global(.sheet-content .palette > p.hint),
-  :global(.sheet-content [data-testid="palette"] > p.hint) {
+  :global(.sheet-content .palette .body > p.hint),
+  :global(.sheet-content [data-testid="palette"] .body > p.hint) {
     display: none !important;
+  }
+
+  :global(.sheet-content .palette .ore-search) {
+    margin-bottom: var(--space-2) !important;
   }
 
   :global(.sheet-content .palette input[type="search"]),
   :global(.sheet-content [data-testid="palette"] input[type="search"]) {
     min-height: 44px !important;
-    margin-bottom: var(--space-2) !important;
+    margin: 0 !important;
   }
 
   :global(.sheet-content .palette .list),

@@ -46,28 +46,31 @@ function rotate(): void {
 const status = $derived(session.error !== "" ? session.error : session.message);
 </script>
 
-<section data-testid="blockstate" class:touch class:ore-panel={!touch}>
-  <h2 class="ore-panel__header ore-type-heading">Block state</h2>
+<section data-testid="blockstate" class="ore-editor" class:touch class:ore-pane={!touch} class:ore-pane--floating={!touch}>
+  {#if !touch}
+    <div class="ore-pane__header"><h2 class="ore-pane__title ore-type-ui">Block state</h2></div>
+  {/if}
+  <div class="body" class:ore-pane__body={!touch}>
   {#if touch}
     <!-- The readout line is under the sheet, so the sheet repeats what it says (the live region is that line). -->
-    <p class="status ore-type-caption" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
+    <p class="status ore-type-ui-small" class:bad={session.error !== ""} aria-hidden="true" hidden={status === ""} data-testid="sheet-message">{status}</p>
   {/if}
   {#if block === null || session.inspected === null}
     {#if touch}
-      <p class="hint ore-type-caption">Tap a block to see and change its properties (facing, half, open, …). In View a tap is enough; with a tool, the last block you tapped is the one.</p>
+      <p class="hint ore-type-ui-small">Tap a block to see and change its properties (facing, half, open, …). In View a tap is enough; with a tool, the last block you tapped is the one.</p>
     {:else}
-      <p class="hint ore-type-caption">Point at a block to see and change its properties (facing, half, waterlogged, …).</p>
+      <p class="hint ore-type-ui-small">Point at a block to see and change its properties (facing, half, waterlogged, …).</p>
     {/if}
   {:else}
-    <p class="name ore-type-body" data-testid="blockstate-name">{name.replace("minecraft:", "")} <span class="pos ore-type-caption">at {session.inspected.join(", ")}</span></p>
+    <p class="name ore-type-ui" data-testid="blockstate-name">{name.replace("minecraft:", "")} <span class="pos ore-type-ui-small">at {session.inspected.join(", ")}</span></p>
     {#if touch}
       {#if rotation !== null}
-        <button type="button" class="rotate ore-btn ore-btn--primary ore-type-label" title={`Turn the ${rotation.key}: ${rotation.key} ${entries.find((p) => p.key === rotation.key)?.value} to ${rotation.value}`} onclick={rotate} data-testid="rotate-block">Rotate block</button>
+        <button type="button" class="rotate ore-btn ore-btn--dark ore-btn--touch ore-type-ui" title={`Turn the ${rotation.key}: ${rotation.key} ${entries.find((p) => p.key === rotation.key)?.value} to ${rotation.value}`} onclick={rotate} data-testid="rotate-block">Rotate block</button>
       {/if}
       {#each entries as p (p.key)}
         {@const ctl = classifyProperty(p)}
         <div class="prop ore-panel" data-testid={`prop-row-${p.key}`}>
-          <span class="prop-name ore-type-label" id={`prop-label-${p.key}`}>{p.key}</span>
+          <span class="prop-name ore-type-ui" id={`prop-label-${p.key}`}>{p.key}</span>
           {#if ctl.kind === "boolean"}
             <button
               type="button"
@@ -84,7 +87,7 @@ const status = $derived(session.error !== "" ? session.error : session.message);
               {#each values as v (v)}
                 <button
                   type="button"
-                  class="chip ore-seg ore-type-label"
+                  class="chip ore-seg ore-type-ui"
                   aria-pressed={p.value === v}
                   onclick={() => apply(p.key, v, p.value)}
                   data-testid={`prop-${p.key}-${v}`}
@@ -95,28 +98,28 @@ const status = $derived(session.error !== "" ? session.error : session.message);
             {@const down = stepNumeric(ctl, p.value, -1)}
             {@const up = stepNumeric(ctl, p.value, 1)}
             <div class="stepper" role="group" aria-labelledby={`prop-label-${p.key}`} data-testid={`prop-${p.key}`}>
-              <button type="button" class="step ore-btn ore-btn--secondary ore-type-heading" aria-label={`Decrease ${p.key}`} disabled={down === null} onclick={() => down !== null && apply(p.key, down, p.value)} data-testid={`prop-${p.key}-dec`}>−</button>
-              <output class="value ore-type-body" data-testid={`prop-${p.key}-value`}>{p.value}</output>
-              <button type="button" class="step ore-btn ore-btn--secondary ore-type-heading" aria-label={`Increase ${p.key}`} disabled={up === null} onclick={() => up !== null && apply(p.key, up, p.value)} data-testid={`prop-${p.key}-inc`}>+</button>
-              {#if ctl.max !== null}<span class="range ore-type-caption">{ctl.min} to {ctl.max}</span>{/if}
+              <button type="button" class="step ore-btn ore-btn--secondary ore-type-ui" aria-label={`Decrease ${p.key}`} disabled={down === null} onclick={() => down !== null && apply(p.key, down, p.value)} data-testid={`prop-${p.key}-dec`}>−</button>
+              <output class="value ore-type-ui" data-testid={`prop-${p.key}-value`}>{p.value}</output>
+              <button type="button" class="step ore-btn ore-btn--secondary ore-type-ui" aria-label={`Increase ${p.key}`} disabled={up === null} onclick={() => up !== null && apply(p.key, up, p.value)} data-testid={`prop-${p.key}-inc`}>+</button>
+              {#if ctl.max !== null}<span class="range ore-type-ui-small">{ctl.min} to {ctl.max}</span>{/if}
             </div>
           {:else}
-            <span class="free-value ore-type-body" data-testid={`prop-${p.key}`}>{p.value} <span class="range ore-type-caption">(edit under Other…)</span></span>
+            <span class="free-value ore-type-ui" data-testid={`prop-${p.key}`}>{p.value} <span class="range ore-type-ui-small">(edit under Other…)</span></span>
           {/if}
         </div>
       {:else}
-        <p class="hint ore-type-caption">This block has no properties.</p>
+        <p class="hint ore-type-ui-small">This block has no properties.</p>
       {/each}
 
-      <button type="button" class="other-toggle ore-btn ore-btn--secondary ore-type-label" aria-expanded={other} aria-controls="state-other" onclick={() => (other = !other)} data-testid="prop-other-toggle">Other…</button>
+      <button type="button" class="other-toggle ore-btn ore-btn--secondary ore-type-ui" aria-expanded={other} aria-controls="state-other" onclick={() => (other = !other)} data-testid="prop-other-toggle">Other…</button>
       {#if other}
         <div id="state-other" class="other" data-testid="prop-other">
           {#each entries as p (p.key)}
             <label class="row">
-              <span class="ore-type-label">{p.key}</span>
+              <span class="ore-type-ui">{p.key}</span>
               <input
                 type="text"
-                class="ore-input ore-type-body"
+                class="ore-input ore-type-ui"
                 value={p.value}
                 spellcheck="false"
                 autocomplete="off"
@@ -126,25 +129,28 @@ const status = $derived(session.error !== "" ? session.error : session.message);
             </label>
           {/each}
           <div class="row add">
-            <input type="text" class="ore-input ore-type-body" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
-            <input type="text" class="ore-input ore-type-body" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
-            <button type="button" class="ore-btn ore-btn--secondary ore-type-label" onclick={add} data-testid="prop-add">Add</button>
+            <input type="text" class="ore-input ore-type-ui" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
+            <input type="text" class="ore-input ore-type-ui" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
+            <button type="button" class="ore-btn ore-btn--dark ore-btn--touch ore-type-ui" onclick={add} data-testid="prop-add">Add</button>
           </div>
-          <p class="hint ore-type-caption">Any value can be typed here, and a new property added. Leave the field to apply it.</p>
+          <p class="hint ore-type-ui-small">Any value can be typed here, and a new property added. Leave the field to apply it.</p>
         </div>
       {/if}
     {:else}
       {#each entries as p (p.key)}
-        <label class="row" class:dd={p.exact && p.options}>
-          <span class="ore-type-label">{p.key}</span>
+        <label class="row">
+          <span class="ore-type-ui">{p.key}</span>
           {#if p.exact && p.options}
-            <select class="ore-btn ore-btn--secondary ore-type-body" value={p.value} onchange={(e) => commit(p.key, e)} data-testid={`prop-${p.key}`}>
-              {#each p.options as o}<option value={o}>{o}</option>{/each}
-            </select>
+            <span class="ore-dd">
+              <select class="ore-btn ore-btn--secondary ore-dd__btn ore-dd__select ore-type-ui" value={p.value} onchange={(e) => commit(p.key, e)} data-testid={`prop-${p.key}`}>
+                {#each p.options as o}<option value={o}>{o}</option>{/each}
+              </select>
+              <svg class="ore-dd__chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M3 5.5l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" /></svg>
+            </span>
           {:else}
             <input
               type="text"
-              class="ore-input ore-type-body"
+              class="ore-input ore-type-ui"
               value={p.value}
               list={p.options ? `opts-${p.key}` : undefined}
               spellcheck="false"
@@ -158,16 +164,17 @@ const status = $derived(session.error !== "" ? session.error : session.message);
           {/if}
         </label>
       {:else}
-        <p class="hint ore-type-caption">This block has no properties.</p>
+        <p class="hint ore-type-ui-small">This block has no properties.</p>
       {/each}
       <div class="row add">
-        <input type="text" class="ore-input ore-type-body" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
-        <input type="text" class="ore-input ore-type-body" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
-        <button class="ore-btn ore-btn--secondary ore-type-label" onclick={add} data-testid="prop-add">Add</button>
+        <input type="text" class="ore-input ore-type-ui" placeholder="property" bind:value={newKey} spellcheck="false" aria-label="New property name" data-testid="prop-new-key" />
+        <input type="text" class="ore-input ore-type-ui" placeholder="value" bind:value={newValue} spellcheck="false" aria-label="New property value" data-testid="prop-new-value" onkeydown={(e) => e.key === "Enter" && add()} />
+        <button class="ore-btn ore-btn--dark ore-type-ui" onclick={add} data-testid="prop-add">Add</button>
       </div>
-      <p class="hint ore-type-caption">Suggested values are only a guess; any value can be typed. Press Enter to apply.</p>
+      <p class="hint ore-type-ui-small">Suggested values are only a guess; any value can be typed. Press Enter to apply.</p>
     {/if}
   {/if}
+  </div>
 </section>
 
 <style>
@@ -184,21 +191,17 @@ const status = $derived(session.error !== "" ? session.error : session.message);
   .row.add button { grid-column: 1 / -1; }
   .ore-input { min-width: 0; }
 
-  /* The desktop drop-down: a native select in the design's dropdown face (the secondary button), with the
-     chevron drawn on its label, because a select takes no pseudo-element. */
-  select { display: block; min-width: 0; width: 100%; text-align: left; text-overflow: ellipsis; -webkit-appearance: none; appearance: none; padding: 0 calc(var(--space-4) + 16px) 4px var(--space-3); }
-  select:active:not(:disabled) { min-height: 44px; margin-top: 0; padding-bottom: 4px; box-shadow: inset 0 -4px 0 var(--be), inset 2px 2px 0 var(--bh), inset -2px -6px 0 var(--bl); }
-  select option { background: var(--light-200); color: var(--ink-dark); }
-  .row.dd { position: relative; }
-  .row.dd::after { content: ""; position: absolute; right: var(--space-4); top: 50%; box-sizing: border-box; width: 8px; height: 8px; margin-top: -7px; border: solid var(--ink-dark); border-width: 0 2px 2px 0; transform: rotate(45deg); pointer-events: none; }
+  /* The desktop drop-down: a native select in the editor's 36px dropdown face (the secondary button, app.css),
+     with the chevron drawn beside it as the design's dropdown does. */
+  .ore-dd { display: block; min-width: 0; }
+  select { display: block; min-width: 0; width: 100%; text-align: left; text-overflow: ellipsis; }
 
   /* Touch: every control at least 44 px, the sheet one column that wraps, never scrolls sideways. */
   /* top -12px: a sticky offset counts from the content box, so this is flush with the top of the scrolling sheet (its padding is 12px) and nothing scrolls past above it */
   .status { position: sticky; top: -12px; z-index: 1; margin: 0 0 var(--space-3); padding: var(--space-2) var(--space-3); background: var(--surface-panel); color: var(--ink); }
   .status.bad { background: var(--yellow); color: var(--ink-dark); }
   .status[hidden] { display: none; }
-  .rotate { width: 100%; min-height: 48px; margin: var(--space-2) 0 0; }
-  .rotate:active:not(:disabled) { min-height: 44px; }
+  .rotate { width: 100%; margin: var(--space-2) 0 0; }
   .prop { display: grid; gap: var(--space-2); margin: var(--space-2) 0 0; padding: var(--space-3) var(--space-4); }
   .prop > * { margin: 0; }
   .prop-name { color: var(--ink); }
@@ -211,7 +214,7 @@ const status = $derived(session.error !== "" ? session.error : session.message);
   .chip.ore-seg[aria-pressed="true"]:hover:not(:disabled) { --bf: var(--green-hover); --bh: var(--green-hover-hi); --bl: var(--green-hover-lo); }
   .chip.ore-seg[aria-pressed="true"]::after { content: ""; position: absolute; left: 50%; bottom: 0; width: 44px; height: 2px; margin-left: -22px; background: var(--ink); }
   .stepper { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
-  .step { min-width: 44px; padding: 0 0 4px; touch-action: manipulation; }
+  .step { min-width: 44px; padding: 0; touch-action: manipulation; }
   .value { min-width: 2.2rem; text-align: center; color: var(--ink); }
   .range { color: var(--ink-muted); }
   .free-value { color: var(--ink); overflow-wrap: anywhere; }

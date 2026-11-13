@@ -35,7 +35,7 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
     {#each blocks as b (b.block)}
       <button
         type="button"
-        class="hot ore-btn ore-btn--secondary ore-type-label"
+        class="hot ore-btn ore-btn--secondary {compact ? 'ore-type-label' : 'ore-type-ui'}"
         class:fav={b.favorite}
         aria-pressed={session.block === b.block}
         aria-label={b.block}
@@ -44,9 +44,9 @@ const blocks = $derived(hotbarBlocks(favorites, recents));
         data-testid={compact ? "hotbar-compact-chip" : "hotbar-chip"}
         data-block={b.block}
         data-favorite={b.favorite}
-      >{#if b.favorite}<span class="star ore-tag ore-tag--primary ore-type-caption" aria-hidden="true">★</span>{/if}<span class="hot-name">{shortName(b.block)}</span></button>
+      >{#if b.favorite}<span class="star ore-tag ore-tag--primary {compact ? 'ore-type-caption' : 'ore-type-ui-small'}" aria-hidden="true">★</span>{/if}<span class="hot-name">{shortName(b.block)}</span></button>
     {:else}
-      <p class="empty ore-type-caption" data-testid="hotbar-empty">Blocks you choose or star show up here.</p>
+      <p class="empty {compact ? 'ore-type-caption' : 'ore-type-ui-small'}" data-testid="hotbar-empty">Blocks you choose or star show up here.</p>
     {/each}
   </div>
 {/if}

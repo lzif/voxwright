@@ -51,11 +51,11 @@ function blockColor(name: string): string {
 const swatchColor = $derived(blockColor(cleanBlockName));
 </script>
 
-<div class="bottom-toolbar-container" data-testid="bottom-toolbar">
+<div class="bottom-toolbar-container ore-editor" data-testid="bottom-toolbar">
   <div class="readout-row" class:has-chip={showChip}>
   <!-- Live cell readout bar -->
   <div
-    class="cell-readout-bar ore-type-caption"
+    class="cell-readout-bar ore-type-ui-small"
     data-testid="live-cell-readout"
     role="status"
     aria-live="polite"
@@ -102,7 +102,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
          focus without the gesture: the camera comes closer to the inspected block and centres on it. -->
     <button
       type="button"
-      class="state-chip ore-btn ore-btn--secondary ore-type-caption"
+      class="state-chip ore-btn ore-btn--secondary ore-type-ui-small"
       aria-label="Zoom to this block"
       title="Zoom to this block: bring the camera closer, as a double tap does"
       onclick={() => session.focusInspected()}
@@ -110,7 +110,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     >Zoom</button>
     <button
       type="button"
-      class="state-chip ore-btn ore-btn--secondary ore-type-caption"
+      class="state-chip ore-btn ore-btn--secondary ore-type-ui-small"
       aria-label={chipLabel}
       onclick={() => ontogglesheet?.("blockstate")}
       data-testid="state-chip"
@@ -127,7 +127,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     <!-- Active block swatch: opens/toggles palette sheet -->
     <button
       type="button"
-      class="swatch-btn ore-btn ore-btn--secondary ore-type-label"
+      class="swatch-btn ore-btn ore-btn--secondary ore-btn--touch ore-type-ui"
       class:active={activeSheet === "palette"}
       onclick={() => ontogglesheet?.("palette")}
       data-testid="active-block-swatch"
@@ -149,7 +149,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
       {#each shown as t (t.id)}
         <button
           type="button"
-          class="tool-btn ore-seg ore-type-label"
+          class="tool-btn ore-seg ore-btn--touch ore-type-ui"
           class:active={session.tool === t.id}
           aria-pressed={session.tool === t.id}
           onclick={() => session.setTool(t.id)}
@@ -168,7 +168,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     <!-- Quick sheet toggles for State and Selection -->
     <button
       type="button"
-      class="panel-btn ore-seg ore-type-label"
+      class="panel-btn ore-seg ore-btn--touch ore-type-ui"
       class:active={activeSheet === "blockstate"}
       onclick={() => ontogglesheet?.("blockstate")}
       data-testid="mobile-state-toggle"
@@ -179,7 +179,7 @@ const swatchColor = $derived(blockColor(cleanBlockName));
 
     <button
       type="button"
-      class="panel-btn ore-seg ore-type-label"
+      class="panel-btn ore-seg ore-btn--touch ore-type-ui"
       class:active={activeSheet === "selection"}
       onclick={() => ontogglesheet?.("selection")}
       data-testid="mobile-selection-toggle"
@@ -271,9 +271,9 @@ const swatchColor = $derived(blockColor(cleanBlockName));
   }
 
   .sep {
-    width: 2px;
+    width: 4px;
     height: 32px;
-    background: var(--panel-hi);
+    background: linear-gradient(to right, var(--groove) 2px, var(--tab-lo) 2px);
     flex-shrink: 0;
   }
 
@@ -340,6 +340,12 @@ const swatchColor = $derived(blockColor(cleanBlockName));
     padding-right: var(--space-3);
     white-space: nowrap;
     touch-action: manipulation;
+  }
+
+  /* The chip's words are the editor's small type (the editor's 16px on a button is at 0,2,0). */
+  .bottom-toolbar-container .state-chip {
+    font-size: var(--type-ui-small-size);
+    line-height: var(--type-ui-small-line);
   }
 
   .cell-readout-bar {

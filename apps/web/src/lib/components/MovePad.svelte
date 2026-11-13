@@ -62,7 +62,7 @@ onDestroy(() => repeater.stop());
   {@const a = arrow[id]}
   <button
     type="button"
-    class="pad-btn ore-btn ore-btn--secondary {id} {id === 'up' || id === 'down' ? 'ore-type-caption' : 'ore-type-title'}"
+    class="pad-btn ore-btn ore-btn--secondary ore-btn--touch {id} {id === 'up' || id === 'down' ? 'ore-type-ui-small' : 'ore-type-title'}"
     aria-label={a.label}
     title={a.label}
     data-testid={`move-${id}`}
@@ -81,7 +81,7 @@ onDestroy(() => repeater.stop());
 <div class="move-pad" role="group" aria-label="Move the selection" data-testid="move-pad">
   <button
     type="button"
-    class="pad-btn big ore-seg ore-type-label"
+    class="pad-btn big ore-seg ore-btn--touch ore-type-ui"
     class:on={big}
     aria-pressed={big}
     aria-label="×8: move 8 blocks per step"
@@ -92,7 +92,7 @@ onDestroy(() => repeater.stop());
   {@render arrowButton("away")}
   {@render arrowButton("up")}
   {@render arrowButton("left")}
-  <output class="step-size ore-type-caption" data-testid="move-step">{size === 1 ? "1 block" : `${size} blocks`} a step</output>
+  <output class="step-size ore-type-ui-small" data-testid="move-step">{size === 1 ? "1 block" : `${size} blocks`} a step</output>
   {@render arrowButton("right")}
   {@render arrowButton("toward")}
   {@render arrowButton("down")}
@@ -117,13 +117,30 @@ onDestroy(() => repeater.stop());
 
   /* Secondary buttons (.ore-btn--secondary); ×8 is a toggle segment (.ore-seg). The grid cell is
      48 px and the button fills it, so the pressed face lowers inside the cell. */
-  .pad-btn {
+  .move-pad .pad-btn {
     min-width: 48px;
     min-height: 48px;
-    padding-left: 0;
-    padding-right: 0;
+    padding: 0;
     /* A press must reach the button whole: no scroll, zoom or long-press menu takes it away. */
     touch-action: none;
+  }
+
+  /* An arrow is a glyph at the title size (the editor's own 16px type would shrink it); Up and Down are words. */
+  .move-pad .pad-btn.away,
+  .move-pad .pad-btn.left,
+  .move-pad .pad-btn.right,
+  .move-pad .pad-btn.toward {
+    font-size: var(--type-title-size);
+    line-height: 1;
+  }
+  .move-pad .pad-btn.up,
+  .move-pad .pad-btn.down {
+    font-size: var(--type-ui-small-size);
+    line-height: var(--type-ui-small-line);
+  }
+  .move-pad .pad-btn:active:not(:disabled) {
+    min-height: 48px;
+    margin-top: 0;
   }
 
   .away { grid-area: away; }
