@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 
-# mcbuild
+# @voxwright/mcbuild
 
 Build Minecraft structures from a short TypeScript recipe. `mcbuild` runs the recipe, checks every
 block against the block registry of the Minecraft version, and writes `.schem` (WorldEdit),
@@ -10,10 +10,16 @@ It is the command line of [Voxwright](https://github.com/lzif/voxwright), in one
 dependencies. It needs Node 22.18 or later.
 
 ```sh
-npx mcbuild build house.ts --out house.schem --out house.litematic
-npx mcbuild inspect house.schem
-npx mcbuild preview house.litematic
+npm install -g @voxwright/mcbuild
+
+mcbuild init house.ts                                         # a starter recipe
+mcbuild build house.ts --out house.schem --out house.litematic
+mcbuild inspect house.schem
+mcbuild preview house.litematic                               # 3D viewer in the browser
+mcbuild run house.ts --preview                                # PNG views
 ```
+
+Or without installing: `npx @voxwright/mcbuild build house.ts --out house.schem`.
 
 A recipe is an ES module that exports a `Build`:
 
@@ -43,7 +49,8 @@ Further commands work with numbered run directories: `init` (a starter recipe), 
 `import` (a schematic back into a recipe), `diff` and `assets fetch`. `mcbuild --help` lists them.
 
 `mcbuild <command> --help` lists the options of `build`, `inspect` and `preview`. The first `build` for a Minecraft version downloads
-its block registry (about 120 kB) into `~/.cache/mcbuilder/`.
+its block registry (about 120 kB) into `~/.cache/mcbuilder/`, and the first `run --preview`
+the game's block models and textures (about 25 MB). Pass `--offline` to stay off the network.
 
 Documentation:
 

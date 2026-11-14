@@ -110,7 +110,14 @@ The same seed always gives the same build. What the agent reads to write one:
 - [packages/mcbuilder/docs/build-patterns.md](packages/mcbuilder/docs/build-patterns.md): building
   techniques, for results that look designed.
 
-All of this works without an agent too: clone the repository and run the same commands.
+All of this works without an agent too. The same command line is on npm:
+
+```sh
+npm install -g @voxwright/mcbuild     # or: npx @voxwright/mcbuild <command>
+mcbuild init house.ts
+mcbuild build house.ts --out house.schem
+mcbuild preview house.schem
+```
 
 ## The browser 3D preview and editor
 
@@ -228,11 +235,10 @@ Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm d
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
-The command line is also the npm package `mcbuild` (`npx mcbuild build house.ts --out house.schem`),
-which is the skill's bundle under another name. `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
+The command line is also the npm package `@voxwright/mcbuild`, which is the skill's bundle under
+another name (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`). `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
 To release: set the version in the root `package.json`, run `pnpm build:skill`, commit, and push
-a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret. No
-version has been published yet.
+a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret.
 
 ## The `mcbuild` command
 
@@ -251,8 +257,8 @@ mcbuild diff 1 2                         # cells added, removed, replaced
 mcbuild assets fetch --version 26.2      # block registry + vanilla client assets
 ```
 
-A script exports a `Build` as `BUILD`. `check` and `run` need the block registry of the version in
-`~/.cache/mcbuilder/`; `build` or `assets fetch` puts it there. `run --preview` writes faithful PNG
+A script exports a `Build` as `BUILD`. The block registry of the version is downloaded into
+`~/.cache/mcbuilder/` when first needed; `--offline` keeps a command off the network. `run --preview` writes faithful PNG
 previews and `run --guide` a build guide; the fast and trusted preview tiers are not ported, and
 `--tier` says so instead of ignoring the flag. `diff` does not write its comparison image yet, and
 there is no `view` command.

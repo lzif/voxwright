@@ -150,8 +150,29 @@ BUILD.scope(() => {
   it("fails cleanly on a missing registry, a script without BUILD and an unknown command", async () => {
     const noReg = capture();
     noReg.io.home = join(root, "empty-home");
-    expect(await runCli(["check", join(root, "proj/house.ts")], noReg.io)).toBe(1);
+    expect(await runCli(["check", join(root, "proj/house.ts"), "--offline"], noReg.io)).toBe(1);
     expect(noReg.err[0]).toContain("run `mcbuild assets fetch --version 26.2` first");
+
+    // Without --offline it tries the download first, and says why that failed.
+    const down = capture();
+    down.io.home = join(root, "empty-home");
+    const calls: string[] = [];
+    expect(
+      await runCli(["check", join(root, "proj/house.ts")], down.io, {
+        get: async (url) => {
+          calls.push(url);
+          return { status: 503, body: new Uint8Array() };
+        },
+      }),
+    ).toBe(1);
+    expect(calls[0]).toContain("minecraft-data");
+    expect(down.out[0]).toContain("downloading the block registry for 26.2");
+    expect(down.err[0]).toContain("could not download the block registry");
+
+    const help = capture();
+    expect(await runCli(["run", "--help"], help.io)).toBe(0);
+    expect(help.out[0]).toContain("Usage: mcbuild run <script>");
+    expect(help.out.join("\n")).toContain("--preview");
 
     const empty = join(root, "nobuild.ts");
     await writeFile(empty, "export const x = 1;\n");
@@ -320,7 +341,7 @@ BUILD.scope(() => BUILD.set(0, 0, 0, "lostqol:waystone"));
 `,
     );
     const c = capture();
-    expect(await runCli(["check", join(dir, "s.ts")], c.io)).toBe(1); // no 1.21.4 registry cached
+    expect(await runCli(["check", join(dir, "s.ts"), "--offline"], c.io)).toBe(1); // no 1.21.4 registry cached
     expect(c.err[0]).toContain("version '1.21.4'");
   });
 });

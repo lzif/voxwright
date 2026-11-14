@@ -171,10 +171,10 @@ node <skill-dir>/scripts/voxwright-cli.mjs run <recipe> --preview [--views 'iso;
 
 Writes `<dir>/run-NNN/previews_faithful/<view>.png` (default `dist/`), drawn with the game's
 textures, next to a `report.json` and an `.nbt`. Open the PNGs to check the look of a build
-yourself before reporting, when you can read images. Views, separated by
-semicolons: `iso`, `top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. Run `build` once first: `run` uses the block registry that
-`build` downloads. The first preview downloads the game's block models and textures (about
-30 MB, into `~/.cache/mcbuilder/`); without network access blocks are drawn as plain cubes.
+yourself before reporting, when you can read images. Views, separated by semicolons: `iso`,
+`top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. The first preview
+downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`); without
+network access blocks are drawn as plain cubes.
 
 ## References
 

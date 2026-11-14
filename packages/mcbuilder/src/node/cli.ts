@@ -3,7 +3,7 @@
 // The `mcbuild` command line.
 //
 //   mcbuild init [path] [--force]
-//   mcbuild check <script> [--config file]
+//   mcbuild check <script> [--config file] [--offline]
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
 //                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
 //   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
@@ -48,6 +48,7 @@ import {
   type AssetSource,
   fetchAssets,
   fetchClientAssets,
+  fetchRegistry,
   type HttpGet,
 } from "./assets.ts";
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
@@ -135,8 +136,29 @@ function cacheRoot(cfg: McbuildConfig, home: string): string {
   return cfg.assetsDir ?? defaultCacheRoot(home);
 }
 
-async function loadRegistry(cfg: McbuildConfig, home: string): Promise<Registry> {
+/** How a command may reach the network for what its cache lacks. */
+interface Net {
+  offline: boolean;
+  get: HttpGet | undefined;
+  out: (line: string) => void;
+}
+
+async function loadRegistry(cfg: McbuildConfig, home: string, net: Net): Promise<Registry> {
   const path = join(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
+  // The default cache fills itself; a directory the configuration names is the user's to fill.
+  if (!(await exists(path)) && !cfg.assetsDir && !net.offline) {
+    net.out(`downloading the block registry for ${cfg.mcVersion} (once)`);
+    try {
+      await fetchRegistry(cfg.mcVersion, cacheRoot(cfg, home), {
+        ...(net.get ? { get: net.get } : {}),
+      });
+    } catch (e) {
+      if (!(e instanceof AssetError)) throw e;
+      throw new CliError(
+        `could not download the block registry for version '${cfg.mcVersion}': ${e.message}`,
+      );
+    }
+  }
   if (!(await exists(path))) {
     throw new CliError(
       new RegistryError(
@@ -203,11 +225,11 @@ function fmtIssue(issue: Issue): string {
   return msg;
 }
 
-async function loadAndValidate(script: string, config: string | undefined, home: string) {
+async function loadAndValidate(script: string, config: string | undefined, home: string, net: Net) {
   const build = await loadScript(script);
   const cfg = await resolveConfig(script, config, home);
   const detWarnings = scanDeterminism(await readFile(script, "utf8"), basename(script));
-  const registry = await loadRegistry(cfg, home);
+  const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
   const { errors, warnings } = registry.validate(dense.palette, cfg.allowlist);
   return {
@@ -228,15 +250,19 @@ async function nextRunDir(out: string): Promise<string> {
   return dir;
 }
 
-async function cmdCheck(args: string[], io: Required<Io>): Promise<number> {
+async function cmdCheck(args: string[], io: Required<Io>, get?: HttpGet): Promise<number> {
   const { values, positionals } = parseArgs({
     args,
     allowPositionals: true,
-    options: { config: { type: "string" } },
+    options: { config: { type: "string" }, offline: { type: "boolean" } },
   });
   const [script] = positionals;
   if (script === undefined) throw new CliError("check: give a script");
-  const ctx = await loadAndValidate(script, values.config, io.home);
+  const ctx = await loadAndValidate(script, values.config, io.home, {
+    offline: values.offline ?? false,
+    get,
+    out: io.out,
+  });
   const blocks = ctx.build.grid.volume.countNonAir();
   io.out(
     `${basename(script)} — ${ctx.errors.length === 0 ? "OK" : "FAILED"} (${blocks} blocks, ${ctx.dense.palette.length} types, ${ctx.errors.length} errors, ${ctx.warnings.length} warnings)`,
@@ -277,7 +303,11 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
   if (!["none", "explicit", "all"].includes(air))
     throw new CliError("--air must be none, explicit or all");
 
-  const ctx = await loadAndValidate(script, values.config, io.home);
+  const ctx = await loadAndValidate(script, values.config, io.home, {
+    offline: values.offline ?? false,
+    get,
+    out: io.out,
+  });
   const runDir = await nextRunDir(resolve(io.cwd, values.out as string));
   const stem = basename(script, extname(script));
   const warnings = [...ctx.warnings];
@@ -528,6 +558,8 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
       const registry = await loadRegistry(
         await resolveConfig(resolve(file), values.config, io.home),
         io.home,
+        // Cleaning the properties is optional: it uses a registry that is there, and fetches none.
+        { offline: true, get: undefined, out: io.out },
       );
       structure = cleanProperties(structure, registry);
     } catch (e) {
@@ -649,13 +681,26 @@ export const RUN_COMMANDS: readonly string[] = ["init", "check", "run", "import"
 
 /** One line of syntax per command, without the program name. */
 export const RUN_SYNTAX = `init [path] [--force]
-check <script> [--config file]
+check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
     [--offline]
 import <file> [-o out] [--force] [--keep-air] [--raw]
 diff <run-a> <run-b> [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]`;
+
+const isHelpFlag = (a: string): boolean => a === "--help" || a === "-h";
+
+/** The syntax lines of one command, with the program name. */
+function syntaxOf(command: string): string[] {
+  const lines = RUN_SYNTAX.split("\n");
+  const start = lines.findIndex((l) => l.startsWith(`${command} `));
+  const out = [`Usage: mcbuild ${lines[start]}`];
+  for (let i = start + 1; i < lines.length && (lines[i] as string).startsWith(" "); i++) {
+    out.push(`         ${(lines[i] as string).trimStart()}`);
+  }
+  return out;
+}
 
 const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
@@ -679,11 +724,15 @@ export async function runCli(
   };
   const [command, ...rest] = argv;
   try {
+    if (command !== undefined && RUN_COMMANDS.includes(command) && rest.some(isHelpFlag)) {
+      for (const line of syntaxOf(command)) full.out(line);
+      return 0;
+    }
     switch (command) {
       case "init":
         return await cmdInit(rest, full);
       case "check":
-        return await cmdCheck(rest, full);
+        return await cmdCheck(rest, full, deps.get);
       case "run":
         return await cmdRun(rest, full, deps.get);
       case "import":
