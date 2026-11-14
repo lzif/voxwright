@@ -141,9 +141,9 @@ the same technique can apply as written on one face and need its mini
 substitute on the other. Height counts for vertical techniques (staging,
 spire taper, crown): a build much taller than its footprint is banded by
 height, not footprint — a 9×9×40 spire stages like a tall build, while a
-9×9×4 hut is mini. The audit lints judge the same way: wedding-cake
-rhythm runs on the main mass, pareidolia per face width, dark-lump on
-the spire (see the GUIDE lint reference).
+9×9×4 hut is mini. The planned audit lints (below) would judge the same
+way: wedding-cake rhythm runs on the main mass, pareidolia per face
+width, dark-lump on the spire.
 
 Band table (minimum footprint span per technique):
 
@@ -208,9 +208,10 @@ recipe down, replace it):
   alternating pale/dark vertical ribs up the spire instead, so the spire
   reads by contrast, not by bulk.
 
-Flagged by the `mcbuild` audit lints (warnings in `report.json`, never
-errors — a flagged build still exports; see the GUIDE lint reference for
-every code, its fix hint, and its exit-code semantics):
+Planned `mcbuild` audit lints would flag these (warnings in
+`report.json`, never errors — a flagged build would still export). The
+TypeScript port has none yet (checked 2026-11-14), so check these
+patterns by eye:
 
 - **Flagged at mini:** twin symmetric 1-wide slits on any face ≤10 wide
   (pareidolia flag). The lint fires at ≤10 to match "below span 11";
@@ -239,12 +240,12 @@ every code, its fix hint, and its exit-code semantics):
   UNBACKED; a window pair over a floored room is a see-through pair
   by construction.
 
-What the lints do NOT do: they flag defect patterns, they do not enforce
-every substitution above — a mini build that ignores a substitution
-without tripping a lint pattern is still a design defect, just not a
-linted one. And the lints never block export: a mega/mid technique
-applied at mini scale without its listed substitution is a defect, not
-a compromise — the audit lints will say so, and the build still ships.
+What the planned lints would NOT do: flag every substitution above — a
+mini build that ignores a substitution without tripping a lint pattern
+is still a design defect, just not a linted one. And they would never
+block export: a mega/mid technique applied at mini scale without its
+listed substitution is a defect, not a compromise, whether or not a lint
+flags it.
 
 ## Staged build process — scope (locked 2026-11-07)
 
