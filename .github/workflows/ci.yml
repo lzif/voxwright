@@ -31,7 +31,7 @@ jobs:
       # The skill CLI is committed as a bundle; it must match the sources it is built from.
       - run: node scripts/build-skill.ts --check
       - name: Assemble the npm package (dry run)
-        run: node scripts/pack-npm.ts --dry-run && npm pack --dry-run ./dist/npm/mcbuild
+        run: node scripts/pack-npm.ts --dry-run && cd dist/npm/mcbuild && npm pack --dry-run
 
   # Per-package jobs run only for packages that changed, or that depend on
   # one that changed (`...[ref]` selects dependents too), so a docs-only

@@ -44,9 +44,12 @@ jobs:
           node dist/npm/mcbuild/mcbuild.mjs --help
       - name: Publish (dry run)
         if: github.event_name == 'workflow_dispatch' && inputs.dry-run
-        run: npm publish ./dist/npm/mcbuild --access public --dry-run
+        # From inside the package: at the root, npm refuses to run because devEngines names pnpm.
+        working-directory: dist/npm/mcbuild
+        run: npm publish --access public --dry-run
       - name: Publish
         if: github.event_name == 'push' || !inputs.dry-run
-        run: npm publish ./dist/npm/mcbuild --access public --provenance
+        working-directory: dist/npm/mcbuild
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
