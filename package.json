@@ -1,6 +1,6 @@
 {
   "name": "voxwright",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "description": "Programmatic Minecraft build engine and Agent Skill: AI agents script builds and export .schem, .litematic, .nbt and .mcstructure, with a browser 3D preview and editor.",
   "license": "AGPL-3.0-only",
