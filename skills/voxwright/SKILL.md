@@ -77,17 +77,17 @@ Change the recipe and run `build` again to iterate; it overwrites its outputs.
 node <skill-dir>/scripts/voxwright-cli.mjs build <recipe> --out <path> [options]
 ```
 
-| Option                 | Meaning                                                                          |
-| ---------------------- | -------------------------------------------------------------------------------- |
-| `--out <path>`         | File to write. Repeat it to write several formats in one run.                    |
-| `--format <f>`         | `schem`, `litematic`, `nbt` or `mcstructure`. Default: the extension of `--out`. |
-| `--mc-version <v>`     | Minecraft version (default `26.2`; also `26.1`, `1.21.11`, `1.21.4`, `1.21.1`).  |
-| `--json`               | Print the summary as one JSON document.                                          |
-| `--offline`            | Do not download the block registry.                                              |
-| `--allow <block>`      | Accept a modded block name. Repeatable.                                          |
-| `--name`, `--author`   | `.litematic` metadata.                                                           |
-| `--schem-version 2\|3` | Sponge schematic version (default 3).                                            |
-| `--air <mode>`         | `.nbt` only: `none` (default), `explicit` or `all`.                              |
+| Option                 | Meaning                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `--out <path>`         | File to write. Repeat it to write several formats in one run.                                                           |
+| `--format <f>`         | `schem`, `litematic`, `nbt` or `mcstructure`. Default: the extension of `--out`.                                        |
+| `--mc-version <v>`     | Minecraft version (default `26.2`, or `mc_version` from an `mcbuild.toml` next to the recipe; also `26.1`, `1.21.11`, `1.21.4`, `1.21.1`). |
+| `--json`               | Print the summary as one JSON document.                                                                                 |
+| `--offline`            | Do not download the block registry.                                                                                     |
+| `--allow <block>`      | Accept a modded block name (or set `allowlist` in an `mcbuild.toml` next to the recipe). Repeatable.                    |
+| `--name`, `--author`   | `.litematic` metadata.                                                                                                  |
+| `--schem-version 2\|3` | Sponge schematic version (default 3).                                                                                   |
+| `--air <mode>`         | `.nbt` only: `none` (default), `explicit` or `all`.                                                                     |
 
 Pick the format from what the user will load it with: `.schem` for WorldEdit and
 FastAsyncWorldEdit, `.litematic` for Litematica, `.nbt` for vanilla structure blocks,
@@ -121,7 +121,8 @@ wrote:
 - Exit code 0: written. Exit code 1: the recipe threw, validation failed or the export failed,
   and **nothing was written**. Exit code 2: wrong command line.
 - `errors:` lists unknown blocks (with did-you-mean names), unknown properties and illegal values
-  (with the legal ones). Fix every one; do not work around the validator.
+  (with the legal ones), each ending with the recipe position that placed the block
+  `(at file:line:col)`. Fix every one; do not work around the validator.
 - `warnings:` lists things that did not stop the build: what a format could not carry (always
   read these for `.mcstructure`), non-deterministic code, or
   `validation skipped: ...` when no registry was available. A build with skipped validation is
@@ -141,13 +142,14 @@ Prints what a `.schem`, `.litematic`, `.nbt` or `.mcstructure` file holds: forma
 DataVersion, size, block count, block entities, entities, metadata and the palette with counts.
 Use it to check a file you wrote, or to understand a schematic the user gives you.
 
-### preview
+### preview (or view)
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs preview <schematic> [--port <n>] [--no-open]
+node <skill-dir>/scripts/voxwright-cli.mjs preview <schematic-or-run> [--port <n>] [--no-open]
 ```
 
-Starts a local server with the 3D viewer and editor and the schematic open in it, prints
+Starts a local server with the 3D viewer and editor and the schematic open in it (`view` is an
+alias, and the target may also be a `run` directory or run id such as `preview 1`), prints
 `Preview URL: http://127.0.0.1:4173/...`, and opens that address in the default browser.
 
 - The command runs until it is stopped. Start it in the background, read the `Preview URL` line

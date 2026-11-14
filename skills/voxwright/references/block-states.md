@@ -158,9 +158,9 @@ Caveats that hold for every format:
 - Entities and block-entity data are not written.
 
 `.mcstructure` only: Java states are translated to Bedrock by rule, for stairs, slabs, doors,
-beds, logs and other pillars, fences, panes, walls, and blocks with a `facing`. A property the
-rules do not cover is dropped and listed as a warning, never guessed. Known gaps: `half=top` on
-trapdoors, `persistent` on leaves and `hanging` on lanterns are dropped, so those blocks arrive in
-their default state. Read the warnings of a `.mcstructure` export and tell the user what was
-lost. Block names are passed through, so a block that has another name on Bedrock arrives as an
+trapdoors, beds, logs and other pillars, fences, panes, walls, torches, lanterns, leaves, and
+blocks with a `facing`. A property the rules do not cover is dropped and listed as a warning,
+never guessed. Read the warnings of a `.mcstructure` export and tell the user what was lost. Block
+names are passed through (apart from `grass_block` -> `grass` and wall torches -> `torch` with
+`torch_facing_direction`), so another block that has a different name on Bedrock arrives as an
 unknown block there.

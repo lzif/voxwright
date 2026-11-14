@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-export { Build, type BuildOptions } from "./build.ts";
+export { Build, type BuildOptions, type BuildRenderOptions } from "./build.ts";
 export {
   ConfigError,
   expandUser,

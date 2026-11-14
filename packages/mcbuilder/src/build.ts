@@ -14,10 +14,17 @@
 // roofs). `seed` drives every random choice, so the same script and seed
 // always give the same build.
 
+import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { AIR, canonicalize, type Rotation, rotateBlockstate, rotatePoint } from "@voxwright/core";
+import { type AssetSource, renderView, resolveViews, type View } from "@voxwright/render";
+import { directoryAssets, encodePng } from "@voxwright/render/node";
+import { parseConfig, resolveAssetsDir } from "./config.ts";
 import { BuildError } from "./errors.ts";
 import { Geometry, type Point } from "./geometry.ts";
 import { type Material, resolveMaterial, type Seed } from "./materials.ts";
+import type { Registry, ValidationError, ValidationWarning } from "./registry.ts";
 import { Rng } from "./rng.ts";
 import * as shapes from "./shapes.ts";
 import { type Dims, VoxelGrid } from "./voxels.ts";
@@ -28,6 +35,44 @@ export interface BuildOptions {
   views?: string | readonly string[] | null;
   /** Size limit per axis; exceeding it throws `GridBoundsError`. Default 256 each. */
   maxDimensions?: Dims;
+}
+
+export interface BuildRenderOptions {
+  /** Preview views (defaults to this build's `views`, then the standard 9-view orbit). */
+  views?: string | readonly (string | View)[] | null;
+  /** Preview tier; only `"faithful"` is ported. */
+  tier?: "faithful" | "fast" | "trusted";
+  /** Two corners `[c1, c2]` to render only that box. */
+  region?: readonly [Point, Point] | null;
+  /** Directory holding vanilla client assets (defaults to the configured cache directory). */
+  assetsDir?: string | null;
+  /** Pre-resolved asset source (overrides `assetsDir` when given). */
+  assets?: AssetSource | null;
+  /** Optional title drawn top-centre in presentation mode. */
+  title?: string;
+  /** `false` gives the plain debug look (dark background, no shadow or title). Default `true`. */
+  presentation?: boolean;
+}
+
+function isDirSync(p: string): boolean {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+function resolveAssetsRoot(assetsDir: string): string | null {
+  const direct = join(assetsDir, "client", "assets", "minecraft");
+  if (isDirSync(direct)) return direct;
+  if (isDirSync(join(assetsDir, "blockstates"))) return assetsDir;
+  if (isDirSync(assetsDir)) {
+    for (const child of readdirSync(assetsDir).sort()) {
+      const cand = join(assetsDir, child, "client", "assets", "minecraft");
+      if (isDirSync(cand)) return cand;
+    }
+  }
+  return null;
 }
 
 function ints(what: string, p: unknown): Point {
@@ -192,6 +237,89 @@ export class Build {
 
   get viewsConfig(): readonly string[] | null {
     return this.views;
+  }
+
+  // -- validation and rendering ---------------------------------------------------
+
+  /** Check every placed block against `registry`. Returns `{ errors, warnings }`. */
+  validate(
+    registry: Registry,
+    allowlist: readonly string[] = [],
+  ): { errors: ValidationError[]; warnings: ValidationWarning[] } {
+    return registry.validate(this.voxelGrid.toDense().palette, allowlist);
+  }
+
+  /**
+   * Render preview PNGs into `outDir`; returns the written file paths.
+   * Accepts either `render(outDir, options?)` or `render(outDir, views, options?)`.
+   */
+  render(
+    outDir: string,
+    viewsOrOptions?: string | readonly (string | View)[] | BuildRenderOptions | null,
+    maybeOptions?: BuildRenderOptions,
+  ): string[] {
+    let views: string | readonly (string | View)[] | null | undefined;
+    let options: BuildRenderOptions;
+    if (
+      viewsOrOptions !== undefined &&
+      viewsOrOptions !== null &&
+      typeof viewsOrOptions === "object" &&
+      !Array.isArray(viewsOrOptions)
+    ) {
+      options = viewsOrOptions as BuildRenderOptions;
+      views = options.views;
+    } else {
+      options = maybeOptions ?? {};
+      views = viewsOrOptions !== undefined ? viewsOrOptions : options.views;
+    }
+
+    const tier = options.tier ?? "faithful";
+    if (tier !== "faithful" && tier !== "fast" && tier !== "trusted") {
+      throw new BuildError(
+        `render: tier must be 'fast', 'trusted' or 'faithful', got '${String(tier)}'`,
+      );
+    }
+    if (tier !== "faithful") {
+      throw new BuildError(`render: tier '${tier}' is not ported; only 'faithful' is supported`);
+    }
+
+    const viewList = resolveViews(views !== undefined && views !== null ? views : this.views);
+    let grid = this.voxelGrid;
+    if (options.region !== undefined && options.region !== null) {
+      if (!Array.isArray(options.region) || options.region.length !== 2) {
+        throw new BuildError("render: region must be [c1, c2]");
+      }
+      const [c1, c2] = options.region;
+      grid = grid.crop(ints("render: region", c1), ints("render: region", c2));
+    }
+
+    let assets: AssetSource | null = null;
+    if (options.assets !== undefined) {
+      assets = options.assets;
+    } else if (options.assetsDir !== null) {
+      const base = options.assetsDir ?? resolveAssetsDir(parseConfig(""), homedir());
+      const root = resolveAssetsRoot(base);
+      if (root !== null) assets = directoryAssets(root);
+    }
+
+    mkdirSync(outDir, { recursive: true });
+    const dense = grid.toDense();
+    const presentation = options.presentation ?? true;
+    const paths: string[] = [];
+    for (const view of viewList) {
+      const file = join(outDir, `${view.label}.png`);
+      const canvas = renderView(
+        dense,
+        assets,
+        view,
+        presentation
+          ? { ...(options.title ? { title: options.title } : {}) }
+          : { background: 0x1e1e26, shadow: false },
+      );
+      writeFileSync(file, encodePng(canvas));
+      paths.push(file);
+    }
+    return paths;
   }
 
   // -- shapes: each places the geometry and returns it ----------------------------

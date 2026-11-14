@@ -2215,7 +2215,7 @@ var require_png = __commonJS({
 // packages/mcbuilder/src/node/skill/main.ts
 import { realpathSync } from "node:fs";
 import * as nodeModule from "node:module";
-import { homedir as homedir2 } from "node:os";
+import { homedir as homedir3 } from "node:os";
 import { extname as extname6 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 
@@ -2232,9 +2232,9 @@ var GridBoundsError = class extends McbuilderError {
 };
 
 // packages/mcbuilder/src/node/cli.ts
-import { mkdir as mkdir2, readFile as readFile2, stat as stat4, writeFile as writeFile2 } from "node:fs/promises";
-import { homedir } from "node:os";
-import { basename as basename2, dirname as dirname2, extname, join as join5, resolve as resolve3, sep as sep2 } from "node:path";
+import { mkdir as mkdir2, readFile as readFile2, stat as stat4, writeFile as writeFile3 } from "node:fs/promises";
+import { homedir as homedir2 } from "node:os";
+import { basename as basename3, dirname as dirname2, extname, join as join6, resolve as resolve3, sep as sep2 } from "node:path";
 import { parseArgs } from "node:util";
 
 // packages/core/src/blocks/pystr.ts
@@ -8710,6 +8710,16 @@ function encodePng(canvas) {
   }
   return new Uint8Array(import_pngjs.PNG.sync.write(png));
 }
+function decodePng(bytes) {
+  const png = import_pngjs.PNG.sync.read(Buffer.from(bytes));
+  const data = new Uint8Array(png.width * png.height * 3);
+  for (let i2 = 0; i2 < png.width * png.height; i2++) {
+    data[i2 * 3] = png.data[i2 * 4];
+    data[i2 * 3 + 1] = png.data[i2 * 4 + 1];
+    data[i2 * 3 + 2] = png.data[i2 * 4 + 2];
+  }
+  return { width: png.width, height: png.height, data };
+}
 
 // node_modules/.pnpm/smol-toml@1.9.1/node_modules/smol-toml/dist/error.js
 function getLineColFromPtr(string2, ptr) {
@@ -11125,8 +11135,8 @@ async function fetchRegistry(version, cacheDir, options = {}) {
 }
 
 // packages/mcbuilder/src/node/diff.ts
-import { readdir as readdir2, readFile, stat as stat2 } from "node:fs/promises";
-import { join as join4 } from "node:path";
+import { readdir as readdir2, readFile, stat as stat2, writeFile as writeFile2 } from "node:fs/promises";
+import { basename, join as join4 } from "node:path";
 var isDir = async (p) => (await stat2(p).catch(() => null))?.isDirectory() ?? false;
 var isFile = async (p) => (await stat2(p).catch(() => null))?.isFile() ?? false;
 async function resolveRunDir(runsDir, runId) {
@@ -11234,11 +11244,96 @@ async function loadRunVoxels(runDir) {
 async function diffRunDirs(aDir, bDir) {
   return diffVoxelMaps(await loadRunVoxels(aDir), await loadRunVoxels(bDir));
 }
+async function firstCommonView(aDir, bDir) {
+  const views = async (runDir) => {
+    let report;
+    try {
+      report = JSON.parse(await readFile(join4(runDir, "report.json"), "utf8"));
+    } catch {
+      return [];
+    }
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const v of report.views ?? []) {
+      const label = v.label;
+      const rel = v.file;
+      const trusted = Boolean(v.directions_trusted);
+      const key2 = `${trusted}:${label}`;
+      if (label && rel && !seen.has(key2)) {
+        seen.add(key2);
+        out.push([trusted, label, join4(runDir, rel)]);
+      }
+    }
+    out.sort((a, b) => Number(b[0]) - Number(a[0]));
+    return out;
+  };
+  const va = /* @__PURE__ */ new Map();
+  for (const [trusted, label, pa] of await views(aDir)) {
+    if (!va.has(label)) va.set(label, [trusted, pa]);
+  }
+  for (const [, label, pb] of await views(bDir)) {
+    const hit = va.get(label);
+    if (!hit) continue;
+    const [, pa] = hit;
+    if (await isFile(pa) && await isFile(pb)) return [pa, pb];
+  }
+  return null;
+}
+async function comparisonImage(aDir, bDir, diff, outPath, options = {}) {
+  const pair = await firstCommonView(aDir, bDir);
+  if (pair === null) return null;
+  const aId = options.aId || basename(aDir);
+  const bId = options.bId || basename(bDir);
+  let imgs;
+  try {
+    imgs = [
+      decodePng(new Uint8Array(await readFile(pair[0]))),
+      decodePng(new Uint8Array(await readFile(pair[1])))
+    ];
+  } catch {
+    return null;
+  }
+  const targetH = Math.min(imgs[0].height, imgs[1].height);
+  const scaled = imgs.map((im) => {
+    if (im.height === targetH) return im;
+    const w = Math.max(1, Math.round(im.width * targetH / im.height));
+    return downscaleLanczos(im, w, targetH);
+  });
+  const [titleH, capH, gap, pad] = [40, 26, 12, 10];
+  const [w1, w2] = [scaled[0].width, scaled[1].width];
+  const width = w1 + gap + w2;
+  const height = titleH + capH + targetH;
+  const canvas = createCanvas(width, height, [18, 18, 22]);
+  const changes = total(diff);
+  const title = isEmpty(diff) ? `diff ${aId} -> ${bId}: no differences` : `diff ${aId} -> ${bId}: ${changes} ${changes === 1 ? "change" : "changes"} (${diff.added.length} added, ${diff.removed.length} removed, ${diff.changed.length} replaced)`;
+  drawText(canvas, pad, Math.floor((titleH - 14) / 2), title, {
+    size: 11,
+    color: [235, 235, 240]
+  });
+  for (const [x2, im, label, color] of [
+    [0, scaled[0], aId, [255, 140, 140]],
+    [w1 + gap, scaled[1], bId, [140, 230, 150]]
+  ]) {
+    drawText(canvas, x2 + pad, titleH + Math.floor((capH - 14) / 2), label, {
+      size: 11,
+      color
+    });
+    pasteRgb(canvas, { ...im, channels: 3 }, x2, titleH + capH);
+  }
+  drawRect(canvas, w1, titleH + capH, w1 + gap - 1, height - 1, [70, 70, 80]);
+  await writeFile2(outPath, encodePng(canvas));
+  return outPath;
+}
 
 // packages/mcbuilder/src/node/script.ts
 import { stat as stat3 } from "node:fs/promises";
-import { basename, resolve as resolve2 } from "node:path";
+import { basename as basename2, resolve as resolve2 } from "node:path";
 import { pathToFileURL } from "node:url";
+
+// packages/mcbuilder/src/build.ts
+import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join as join5 } from "node:path";
 
 // packages/mcbuilder/src/sha256.ts
 var K2 = new Uint32Array([
@@ -12220,6 +12315,25 @@ var VoxelGrid = class _VoxelGrid {
 };
 
 // packages/mcbuilder/src/build.ts
+function isDirSync(p) {
+  try {
+    return statSync(p).isDirectory();
+  } catch {
+    return false;
+  }
+}
+function resolveAssetsRoot(assetsDir) {
+  const direct = join5(assetsDir, "client", "assets", "minecraft");
+  if (isDirSync(direct)) return direct;
+  if (isDirSync(join5(assetsDir, "blockstates"))) return assetsDir;
+  if (isDirSync(assetsDir)) {
+    for (const child2 of readdirSync(assetsDir).sort()) {
+      const cand = join5(assetsDir, child2, "client", "assets", "minecraft");
+      if (isDirSync(cand)) return cand;
+    }
+  }
+  return null;
+}
 function ints(what, p) {
   if (!Array.isArray(p) || p.length !== 3)
     throw new BuildError(`${what} must be 3 ints, got ${String(p)}`);
@@ -12363,6 +12477,68 @@ var Build = class {
   get viewsConfig() {
     return this.views;
   }
+  // -- validation and rendering ---------------------------------------------------
+  /** Check every placed block against `registry`. Returns `{ errors, warnings }`. */
+  validate(registry, allowlist = []) {
+    return registry.validate(this.voxelGrid.toDense().palette, allowlist);
+  }
+  /**
+   * Render preview PNGs into `outDir`; returns the written file paths.
+   * Accepts either `render(outDir, options?)` or `render(outDir, views, options?)`.
+   */
+  render(outDir, viewsOrOptions, maybeOptions) {
+    let views;
+    let options;
+    if (viewsOrOptions !== void 0 && viewsOrOptions !== null && typeof viewsOrOptions === "object" && !Array.isArray(viewsOrOptions)) {
+      options = viewsOrOptions;
+      views = options.views;
+    } else {
+      options = maybeOptions ?? {};
+      views = viewsOrOptions !== void 0 ? viewsOrOptions : options.views;
+    }
+    const tier = options.tier ?? "faithful";
+    if (tier !== "faithful" && tier !== "fast" && tier !== "trusted") {
+      throw new BuildError(
+        `render: tier must be 'fast', 'trusted' or 'faithful', got '${String(tier)}'`
+      );
+    }
+    if (tier !== "faithful") {
+      throw new BuildError(`render: tier '${tier}' is not ported; only 'faithful' is supported`);
+    }
+    const viewList = resolveViews(views !== void 0 && views !== null ? views : this.views);
+    let grid = this.voxelGrid;
+    if (options.region !== void 0 && options.region !== null) {
+      if (!Array.isArray(options.region) || options.region.length !== 2) {
+        throw new BuildError("render: region must be [c1, c2]");
+      }
+      const [c1, c2] = options.region;
+      grid = grid.crop(ints("render: region", c1), ints("render: region", c2));
+    }
+    let assets = null;
+    if (options.assets !== void 0) {
+      assets = options.assets;
+    } else if (options.assetsDir !== null) {
+      const base = options.assetsDir ?? resolveAssetsDir(parseConfig(""), homedir());
+      const root = resolveAssetsRoot(base);
+      if (root !== null) assets = directoryAssets(root);
+    }
+    mkdirSync(outDir, { recursive: true });
+    const dense = grid.toDense();
+    const presentation = options.presentation ?? true;
+    const paths = [];
+    for (const view of viewList) {
+      const file = join5(outDir, `${view.label}.png`);
+      const canvas = renderView(
+        dense,
+        assets,
+        view,
+        presentation ? { ...options.title ? { title: options.title } : {} } : { background: 1973798, shadow: false }
+      );
+      writeFileSync(file, encodePng(canvas));
+      paths.push(file);
+    }
+    return paths;
+  }
   // -- shapes: each places the geometry and returns it ----------------------------
   stamp(g) {
     return this.place(g);
@@ -12447,15 +12623,17 @@ async function loadScript(path) {
   try {
     mod = await import(`${pathToFileURL(abs).href}?t=${Date.now()}`);
   } catch (e) {
+    const where = locateInRecipe(e, abs);
+    const at = where === null ? "" : ` (at ${where})`;
     throw new ScriptError(
-      `error in ${basename(path)}: ${e instanceof Error ? e.message : String(e)}`,
+      `error in ${basename2(path)}: ${e instanceof Error ? e.message : String(e)}${at}`,
       e
     );
   }
   const build = mod.BUILD ?? mod.default;
   if (!(build instanceof Build)) {
     throw new ScriptError(
-      `${basename(path)} must export a Build as BUILD (export const BUILD = new Build(...))`
+      `${basename2(path)} must export a Build as BUILD (export const BUILD = new Build(...))`
     );
   }
   return build;
@@ -12494,7 +12672,7 @@ function locateInRecipe(thrown, recipe) {
       const at = stack.indexOf(prefix, from);
       if (at === -1) break;
       const m = /^(?:\?[^\s:)]*)?:(\d+)(?::(\d+))?/.exec(stack.slice(at + prefix.length));
-      if (m) return `${basename(recipe)}:${m[1]}${m[2] === void 0 ? "" : `:${m[2]}`}`;
+      if (m) return `${basename2(recipe)}:${m[1]}${m[2] === void 0 ? "" : `:${m[2]}`}`;
       from = at + prefix.length;
     }
   }
@@ -12509,7 +12687,7 @@ function placedAt(grid, block, recipe) {
 var BUNDLED = true;
 var CliError = class extends Error {
 };
-var defaultCacheRoot = (home) => join5(home, ".cache", "mcbuilder");
+var defaultCacheRoot = (home) => join6(home, ".cache", "mcbuilder");
 var HOUSE_TEMPLATE = `// house.ts: starter build written by \`mcbuild init\`.
 //
 // Loop:  mcbuild check house.ts   ->   mcbuild run house.ts
@@ -12546,7 +12724,7 @@ BUILD.scope(() => {
 async function findConfig(startDir, home) {
   let dir = resolve3(startDir);
   for (; ; ) {
-    const candidate = join5(dir, "mcbuild.toml");
+    const candidate = join6(dir, "mcbuild.toml");
     if (await exists2(candidate)) {
       try {
         return parseConfig(await readFile2(candidate, "utf8"), { home, source: candidate });
@@ -12574,7 +12752,7 @@ function cacheRoot(cfg, home) {
   return cfg.assetsDir ?? defaultCacheRoot(home);
 }
 async function loadRegistry(cfg, home, net) {
-  const path = join5(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
+  const path = join6(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
   if (!await exists2(path) && !cfg.assetsDir && !net.offline) {
     net.out(`downloading the block registry for ${cfg.mcVersion} (once)`);
     try {
@@ -12636,7 +12814,7 @@ function fmtIssue(issue) {
 async function loadAndValidate(script, config, home, net) {
   const build = await loadScript(script);
   const cfg = await resolveConfig(script, config, home);
-  const detWarnings = scanDeterminism(await readFile2(script, "utf8"), basename2(script));
+  const detWarnings = scanDeterminism(await readFile2(script, "utf8"), basename3(script));
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
   const { errors, warnings } = registry.validate(dense.palette, cfg.allowlist);
@@ -12658,8 +12836,8 @@ async function loadAndValidate(script, config, home, net) {
 async function nextRunDir(out) {
   await mkdir2(out, { recursive: true });
   let n2 = 1;
-  while (await exists2(join5(out, `run-${String(n2).padStart(3, "0")}`))) n2++;
-  const dir = join5(out, `run-${String(n2).padStart(3, "0")}`);
+  while (await exists2(join6(out, `run-${String(n2).padStart(3, "0")}`))) n2++;
+  const dir = join6(out, `run-${String(n2).padStart(3, "0")}`);
   await mkdir2(dir);
   return dir;
 }
@@ -12678,7 +12856,7 @@ async function cmdCheck(args, io, get) {
   });
   const blocks = ctx.build.grid.volume.countNonAir();
   io.out(
-    `${basename2(script)} — ${ctx.errors.length === 0 ? "OK" : "FAILED"} (${blocks} blocks, ${ctx.dense.palette.length} types, ${ctx.errors.length} errors, ${ctx.warnings.length} warnings)`
+    `${basename3(script)} — ${ctx.errors.length === 0 ? "OK" : "FAILED"} (${blocks} blocks, ${ctx.dense.palette.length} types, ${ctx.errors.length} errors, ${ctx.warnings.length} warnings)`
   );
   for (const e of ctx.errors) io.out(`  error: ${fmtIssue(e)}`);
   for (const w of ctx.warnings) io.out(`  warning: ${fmtIssue(w)}`);
@@ -12720,7 +12898,7 @@ async function cmdRun(args, io, get) {
     out: io.out
   });
   const runDir = await nextRunDir(resolve3(io.cwd, values.out));
-  const stem = basename2(script, extname(script));
+  const stem = basename3(script, extname(script));
   const warnings = [...ctx.warnings];
   let focus = null;
   if (values.focus) focus = parseFocus(values.focus);
@@ -12728,8 +12906,8 @@ async function cmdRun(args, io, get) {
   const artifacts = [];
   if (ctx.errors.length === 0) {
     const versionDir = resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, "");
-    const candidates = [join5(versionDir, "version.json")];
-    if (ctx.cfg.assetsDir) candidates.push(join5(versionDir, ctx.cfg.mcVersion, "version.json"));
+    const candidates = [join6(versionDir, "version.json")];
+    if (ctx.cfg.assetsDir) candidates.push(join6(versionDir, ctx.cfg.mcVersion, "version.json"));
     let versionJson;
     for (const vj of candidates) {
       if (await exists2(vj)) {
@@ -12750,20 +12928,20 @@ async function cmdRun(args, io, get) {
     } catch (e) {
       throw new CliError(e instanceof Error ? e.message : String(e));
     }
-    await writeFile2(join5(runDir, `${stem}.nbt`), result.bytes);
+    await writeFile3(join6(runDir, `${stem}.nbt`), result.bytes);
     warnings.push(...result.warnings.map((message) => ({ message })));
     artifacts.push({ file: `${stem}.nbt`, format: "nbt", data_version: dataVersion });
   }
   const viewEntries = [];
   if (values.preview && ctx.errors.length === 0) {
-    const root = join5(
+    const root = join6(
       ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
       ctx.cfg.mcVersion,
       "client",
       "assets",
       "minecraft"
     );
-    let haveAssets = await exists2(join5(root, "blockstates"));
+    let haveAssets = await exists2(join6(root, "blockstates"));
     let why = "";
     if (!haveAssets && !ctx.cfg.assetsDir && !values.offline) {
       io.out(
@@ -12773,7 +12951,7 @@ async function cmdRun(args, io, get) {
         await fetchClientAssets(ctx.cfg.mcVersion, defaultCacheRoot(io.home), {
           ...get ? { get } : {}
         });
-        haveAssets = await exists2(join5(root, "blockstates"));
+        haveAssets = await exists2(join6(root, "blockstates"));
       } catch (e) {
         if (!(e instanceof AssetError)) throw e;
         why = ` (download failed: ${e.message})`;
@@ -12794,12 +12972,12 @@ async function cmdRun(args, io, get) {
         message: `faithful preview: ${n2} \`${name}\` rendered as magenta fallback cube — orientation not verified`
       });
     }
-    const dir = join5(runDir, "previews_faithful");
+    const dir = join6(runDir, "previews_faithful");
     await mkdir2(dir, { recursive: true });
     for (const view of viewList) {
       const file = `${view.label}.png`;
-      await writeFile2(
-        join5(dir, file),
+      await writeFile3(
+        join6(dir, file),
         encodePng(renderView(dense, assets, view, { title: titleCase(stem.replaceAll("_", " ")) }))
       );
       viewEntries.push(
@@ -12813,25 +12991,25 @@ async function cmdRun(args, io, get) {
     }
   }
   if (values.guide && ctx.errors.length === 0) {
-    const root = join5(
+    const root = join6(
       ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
       ctx.cfg.mcVersion,
       "client",
       "assets",
       "minecraft"
     );
-    const haveAssets = await exists2(join5(root, "blockstates"));
+    const haveAssets = await exists2(join6(root, "blockstates"));
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
-    const iso = join5(runDir, "previews_faithful", "iso.png");
+    const iso = join6(runDir, "previews_faithful", "iso.png");
     const guide = buildGuide(grid.toDense(), haveAssets ? directoryAssets(root) : null, {
       title: titleCase(stem.replaceAll("_", " ")),
       cover: await exists2(iso) ? "../previews_faithful/iso.png" : null
     });
-    const dir = join5(runDir, "guide");
+    const dir = join6(runDir, "guide");
     await mkdir2(dir, { recursive: true });
     for (const layer of guide.layers)
-      await writeFile2(join5(dir, layer.name), encodePng(layer.image));
-    await writeFile2(join5(dir, "guide.md"), guide.markdown, "utf8");
+      await writeFile3(join6(dir, layer.name), encodePng(layer.image));
+    await writeFile3(join6(dir, "guide.md"), guide.markdown, "utf8");
     artifacts.push({ file: "guide/guide.md", format: "guide" });
   }
   const placed = ctx.build.grid.volume.placedBounds();
@@ -12846,7 +13024,7 @@ async function cmdRun(args, io, get) {
     overwrittenPlacements: ctx.build.grid.overwriteCount,
     origin: placed === null ? [0, 0, 0] : [...placed[0]]
   });
-  await writeFile2(join5(runDir, "report.json"), reportToJson(report), "utf8");
+  await writeFile3(join6(runDir, "report.json"), reportToJson(report), "utf8");
   const dims = dimensions(ctx.build, ctx.dense);
   let line2 = `  ${ctx.build.grid.volume.countNonAir()} blocks, ${ctx.dense.palette.length} types, dims ${dims.join("x")} — ${ctx.errors.length} errors, ${warnings.length} warnings`;
   if (ctx.build.grid.overwriteCount)
@@ -12937,7 +13115,7 @@ async function cmdImport(args, io) {
     if (e instanceof CliError) throw e;
     throw new CliError(e instanceof Error ? e.message : String(e));
   }
-  let structure = structureFromVolume(read2.volume, basename2(file), {
+  let structure = structureFromVolume(read2.volume, basename3(file), {
     dataVersion: read2.dataVersion,
     droppedBlockEntities: read2.be,
     droppedEntities: read2.e
@@ -12956,7 +13134,7 @@ async function cmdImport(args, io) {
     }
   }
   await mkdir2(dirname2(resolve3(out)), { recursive: true });
-  await writeFile2(out, toScript(structure), "utf8");
+  await writeFile3(out, toScript(structure), "utf8");
   io.out(`wrote ${out}`);
   for (const line2 of summary(structure, 10)) io.out(line2 ? `  ${line2}` : "");
   return 0;
@@ -12990,9 +13168,16 @@ async function cmdDiff(args, io) {
     throw new CliError(`invalid --max: ${values.max} (must be >= 0)`);
   const aDir = await resolveRunDir(runsDir, runA);
   const bDir = await resolveRunDir(runsDir, runB);
+  const [aId, bId] = [basename3(aDir), basename3(bDir)];
   const diff = await diffRunDirs(aDir, bDir);
-  io.out(formatDiff(diff, basename2(aDir), basename2(bDir), { maxEntries: max2 }));
-  io.out("  comparison: image not ported yet");
+  io.out(formatDiff(diff, aId, bId, { maxEntries: max2 }));
+  const imgPath = join6(runsDir, `diff-${aId}-${bId}.png`);
+  const made = await comparisonImage(aDir, bDir, diff, imgPath, { aId, bId });
+  if (made !== null) {
+    io.out(`  comparison: ${made}`);
+  } else {
+    io.out("  comparison: no shared preview view — image skipped");
+  }
   return diff.added.length + diff.removed.length + diff.changed.length === 0 ? 0 : 1;
 }
 async function cmdInit(args, io) {
@@ -13002,7 +13187,7 @@ async function cmdInit(args, io) {
     options: { force: { type: "boolean" } }
   });
   const raw = positionals[0] ?? "house.ts";
-  const target = raw.endsWith(sep2) || raw.endsWith("/") ? join5(raw, "house.ts") : raw;
+  const target = raw.endsWith(sep2) || raw.endsWith("/") ? join6(raw, "house.ts") : raw;
   const abs = resolve3(io.cwd, target);
   if ((await stat4(abs).catch(() => null))?.isDirectory())
     throw new CliError(`not a file: ${target}`);
@@ -13013,7 +13198,7 @@ async function cmdInit(args, io) {
   }
   await mkdir2(dirname2(abs), { recursive: true });
   const template = BUNDLED ? HOUSE_TEMPLATE.replace('"@voxwright/mcbuilder"', '"voxwright"') : HOUSE_TEMPLATE;
-  await writeFile2(abs, template, "utf8");
+  await writeFile3(abs, template, "utf8");
   io.out(`wrote ${target}`);
   io.out(`next: mcbuild check ${target}`);
   io.out(`then: mcbuild run ${target}`);
@@ -13071,15 +13256,13 @@ function syntaxOf(command) {
 }
 var USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
-${RUN_SYNTAX.split("\n").map((l) => l.startsWith(" ") ? `          ${l}` : `  mcbuild ${l}`).join("\n")}
-
-mcbuild diff does not write its comparison image yet (not ported).`;
+${RUN_SYNTAX.split("\n").map((l) => l.startsWith(" ") ? `          ${l}` : `  mcbuild ${l}`).join("\n")}`;
 async function runCli(argv, io = {}, deps = {}) {
   const full = {
     out: io.out ?? ((l) => console.log(l)),
     err: io.err ?? ((l) => console.error(l)),
     cwd: io.cwd ?? process.cwd(),
-    home: io.home ?? homedir()
+    home: io.home ?? homedir2()
   };
   const [command, ...rest] = argv;
   try {
@@ -13124,12 +13307,12 @@ ${USAGE}`);
 }
 
 // packages/mcbuilder/src/node/skill/build.ts
-import { mkdir as mkdir3, readFile as readFile4, writeFile as writeFile3 } from "node:fs/promises";
-import { basename as basename3, dirname as dirname3, extname as extname3, join as join8, resolve as resolve5 } from "node:path";
+import { mkdir as mkdir3, readFile as readFile4, writeFile as writeFile4 } from "node:fs/promises";
+import { basename as basename4, dirname as dirname3, extname as extname3, join as join9, resolve as resolve5 } from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // packages/mcbuilder/src/node/skill/common.ts
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 
 // packages/mcbuilder/src/node/skill/io.ts
 var SkillCliError = class extends Error {
@@ -13143,7 +13326,7 @@ var SkillCliError = class extends Error {
 
 // packages/mcbuilder/src/node/skill/common.ts
 var PROG = /(^|[\\/])mcbuild(\.mjs|\.ts)?$/.test(process.argv[1] ?? "") ? "mcbuild" : "voxwright-cli";
-var VERSION = true ? "0.0.2" : "dev";
+var VERSION = true ? "0.0.3" : "dev";
 var DEFAULT_MC_VERSION = "26.2";
 function paletteOf(volume) {
   const counts = /* @__PURE__ */ new Map();
@@ -13165,7 +13348,7 @@ function releaseOf(dataVersion) {
   for (const [release, dv] of Object.entries(DATA_VERSIONS)) if (dv === dataVersion) return release;
   return null;
 }
-var cacheRoot2 = (home) => join6(home, ".cache", "mcbuilder");
+var cacheRoot2 = (home) => join7(home, ".cache", "mcbuilder");
 var usageError = (message) => new SkillCliError(message, 2);
 
 // packages/mcbuilder/src/node/skill/formats.ts
@@ -13264,7 +13447,7 @@ async function decode(bytes, format) {
 
 // packages/mcbuilder/src/node/skill/registry.ts
 import { readFile as readFile3 } from "node:fs/promises";
-import { join as join7, resolve as resolve4 } from "node:path";
+import { join as join8, resolve as resolve4 } from "node:path";
 async function read(path, version) {
   let raw;
   try {
@@ -13290,7 +13473,7 @@ async function findRegistry(req) {
     };
   }
   const root = cacheRoot2(req.home);
-  const cached = join7(root, req.mcVersion, "minecraft-data.json");
+  const cached = join8(root, req.mcVersion, "minecraft-data.json");
   if (await exists2(cached)) {
     return {
       registry: await read(cached, req.mcVersion),
@@ -13437,7 +13620,7 @@ function parseDataVersion(value) {
 }
 async function resolveDataVersionFor(mcVersion, override, home) {
   if (override !== void 0) return override;
-  const versionJson = join8(cacheRoot2(home), mcVersion, "version.json");
+  const versionJson = join9(cacheRoot2(home), mcVersion, "version.json");
   if (await exists2(versionJson)) {
     try {
       const wv = JSON.parse(await readFile4(versionJson, "utf8")).world_version;
@@ -13535,19 +13718,18 @@ async function runBuild(req) {
     build = await loadScript(req.recipe);
   } catch (e) {
     if (!(e instanceof ScriptError)) throw e;
-    const where = locateInRecipe(e.thrown, req.recipe);
-    throw new SkillCliError(where === null ? e.message : `${e.message} (at ${where})`);
+    throw new SkillCliError(e.message);
   }
   const volume = build.grid.volume;
   const palette = paletteOf(volume);
   const blocks = palette.reduce((n2, p) => n2 + p.count, 0);
   if (blocks === 0) {
     throw new SkillCliError(
-      `${basename3(req.recipe)} placed no blocks: place them inside BUILD.scope(() => { ... })`
+      `${basename4(req.recipe)} placed no blocks: place them inside BUILD.scope(() => { ... })`
     );
   }
   const bounds = boxOf(volume.bounds());
-  const warnings = scanDeterminism(await readFile4(req.recipe, "utf8"), basename3(req.recipe));
+  const warnings = scanDeterminism(await readFile4(req.recipe, "utf8"), basename4(req.recipe));
   const found = await findRegistry({
     mcVersion: req.mcVersion,
     offline: req.offline,
@@ -13617,7 +13799,7 @@ async function runBuild(req) {
         schemVersion: req.schemVersion,
         air: req.air,
         // A litematic shows its name in Litematica's list: default to the recipe's file name.
-        name: req.name ?? basename3(req.recipe, extname3(req.recipe)),
+        name: req.name ?? basename4(req.recipe, extname3(req.recipe)),
         ...req.author === void 0 ? {} : { author: req.author }
       });
       encoded.push({ target, result });
@@ -13629,14 +13811,14 @@ async function runBuild(req) {
   }
   for (const { target, result } of encoded) {
     await mkdir3(dirname3(target.path), { recursive: true });
-    await writeFile3(target.path, result.bytes);
+    await writeFile4(target.path, result.bytes);
     summary2.outputs.push({
       path: target.path,
       format: target.format,
       bytes: result.bytes.byteLength,
       warnings: result.warnings
     });
-    warnings.push(...result.warnings.map((w) => `${basename3(target.path)}: ${w}`));
+    warnings.push(...result.warnings.map((w) => `${basename4(target.path)}: ${w}`));
   }
   return summary2;
 }
@@ -13740,10 +13922,10 @@ async function cmdInspect(args, io) {
 // packages/mcbuilder/src/node/skill/preview.ts
 import { spawn } from "node:child_process";
 import { createHash as createHash2 } from "node:crypto";
-import { existsSync as existsSync2, statSync } from "node:fs";
-import { mkdir as mkdir4, readFile as readFile6, rename, stat as stat5, writeFile as writeFile4 } from "node:fs/promises";
+import { existsSync as existsSync2, statSync as statSync2 } from "node:fs";
+import { mkdir as mkdir4, readFile as readFile6, rename, stat as stat5, writeFile as writeFile5 } from "node:fs/promises";
 import { createServer } from "node:http";
-import { basename as basename4, dirname as dirname4, extname as extname5, join as join9, resolve as resolve7, sep as sep3 } from "node:path";
+import { basename as basename5, dirname as dirname4, extname as extname5, join as join10, resolve as resolve7, sep as sep3 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs as parseArgs4 } from "node:util";
 var DEFAULT_PORT = 4173;
@@ -13890,12 +14072,12 @@ async function startPreview(options) {
     );
   if (!SCHEMATIC_EXTENSIONS.includes(ext))
     throw new SkillCliError(
-      `cannot preview '${basename4(file)}': expected a .schem, .litematic, .nbt or .mcstructure file`,
+      `cannot preview '${basename5(file)}': expected a .schem, .litematic, .nbt or .mcstructure file`,
       2
     );
   let st;
   try {
-    st = statSync(file);
+    st = statSync2(file);
   } catch {
     throw new SkillCliError(`no such file: ${file}`);
   }
@@ -13904,7 +14086,7 @@ async function startPreview(options) {
   const timeoutMs = options.upstreamTimeoutMs ?? 15e3;
   const source = await chooseSource(options, notes, timeoutMs);
   const base = source.kind === "dir" ? "/" : new URL(source.upstream).pathname;
-  const name = basename4(file);
+  const name = basename5(file);
   const schematicPath = `${base}__preview/${name}`;
   const handler = async (req, res) => {
     if (req.method !== "GET" && req.method !== "HEAD") {
@@ -14001,7 +14183,7 @@ function listenError(err2, port, host, explicit) {
   );
 }
 async function chooseSource(options, notes, timeoutMs) {
-  const cacheRoot3 = join9(options.home, ".cache", "voxwright", "web");
+  const cacheRoot3 = join10(options.home, ".cache", "voxwright", "web");
   if (options.web !== void 0) {
     if (/^https?:\/\//i.test(options.web)) {
       const upstream2 = await resolveUpstream(options.web, cacheRoot3, notes, timeoutMs);
@@ -14013,7 +14195,7 @@ async function chooseSource(options, notes, timeoutMs) {
         2
       );
     const dir = resolve7(options.cwd, options.web);
-    if (!existsSync2(join9(dir, "index.html")))
+    if (!existsSync2(join10(dir, "index.html")))
       throw new SkillCliError(
         `--web ${dir} has no index.html; build the web app first (pnpm --filter @voxwright/web build)`,
         2
@@ -14033,9 +14215,9 @@ async function chooseSource(options, notes, timeoutMs) {
 function findLocalWebBuild(from) {
   let dir = resolve7(from);
   for (; ; ) {
-    if (existsSync2(join9(dir, "apps", "web"))) {
-      const build = join9(dir, "apps", "web", "build");
-      return existsSync2(join9(build, "index.html")) ? build : null;
+    if (existsSync2(join10(dir, "apps", "web"))) {
+      const build = join10(dir, "apps", "web", "build");
+      return existsSync2(join10(build, "index.html")) ? build : null;
     }
     const up = dirname4(dir);
     if (up === dir) return null;
@@ -14059,7 +14241,7 @@ async function resolveUpstream(given, cacheRoot3, notes, timeoutMs) {
   if (!start.pathname.endsWith("/")) start.pathname = `${start.pathname}/`;
   start.search = "";
   start.hash = "";
-  const aliasesFile = join9(cacheRoot3, "aliases.json");
+  const aliasesFile = join10(cacheRoot3, "aliases.json");
   let aliases = {};
   try {
     aliases = JSON.parse(await readFile6(aliasesFile, "utf8"));
@@ -14137,18 +14319,18 @@ async function serveStatic(req, res, root, path, rawPath) {
   if (path.includes("\0") || path.includes("\\")) return notFound(req, res);
   const segments = path.split("/").filter((s) => s !== "");
   if (segments.some((s) => s === "." || s === "..")) return notFound(req, res);
-  let file = join9(root, ...segments);
+  let file = join10(root, ...segments);
   if (file !== root && !file.startsWith(root + sep3)) return notFound(req, res);
   let st = await stat5(file).catch(() => null);
   if (st?.isDirectory()) {
     if (!path.endsWith("/"))
       return send(req, res, 301, "text/plain; charset=utf-8", "", { location: `${rawPath}/` });
-    file = join9(file, "index.html");
+    file = join10(file, "index.html");
     st = await stat5(file).catch(() => null);
   }
   if (!st?.isFile()) {
     if (extname5(path) !== "") return notFound(req, res);
-    file = join9(root, "200.html");
+    file = join10(root, "200.html");
     st = await stat5(file).catch(() => null);
     if (!st?.isFile()) return notFound(req, res);
   }
@@ -14163,8 +14345,8 @@ function cachePaths(cacheDir, upstreamUrl) {
   const key2 = createHash2("sha256").update(`${u.origin}${u.pathname}`).digest("hex");
   const host = u.host.replace(/[^a-z0-9.-]/gi, "_");
   return {
-    body: join9(cacheDir, host, `${key2}.body`),
-    meta: join9(cacheDir, host, `${key2}.json`)
+    body: join10(cacheDir, host, `${key2}.body`),
+    meta: join10(cacheDir, host, `${key2}.json`)
   };
 }
 async function readCache(cacheDir, upstreamUrl) {
@@ -14186,7 +14368,7 @@ async function writeCache(cacheDir, upstreamUrl, contentType, body) {
 async function writeAtomic(path, data) {
   await mkdir4(dirname4(path), { recursive: true });
   const tmp = `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
-  await writeFile4(tmp, data);
+  await writeFile5(tmp, data);
   await rename(tmp, path);
 }
 async function serveProxy(req, res, source, rawPath, timeoutMs) {
@@ -14367,7 +14549,7 @@ async function runSkillCli(argv, io = {}, deps = {}) {
     out: io.out ?? ((l) => console.log(l)),
     err: io.err ?? ((l) => console.error(l)),
     cwd: io.cwd ?? process.cwd(),
-    home: io.home ?? homedir2(),
+    home: io.home ?? homedir3(),
     env: io.env ?? process.env
   };
   const [command, ...rest] = argv;

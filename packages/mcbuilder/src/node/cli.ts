@@ -11,7 +11,7 @@
 //   mcbuild assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
-// `Build` as `BUILD`. `diff` does not write its comparison image yet.
+// `Build` as `BUILD`.
 
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -51,7 +51,7 @@ import {
   fetchRegistry,
   type HttpGet,
 } from "./assets.ts";
-import { diffRunDirs, resolveRunDir } from "./diff.ts";
+import { comparisonImage, diffRunDirs, resolveRunDir } from "./diff.ts";
 import {
   blockCounts,
   dimensions,
@@ -624,9 +624,16 @@ async function cmdDiff(args: string[], io: Required<Io>): Promise<number> {
     throw new CliError(`invalid --max: ${values.max} (must be >= 0)`);
   const aDir = await resolveRunDir(runsDir, runA);
   const bDir = await resolveRunDir(runsDir, runB);
+  const [aId, bId] = [basename(aDir), basename(bDir)];
   const diff = await diffRunDirs(aDir, bDir);
-  io.out(formatDiff(diff, basename(aDir), basename(bDir), { maxEntries: max }));
-  io.out("  comparison: image not ported yet");
+  io.out(formatDiff(diff, aId, bId, { maxEntries: max }));
+  const imgPath = join(runsDir, `diff-${aId}-${bId}.png`);
+  const made = await comparisonImage(aDir, bDir, diff, imgPath, { aId, bId });
+  if (made !== null) {
+    io.out(`  comparison: ${made}`);
+  } else {
+    io.out("  comparison: no shared preview view — image skipped");
+  }
   return diff.added.length + diff.removed.length + diff.changed.length === 0 ? 0 : 1;
 }
 
@@ -731,9 +738,7 @@ const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
 ${RUN_SYNTAX.split("\n")
   .map((l) => (l.startsWith(" ") ? `          ${l}` : `  mcbuild ${l}`))
-  .join("\n")}
-
-mcbuild diff does not write its comparison image yet (not ported).`;
+  .join("\n")}`;
 
 /** Run the CLI. Returns the exit code; never calls `process.exit`. */
 export async function runCli(

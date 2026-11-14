@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createCanvas } from "@voxwright/render";
+import { decodePng, encodePng } from "@voxwright/render/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   DiffError,
@@ -11,7 +13,14 @@ import {
   formatDiff,
   voxelKey,
 } from "../src/index.ts";
-import { diffRunDirs, loadRunVoxels, resolveRunDir, runCli } from "../src/node/index.ts";
+import {
+  comparisonImage,
+  diffRunDirs,
+  firstCommonView,
+  loadRunVoxels,
+  resolveRunDir,
+  runCli,
+} from "../src/node/index.ts";
 import { expectError, loadVector } from "./helpers.ts";
 
 type Cell = [number, number, number, string];
@@ -127,6 +136,7 @@ describe("run directories", () => {
     }
     expect(await runCli(["diff", "1", "3", "--out", runs], io)).toBe(0);
     expect(out[0]).toContain("diff run-001 -> run-003\n  no differences (2 cells in both)");
+    expect(out.join("\n")).toContain("comparison: no shared preview view — image skipped");
     out.length = 0;
     expect(await runCli(["diff", "1", "2", "--out", runs, "--max", "1"], io)).toBe(1);
     expect(out.join("\n")).toContain("not shown (use --max N)");
@@ -141,5 +151,114 @@ describe("run directories", () => {
     expectError(() => {
       throw new DiffError("x");
     }, "McbuilderError");
+  });
+
+  it("prefers direction-trusted views and writes a side-by-side comparison PNG", async () => {
+    const runs = join(root, "dist-img");
+    for (const [n, name] of [
+      ["run-001", "plain"],
+      ["run-002", "origin"],
+    ] as const) {
+      const spec = v.runs[name] as RunSpec;
+      const runDir = join(runs, n);
+      await mkdir(join(runDir, "previews"), { recursive: true });
+      await mkdir(join(runDir, "previews_faithful"), { recursive: true });
+      await writeFile(join(runDir, "a.nbt"), Buffer.from(spec.nbt_b64, "base64"));
+      const report = {
+        ...spec.report,
+        views: [
+          {
+            file: "previews/iso.png",
+            label: "iso",
+            azimuth: 45,
+            elevation: 25,
+            directions_untrusted: true,
+            directions_trusted: false,
+          },
+          {
+            file: "previews_faithful/iso.png",
+            label: "iso",
+            azimuth: 45,
+            elevation: 25,
+            directions_untrusted: false,
+            directions_trusted: true,
+          },
+        ],
+      };
+      await writeFile(join(runDir, "report.json"), JSON.stringify(report));
+      await writeFile(
+        join(runDir, "previews", "iso.png"),
+        encodePng(createCanvas(40, 30, [90, 90, 200])),
+      );
+      await writeFile(
+        join(runDir, "previews_faithful", "iso.png"),
+        encodePng(createCanvas(120, n === "run-001" ? 80 : 100, [90, 180, 90])),
+      );
+    }
+
+    const aDir = join(runs, "run-001");
+    const bDir = join(runs, "run-002");
+    expect(await firstCommonView(aDir, bDir)).toEqual([
+      join(aDir, "previews_faithful", "iso.png"),
+      join(bDir, "previews_faithful", "iso.png"),
+    ]);
+
+    const d = await diffRunDirs(aDir, bDir);
+    const outPath = join(runs, "manual-diff.png");
+    const made = await comparisonImage(aDir, bDir, d, outPath);
+    expect(made).toBe(outPath);
+    const decoded = decodePng(new Uint8Array(await readFile(outPath)));
+    expect(decoded.width).toBeGreaterThan(120);
+    expect(decoded.height).toBe(40 + 26 + 80);
+
+    const out: string[] = [];
+    const code = await runCli(["diff", "001", "002", "--out", runs], {
+      out: (l) => out.push(l),
+      err: () => {},
+      cwd: root,
+      home: root,
+    });
+    expect(code).toBe(1);
+    const cliImg = join(runs, "diff-run-001-run-002.png");
+    expect(out.join("\n")).toContain(`comparison: ${cliImg}`);
+  });
+
+  it("falls back to untrusted views when trusted views are absent", async () => {
+    const runs = join(root, "dist-fallback");
+    for (const n of ["run-001", "run-002"] as const) {
+      const spec = v.runs.plain as RunSpec;
+      const runDir = join(runs, n);
+      await mkdir(join(runDir, "previews"), { recursive: true });
+      await writeFile(join(runDir, "a.nbt"), Buffer.from(spec.nbt_b64, "base64"));
+      await writeFile(
+        join(runDir, "report.json"),
+        JSON.stringify({
+          ...spec.report,
+          views: [
+            {
+              file: "previews/iso.png",
+              label: "iso",
+              azimuth: 45,
+              elevation: 25,
+              directions_untrusted: true,
+              directions_trusted: false,
+            },
+          ],
+        }),
+      );
+      await writeFile(
+        join(runDir, "previews", "iso.png"),
+        encodePng(createCanvas(20, 20, [10, 20, 30])),
+      );
+    }
+    const aDir = join(runs, "run-001");
+    const bDir = join(runs, "run-002");
+    expect(await firstCommonView(aDir, bDir)).toEqual([
+      join(aDir, "previews", "iso.png"),
+      join(bDir, "previews", "iso.png"),
+    ]);
+    const d = await diffRunDirs(aDir, bDir);
+    const outPath = join(runs, "same.png");
+    expect(await comparisonImage(aDir, bDir, d, outPath)).toBe(outPath);
   });
 });

@@ -1,6 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { type View, ViewError } from "@voxwright/render";
 import { describe, expect, it } from "vitest";
-import { Build, type Geometry, McbuilderError, type Point, shapes } from "../src/index.ts";
+import {
+  Build,
+  BuildError,
+  type Geometry,
+  McbuilderError,
+  type Point,
+  Registry,
+  shapes,
+} from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
 import { call } from "./shapes.test.ts";
 
@@ -379,5 +391,73 @@ describe("Build floor, stairsRun and railing", () => {
 
     // Nothing else got placed: 4 logs + 6 stairs + 3 fences + a 3 x 3 slab.
     expect(placed(b).length).toBe(4 + 6 + 3 + 9);
+  });
+});
+
+describe("Build.validate and Build.render", () => {
+  it("validates placed blocks against a Registry and honours the allowlist", () => {
+    const reg = new Registry({ "minecraft:stone": { properties: {} } }, "test");
+    const b = new Build({ seed: 1 });
+    b.scope(() => {
+      b.set(0, 0, 0, "minecraft:stone");
+      b.set(1, 0, 0, "minecraft:nope_block");
+      b.set(2, 0, 0, "create:brass_casing");
+    });
+    const res = b.validate(reg, ["create:brass_casing"]);
+    expect(res.errors.some((e) => e.block.includes("nope_block"))).toBe(true);
+    expect(res.errors.some((e) => e.block.includes("minecraft:stone"))).toBe(false);
+    expect(res.warnings.some((w) => w.block === "create:brass_casing")).toBe(true);
+  });
+
+  it("renders views to PNGs with precedence, region cropping and determinism", () => {
+    const dir = mkdtempSync(join(tmpdir(), "voxwright-build-render-"));
+    try {
+      const b = new Build({ seed: 7, views: ["top"] });
+      b.scope(() => {
+        b.walls([10, 5, -8], [12, 7, -6], "minecraft:stone");
+        b.set(11, 6, -7, "minecraft:air");
+      });
+
+      // Explicit argument beats script config.
+      const p1 = b.render(join(dir, "r1"), ["top", "iso"], { assetsDir: null });
+      expect(p1.map((p) => basename(p))).toEqual(["top.png", "iso.png"]);
+
+      // Determinism: same build + same views => byte-identical PNGs.
+      const p2 = b.render(join(dir, "r2"), ["top", "iso"], { assetsDir: null });
+      for (let i = 0; i < p1.length; i++) {
+        expect(readFileSync(p1[i] as string).equals(readFileSync(p2[i] as string))).toBe(true);
+      }
+
+      // Script config beats default 9-view set; also test options-object overload and region/presentation.
+      const p3 = b.render(join(dir, "r3"), {
+        assetsDir: null,
+        region: [
+          [10, 5, -8],
+          [11, 6, -7],
+        ],
+        presentation: false,
+      });
+      expect(p3.map((p) => basename(p))).toEqual(["top.png"]);
+
+      // Colon-style orbit view spec.
+      const bColon = new Build({ seed: 3, views: ["orbit:4_el:25", "top"] });
+      bColon.scope(() => bColon.set(0, 0, 0, "minecraft:stone"));
+      const pColon = bColon.render(join(dir, "colon"), { assetsDir: null });
+      expect(pColon.length).toBe(5);
+      expect(basename(pColon[0] as string)).toBe("az000_el025.png");
+      expect(basename(pColon.at(-1) as string)).toBe("top.png");
+
+      // Enforces 36-view cap and rejects invalid or unported tiers.
+      const manyViews: View[] = Array.from({ length: 40 }, (_, i) => ({
+        azimuth: i % 360,
+        elevation: 25,
+        label: `v${i}`,
+      }));
+      expect(() => b.render(join(dir, "cap"), manyViews, { assetsDir: null })).toThrow(ViewError);
+      expect(() => b.render(join(dir, "tier1"), { tier: "bogus" as never })).toThrow(BuildError);
+      expect(() => b.render(join(dir, "tier2"), { tier: "fast" })).toThrow(BuildError);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

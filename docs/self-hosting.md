@@ -55,10 +55,10 @@ node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2
 
 This is the `mcbuild` command (`packages/mcbuilder`). It downloads, for the version you name:
 
-- the Minecraft client jar from Mojang's servers (found through `piston-meta.mojang.com`), and extracts the block textures, block models, block states and entity textures from it;
+- the vanilla block textures, block models, block states and entity textures from `InventivetalentDev/minecraft-assets` on GitHub (or, with `--from mojang`, extracts them from the Minecraft client jar on Mojang's servers, found through `piston-meta.mojang.com`);
 - the block registry from the PrismarineJS `minecraft-data` repository on GitHub.
 
-Both go to `~/.cache/mcbuilder/<version>/` (the client files under `client/`). Options: `--cache-dir <dir>` to use another folder, and `--force` to download again. A file that is already there is skipped. (`packages/mcbuilder/src/node/assets.ts`, `packages/mcbuilder/src/node/cli.ts`)
+Both go to `~/.cache/mcbuilder/<version>/` (the client files under `client/`). Options: `--from <source>` (`github` or `mojang`), `--cache-dir <dir>` to use another folder, and `--force` to download again. A file that is already there is skipped. (`packages/mcbuilder/src/node/assets.ts`, `packages/mcbuilder/src/node/cli.ts`)
 
 ### Step 2: bundle them into one file
 

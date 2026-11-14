@@ -2,10 +2,27 @@
 
 // Diff two `mcbuild run` directories by reading each run's `.nbt` artifact.
 
-import { readdir, readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
 import { canonicalize, parseBlockString, pyStrip, readNbtFile } from "@voxwright/core";
-import { DiffError, diffVoxelMaps, type VoxelDiff, type VoxelMap, voxelKey } from "../diff.ts";
+import {
+  type Canvas,
+  createCanvas,
+  downscaleLanczos,
+  drawRect,
+  drawText,
+  pasteRgb,
+} from "@voxwright/render";
+import { decodePng, encodePng } from "@voxwright/render/node";
+import {
+  DiffError,
+  diffVoxelMaps,
+  isEmpty,
+  total,
+  type VoxelDiff,
+  type VoxelMap,
+  voxelKey,
+} from "../diff.ts";
 
 const isDir = async (p: string): Promise<boolean> =>
   (await stat(p).catch(() => null))?.isDirectory() ?? false;
@@ -147,4 +164,112 @@ export async function loadRunVoxels(runDir: string): Promise<VoxelMap> {
 /** Load both runs' voxel maps and diff them (A = old, B = new). */
 export async function diffRunDirs(aDir: string, bDir: string): Promise<VoxelDiff> {
   return diffVoxelMaps(await loadRunVoxels(aDir), await loadRunVoxels(bDir));
+}
+
+/**
+ * First preview view label present in both runs' reports and on disk.
+ * Direction-trusted views (`previews_faithful/`, `previews_trusted/`) are
+ * preferred over `previews/`.
+ */
+export async function firstCommonView(
+  aDir: string,
+  bDir: string,
+): Promise<[string, string] | null> {
+  const views = async (runDir: string): Promise<[boolean, string, string][]> => {
+    let report: {
+      views?: { label?: string; file?: string; directions_trusted?: boolean }[];
+    };
+    try {
+      report = JSON.parse(await readFile(join(runDir, "report.json"), "utf8"));
+    } catch {
+      return [];
+    }
+    const out: [boolean, string, string][] = [];
+    const seen = new Set<string>();
+    for (const v of report.views ?? []) {
+      const label = v.label;
+      const rel = v.file;
+      const trusted = Boolean(v.directions_trusted);
+      const key = `${trusted}:${label}`;
+      if (label && rel && !seen.has(key)) {
+        seen.add(key);
+        out.push([trusted, label, join(runDir, rel)]);
+      }
+    }
+    // Trusted views first; report order otherwise.
+    out.sort((a, b) => Number(b[0]) - Number(a[0]));
+    return out;
+  };
+
+  const va = new Map<string, [boolean, string]>();
+  for (const [trusted, label, pa] of await views(aDir)) {
+    if (!va.has(label)) va.set(label, [trusted, pa]);
+  }
+  for (const [, label, pb] of await views(bDir)) {
+    const hit = va.get(label);
+    if (!hit) continue;
+    const [, pa] = hit;
+    if ((await isFile(pa)) && (await isFile(pb))) return [pa, pb];
+  }
+  return null;
+}
+
+/**
+ * Compose the two runs' matching preview PNGs side by side with a title band
+ * and per-panel run captions. Returns `outPath` when written, or `null` when
+ * the runs share no preview view (or the PNGs cannot be read).
+ */
+export async function comparisonImage(
+  aDir: string,
+  bDir: string,
+  diff: VoxelDiff,
+  outPath: string,
+  options: { aId?: string; bId?: string } = {},
+): Promise<string | null> {
+  const pair = await firstCommonView(aDir, bDir);
+  if (pair === null) return null;
+  const aId = options.aId || basename(aDir);
+  const bId = options.bId || basename(bDir);
+  let imgs: [Canvas, Canvas];
+  try {
+    imgs = [
+      decodePng(new Uint8Array(await readFile(pair[0]))),
+      decodePng(new Uint8Array(await readFile(pair[1]))),
+    ];
+  } catch {
+    return null;
+  }
+  const targetH = Math.min(imgs[0].height, imgs[1].height);
+  const scaled = imgs.map((im) => {
+    if (im.height === targetH) return im;
+    const w = Math.max(1, Math.round((im.width * targetH) / im.height));
+    return downscaleLanczos(im, w, targetH);
+  }) as [Canvas, Canvas];
+
+  const [titleH, capH, gap, pad] = [40, 26, 12, 10];
+  const [w1, w2] = [scaled[0].width, scaled[1].width];
+  const width = w1 + gap + w2;
+  const height = titleH + capH + targetH;
+  const canvas = createCanvas(width, height, [18, 18, 22]);
+  const changes = total(diff);
+  const title = isEmpty(diff)
+    ? `diff ${aId} -> ${bId}: no differences`
+    : `diff ${aId} -> ${bId}: ${changes} ${changes === 1 ? "change" : "changes"} (${diff.added.length} added, ${diff.removed.length} removed, ${diff.changed.length} replaced)`;
+  drawText(canvas, pad, Math.floor((titleH - 14) / 2), title, {
+    size: 11,
+    color: [235, 235, 240],
+  });
+  for (const [x, im, label, color] of [
+    [0, scaled[0], aId, [255, 140, 140]],
+    [w1 + gap, scaled[1], bId, [140, 230, 150]],
+  ] as const) {
+    drawText(canvas, x + pad, titleH + Math.floor((capH - 14) / 2), label, {
+      size: 11,
+      color,
+    });
+    pasteRgb(canvas, { ...im, channels: 3 }, x, titleH + capH);
+  }
+  drawRect(canvas, w1, titleH + capH, w1 + gap - 1, height - 1, [70, 70, 80]);
+  await writeFile(outPath, encodePng(canvas));
+  return outPath;
 }

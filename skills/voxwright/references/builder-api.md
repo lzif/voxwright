@@ -290,8 +290,9 @@ The CLI reports a thrown error as one line with the recipe's `file:line:column`.
 
 ## Not available
 
-- `Build.validate`, `Build.render` and anything else from the Python mcbuilder that is not listed
-  above. Validation and export are done by the CLI, not by the recipe.
+- Anything from the Python mcbuilder that is not listed above. In a recipe run by the CLI,
+  validation and export are done by the CLI, not by the recipe (`Build.validate` and
+  `Build.render` exist on `Build` for library callers).
 - Automatic connections: the engine places exactly the block state you give it (see
   [block-states.md](block-states.md)).
 - Chest contents, sign text and other block-entity data, and entities.

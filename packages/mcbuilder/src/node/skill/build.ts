@@ -336,8 +336,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
     build = await loadScript(req.recipe);
   } catch (e) {
     if (!(e instanceof ScriptError)) throw e;
-    const where = locateInRecipe(e.thrown, req.recipe);
-    throw new SkillCliError(where === null ? e.message : `${e.message} (at ${where})`);
+    throw new SkillCliError(e.message);
   }
   const volume = build.grid.volume;
   const palette = paletteOf(volume);

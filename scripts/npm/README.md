@@ -38,17 +38,18 @@ BUILD.scope(() => {
 `"voxwright"` resolves to `mcbuild` itself, so a recipe runs from any directory and needs no
 `package.json`.
 
-| Command   | Result                                                                             |
-| --------- | ---------------------------------------------------------------------------------- |
-| `build`   | Runs the recipe, validates block names and block states, writes the schematic      |
-| `inspect` | Prints format, DataVersion, size, block count and palette of a schematic           |
-| `preview` | Serves a 3D viewer and editor on localhost with the file open; nothing is uploaded |
+| Command   | Result                                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------------------------- |
+| `build`   | Runs the recipe, validates block names and block states, writes the schematic                                  |
+| `inspect` | Prints format, DataVersion, size, block count and palette of a schematic                                       |
+| `preview` | Serves a 3D viewer and editor on localhost with the file open (`view` is an alias; also takes a run dir or id) |
 
 Further commands work with numbered run directories: `init` (a starter recipe), `check`, `run`
 (`report.json`, the `.nbt`, and with `--preview` PNG views drawn with the game's textures),
-`import` (a schematic back into a recipe), `diff` and `assets fetch`. `mcbuild --help` lists them.
+`import` (a schematic back into a recipe), `diff` (cell changes and a side-by-side comparison PNG)
+and `assets fetch`. `mcbuild --help` lists them.
 
-`mcbuild <command> --help` lists the options of `build`, `inspect` and `preview`. The first `build` for a Minecraft version downloads
+`mcbuild <command> --help` lists the options of `build`, `inspect` and `preview` (or `view`). The first `build` for a Minecraft version downloads
 its block registry (about 120 kB) into `~/.cache/mcbuilder/`, and the first `run --preview`
 the game's block models and textures (about 25 MB). Pass `--offline` to stay off the network.
 

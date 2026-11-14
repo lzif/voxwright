@@ -114,14 +114,33 @@ describe("mcbuild init, check and run", () => {
     ).toContain("run-002");
   });
 
-  it("refuses to overwrite without --force", async () => {
+  it("refuses to overwrite without --force, creates parents and rejects directories", async () => {
     const c = capture();
     expect(await runCli(["init", "proj/house.ts"], c.io)).toBe(1);
     expect(c.err[0]).toContain("refusing to overwrite");
     expect(await runCli(["init", "proj/house.ts", "--force"], capture().io)).toBe(0);
+
+    // Default target in cwd (`house.ts`).
+    const cwdDir = join(root, "init-default");
+    await mkdir(cwdDir, { recursive: true });
+    const def = capture();
+    def.io.cwd = cwdDir;
+    expect(await runCli(["init"], def.io)).toBe(0);
+    expect(def.out.join("\n")).toContain("next: mcbuild check house.ts");
+    expect(await readFile(join(cwdDir, "house.ts"), "utf8")).toBe(HOUSE_TEMPLATE);
+
+    // Custom nested path creates parent directories.
+    const nested = capture();
+    expect(await runCli(["init", "sub/dir/cabin.ts"], nested.io)).toBe(0);
+    expect(await readFile(join(root, "sub/dir/cabin.ts"), "utf8")).toBe(HOUSE_TEMPLATE);
+
+    // Directory target without trailing slash is rejected.
+    const dirErr = capture();
+    expect(await runCli(["init", cwdDir], dirErr.io)).toBe(1);
+    expect(dirErr.err[0]).toContain("not a file");
   });
 
-  it("reports unknown blocks with suggestions and exports nothing", async () => {
+  it("reports unknown blocks with suggestions and provenance, and exports nothing", async () => {
     const script = join(root, "bad.ts");
     await writeFile(
       script,
@@ -138,13 +157,89 @@ BUILD.scope(() => {
     expect(await runCli(["check", script], check.io)).toBe(1);
     expect(check.out[0]).toContain("FAILED");
     expect(check.out.join("\n")).toContain("did you mean minecraft:stone?");
+    expect(check.out.join("\n")).toContain("(at bad.ts:4:");
     expect(check.out.join("\n")).toContain("uses 'Math.random'");
 
     const run = capture();
-    expect(await runCli(["run", script, "--out", join(root, "dist-bad")], run.io)).toBe(1);
+    expect(
+      await runCli(["run", script, "--out", join(root, "dist-bad"), "--preview"], run.io),
+    ).toBe(1);
     const report = JSON.parse(await readFile(join(root, "dist-bad/run-001/report.json"), "utf8"));
     expect(report.errors).toHaveLength(2);
+    expect(report.errors[0].at).toMatch(/^bad\.ts:4:/);
     expect(report.artifacts).toEqual([]);
+    expect(report.views).toEqual([]);
+  });
+
+  it("reports runtime errors, out-of-scope placements and DSL misuse with recipe line numbers", async () => {
+    const broken = join(root, "broken.ts");
+    await writeFile(
+      broken,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  // @ts-expect-error deliberate undefined variable
+  BUILD.set(0, 0, 0, undefined_name);
+});
+`,
+    );
+    const cBroken = capture();
+    expect(await runCli(["check", broken], cBroken.io)).toBe(1);
+    expect(cBroken.err[0]).toContain("undefined_name is not defined");
+    expect(cBroken.err[0]).toMatch(/\(at broken\.ts:5:\d+\)/);
+
+    const outside = join(root, "scope.ts");
+    await writeFile(
+      outside,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.set(0, 0, 0, "minecraft:stone");
+`,
+    );
+    const cOutside = capture();
+    expect(await runCli(["check", outside], cOutside.io)).toBe(1);
+    expect(cOutside.err[0]).toContain("placements must be inside `build.scope(...)`");
+    expect(cOutside.err[0]).toMatch(/\(at scope\.ts:3:\d+\)/);
+
+    const ridge = join(root, "ridge.ts");
+    await writeFile(
+      ridge,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  // @ts-expect-error deliberate invalid ridge axis
+  BUILD.roofGable([0, 0, 0], [4, 0, 4], "minecraft:spruce_stairs", { ridge: "y" });
+});
+`,
+    );
+    const cRidge = capture();
+    expect(await runCli(["check", ridge], cRidge.io)).toBe(1);
+    expect(cRidge.err[0]).toContain("ridge must be 'x' or 'z'");
+    expect(cRidge.err[0]).toMatch(/\(at ridge\.ts:5:\d+\)/);
+  });
+
+  it("ignores overwritten phantom palette entries and records overwrite counts in run", async () => {
+    const phantom = join(root, "phantom.ts");
+    await writeFile(
+      phantom,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  BUILD.set(0, 0, 0, "minecraft:oak_log_typo");
+  BUILD.set(0, 0, 0, "minecraft:stone");
+});
+`,
+    );
+    const check = capture();
+    expect(await runCli(["check", phantom], check.io)).toBe(0);
+    expect(check.out[0]).toContain("0 errors");
+    expect(check.out.join("\n")).not.toContain("oak_log_typo");
+
+    const run = capture();
+    expect(await runCli(["run", phantom, "--out", join(root, "dist-ow")], run.io)).toBe(0);
+    expect(run.out.join("\n")).toContain("1 placements overwritten");
+    const report = JSON.parse(await readFile(join(root, "dist-ow/run-001/report.json"), "utf8"));
+    expect(report.overwritten_placements).toBe(1);
   });
 
   it("fails cleanly on a missing registry, a script without BUILD and an unknown command", async () => {
@@ -269,6 +364,63 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
     const report = JSON.parse(await readFile(join(root, "dist-views/run-001/report.json"), "utf8"));
     expect(report.views.map((v: { label: string }) => v.label)).toEqual(["top"]);
 
+    // `--count 4` appends a 4-view orbit to the script's 2 views (`iso;top` -> 6 views).
+    const countRun = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-count"),
+          "--preview",
+          "--offline",
+          "--count",
+          "4",
+        ],
+        countRun.io,
+      ),
+    ).toBe(0);
+    const countReport = JSON.parse(
+      await readFile(join(root, "dist-count/run-001/report.json"), "utf8"),
+    );
+    expect(countReport.views).toHaveLength(6);
+
+    // When `client/assets/minecraft/blockstates` exists on disk, missing block models warn per block type.
+    const partialHome = join(root, "partial-assets-home");
+    await mkdir(join(partialHome, ".cache/mcbuilder/26.2/client/assets/minecraft/blockstates"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(partialHome, ".cache/mcbuilder/26.2/minecraft-data.json"),
+      JSON.stringify(REGISTRY),
+    );
+    const fallbackRun = capture();
+    fallbackRun.io.home = partialHome;
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-fallback-warn"),
+          "--preview",
+          "--offline",
+          "--views",
+          "top",
+        ],
+        fallbackRun.io,
+      ),
+    ).toBe(0);
+    const fallbackReport = JSON.parse(
+      await readFile(join(root, "dist-fallback-warn/run-001/report.json"), "utf8"),
+    );
+    expect(
+      fallbackReport.warnings.some((w: { message: string }) =>
+        w.message.includes("`minecraft:stone` rendered as magenta fallback cube"),
+      ),
+    ).toBe(true);
+
     for (const [args, message] of [
       [["--preview", "--offline", "--views", "bogus"], "invalid views"],
       [["--preview", "--offline", "--focus", "1,2:3"], "--focus must look like"],
@@ -326,7 +478,7 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
     );
   });
 
-  it("reads mcbuild.toml next to the script", async () => {
+  it("reads mcbuild.toml next to the script, honours allowlist and rejects bad --config", async () => {
     const dir = join(root, "withcfg");
     await mkdir(dir, { recursive: true });
     await writeFile(
@@ -343,6 +495,77 @@ BUILD.scope(() => BUILD.set(0, 0, 0, "lostqol:waystone"));
     const c = capture();
     expect(await runCli(["check", join(dir, "s.ts"), "--offline"], c.io)).toBe(1); // no 1.21.4 registry cached
     expect(c.err[0]).toContain("version '1.21.4'");
+
+    // With 26.2 (cached in `home`), the allowlisted block passes with an unvalidated warning.
+    await writeFile(
+      join(dir, "mcbuild.toml"),
+      `mc_version = "26.2"\nallowlist = ["lostqol:waystone"]\n`,
+    );
+    const allow = capture();
+    expect(await runCli(["check", join(dir, "s.ts"), "--offline"], allow.io)).toBe(0);
+    expect(allow.out.join("\n")).toContain("is allowlisted: unvalidated");
+
+    // Missing explicit --config is a clean error.
+    const missingCfg = capture();
+    expect(
+      await runCli(["check", join(dir, "s.ts"), "--config", join(dir, "nope.toml")], missingCfg.io),
+    ).toBe(1);
+    expect(missingCfg.err[0]).toContain("config not found");
+
+    // Malformed mcbuild.toml is a clean error.
+    await writeFile(join(dir, "mcbuild.toml"), "not valid toml ===\n");
+    const badCfg = capture();
+    expect(await runCli(["check", join(dir, "s.ts")], badCfg.io)).toBe(1);
+    expect(badCfg.err[0]).toContain("invalid mcbuild.toml");
+  });
+
+  it("fetches assets and reports clean errors on bad flags or network failure", async () => {
+    const help = capture();
+    expect(await runCli(["assets", "fetch", "--help"], help.io)).toBe(0);
+    expect(help.out[0]).toContain("Usage: mcbuild assets fetch --version V");
+
+    for (const [args, want] of [
+      [["assets"], "assets: expected `fetch`"],
+      [["assets", "fetch"], "--version is required"],
+      [["assets", "fetch", "--version", "26.2", "--from", "bogus"], "--from must be"],
+    ] as const) {
+      const e = capture();
+      expect(await runCli([...args], e.io)).toBe(1);
+      expect(e.err[0]).toContain(want);
+    }
+
+    const fail = capture();
+    expect(
+      await runCli(["assets", "fetch", "--version", "26.2"], fail.io, {
+        get: async () => ({ status: 503, body: new Uint8Array() }),
+      }),
+    ).toBe(1);
+    expect(fail.err[0]).toContain("assets fetch failed");
+
+    const enc = (s: string) => new TextEncoder().encode(s);
+    const raw = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/26.2";
+    const mc = `${raw}/assets/minecraft`;
+    const json = (v: unknown) => ({ status: 200, body: enc(JSON.stringify(v)) });
+    const routes: Record<string, { status: number; body: Uint8Array }> = {
+      "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/26.2/blocks.json":
+        json([{ name: "stone", states: [] }]),
+      [`${mc}/blockstates/_all.json`]: json({
+        stone: { variants: { "": { model: "block/stone" } } },
+      }),
+      [`${mc}/models/block/_all.json`]: json({ stone: { parent: "block/cube_all" } }),
+      [`${mc}/textures/block/_list.json`]: json({ directories: [], files: ["stone.png"] }),
+      [`${mc}/textures/block/stone.png`]: { status: 200, body: new Uint8Array([1, 2, 3]) },
+      [`${mc}/textures/entity/_list.json`]: json({ directories: [], files: [] }),
+    };
+    const cacheDir = join(root, "fetched-cache");
+    const ok = capture();
+    expect(
+      await runCli(["assets", "fetch", "--version", "26.2", "--cache-dir", cacheDir], ok.io, {
+        get: async (u) => routes[u] ?? { status: 404, body: new Uint8Array() },
+      }),
+    ).toBe(0);
+    expect(ok.out[0]).toContain(`fetched 26.2 -> ${join(cacheDir, "26.2")}`);
+    expect(ok.out[0]).toContain("textures, models, blockstates");
   });
 });
 

@@ -15,7 +15,7 @@ Everything in this table is settled. Where the code differs from the v1 spec and
 | Name                 | voxwright                                                        | Unclaimed on npm and no Minecraft-related GitHub repo shares it in a name search; domain and trademark not checked             |
 | License              | AGPL-3.0 for every package, one root `LICENSE`                   | A hosted modified copy must publish its source                                                                                 |
 | MIT notice           | Root `NOTICE` carries the MIT text of mcbuilder                  | Decided 2026-11-07. Covers the parts derived from the Python mcbuilder; nothing is relicensed, SPDX headers stay AGPL-3.0-only |
-| Out of 0.1.0         | Parts catalog and `mcbuild view`                                 | Decided 2026-11-07. See "Differences from the v1 spec", entry 14                                                               |
+| Out of 0.1.0         | Parts catalog (and `mcbuild view`, later built in `d516143`)     | Decided 2026-11-07. See "Differences from the v1 spec", entry 14                                                               |
 | Repository           | One pnpm monorepo, `lzif/voxwright`                              | Shared code changes land in every consumer at once                                                                             |
 | Renderer             | `Renderer` interface; our own mesher on the GPU with three.js    | Decided for M1 (spec option B), not deepslate; the CPU rasterizer stays as the fallback without WebGL2                         |
 | mcbuilder renderers  | Faithful tier first; fast and trusted only if the CLI needs them | Faithful is the default tier since mcbuilder 0.2.0                                                                             |
@@ -81,42 +81,38 @@ The core and mcbuilder vectors are generated without network access or the asset
 
 The port starts from the merged `main` (mcbuilder 0.2.0, about 8,400 lines of Python and 453 test functions). Modules are ported in this order, each against its vectors or tests.
 
-| Step | Python module (lines)                           | Note                                                                                                                       |
-| ---- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 1    | `voxels` (239), `geometry` (162)                | Dense numpy grid becomes typed arrays, with an adapter to `Volume`                                                         |
-| 2    | `shapes` (467)                                  | box, walls, pillar, line, stairs, cylinder, sphere, cone, roof\_gable, roof\_hip; each is also a `Build` method, generated |
-| 3    | `build` (312)                                   | The `Build` class, `rng()` namespaces, bounds errors                                                                       |
-| 4    | `materials` (136)                               | `patches()`; SHA-256 based, so it stays portable                                                                           |
-| 5    | `report` (92), `config` (110)                   | `report.json` and `mcbuild.toml` (needs a TOML parser)                                                                     |
-| 6    | `importer` (296)                                | `.nbt` to builder script; the generated script becomes TypeScript                                                          |
-| 7    | `diff` (362), `guide` (280)                     | numpy and Pillow move to typed arrays and a TypeScript rasterizer in `render`                                              |
-| 8    | `render/faithful` (2,071), `render/views` (176) | Blockstate to model to quads, the grid logic and drawing all live in `render`                                              |
-| 9    | `cli` (1,012)                                   | Commands: check, run, diff, import, init, assets (the spec's `view` is not built; see Status)                              |
-| 10   | `assets` (291)                                  | Unzips the client jar and fetches the minecraft-data block registry                                                        |
-| 11   | `examples/`                                     | Port every script; they are the end-to-end tests                                                                           |
+| Step | Python module (lines)                           | Note                                                                                                                           |
+| ---- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | `voxels` (239), `geometry` (162)                | Dense numpy grid becomes typed arrays, with an adapter to `Volume`                                                             |
+| 2    | `shapes` (467)                                  | box, walls, pillar, line, stairs, cylinder, sphere, cone, roof\_gable, roof\_hip; each is also a `Build` method, generated     |
+| 3    | `build` (312)                                   | The `Build` class, `rng()` namespaces, bounds errors, `validate()` and `render()`                                              |
+| 4    | `materials` (136)                               | `patches()`; SHA-256 based, so it stays portable                                                                               |
+| 5    | `report` (92), `config` (110)                   | `report.json` and `mcbuild.toml` (needs a TOML parser)                                                                         |
+| 6    | `importer` (296)                                | `.nbt` to builder script; the generated script becomes TypeScript                                                              |
+| 7    | `diff` (362), `guide` (280)                     | numpy and Pillow move to typed arrays and a TypeScript rasterizer in `render`                                                  |
+| 8    | `render/faithful` (2,071), `render/views` (176) | Blockstate to model to quads, the grid logic and drawing all live in `render`                                                  |
+| 9    | `cli` (1,012)                                   | Commands: check, run, diff, import, init, assets, and the skill/CLI build, inspect, preview and view                           |
+| 10   | `assets` (291)                                  | Fetches vanilla client assets (`InventivetalentDev/minecraft-assets` or `--from mojang`) and the minecraft-data block registry |
+| 11   | `examples/`                                     | Port every script; they are the end-to-end tests                                                                               |
 
-**Status:** M5 is not complete. Done:
+**Status:** M5 code is complete; archiving `lzif/mcbuilder` remains open. Done:
 
-- **Steps 1 to 6** are ported in `packages/mcbuilder` and pass vectors exported from the Python oracle (`vectors/*.json`). Step 6 covers the importer's summary, constant naming, box merging and a TypeScript script writer; reading the `.nbt` itself is `core`'s codec. `mcbuild import` also reads `.schem`, `.litematic` and `.mcstructure`.
-- **The `mcbuild` CLI** (in `packages/mcbuilder/src/node`): `init`, `check`, `run`, `import`, `diff` and `assets fetch`. `run` takes the DataVersion from the fetched `version.json` and falls back to a table of known versions.
+- **Steps 1 to 6** are ported in `packages/mcbuilder` and pass vectors exported from the Python oracle (`vectors/*.json`), including `Build.validate` and `Build.render` in the library API. Step 6 covers the importer's summary, constant naming, box merging and a TypeScript script writer; reading the `.nbt` itself is `core`'s codec. `mcbuild import` also reads `.schem`, `.litematic` and `.mcstructure`.
+- **The `mcbuild` CLI** (in `packages/mcbuilder/src/node`): `init`, `check`, `run`, `import`, `diff`, `assets fetch`, `build`, `inspect`, `preview` and `view`. `view` is an alias for `preview` and also accepts a run directory or run id (`mcbuild view 1`). `build` reads `mcbuild.toml` next to the recipe (`mc_version`, `allowlist`), as `check` and `run` do. `run` takes the DataVersion from the fetched `version.json` and falls back to a table of known versions.
+- **Error provenance:** registry validation errors and warnings end with `(at file:line:col)` of the recipe line that placed the block, and script runtime/DSL errors carry `(at file:line:col)`, in `build`, `check` and `run` (and in `report.json` `at` fields).
 - **Step 10 (assets):** tested against a fake network (`assets.test.ts`); CI runs `assets fetch` against the real servers (files already cached are skipped).
-- **Step 11, the examples:** all 13 scripts are ported to `packages/mcbuilder/examples`. Eleven rebuild identically to the Python output (same cells, same bounds, same SHA-256 over every cell; `vectors/examples.json`). `homestead/watchtower` and `crystal_observatory` use the RNG: every position and every block the RNG does not place matches the Python output exactly, and only the RNG-picked blocks differ.
-- **Step 7, `diff`:** the cell diff, the report text, run-id resolution and `.nbt` run loading match the Python oracle, and `mcbuild diff` works. Its comparison image is not written; the renderer it needs exists, the image is simply not ported.
+- **Step 11, the examples:** all 13 scripts are ported to `packages/mcbuilder/examples` (with `examples/waystones/mcbuild.toml` carrying `allowlist = ["lostqol:waystone"]`). Eleven rebuild identically to the Python output (same cells, same bounds, same SHA-256 over every cell; `vectors/examples.json`). `homestead/watchtower` and `crystal_observatory` use the RNG: every position and every block the RNG does not place matches the Python output exactly, and only the RNG-picked blocks differ.
+- **Step 7, `diff`:** the cell diff, the report text, run-id resolution, `.nbt` run loading and the side-by-side comparison PNG (`diff-<run-a>-<run-b>.png`, via `comparisonImage` and `firstCommonView`) match the Python oracle, and `mcbuild diff` writes the comparison image when the two runs share a preview view.
 - **Step 8, in `packages/render`,** checked against the Python renderer with vanilla assets fetched at run time: `views`; the blockstate-to-model-to-quads stage plus chest, banner, fluid and fallback-cube quads (77 blockstates, 916 quads: geometry within 1e-9, identical pixels, except the textured-cube pixels of `glass_pane` (two states), `lever` and `flower_pot`, where the original picks a texture in hash order and those four cases are skipped); and the grid logic (which blocks occlude, wall and fence connection inference, neighbour culling, per-vertex ambient occlusion: 5 scenes, 1,745 quads, all equal).
 - **Previews:** `mcbuild run --preview` writes faithful PNGs (`--views`, `--count`, `--focus`) with the title, view label and compass, and warns about blocks drawn as magenta fallback cubes, as the original does. The rasterizer is TypeScript over typed arrays, `pngjs` writes the PNG, and text uses a small original bitmap font, so there is no native dependency. The test (`packages/mcbuilder/test/render.test.ts`) renders four builds in three views at 512 px without the overlay and compares the aspect ratio and a small thumbnail with `vectors/renders.json`: mean difference under 2.0/255, worst cell under 40/255. The CLI's own output (2048 px with the overlay) is not compared with Python anywhere.
 - **Step 7, `guide`:** `mcbuild run --guide` writes `guide.md` and the layer images (with `--focus` it covers the focus box; the Python guide always covers the whole build). The test requires `guide.md` to equal the Python text for four builds (including the 13-layer underwater base) and the layer images to have the same sizes and thumbnails within 6/255.
+- **User documentation and CLI test parity:** the CLI and builder DSL are documented in `skills/voxwright/SKILL.md`, `skills/voxwright/references/builder-api.md`, `block-states.md`, `examples.md` and `scripts/npm/README.md`, and `packages/mcbuilder/test/cli.test.ts` (together with `skill-cli.test.ts` and `skill-preview.test.ts`) covers the Python `test_cli.py` suite.
 - The renderer, quads, scene, preview and guide tests above need the asset cache and are skipped without it. They have not run on the development machine, which has none; CI has the cache and runs them (4 skipped there: the hash-order cases).
 - The fast and trusted preview tiers are deliberately not ported, per the Decisions table ("Faithful tier first; fast and trusted only if the CLI needs them"): the CLI works without them and `--tier` says so. The fast tier's per-face texture resolver is ported (`packages/render/src/fast.ts`) because the guide uses it.
 
 Not done:
 
-- **`mcbuild view`: deferred to after 0.1.0 (decided 2026-11-07).** The spec's way to open a run in the editor. The command does not exist, and the web app has no entry point for a run directory. It is a small convenience and is not part of 0.1.0.
 - **Parts catalog: out of 0.1.0 (decided 2026-11-07).** Named in the spec, but nothing defines it and the Python tool has no counterpart. It needs a definition before it can be scoped or built.
-- **Error provenance.** Python's registry errors say `(at file:line)` of the script line that placed the block, and its script errors carry the script path and line. The port prints neither.
-- **`diff` comparison image** (`diff-<a>-<b>.png`).
-- **`Build.validate` and `Build.render`** in the library API. Validation is reachable through `Registry`, rendering through `renderView` in `@voxwright/render`.
-- **User documentation** for the CLI and the builder DSL (the port renamed it: camelCase, `scope()`, option objects), and the example `mcbuild.toml` files. The waystones examples need `allowlist = ["lostqol:waystone"]`; `examples/waystones/common.ts` mentions a `mcbuild.toml` that does not exist in the port.
-- **CLI test parity.** `packages/mcbuilder/test/cli.test.ts` has 13 tests; the Python `test_cli.py` has 37. Some are missing because the feature is missing (provenance), others are plain gaps (`init` variants, the allowlist warning).
 - **Proxy.** `assets fetch` uses Node's `fetch`, which ignores `HTTPS_PROXY` unless `NODE_USE_ENV_PROXY=1` is set; the Python tool detected a proxy itself.
 - **Archive `lzif/mcbuilder` with a pointer** (the last step of M5). Not done, and Luki's call.
 
@@ -208,7 +204,7 @@ The numbers after MB7 are within the run-to-run noise of the numbers before it (
 
 ## M4 status
 
-**Status:** M4's features are built. The 0.1.0 release itself is not: its version bump and tag are not done, and Luki decides those (#17 is still open on GitHub). On 2026-11-14 the command line was published to npm as a trial, `@voxwright/mcbuild` 0.0.1 (tag `v0.0.1`, `.github/workflows/npm.yml`); the other packages stay private. CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
+**Status:** M4's features are built. The 0.1.0 release itself is not: its version bump and tag are not done, and Luki decides those (#17 is still open on GitHub). On 2026-11-14 the command line was published to npm as `@voxwright/mcbuild` (0.0.1, 0.0.2 and 0.0.3, `.github/workflows/npm.yml`); the other packages stay private. CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
 
 **What is there.**
 
@@ -246,7 +242,7 @@ The numbers after MB7 are within the run-to-run noise of the numbers before it (
 - `pnpm licenses` (without `run`) hits pnpm's built-in command and fails. Use `pnpm run licenses` or `node scripts/licenses.ts`.
 - The licence check covers the production dependencies of `apps/web` only, not the other packages, and CI does not run it.
 - The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and the rest). MIT asks for the notice with every copy.
-- The 0.1.0 version bump, tag and npm publish are not done.
+- The 0.1.0 version bump and tag are not done (`@voxwright/mcbuild` is published on npm at 0.0.3).
 - Decided 2026-11-14 (Luki): the project's own GitHub Pages site serves a vanilla pack, Mojang's block states, block models and textures for 26.3, taken at build time from InventivetalentDev/minecraft-assets (`.github/workflows/pages.yml`) and not committed. From 2026-11-09 it had used Faithful 32x textures. What other hosts may serve is still theirs to check (see `docs/self-hosting.md`, section 8).
 - The default source link points at `github.com/lzif/voxwright`. The repository is public (checked 2026-11-11), so the link resolves; `/tree/ada6daa` returns 200.
 - axe-core leaves colour-contrast "needs review" items in some states; a person has to check those.
@@ -271,7 +267,7 @@ The code differs from the v1 spec in the ways below. Luki decided all fourteen o
 - **`core` package:** the spec describes a reusable library; `@voxwright/core` is `private` at version `0.0.0`, and `exports` points at `.ts` source with no build output, so it is reusable inside this monorepo only. **Verdict: keep it private at 0.0.0 for 0.1.0.**
 - **Guide and `--focus`:** the Python guide covers the whole build; the port's `mcbuild run --guide` crops it to the `--focus` box. **Verdict: keep cropping the guide to the focus box.**
 - **Fast-tier textures:** for `glass_pane`, `lever` and `flower_pot` the Python code picks "any usable texture" in hash order; the port takes the first in model order, which can change the guide's top texture for those blocks. The test for the four affected cases is skipped. **Verdict: keep first-in-model-order (deterministic).**
-- **Parts catalog and `mcbuild view`:** the spec names both for M5; neither is built (see the M5 status). **Verdict: defer both; neither is in 0.1.0.** The parts catalog was never defined (the spec names it, nothing else does) and needs a definition before it can be scoped or built. `mcbuild view` is deferred to after 0.1.0. See the M5 status.
+- **Parts catalog and `mcbuild view`:** the spec names both for M5; neither was built at the time of this decision. **Verdict: defer both; neither is in 0.1.0.** The parts catalog was never defined (the spec names it, nothing else does) and needs a definition before it can be scoped or built. (`mcbuild view` was subsequently built in `d516143` as an alias for `preview` that also accepts a run directory or run id; see the M5 status.)
 
 ## Open items
 

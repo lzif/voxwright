@@ -36,8 +36,10 @@ export async function loadScript(path: string): Promise<Build> {
   try {
     mod = (await import(`${pathToFileURL(abs).href}?t=${Date.now()}`)) as Record<string, unknown>;
   } catch (e) {
+    const where = locateInRecipe(e, abs);
+    const at = where === null ? "" : ` (at ${where})`;
     throw new ScriptError(
-      `error in ${basename(path)}: ${e instanceof Error ? e.message : String(e)}`,
+      `error in ${basename(path)}: ${e instanceof Error ? e.message : String(e)}${at}`,
       e,
     );
   }
