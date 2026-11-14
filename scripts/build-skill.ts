@@ -17,8 +17,8 @@ import { build } from "esbuild";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const ENTRY = "packages/mcbuilder/src/node/skill/main.ts";
 const OUT = "skills/voxwright/scripts/voxwright-cli.mjs";
-/** Browser-only or image code that the CLI must never carry. */
-const FORBIDDEN = [/(^|\/)node_modules\/(three|pngjs)\//, /^packages\/render\/src\/webgl\//];
+/** Browser-only code that the CLI must never carry. */
+const FORBIDDEN = [/(^|\/)node_modules\/three\//, /^packages\/render\/src\/webgl\//];
 
 interface ThirdParty {
   name: string;
@@ -69,6 +69,11 @@ async function bundle(): Promise<string> {
     target: "node22",
     charset: "utf8",
     legalComments: "none",
+    // pngjs is CommonJS and requires Node's built-in modules, which an ES module cannot do
+    // without a `require` of its own.
+    banner: {
+      js: 'import { createRequire as __createRequire } from "node:module";\nconst require = __createRequire(import.meta.url);',
+    },
     treeShaking: true,
     define: { __VOXWRIGHT_BUNDLED__: "true", __VOXWRIGHT_VERSION__: JSON.stringify(version) },
     logLevel: "warning",
@@ -92,7 +97,8 @@ async function bundle(): Promise<string> {
     "//",
     "// GENERATED FILE. Do not edit: change the sources and run `pnpm build:skill`.",
     `// The Voxwright skill CLI, bundled from ${ENTRY}`,
-    "// (packages/mcbuilder and packages/core). It needs Node 22.18 or later and nothing else.",
+    "// (packages/mcbuilder, packages/core and the software renderer of packages/render).",
+    "// It needs Node 22.18 or later and nothing else.",
     "//",
     thirdParty.length === 0
       ? "// No third-party code is bundled."

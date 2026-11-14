@@ -8,7 +8,7 @@
 //                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
 //   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
 //   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
-//   mcbuild assets fetch --version V [--cache-dir dir] [--force]
+//   mcbuild assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
 // `Build` as `BUILD`. `diff` does not write its comparison image yet.
@@ -42,7 +42,14 @@ import { buildGuide, titleCase } from "../guide.ts";
 import { cleanProperties, structureFromVolume, summary, toScript } from "../importer.ts";
 import { Registry, RegistryError } from "../registry.ts";
 import { buildReport, reportToJson, viewEntry } from "../report.ts";
-import { AssetError, fetchAssets, type HttpGet } from "./assets.ts";
+import {
+  ASSET_SOURCES,
+  AssetError,
+  type AssetSource,
+  fetchAssets,
+  fetchClientAssets,
+  type HttpGet,
+} from "./assets.ts";
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
 import { blockCounts, dimensions, exists, loadScript, scanDeterminism } from "./script.ts";
 
@@ -239,7 +246,7 @@ async function cmdCheck(args: string[], io: Required<Io>): Promise<number> {
   return ctx.errors.length > 0 ? 1 : 0;
 }
 
-async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
+async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<number> {
   const { values, positionals } = parseArgs({
     args,
     allowPositionals: true,
@@ -253,6 +260,7 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
       views: { type: "string" },
       count: { type: "string" },
       guide: { type: "boolean" },
+      offline: { type: "boolean" },
     },
   });
   const [script] = positionals;
@@ -323,11 +331,27 @@ async function cmdRun(args: string[], io: Required<Io>): Promise<number> {
       "assets",
       "minecraft",
     );
-    const haveAssets = await exists(join(root, "blockstates"));
+    let haveAssets = await exists(join(root, "blockstates"));
+    let why = "";
+    // The default cache fills itself on the first preview. A directory the configuration names
+    // is the user's to fill.
+    if (!haveAssets && !ctx.cfg.assetsDir && !values.offline) {
+      io.out(
+        `downloading the vanilla assets for ${ctx.cfg.mcVersion} (once, for the previews; --offline skips this)`,
+      );
+      try {
+        await fetchClientAssets(ctx.cfg.mcVersion, defaultCacheRoot(io.home), {
+          ...(get ? { get } : {}),
+        });
+        haveAssets = await exists(join(root, "blockstates"));
+      } catch (e) {
+        if (!(e instanceof AssetError)) throw e;
+        why = ` (download failed: ${e.message})`;
+      }
+    }
     if (!haveAssets) {
       warnings.push({
-        message:
-          "faithful preview: vanilla client assets not found — all blocks rendered as fallback cubes",
+        message: `faithful preview: vanilla client assets not found — all blocks rendered as fallback cubes${why}`,
       });
     }
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
@@ -595,15 +619,19 @@ async function cmdAssets(
       version: { type: "string" },
       "cache-dir": { type: "string" },
       force: { type: "boolean" },
+      from: { type: "string", default: "mcasset" },
     },
   });
   if (!values.version) throw new CliError("assets fetch: --version is required");
+  if (!ASSET_SOURCES.includes(values.from as AssetSource))
+    throw new CliError("assets fetch: --from must be mcasset or mojang");
   const cacheDir = values["cache-dir"]
     ? resolve(io.cwd, values["cache-dir"].replace(/^~(?=$|\/)/, io.home))
     : defaultCacheRoot(io.home);
   try {
     const dest = await fetchAssets(values.version, cacheDir, {
       force: values.force ?? false,
+      source: values.from as AssetSource,
       ...(get ? { get } : {}),
     });
     io.out(
@@ -616,14 +644,24 @@ async function cmdAssets(
   return 0;
 }
 
+/** The commands of this module; the command line in `skill/main.ts` hands them over by name. */
+export const RUN_COMMANDS: readonly string[] = ["init", "check", "run", "import", "diff", "assets"];
+
+/** One line of syntax per command, without the program name. */
+export const RUN_SYNTAX = `init [path] [--force]
+check <script> [--config file]
+run <script> [--out dir] [--air none|explicit|all] [--config file]
+    [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
+    [--offline]
+import <file> [-o out] [--force] [--keep-air] [--raw]
+diff <run-a> <run-b> [--out dir] [--max N]
+assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]`;
+
 const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
 
-  mcbuild init [path] [--force]
-  mcbuild check <script> [--config file]
-  mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]\n                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-  mcbuild import <file> [-o out] [--force] [--keep-air] [--raw]
-  mcbuild diff <run-a> <run-b> [--out dir] [--max N]
-  mcbuild assets fetch --version V [--cache-dir dir] [--force]
+${RUN_SYNTAX.split("\n")
+  .map((l) => (l.startsWith(" ") ? `          ${l}` : `  mcbuild ${l}`))
+  .join("\n")}
 
 mcbuild diff does not write its comparison image yet (not ported).`;
 
@@ -647,7 +685,7 @@ export async function runCli(
       case "check":
         return await cmdCheck(rest, full);
       case "run":
-        return await cmdRun(rest, full);
+        return await cmdRun(rest, full, deps.get);
       case "import":
         return await cmdImport(rest, full);
       case "assets":

@@ -71,7 +71,7 @@ describe("assets fetch", () => {
   it("writes the registry, the client assets and version.json, extracting only wanted paths", async () => {
     const dir = await tmp();
     const net = fakeNetwork();
-    const dest = await fetchAssets("26.2", dir, { get: net.get });
+    const dest = await fetchAssets("26.2", dir, { source: "mojang", get: net.get });
     expect(dest).toBe(join(dir, "26.2"));
     const reg = JSON.parse(await readFile(join(dest, "minecraft-data.json"), "utf8"));
     expect(reg.version).toBe("26.2");
@@ -88,12 +88,12 @@ describe("assets fetch", () => {
   it("is idempotent, and force downloads again", async () => {
     const dir = await tmp();
     const first = fakeNetwork();
-    await fetchAssets("26.2", dir, { get: first.get });
+    await fetchAssets("26.2", dir, { source: "mojang", get: first.get });
     const again = fakeNetwork();
-    await fetchAssets("26.2", dir, { get: again.get });
+    await fetchAssets("26.2", dir, { source: "mojang", get: again.get });
     expect(again.calls).toEqual([]);
     const forced = fakeNetwork();
-    await fetchAssets("26.2", dir, { get: forced.get, force: true });
+    await fetchAssets("26.2", dir, { source: "mojang", get: forced.get, force: true });
     expect(forced.calls.length).toBe(4); // registry, manifest, metadata, jar
   });
 
@@ -101,14 +101,21 @@ describe("assets fetch", () => {
     const bad = fakeNetwork({
       "https://piston/client.jar": { status: 200, body: Uint8Array.from([...jar].reverse()) },
     });
-    await expect(fetchAssets("26.2", await tmp(), { get: bad.get })).rejects.toThrow(/sha1/);
-    await expect(fetchAssets("9.9", await tmp(), { get: fakeNetwork().get })).rejects.toThrow(
-      AssetError,
-    );
+    await expect(
+      fetchAssets("26.2", await tmp(), { source: "mojang", get: bad.get }),
+    ).rejects.toThrow(/sha1/);
+    await expect(
+      fetchAssets("9.9", await tmp(), {
+        source: "mojang",
+        get: fakeNetwork().get,
+      }),
+    ).rejects.toThrow(AssetError);
     const down = fakeNetwork({
       "https://piston/client.jar": { status: 503, body: new Uint8Array() },
     });
-    await expect(fetchAssets("26.2", await tmp(), { get: down.get })).rejects.toThrow(/HTTP 503/);
+    await expect(
+      fetchAssets("26.2", await tmp(), { source: "mojang", get: down.get }),
+    ).rejects.toThrow(/HTTP 503/);
   });
 
   it("falls back to the closest older minecraft-data layout", async () => {
@@ -125,7 +132,10 @@ describe("assets fetch", () => {
       },
       [`${base}/pc/26.1/blocks.json`]: { status: 200, body: enc(JSON.stringify(BLOCKS)) },
     });
-    const dest = await fetchAssets("26.2", await tmp(), { get: net.get });
+    const dest = await fetchAssets("26.2", await tmp(), {
+      source: "mojang",
+      get: net.get,
+    });
     expect(JSON.parse(await readFile(join(dest, "minecraft-data.json"), "utf8")).layout).toBe(
       "pc/26.1",
     );
@@ -140,8 +150,67 @@ describe("assets fetch", () => {
         body: enc(JSON.stringify({ pc: { "27.0": { blocks: "pc/27.0" } } })),
       },
     });
-    await expect(fetchAssets("26.2", await tmp(), { get: net.get })).rejects.toThrow(
-      /newest pc layout available: 27.0/,
+    await expect(
+      fetchAssets("26.2", await tmp(), { source: "mojang", get: net.get }),
+    ).rejects.toThrow(/newest pc layout available: 27.0/);
+  });
+
+  it("takes the client assets from minecraft-assets by default", async () => {
+    const raw = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/26.2";
+    const mc = `${raw}/assets/minecraft`;
+    const json = (v: unknown) => ({ status: 200, body: enc(JSON.stringify(v)) });
+    const png = { status: 200, body: new Uint8Array([1, 2, 3]) };
+    const net = fakeNetwork({
+      [`${mc}/blockstates/_all.json`]: json({
+        stone: { variants: { "": { model: "block/stone" } } },
+      }),
+      [`${mc}/models/block/_all.json`]: json({ stone: { parent: "block/cube_all" } }),
+      [`${mc}/textures/block/_list.json`]: json({
+        directories: [],
+        files: ["_list.json", "stone.png", "water_still.png.mcmeta"],
+      }),
+      [`${mc}/textures/block/stone.png`]: png,
+      [`${mc}/textures/block/water_still.png.mcmeta`]: json({ animation: {} }),
+      [`${mc}/textures/entity/_list.json`]: json({ directories: ["chest"], files: [] }),
+      [`${mc}/textures/entity/chest/_list.json`]: json({ directories: [], files: ["normal.png"] }),
+      [`${mc}/textures/entity/chest/normal.png`]: png,
+    });
+    const dest = await fetchAssets("26.2", await tmp(), { get: net.get });
+    const at = (p: string) => join(dest, "client/assets/minecraft", p);
+    expect(JSON.parse(await readFile(at("blockstates/stone.json"), "utf8"))).toEqual({
+      variants: { "": { model: "block/stone" } },
+    });
+    expect(JSON.parse(await readFile(at("models/block/stone.json"), "utf8")).parent).toBe(
+      "block/cube_all",
+    );
+    expect((await readFile(at("textures/block/stone.png"))).length).toBe(3);
+    expect((await readFile(at("textures/entity/chest/normal.png"))).length).toBe(3);
+    await expect(stat(at("textures/block/water_still.png.mcmeta"))).resolves.toBeDefined();
+    await expect(stat(at("textures/block/_list.json"))).rejects.toThrow();
+    expect(net.calls.some((u) => u.includes("piston"))).toBe(false);
+    // Complete: a second fetch asks for nothing.
+    const again = fakeNetwork();
+    await fetchAssets("26.2", join(dest, ".."), { get: again.get });
+    expect(again.calls).toEqual([]);
+  });
+
+  it("writes nothing when a minecraft-assets download stops half way, and names a missing version", async () => {
+    const raw = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/26.2";
+    const mc = `${raw}/assets/minecraft`;
+    const json = (v: unknown) => ({ status: 200, body: enc(JSON.stringify(v)) });
+    const net = fakeNetwork({
+      [`${mc}/blockstates/_all.json`]: json({ stone: {} }),
+      [`${mc}/models/block/_all.json`]: json({ stone: {} }),
+      [`${mc}/textures/block/_list.json`]: json({ directories: [], files: ["stone.png"] }),
+      [`${mc}/textures/entity/_list.json`]: json({ directories: [], files: [] }),
+    });
+    const dir = await tmp();
+    await expect(fetchAssets("26.2", dir, { get: net.get })).rejects.toThrow(
+      /textures\/block\/stone\.png.*HTTP 404/,
+    );
+    await expect(stat(join(dir, "26.2/client"))).rejects.toThrow();
+    await expect(fetchAssets("26.2", await tmp(), { get: fakeNetwork().get })).rejects.toThrow(
+      /not in InventivetalentDev\/minecraft-assets.*--from mojang/,
     );
   });
 

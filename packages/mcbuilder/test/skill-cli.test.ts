@@ -434,6 +434,22 @@ BUILD.scope(() => {
     expect(existsSync(join(root, "a.nbt"))).toBe(false);
   });
 
+  it("runs the run-directory commands through the same program", async () => {
+    const c = capture();
+    expect(await runSkillCli(["init", "starter/house.ts"], c.io)).toBe(0);
+    expect(existsSync(join(root, "starter/house.ts"))).toBe(true);
+    const bad = capture();
+    expect(await runSkillCli(["assets", "fetch", "--version", "26.2", "--from", "x"], bad.io)).toBe(
+      1,
+    );
+    expect(bad.err.join("\n")).toContain("--from must be mcasset or mojang");
+    const help = capture();
+    expect(await runSkillCli(["--help"], help.io)).toBe(0);
+    for (const word of ["init", "check", "run", "import", "diff", "assets fetch"]) {
+      expect(help.out.join("\n")).toContain(word);
+    }
+  });
+
   it("writes the DataVersion given for a version it does not know", async () => {
     const c = capture();
     const code = await runSkillCli(

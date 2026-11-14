@@ -153,7 +153,7 @@ with three.js); without WebGL2 the page falls back to a software rasterizer in a
 worker.
 
 ```sh
-node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # Mojang's assets, once
+node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # vanilla assets, once
 pnpm --filter @voxwright/web assets    # bundle blockstates, models and textures into a local pack
 pnpm --filter @voxwright/web dev       # or: build, then serve apps/web/build from any file host
 ```
@@ -186,7 +186,7 @@ and `apps/*`.
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
 | `skills/voxwright/`  | The Agent Skill, and all that `npx skills install` copies: `SKILL.md` (when to use the skill, the workflow, the command line), `references/` (the recipe API, block-state rules, complete examples) and `scripts/voxwright-cli.mjs`, the skill CLI as one committed bundle (`pnpm build:skill` regenerates it and CI checks that it is current). | in place                 |
 | `scripts/`           | Development tools: `build-skill.ts` (the bundler of the skill CLI), `convert` and others.                                                                                                                                                                                                                                                        | in place                 |
-| `packages/mcbuilder` | The build engine: the TypeScript port of mcbuilder (`Build`, shapes, materials, registry validation), the source of the skill CLI (`src/node/skill/`) and the `mcbuild` development CLI. May depend on `render` and `core`.                                                                                                                      | partly ported (see PLAN) |
+| `packages/mcbuilder` | The build engine: the TypeScript port of mcbuilder (`Build`, shapes, materials, registry validation), and the source of the `mcbuild` command line (`src/node/`). May depend on `render` and `core`.                                                                                                                                             | partly ported (see PLAN) |
 | `packages/core`      | NBT, block-state strings, rotation, volume, the `.nbt`, `.schem`, `.litematic` and `.mcstructure` codecs, and the editor core (commands, undo, tools, picking). Imports nothing from other workspace members and has no DOM dependency.                                                                                                          | in place                 |
 | `packages/render`    | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `@voxwright/render/webgl`. May depend on `core`.                                                                                                                                                                                                                        | in place                 |
 | `apps/web`           | The browser 3D viewer, editor and converter (SvelteKit, static): the companion for previewing and refining builds. May depend on `render` and `core`.                                                                                                                                                                                            | M4 built                 |
@@ -228,34 +228,42 @@ Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm d
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
-The skill CLI is also the npm package `mcbuild` (`npx mcbuild build house.ts --out house.schem`),
-which is the same bundle under another name. `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
+The command line is also the npm package `mcbuild` (`npx mcbuild build house.ts --out house.schem`),
+which is the skill's bundle under another name. `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
 To release: set the version in the root `package.json`, run `pnpm build:skill`, commit, and push
 a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret. No
 version has been published yet.
 
 ## The `mcbuild` command
 
-`mcbuild` is the engine's development CLI, the direct port of the Python tool: it runs from the
-workspace (it needs `pnpm install`), writes run directories with a `report.json`, renders PNG
-previews and build guides, and imports schematics as scripts. Agents use the skill CLI above
-instead.
+One command line serves every use. `mcbuild` on npm, `voxwright-cli.mjs` in the skill and
+`packages/mcbuilder/bin/mcbuild.ts` in the workspace are the same program with the same commands:
+`build`, `inspect` and `preview` (above), and the commands ported from the Python tool, which work
+with numbered run directories:
 
 ```sh
-node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # registry + client assets
-node packages/mcbuilder/bin/mcbuild.ts init house.ts
-node packages/mcbuilder/bin/mcbuild.ts check house.ts
-node packages/mcbuilder/bin/mcbuild.ts run house.ts                  # report.json + house.nbt
-node packages/mcbuilder/bin/mcbuild.ts import build.litematic -o build.ts
-node packages/mcbuilder/bin/mcbuild.ts diff 1 2                       # cells added, removed, replaced
+mcbuild init house.ts
+mcbuild check house.ts
+mcbuild run house.ts                     # dist/run-001/: report.json + house.nbt
+mcbuild run house.ts --preview --guide   # also PNG views and a build guide
+mcbuild import build.litematic -o build.ts
+mcbuild diff 1 2                         # cells added, removed, replaced
+mcbuild assets fetch --version 26.2      # block registry + vanilla client assets
 ```
 
-A script exports a `Build` as `BUILD`. `run --preview` writes faithful PNG
-previews and `run --guide` a build guide; the fast and trusted preview tiers are
-not ported, and `--tier` says so instead of ignoring the flag. `diff` does not
-write its comparison image yet, and there is no `view` command. `assets fetch`
-downloads the Mojang client jar and the minecraft-data registry at your request;
-nothing from either is stored in this repository.
+A script exports a `Build` as `BUILD`. `check` and `run` need the block registry of the version in
+`~/.cache/mcbuilder/`; `build` or `assets fetch` puts it there. `run --preview` writes faithful PNG
+previews and `run --guide` a build guide; the fast and trusted preview tiers are not ported, and
+`--tier` says so instead of ignoring the flag. `diff` does not write its comparison image yet, and
+there is no `view` command.
+
+The PNG previews draw with Minecraft's own block states, models and textures. They are downloaded
+when first needed (`run --preview`, unless `--offline`) or with `assets fetch`, into
+`~/.cache/mcbuilder/<version>/client/`, from
+[InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets) (the
+files behind [mcasset.cloud](https://mcasset.cloud/)). `assets fetch --from mojang` extracts the
+same files from the client jar on Mojang's servers instead. Nothing from either is stored in this
+repository or in the npm package.
 
 ## Converting a schematic
 

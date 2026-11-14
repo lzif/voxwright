@@ -204,7 +204,7 @@ Minecraft's textures, models and block states belong to Mojang. **They are not c
 
 What the code does today:
 
-- `mcbuild assets fetch` downloads the client jar from Mojang's servers to the machine where you run it, at your request. Nothing from it is stored in the repository.
+- `mcbuild assets fetch` downloads the vanilla client assets to the machine where you run it, at your request: from InventivetalentDev/minecraft-assets on GitHub by default, or from the client jar on Mojang's servers with `--from mojang`. Nothing from it is stored in the repository.
 - `pnpm --filter @voxwright/web assets` turns the extracted files into `apps/web/static/pack/pack.json`, which is git-ignored.
 - If `pack.json` exists when you build, the build copies it to `apps/web/build/pack/pack.json`, and your site then sends it to every visitor.
 - If it does not exist, the site serves no Mojang files. It still opens, shows, edits and converts schematics, drawing blocks as flat colours.

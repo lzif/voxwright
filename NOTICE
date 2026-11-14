@@ -26,10 +26,11 @@ MIT License requires.
 
 The skill CLI bundle
 
-skills/voxwright/scripts/voxwright-cli.mjs is generated from packages/mcbuilder and
-packages/core by scripts/build-skill.ts. It also contains the third-party
+skills/voxwright/scripts/voxwright-cli.mjs is generated from packages/mcbuilder,
+packages/core and the software renderer of packages/render by
+scripts/build-skill.ts. The npm package mcbuild is the same file. It also contains the third-party
 packages those sources use at run time, each with its licence text in the
-header of the file (at the time of writing: smol-toml, BSD-3-Clause).
+header of the file (at the time of writing: fflate, MIT; pngjs, MIT; smol-toml, BSD-3-Clause).
 
 ----------------------------------------------------------------------------
 

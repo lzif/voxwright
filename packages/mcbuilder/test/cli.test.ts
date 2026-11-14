@@ -177,9 +177,12 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
 `,
     );
     const c = capture();
-    expect(await runCli(["run", script, "--out", join(root, "dist-prev"), "--preview"], c.io)).toBe(
-      0,
-    );
+    expect(
+      await runCli(
+        ["run", script, "--out", join(root, "dist-prev"), "--preview", "--offline"],
+        c.io,
+      ),
+    ).toBe(0);
     const dir = join(root, "dist-prev/run-001");
     expect(c.out.join("\n")).toContain("faithful previews: 2 in previews_faithful/");
     // No vanilla assets in this test home, so the renderer says so and draws fallback cubes.
@@ -200,6 +203,28 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
     expect(Math.max(png.width, png.height)).toBe(2048);
   });
 
+  it("tries to download the assets for a preview, and falls back to cubes when it cannot", async () => {
+    const script = join(root, "tiny.ts");
+    const c = capture();
+    const calls: string[] = [];
+    const code = await runCli(
+      ["run", script, "--out", join(root, "dist-auto"), "--preview", "--views", "top"],
+      c.io,
+      {
+        get: async (url) => {
+          calls.push(url);
+          return { status: 503, body: new Uint8Array() };
+        },
+      },
+    );
+    expect(code).toBe(0);
+    expect(calls[0]).toContain("InventivetalentDev/minecraft-assets/26.2/");
+    const out = c.out.join("\n");
+    expect(out).toContain("downloading the vanilla assets for 26.2");
+    expect(out).toContain("vanilla client assets not found");
+    expect(out).toContain("download failed");
+  });
+
   it("takes --views, --count and --focus, and rejects what it cannot do", async () => {
     const script = join(root, "tiny.ts");
     const c = capture();
@@ -211,6 +236,7 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
           "--out",
           join(root, "dist-views"),
           "--preview",
+          "--offline",
           "--views",
           "top",
           "--focus",
@@ -223,9 +249,9 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
     expect(report.views.map((v: { label: string }) => v.label)).toEqual(["top"]);
 
     for (const [args, message] of [
-      [["--preview", "--views", "bogus"], "invalid views"],
-      [["--preview", "--focus", "1,2:3"], "--focus must look like"],
-      [["--preview", "--focus", "50,50,50:60,60,60"], "no blocks inside that box"],
+      [["--preview", "--offline", "--views", "bogus"], "invalid views"],
+      [["--preview", "--offline", "--focus", "1,2:3"], "--focus must look like"],
+      [["--preview", "--offline", "--focus", "50,50,50:60,60,60"], "no blocks inside that box"],
       [["--tier", "fast"], "not ported yet"],
       [["--tier", "nope"], "--tier must be"],
     ] as const) {
@@ -266,6 +292,7 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
           "--out",
           join(root, "dist-guide2"),
           "--preview",
+          "--offline",
           "--views",
           "iso",
           "--guide",

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The skill CLI: `node skills/voxwright/scripts/voxwright-cli.mjs build | inspect | preview`.
+// The command line: `mcbuild` on npm, `skills/voxwright/scripts/voxwright-cli.mjs` in the skill.
+// `build`, `inspect` and `preview` live here; `init`, `check`, `run`, `import`, `diff` and
+// `assets` are the commands of `../cli.ts`, reached through the same program.
 //
 // This module is two things at once. Run as a program it is the command line.
 // Imported, it is the library a recipe uses: the CLI maps the bare specifiers
@@ -19,6 +21,7 @@ import { extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { McbuilderError } from "../../errors.ts";
 import type { HttpGet } from "../assets.ts";
+import { RUN_COMMANDS, RUN_SYNTAX, runCli } from "../cli.ts";
 import { BUILD_USAGE, cmdBuild } from "./build.ts";
 import { PROG, VERSION } from "./common.ts";
 import { cmdInspect, INSPECT_USAGE } from "./inspect.ts";
@@ -40,8 +43,21 @@ Commands:
   inspect <schematic>           print what a schematic file holds
   preview <schematic>           serve the 3D viewer and editor with the file open
 
-  ${PROG} <command> --help      options of one command
+  ${PROG} <command> --help      options of one of the three commands above
   ${PROG} --version
+
+Run directories, PNG previews and import:
+  init      write a starter recipe
+  check     validate a recipe without writing anything
+  run       write a numbered run directory: report.json, the .nbt, and with
+            --preview PNG views, with --guide a build guide
+  import    turn a schematic into a recipe
+  diff      compare two run directories
+  assets    download the block registry and the client assets the PNG views need
+
+${RUN_SYNTAX.split("\n")
+  .map((l) => (l.startsWith(" ") ? `    ${l.trimStart()}` : `  ${PROG} ${l}`))
+  .join("\n")}
 
 A recipe is an ES module (.ts, .mts, .mjs, .js) that exports a Build:
 
@@ -119,6 +135,9 @@ export async function runSkillCli(
     preview: PREVIEW_USAGE,
   };
   try {
+    if (command !== undefined && RUN_COMMANDS.includes(command)) {
+      return await runCli(argv, full, deps);
+    }
     switch (command) {
       case "build":
         return await cmdBuild(rest, full, deps);
@@ -179,10 +198,12 @@ function isEntryPoint(): boolean {
   }
 }
 
-if (isEntryPoint()) {
-  const argv = process.argv.slice(2);
+/** The program: check Node, install the alias, run the command line, set the exit code. */
+export function main(argv: string[] = process.argv.slice(2)): void {
   const problem = nodeProblem(
-    argv[0] === "build" ? argv.find((a, i) => i > 0 && !a.startsWith("-")) : undefined,
+    ["build", "check", "run"].includes(argv[0] ?? "")
+      ? argv.find((a, i) => i > 0 && !a.startsWith("-"))
+      : undefined,
   );
   if (problem !== null) {
     console.error(`${PROG}: ${problem}`);
@@ -200,3 +221,5 @@ if (isEntryPoint()) {
     );
   }
 }
+
+if (isEntryPoint()) main();

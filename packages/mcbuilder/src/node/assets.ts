@@ -7,9 +7,13 @@
 //
 // - `minecraft-data.json`: the block registry, normalized from PrismarineJS
 //   minecraft-data's `blocks.json`.
-// - `client/`: vanilla textures, block models and blockstates extracted from
-//   inside the client jar (served by Mojang's Piston).
+// - `client/`: vanilla textures, block models and blockstates. By default they
+//   come from InventivetalentDev/minecraft-assets on GitHub (the files behind
+//   https://mcasset.cloud), which holds the client jar already extracted, one
+//   branch per version. With the source `mojang` they are extracted from the
+//   client jar itself (served by Mojang's Piston).
 // - `version.json`: from the jar root, carrying the authoritative DataVersion.
+//   Only the `mojang` source has it.
 //
 // `fetchRegistry(version, cacheDir)` downloads only `minecraft-data.json`.
 //
@@ -28,6 +32,11 @@ export class AssetError extends McbuilderError {}
 
 export const MC_DATA_RAW = "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master";
 export const PISTON_MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
+export const MCASSET_RAW = "https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets";
+
+/** Where the client assets come from. */
+export type AssetSource = "mcasset" | "mojang";
+export const ASSET_SOURCES: readonly AssetSource[] = ["mcasset", "mojang"];
 
 /** Only these subtrees are extracted from the client jar. */
 export const CLIENT_PREFIXES = [
@@ -268,6 +277,129 @@ async function fetchClient(
   if (files["version.json"]) await safeWrite(dest, "version.json", files["version.json"]);
 }
 
+/** GET with one retry: a download of a few thousand small files meets the odd dropped request. */
+async function getTwice(get: HttpGet, url: string): Promise<{ status: number; body: Uint8Array }> {
+  try {
+    const res = await get(url);
+    if (res.status < 500 && res.status !== 429) return res;
+  } catch {}
+  await new Promise((r) => setTimeout(r, 500));
+  return get(url);
+}
+
+/** Run `job` over `items`, at most `limit` at a time. */
+async function pool<T>(items: T[], limit: number, job: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) await job(items[next++] as T);
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+}
+
+const MCASSET_PARALLEL = 24;
+
+/**
+ * The client assets from InventivetalentDev/minecraft-assets. Every directory there has a
+ * `_list.json` (its files and subdirectories), and the JSON directories an `_all.json` with the
+ * content of every file, so block states and models are two requests and only the textures are
+ * fetched one by one.
+ */
+async function fetchClientFromMcasset(
+  version: string,
+  dest: string,
+  force: boolean,
+  get: HttpGet,
+): Promise<void> {
+  const clientDir = join(dest, "client");
+  if (!force && (await clientCacheComplete(clientDir))) return;
+  const base = `${MCASSET_RAW}/${encodeURIComponent(version)}/assets/minecraft`;
+  // Everything is collected first and written at the end: a download that stops half way must
+  // not leave a cache that looks complete.
+  const files = new Map<string, Uint8Array>();
+
+  for (const sub of ["blockstates", "models/block"]) {
+    const res = await getTwice(get, `${base}/${sub}/_all.json`);
+    if (res.status === 404) {
+      throw new AssetError(
+        `version '${version}' is not in InventivetalentDev/minecraft-assets (no ${sub}/_all.json on a branch of that name): check the version string, or fetch from Mojang with \`--from mojang\`.`,
+      );
+    }
+    if (res.status !== 200) {
+      throw new AssetError(
+        `could not download ${sub} for '${version}' from minecraft-assets (HTTP ${res.status}).`,
+      );
+    }
+    const all = parseJson<Record<string, unknown>>(res.body, `${sub}/_all.json for '${version}'`);
+    if (all === null || typeof all !== "object" || Array.isArray(all)) {
+      throw new AssetError(`${sub}/_all.json for '${version}' had an unexpected shape`);
+    }
+    for (const [name, value] of Object.entries(all)) {
+      files.set(`${sub}/${name}.json`, new TextEncoder().encode(JSON.stringify(value)));
+    }
+  }
+
+  const textures: string[] = [];
+  let dirs = ["textures/block", "textures/entity"];
+  while (dirs.length > 0) {
+    const found: string[] = [];
+    await pool(dirs, MCASSET_PARALLEL, async (dir) => {
+      const res = await getTwice(get, `${base}/${dir}/_list.json`);
+      if (res.status !== 200) {
+        throw new AssetError(
+          `could not list ${dir} for '${version}' in minecraft-assets (HTTP ${res.status}).`,
+        );
+      }
+      const list = parseJson<{ directories?: unknown; files?: unknown }>(
+        res.body,
+        `${dir}/_list.json for '${version}'`,
+      );
+      for (const d of Array.isArray(list.directories) ? list.directories : []) {
+        if (typeof d === "string") found.push(`${dir}/${d}`);
+      }
+      for (const f of Array.isArray(list.files) ? list.files : []) {
+        // The index files of the repository itself are not part of the game's assets.
+        if (typeof f === "string" && f !== "_list.json" && f !== "_all.json") {
+          textures.push(`${dir}/${f}`);
+        }
+      }
+    });
+    dirs = found;
+  }
+  await pool(textures, MCASSET_PARALLEL, async (path) => {
+    const res = await getTwice(get, `${base}/${path.split("/").map(encodeURIComponent).join("/")}`);
+    if (res.status !== 200) {
+      throw new AssetError(
+        `could not download ${path} for '${version}' from minecraft-assets (HTTP ${res.status}).`,
+      );
+    }
+    files.set(path, res.body);
+  });
+
+  for (const [path, data] of files) {
+    await safeWrite(clientDir, `assets/minecraft/${path}`, data);
+  }
+}
+
+/**
+ * Download only the client assets for `version` (no registry) into `<cacheDir>/<version>/client/`.
+ * Skips the download when they are already there, unless `force`.
+ */
+export async function fetchClientAssets(
+  version: string,
+  cacheDir: string,
+  options: { force?: boolean; get?: HttpGet; source?: AssetSource } = {},
+): Promise<string> {
+  const dest = join(cacheDir, version);
+  await mkdir(dest, { recursive: true });
+  const get = options.get ?? defaultHttpGet;
+  if ((options.source ?? "mcasset") === "mojang") {
+    await fetchClient(version, dest, options.force ?? false, get);
+  } else {
+    await fetchClientFromMcasset(version, dest, options.force ?? false, get);
+  }
+  return join(dest, "client");
+}
+
 /**
  * Download assets for `version` into `<cacheDir>/<version>/` and return that
  * directory. Skips anything already present unless `force`.
@@ -275,13 +407,13 @@ async function fetchClient(
 export async function fetchAssets(
   version: string,
   cacheDir: string,
-  options: { force?: boolean; get?: HttpGet } = {},
+  options: { force?: boolean; get?: HttpGet; source?: AssetSource } = {},
 ): Promise<string> {
   const dest = join(cacheDir, version);
   await mkdir(dest, { recursive: true });
   const get = options.get ?? defaultHttpGet;
   await downloadRegistry(version, dest, options.force ?? false, get);
-  await fetchClient(version, dest, options.force ?? false, get);
+  await fetchClientAssets(version, cacheDir, options);
   return dest;
 }
 

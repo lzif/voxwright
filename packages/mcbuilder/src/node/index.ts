@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 export {
   AssetError,
+  type AssetSource,
   CLIENT_PREFIXES,
   closestPcLayout,
   defaultHttpGet,
   fetchAssets,
+  fetchClientAssets,
   fetchRegistry,
   type HttpGet,
   versionKey,

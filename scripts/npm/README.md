@@ -38,7 +38,11 @@ BUILD.scope(() => {
 | `inspect` | Prints format, DataVersion, size, block count and palette of a schematic           |
 | `preview` | Serves a 3D viewer and editor on localhost with the file open; nothing is uploaded |
 
-`mcbuild <command> --help` lists the options. The first `build` for a Minecraft version downloads
+Further commands work with numbered run directories: `init` (a starter recipe), `check`, `run`
+(`report.json`, the `.nbt`, and with `--preview` PNG views drawn with the game's textures),
+`import` (a schematic back into a recipe), `diff` and `assets fetch`. `mcbuild --help` lists them.
+
+`mcbuild <command> --help` lists the options of `build`, `inspect` and `preview`. The first `build` for a Minecraft version downloads
 its block registry (about 120 kB) into `~/.cache/mcbuilder/`.
 
 Documentation:
