@@ -12417,6 +12417,7 @@ function dimensions(build, dense) {
 }
 
 // packages/mcbuilder/src/node/cli.ts
+var BUNDLED = true;
 var CliError = class extends Error {
 };
 var defaultCacheRoot = (home) => join5(home, ".cache", "mcbuilder");
@@ -12915,7 +12916,8 @@ async function cmdInit(args, io) {
     );
   }
   await mkdir2(dirname2(abs), { recursive: true });
-  await writeFile2(abs, HOUSE_TEMPLATE, "utf8");
+  const template = BUNDLED ? HOUSE_TEMPLATE.replace('"@voxwright/mcbuilder"', '"voxwright"') : HOUSE_TEMPLATE;
+  await writeFile2(abs, template, "utf8");
   io.out(`wrote ${target}`);
   io.out(`next: mcbuild check ${target}`);
   io.out(`then: mcbuild run ${target}`);
@@ -14182,7 +14184,7 @@ function openBrowser(url, warn) {
 }
 
 // packages/mcbuilder/src/node/skill/main.ts
-var BUNDLED = true;
+var BUNDLED2 = true;
 var USAGE2 = `Usage: ${PROG} <command> [options]
 
 Commands:
@@ -14232,14 +14234,14 @@ function installAlias() {
   if (aliased) return;
   aliased = true;
   const names = new Set(
-    BUNDLED ? ["voxwright", "@voxwright/mcbuilder", "@voxwright/core"] : ["voxwright", "@voxwright/mcbuilder"]
+    BUNDLED2 ? ["voxwright", "@voxwright/mcbuilder", "@voxwright/core"] : ["voxwright", "@voxwright/mcbuilder"]
   );
   const self = import.meta.url;
   nodeModule.registerHooks({
     resolve(specifier, context, nextResolve) {
       if (names.has(specifier)) return { url: self, shortCircuit: true };
       const resolved = nextResolve(specifier, context);
-      if (BUNDLED && ENGINE_SOURCE.test(resolved.url)) return { url: self, shortCircuit: true };
+      if (BUNDLED2 && ENGINE_SOURCE.test(resolved.url)) return { url: self, shortCircuit: true };
       return resolved;
     }
   });

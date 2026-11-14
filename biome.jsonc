@@ -17,6 +17,9 @@
       "!skills/voxwright/scripts/voxwright-cli.mjs",
       // The Markdown formatter does not know YAML frontmatter and would break the skill manifest.
       "!skills/voxwright/SKILL.md",
+      // Research notes kept as they were written; formatting them would only add churn.
+      "!packages/mcbuilder/docs/reels",
+      "!packages/mcbuilder/docs/reel-study",
       "!LICENSE",
       "!vectors/*.json",
       "!fixtures/**/*.json"

@@ -11,7 +11,7 @@ technique below.
 
 Techniques, not templates. The examples below come from house builds, but
 every technique transfers to any archetype — underwater, fantasy, modern,
-whatever. Take the *technique*, not the house shape. (This doc exists because
+whatever. Take the _technique_, not the house shape. (This doc exists because
 the tavern race verdict was "too flat, ugly walls" vs "weird dirt +
 glowstone walls" — both failures of technique, not of archetype.)
 
@@ -147,49 +147,49 @@ the spire (see the GUIDE lint reference).
 
 Band table (minimum footprint span per technique):
 
-| # | Technique | Band | Mini-scale note |
-|---|-----------|------|-----------------|
-| 1 | Material variation | mini | Surface rule; applies at all scales. |
-| 2 | Skeleton-first framing | mini | Method, not a feature; applies at all scales. |
-| 3 | Horizontal breaks | mini | Applies at all scales. |
-| 4 | Silhouette discipline | mini | Applies at all scales. |
-| 5 | Ground connection | mini | Applies at all scales. |
-| 6 | Lighting rhythm | mini | Applies at all scales. |
-| 7 | Detail & props | mini | Applies at all scales. |
-| 8 | Siting | mid | Needs grounds to lay out; on a mini plot, use only the spot-pick, not the axis/plot geometry. |
-| 9 | Diorama composition | mega | Anchors on a terrain feature, not a footprint. |
-| 10 | Theme anchors | mid | Needs a build big enough for one anchor + simple rest. |
-| 11 | Stage the arrival | mid | Needs path length for the 4-placement sequence. |
-| 12 | Pergola shade structures | mini | Small structure; applies as written. |
-| 13 | Tall-narrow stacking discipline | mini | Narrow specialist (≤6×6, ≥3 stories). |
-| 14 | Working openings | mini | A 2–3-wide slot fits any wall ≥5 wide. |
-| 15 | Stair-block masonry arches | mini | A 3-wide opening fits a mini wall. |
-| 16 | Bamboo screens | mid | Needs room to enclose an outdoor room. |
-| 17 | Bridge anatomy | mid | Needs span length + both landings. |
-| 18 | Custom trees | mini | Single tree; applies as written. |
-| 19 | Hoist grammar | mini | Single well; applies as written. |
-| 20 | Boat mooring | mini | Pier feature; applies as written. |
-| 21 | Activity ledges | mini | Pier feature; applies as written. |
-| 22 | Under-deck dressing | mini | Pier feature; applies as written. |
-| 23 | Market stall module | mini | 3×3 footprint by definition. |
-| 24 | Repeat-with-variation expansion | mini | Meta-technique; applies at all scales. |
-| 25 | Open belfry crown | mini | Tower-top specialist; works on narrow shafts. |
-| 26 | Mansard roof with dormers | mid | Needs a box wide enough for dormers + flat top deck; mini houses use a plain dark stair slope, not the full mansard + dormer set. |
-| 27 | Central pedimented pavilion + grand stair | mega | Needs a wide facade for the projecting middle bay + grand stair. |
-| 28 | Hedge maze garden | mega | Needs a large flat garden area. |
-| 29 | White balustrade boundary + gate piers | mid | Needs a grounds perimeter to bound. |
-| 30 | Indoor orangery | mid | Needs a full room to invert. |
-| 31 | Outline-first layout | mid | Whole-plan drawing; on a mini hut it collapses to technique 2's footprint marking. |
-| 32 | Machicolation gallery band | mid | Needs face width for projection + openings; mini substitute: recessed band / corbelled trim, no projecting gallery. |
-| 33 | Stepped tower staging | mega | Needs width for multiple discrete stages; mini substitute below. |
-| 34 | Stepped dark spire with accent + finial | mid | Needs spire width >7 for the dark stepped taper to read; mini substitute below. |
-| 35 | Paired slit window grid | mid | Needs face width ≥11 for slit pairs + spacing; mini substitute below. |
-| 36 | East-Asian tiled roof grammar | mid | Needs roof span for the eave stack + swept corners; mini pavilions use a simplified sweep (single stair step up at corners, not the full stack). |
-| 37 | Roofed compound wall + gatehouse pavilion | mega | Perimeter architecture; needs a compound to bound. |
-| 38 | Vermillion pavilion pair | mega | Needs a compound + two flanking halls. |
-| 39 | Tile-and-sand courtyard grid | mid | Needs a courtyard large enough for a grid of sand rectangles. |
-| 40 | Porch as mini stepped-gable pavilion | mini | Porch ~6 wide; a mass, not a shade plane — needs columns + canopy + stair platform as one unit. |
-| 41 | Stepped east-face profile | mini | Volume transition on a tall face; needs a tall volume stepping down to a lower roof. |
+| #   | Technique                                 | Band | Mini-scale note                                                                                                                                  |
+| --- | ----------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Material variation                        | mini | Surface rule; applies at all scales.                                                                                                             |
+| 2   | Skeleton-first framing                    | mini | Method, not a feature; applies at all scales.                                                                                                    |
+| 3   | Horizontal breaks                         | mini | Applies at all scales.                                                                                                                           |
+| 4   | Silhouette discipline                     | mini | Applies at all scales.                                                                                                                           |
+| 5   | Ground connection                         | mini | Applies at all scales.                                                                                                                           |
+| 6   | Lighting rhythm                           | mini | Applies at all scales.                                                                                                                           |
+| 7   | Detail & props                            | mini | Applies at all scales.                                                                                                                           |
+| 8   | Siting                                    | mid  | Needs grounds to lay out; on a mini plot, use only the spot-pick, not the axis/plot geometry.                                                    |
+| 9   | Diorama composition                       | mega | Anchors on a terrain feature, not a footprint.                                                                                                   |
+| 10  | Theme anchors                             | mid  | Needs a build big enough for one anchor + simple rest.                                                                                           |
+| 11  | Stage the arrival                         | mid  | Needs path length for the 4-placement sequence.                                                                                                  |
+| 12  | Pergola shade structures                  | mini | Small structure; applies as written.                                                                                                             |
+| 13  | Tall-narrow stacking discipline           | mini | Narrow specialist (≤6×6, ≥3 stories).                                                                                                            |
+| 14  | Working openings                          | mini | A 2–3-wide slot fits any wall ≥5 wide.                                                                                                           |
+| 15  | Stair-block masonry arches                | mini | A 3-wide opening fits a mini wall.                                                                                                               |
+| 16  | Bamboo screens                            | mid  | Needs room to enclose an outdoor room.                                                                                                           |
+| 17  | Bridge anatomy                            | mid  | Needs span length + both landings.                                                                                                               |
+| 18  | Custom trees                              | mini | Single tree; applies as written.                                                                                                                 |
+| 19  | Hoist grammar                             | mini | Single well; applies as written.                                                                                                                 |
+| 20  | Boat mooring                              | mini | Pier feature; applies as written.                                                                                                                |
+| 21  | Activity ledges                           | mini | Pier feature; applies as written.                                                                                                                |
+| 22  | Under-deck dressing                       | mini | Pier feature; applies as written.                                                                                                                |
+| 23  | Market stall module                       | mini | 3×3 footprint by definition.                                                                                                                     |
+| 24  | Repeat-with-variation expansion           | mini | Meta-technique; applies at all scales.                                                                                                           |
+| 25  | Open belfry crown                         | mini | Tower-top specialist; works on narrow shafts.                                                                                                    |
+| 26  | Mansard roof with dormers                 | mid  | Needs a box wide enough for dormers + flat top deck; mini houses use a plain dark stair slope, not the full mansard + dormer set.                |
+| 27  | Central pedimented pavilion + grand stair | mega | Needs a wide facade for the projecting middle bay + grand stair.                                                                                 |
+| 28  | Hedge maze garden                         | mega | Needs a large flat garden area.                                                                                                                  |
+| 29  | White balustrade boundary + gate piers    | mid  | Needs a grounds perimeter to bound.                                                                                                              |
+| 30  | Indoor orangery                           | mid  | Needs a full room to invert.                                                                                                                     |
+| 31  | Outline-first layout                      | mid  | Whole-plan drawing; on a mini hut it collapses to technique 2's footprint marking.                                                               |
+| 32  | Machicolation gallery band                | mid  | Needs face width for projection + openings; mini substitute: recessed band / corbelled trim, no projecting gallery.                              |
+| 33  | Stepped tower staging                     | mega | Needs width for multiple discrete stages; mini substitute below.                                                                                 |
+| 34  | Stepped dark spire with accent + finial   | mid  | Needs spire width >7 for the dark stepped taper to read; mini substitute below.                                                                  |
+| 35  | Paired slit window grid                   | mid  | Needs face width ≥11 for slit pairs + spacing; mini substitute below.                                                                            |
+| 36  | East-Asian tiled roof grammar             | mid  | Needs roof span for the eave stack + swept corners; mini pavilions use a simplified sweep (single stair step up at corners, not the full stack). |
+| 37  | Roofed compound wall + gatehouse pavilion | mega | Perimeter architecture; needs a compound to bound.                                                                                               |
+| 38  | Vermillion pavilion pair                  | mega | Needs a compound + two flanking halls.                                                                                                           |
+| 39  | Tile-and-sand courtyard grid              | mid  | Needs a courtyard large enough for a grid of sand rectangles.                                                                                    |
+| 40  | Porch as mini stepped-gable pavilion      | mini | Porch ~6 wide; a mass, not a shade plane — needs columns + canopy + stair platform as one unit.                                                  |
+| 41  | Stepped east-face profile                 | mini | Volume transition on a tall face; needs a tall volume stepping down to a lower roof.                                                             |
 
 Mini-scale substitutions (mandatory below span 11 — do not scale the mega
 recipe down, replace it):
@@ -295,6 +295,7 @@ rewritten:
 ## The techniques
 
 ### 1. Material variation — never flat
+
 Every surface gets noise. A single material over a large area reads as
 "polosan" (plain) no matter the shape.
 - Noise the base: ~30% secondary mottled variant mixed in. (House example:
@@ -319,7 +320,7 @@ Every surface gets noise. A single material over a large area reads as
     f_009/f_010 bargeboard + fascia; f_012 crown edges + porch canopy.)
 - The deliberate patch: on small quiet walls too small for 30% mottling or
   story banding, one confident patch of strongly contrasting patterned
-  block can stand in for variation — but it needs a *story*: a sign backing,
+  block can stand in for variation — but it needs a _story_: a sign backing,
   a painted panel, or a visible repair. Recipe: ONE patch per facade, 2–4
   wide × 1–3 tall, aligned to an opening (below or beside a window is the
   canonical spot), placed asymmetrically, covering ≤15% of the wall face.
@@ -354,6 +355,7 @@ Every surface gets noise. A single material over a large area reads as
   builds ref: torii approach — narrated, not frame-visible.)
 
 ### 2. Skeleton-first framing
+
 Pillars and beams define the silhouette; walls fill between them — never the
 other way around.
 - Mark the footprint before placing anything (house example: barrels at
@@ -421,14 +423,15 @@ other way around.
   plates and X-bracing, or the frame reads as forgotten beams. (Hillside
   cottage ref — provisional — stylized render.)
   - Open-pavilion variant: on a roofless-sided pavilion the same four posts
-    + full-perimeter eave plate is the *minimum* frame — the plate is the
-    shadow line that says "roof sits on frame" (without it the roof
-    floats). Posts 3–4 tall standing ON the platform, never on dirt; keep
-    joints exposed. 3×3 to 5×5 post grids only — beyond that add interior
-    posts or a center king post, or the plate sags visually. (Disruptive
-    builds ref: gazebo.)
+    - full-perimeter eave plate is the _minimum_ frame — the plate is the
+      shadow line that says "roof sits on frame" (without it the roof
+      floats). Posts 3–4 tall standing ON the platform, never on dirt; keep
+      joints exposed. 3×3 to 5×5 post grids only — beyond that add interior
+      posts or a center king post, or the plate sags visually. (Disruptive
+      builds ref: gazebo.)
 
 ### 3. Horizontal breaks
+
 Long vertical surfaces need interruption. Run trim bands — slab strips, a
 material change, a ledge — between sections or at floor lines. They cast
 shadow lines and kill monotony. (House example: stone-brick slab strip
@@ -447,7 +450,7 @@ between wall sections.)
   fight the archetype, fake the columnar rhythm with 1-wide vertical
   strips of contrasting material running floor-to-roof, spaced 3–4 blocks
   apart with strips always on the corners; window and door bays sit
-  *between* the strips. Guards: walls ≥6 wide (narrower walls crowd the
+  _between_ the strips. Guards: walls ≥6 wide (narrower walls crowd the
   openings); keep strips flush with the wall — protruding columns become
   technique 2 posts instead; and one strong vertical per wall section —
   pilasters XOR a full-height ladder (technique 7), never both. (Stone
@@ -459,6 +462,7 @@ between wall sections.)
     ref: f0006, f0007.)
 
 ### 4. Silhouette discipline
+
 Whatever the "top" of the archetype is, break its outline. Flat tops look
 unfinished.
 - Vary the roofline/skyline: dormers, chimneys, towers, spires.
@@ -496,12 +500,12 @@ unfinished.
     is there a crane" objection, function doesn't need to. Two cranes read
     as a construction site. (Disruptive builds ref: ultimate fishing dock —
     transcript.) Small-build variant: on a low roof with no room for pairs,
-  one 1×1 stack set 1–2 blocks off the roof centerline and behind the
-  ridge, rising ≤4 blocks above the roof, capped with a slab and one pot;
-  taller than that and it becomes an antenna. Guard: ONE chimney strategy
-  per build — the oversized anchor (technique 10) XOR the restrained
-  off-center stack — never both. (Hillside cottage ref — provisional —
-  stylized render.)
+    one 1×1 stack set 1–2 blocks off the roof centerline and behind the
+    ridge, rising ≤4 blocks above the roof, capped with a slab and one pot;
+    taller than that and it becomes an antenna. Guard: ONE chimney strategy
+    per build — the oversized anchor (technique 10) XOR the restrained
+    off-center stack — never both. (Hillside cottage ref — provisional —
+    stylized render.)
   - Roof-accent shaft (sub-entry, not a standalone technique): a 2×2
     stone-brick shaft on a steep roof, ~5 blocks visible above the slope,
     with a white-barred opening on its front face (iron bars, 1 wide ×
@@ -532,7 +536,7 @@ unfinished.
   crenellation, a cap course, or a lantern. Guards: spans ≥10 blocks only
   (shorter and the towers dwarf it into three towers); not when the span
   already terminates into terrain on both ends. Scoping C1: identical
-  pairs terminate a *span*; hierarchies compose a *compound* (see next
+  pairs terminate a _span_; hierarchies compose a _compound_ (see next
   bullet). Exception (2026-11-13): where the span's deck carries a roofed
   gallery, the end pavilions rise about one storey above the gallery deck, not
   1.5–2×; the multiplier governs bare or open-railed decks (dam, f_064,
@@ -611,6 +615,7 @@ unfinished.
     canopy.)
 
 ### 5. Ground connection
+
 The build must connect to the ground, never float.
 - Foundation wider than the footprint, with steps up; or visible supports
   (stilts, barrels) for raised structures.
@@ -628,7 +633,7 @@ The build must connect to the ground, never float.
   high/low blocks) before the wooden structure sits on it — reads as
   fortified, costs almost nothing. (Arashy12 example: crenellated
   cobblestone base under the timber upper floor.)
-- Sit it *in* the terrain: patchy paths to the entrance, plants and grass
+- Sit it _in_ the terrain: patchy paths to the entrance, plants and grass
   around the base — not a clean cutout on flat grass. (Manor NBT example:
   a dirt path wrapping the entire plot — the building sits inside a path
   network, and vines weathering the stone base sell the age for free.)
@@ -636,7 +641,7 @@ The build must connect to the ground, never float.
   plots. They hide the wall-meets-terrain seam — the ugliest line in most
   builds — and frame the grounds into rooms. (Mansion example: hedges along
   every wall base and plot border.)
-- On a 2+ block slope, walk the foundation *down the hill* as stair runs
+- On a 2+ block slope, walk the foundation _down the hill_ as stair runs
   instead of growing a tall stem wall: extend the foundation past the walls
   and continue the downhill edge outward as 2–3-wide stone-brick stairs,
   one step down per ~1 block of terrain drop, each step landing on terrain,
@@ -651,7 +656,7 @@ The build must connect to the ground, never float.
   one global Y level; join 1–2-block steps with stair-toothed joints
   (merlons following the step), and cap every module with the same parapet
   so the stepping reads as deliberate. Where a span meets a hillside, step
-  the structure *down* as the bank rises to meet it and cap the joint with
+  the structure _down_ as the bank rises to meet it and cap the joint with
   grass + tufts — the vegetation is what sells "grown over" vs "butted
   against". (Disruptive builds ref: mining outpost — modular walls;
   medieval dam — terrain-stitched abutments.)
@@ -661,7 +666,7 @@ The build must connect to the ground, never float.
   never on new or formal builds, never full coverage. (Disruptive builds
   ref: dam face.)
 - Armor engineered water exits: in front of each outflow (sluice,
-  spillway, mill outflow), lay a 3–5-block apron of stone *slabs* (thin
+  spillway, mill outflow), lay a 3–5-block apron of stone _slabs_ (thin
   reads as paving, not a second wall), slightly darker than the wall, with
   mossy variants feathered at the far edge. (Disruptive builds ref: dam
   outflow apron.)
@@ -691,7 +696,7 @@ The build must connect to the ground, never float.
   courses; well.)
 - Stepping-stone crossings: offset bottom-half slabs with 1-block gaps,
   mixed materials in ~even thirds, each stone offset half a block
-  left/right of the last, set 1 block *into* the ground bed so they read
+  left/right of the last, set 1 block _into_ the ground bed so they read
   as set in, not laid on. Crossing beds, shallow water, garden grounds —
   never high-traffic main streets (reads fussy). (Disruptive builds ref:
   torii garden.)
@@ -748,6 +753,7 @@ The build must connect to the ground, never float.
   gazebo; f_474, f_447, f_506, f_573, f_469.)
 
 ### 6. Lighting rhythm
+
 Warm point lights placed on the structure's rhythm — not random, not a
 glowing wall.
 - (House examples: a lantern on every pillar; rows of candles along porch
@@ -769,7 +775,7 @@ glowing wall.
 - Hide the source: glow lichen under shelves, light panels set flush into
   dark ceilings, light strips behind perforated walls. The glow is
   visible, the source isn't. (Interior board.)
-- Never use a light-emitting block *as* a wall/window material (no glowstone
+- Never use a light-emitting block _as_ a wall/window material (no glowstone
   walls). Exception: a bounded portal veil filling one gate opening
   (technique 49; f_153, f_162) is a focal accent, not a wall.
 - Wall-mount lanterns where posts can't go: at an entrance, one block above
@@ -814,6 +820,7 @@ glowing wall.
   block. (Disruptive builds ref: mining outpost gate, fishing dock.)
 
 ### 7. Detail & props
+
 Small functional-looking bits sell the scale:
 - Openings: panes + shutters (trapdoors) + a box of trailing greenery below.
   The full window recipe: 2-high glass panes in a stair-block sill/frame,
@@ -931,7 +938,7 @@ Small functional-looking bits sell the scale:
   bookshelves, 72 barrels — reads as an inn, and that's the "lived-in"
   feel.)
 - Service-counter hut front: turn trapdoor cabinet doors outward — the
-  hut's storage wall faces the work area as a *counter*: chests/barrels
+  hut's storage wall faces the work area as a _counter_: chests/barrels
   at counter height fronted with closed vertical trapdoors, a bottom-half
   slab counter top overhanging the trapdoor face by 1 block, a serving-hatch
   window with open trapdoor shutters above. Counter on the working face
@@ -987,7 +994,7 @@ Small functional-looking bits sell the scale:
     Mansion ref: f0025.)
   - Sunken conversation pit: drop a seating area one block lower and
     carpet it — a "room within a room", instantly dramatic.
-  - Recess, don't paste: sink bookshelves and racks *into* the wall as
+  - Recess, don't paste: sink bookshelves and racks _into_ the wall as
     niches instead of mounting them on it.
   - Trapdoor cabinet doors: trapdoors as cupboard doors over
     bookshelves/barrels, trapdoor + glass pane for glass doors, buttons
@@ -1007,7 +1014,7 @@ Small functional-looking bits sell the scale:
     One anchor per room — two anchors split the focus. (Disruptive builds
     ref: library — transcript.)
   - Ladder nook: a 1×1 wall-ladder shaft (4–8 tall) climbing to a small
-    enclosed loft ≤5×5 reads as a *retreat*, not a second floor — the climb
+    enclosed loft ≤5×5 reads as a _retreat_, not a second floor — the climb
     itself is the threshold. Furnish it as a single-purpose room (one
     table, 2 chairs, shelves on 2–3 walls, one deliberate detail) with a
     2–3-block ceiling. Ladders punish routine traffic: nooks get ladders,
@@ -1152,7 +1159,8 @@ Small functional-looking bits sell the scale:
   library attic.)
 
 ### 8. Siting
-A build belongs *somewhere*. Pick the spot as part of the design: by water
+
+A build belongs _somewhere_. Pick the spot as part of the design: by water
 with terraced banks, on a cliff edge, sunk into a hillside. The terrain is
 half the composition.
 - Lay out grounds like architecture: axis, symmetry, hedge-enclosed plots —
@@ -1176,7 +1184,7 @@ half the composition.
   House ref: f0056–f0058, f0064, f0066–f0068.)
 - Work the slope: on sloped grounds, cut the terrain into 1–2-block
   terraces with grass-lipped caps (grass blocks capping each riser so it
-  never reads as a raw dirt scar) and run paths *along* the contours, not
+  never reads as a raw dirt scar) and run paths _along_ the contours, not
   straight up; plant the terrace lips with tufts, ferns, and flower
   bushes. Working fields follow the same rule: tilled rows at mixed growth
   stages, divided by 1-block dirt-path strips, each plot stepping down with
@@ -1196,7 +1204,7 @@ half the composition.
   builds ref: torii garden.)
 - Vertical grounds enclosure: grow 2–4 large custom trees so their
   canopies meet 6–9 blocks overhead, with vines hanging from the canopy
-  edge as the dripping edge — it turns an open garden into a *room*
+  edge as the dripping edge — it turns an open garden into a _room_
   (ceiling, walls, floor). Keep a skylight open directly above the focal
   and prune leaves below head-height +2 on the approach side. (Disruptive
   builds ref: torii garden.)
@@ -1241,7 +1249,7 @@ half the composition.
   read as a clone stamp, keep both doorways equidistant from the entry.
   (Disruptive builds ref: library — transcript.)
 - Landmark siting — orbit, don't enter: run 2–4 simple paths to the
-  landmark's base from different directions (the radial *geometry* matters
+  landmark's base from different directions (the radial _geometry_ matters
   more than the path material); keep a 3–5-block clear radius at the base
   — paths may cross it, but no vertical props may stand in it; doors or
   openings on multiple faces are fine even if they lead nowhere. Design
@@ -1255,6 +1263,7 @@ half the composition.
   civic structures get center-siting. (Disruptive builds ref: well.)
 
 ### 9. Diorama composition — orbit a terrain feature
+
 (Provisional — derived from the Dio Rods "Waterfall Quarry Survival Base"
 post description only; material-level detail still pending his screenshots.)
 - Anchor on a terrain feature, not a footprint: quarry pit, waterfall,
@@ -1302,6 +1311,7 @@ post description only; material-level detail still pending his screenshots.)
   builds ref: mining outpost; f_233, f_241, f_245, f_267.)
 
 ### 10. Theme anchors — one focal point, restrained biome
+
 A single oversized themed prop justifies the whole build's theme and lets
 everything else stay simple without looking empty. (Mansion example: a
 courtyard spruce decorated with candle "ornaments" as a Christmas tree.)
@@ -1339,8 +1349,9 @@ stays plain timber-and-plaster.)
   ref: bell tower — transcript.)
 
 ### 11. Stage the arrival (provisional — stylized render)
+
 The last few blocks before the door are a sequence, not a backdrop: stage
-them so a visitor *arrives*. Four placements in order, from far to near:
+them so a visitor _arrives_. Four placements in order, from far to near:
 - (a) Outer marker: where the path meets the grounds, one gate threshold —
   fence post + gate + fence post on the path axis, on-axis with the door.
   It must sit at a real boundary; a gate mid-path is a fence that lost its
@@ -1396,9 +1407,10 @@ them so a visitor *arrives*. Four placements in order, from far to near:
   stylized render.)
 
 ### 12. Pergola shade structures (provisional — stylized render)
+
 The guide's shade vocabulary is all solid overhangs (technique 4 eaves,
 technique 7 awnings). A pergola is the open alternative: alternating open
-slats + solid infill at ~50% so the roof casts *striped* shade — shelter
+slats + solid infill at ~50% so the roof casts _striped_ shade — shelter
 that reads as light, not a lid.
 - Recipe: corner posts (stripped logs or fences) 3 tall at the balcony
   edges, 3–5 parallel beams (logs or bottom-half slabs) across the top
@@ -1411,9 +1423,9 @@ that reads as light, not a lid.
   or nordic archetypes (an open roof in rain reads as broken); walls that
   already carry a solid overhang (two shade layers fight). (Desert house
   ref.)
-- Gazebo-vs-pergola choice rule: the pergola shades a *route or seat* —
+- Gazebo-vs-pergola choice rule: the pergola shades a _route or seat_ —
   open slat roof, no raised floor needed, sun comes through. A gazebo is a
-  *destination* — it needs a solid stair-block roof (weather, real
+  _destination_ — it needs a solid stair-block roof (weather, real
   shelter) and a raised platform floor (people stand IN it, not under it).
   Build a gazebo when the spot is a node (town center, garden focal point,
   viewpoint); build a pergola when it's a route or lean-to seat. Guard:
@@ -1422,6 +1434,7 @@ that reads as light, not a lid.
   max at path nodes. (Disruptive builds ref: gazebo.)
 
 ### 13. Tall-narrow stacking discipline (provisional — stylized render)
+
 Tall narrow builds (≥3 stories on a ≤6×6 footprint) fail differently from
 small builds: not from emptiness but from extrusion — every story getting
 the same ornament until the tower reads as a stamped column. Story zoning
@@ -1457,6 +1470,7 @@ ornamental discipline on top of them.
   tower — bonus frame.)
 
 ### 14. Working openings — show the structure doing its job
+
 A machine build that reads as a solid wall is a failed machine. Vertical
 slots through the wall with water (or smoke) visibly moving through them
 turn a decorative barrier into working infrastructure — the opening is the
@@ -1474,6 +1488,7 @@ proof of function.
   (Disruptive builds ref: medieval dam.)
 
 ### 15. Stair-block masonry arches
+
 Nothing in the guide gave arches a construction — lintels and plates cover
 timber (technique 2), but masonry openings need the arch to read as
 engineered. A stair-built arch instantly says "fortification" where a flat
@@ -1546,6 +1561,7 @@ lintel says "doorway".
   rise, block ids. (Disruptive builds ref: dam, library, mining outpost.)
 
 ### 16. Bamboo screens — planting as walls
+
 Technique 5's hedges are low edging; bamboo does the opposite job —
 planted at varied heights it forms a translucent green WALL that encloses
 a space vertically without blocking light: an outdoor room with living
@@ -1563,14 +1579,15 @@ walls.
   height. (Disruptive builds ref: torii garden.)
 
 ### 17. Bridge anatomy — deck, rails, landings
+
 A bridge is three parts, and all three are mandatory: deck alone is a
 gangplank; deck + rails without landings is a pier to nowhere. The
-landings are what make it a *bridge* (a crossing) rather than a *dock* (a
+landings are what make it a _bridge_ (a crossing) rather than a _dock_ (a
 destination).
 - Recipe: deck of planks 2–3 wide, spanning the water 1 block above the
   surface; rails of fence posts with a top-half-slab handrail along both
   edges, full span, no gaps; landings — extend the deck 2 blocks past the
-  water's edge on BOTH sides and run the arriving path material *under*
+  water's edge on BOTH sides and run the arriving path material _under_
   the landing (the path doesn't stop at the water — it continues beneath
   the bridge).
 - Apply when: any water crossing on a path network. When NOT to apply:
@@ -1593,6 +1610,7 @@ destination).
   (Disruptive builds ref: torii garden; f_172, f_186, f_196, f_205.)
 
 ### 18. Custom trees — branch-tip canopy cluster
+
 The beginner mistake is building the leaf ball first and sticking a trunk
 under it (lollipop). The easy professional method inverts it: place
 branches first, then hang exactly one leaf blob on each branch tip — the
@@ -1619,7 +1637,8 @@ skill required.
   builds ref: custom tree.)
 
 ### 19. Hoist grammar — frame, line, load
-A well reads as *working* when three parts form one vertical story: the
+
+A well reads as _working_ when three parts form one vertical story: the
 frame (posts + beam), the drop line (chain), and the load (bucket) hanging
 over the shaft. Remove any one and it degrades: no chain = a pergola; no
 load = an unfinished frame; no shaft below = a gallows. The composition
@@ -1665,6 +1684,7 @@ transfers to any hoist grammar — cranes, gallows, mine headframes.
   beyond the front gable. (Disruptive builds ref: well; f_487–f_499.)
 
 ### 20. Boat mooring — two recipes by width
+
 A boat tied alongside a straight pier swings into the walkway and blocks
 it. Two recipes, chosen by available width:
 - Slip-notch (pier ≥3 wide): carve a 2-wide × 3–4-long notch mid-pier, line
@@ -1680,6 +1700,7 @@ it. Two recipes, chosen by available width:
   transcript.)
 
 ### 21. Activity ledges
+
 A straight pier is a corridor — everyone walks the same line and every
 activity (fishing, mooring, looking) fights for the edge. Small bumps
 protruding off the walkway edge, each dedicated to ONE verb, turn the
@@ -1695,6 +1716,7 @@ corridor into a sequence of places.
   (Disruptive builds ref: ultimate fishing dock — transcript.)
 
 ### 22. Under-deck dressing
+
 A pier on bare posts has a visible black under-volume — from any low angle
 the build reads as a floating lid. One deliberate vignette tucked under
 the deck (visible from the approach) converts dead space into story.
@@ -1708,6 +1730,7 @@ the deck (visible from the approach) converts dead space into story.
   to speak of. (Disruptive builds ref: ultimate fishing dock — transcript.)
 
 ### 23. Market stall module
+
 A market stall is a tiny building, not furniture — it needs all four
 subsystems, and dropping any one reads as failure: no awning =
 scaffolding; no posts/awning = a bare table; no counter/goods = a bus stop.
@@ -1719,10 +1742,11 @@ scaffolding; no posts/awning = a bare table; no counter/goods = a bus stop.
   entered from the front; walling it in turns it into a hut.
 - Apply when: markets, fairgrounds, dockside traders, village shops. When
   NOT to apply: if the "shop" needs lockable storage or interiors — then
-  it's a shop *building* (techniques 2/7), not a stall. (Disruptive
+  it's a shop _building_ (techniques 2/7), not a stall. (Disruptive
   builds ref: market.)
 
 ### 24. Repeat-with-variation expansion
+
 The strongest meta-technique in this wave: design ONE good module, stamp it
 repeatedly, and vary a small set of accent parameters per instance —
 identical repetition reads as copy-paste (a barracks, not a market);
@@ -1742,7 +1766,8 @@ controlled variation on a fixed grammar reads as organic growth.
   ref: market — the video's explicit method, transcript.)
 
 ### 25. Open belfry crown
-A landmark tower's crown should *show its program*. The bell visible inside
+
+A landmark tower's crown should _show its program_. The bell visible inside
 an open belfry is the tower's "face" — a solid cap would demote the whole
 thing to a chimney; the dark openings against pale stone are what read at
 distance.
@@ -1785,6 +1810,7 @@ distance.
   tower; f_549, f_550, f_567.)
 
 ### 26. Mansard roof with dormers
+
 Technique 4 names dormers in one line but gives no construction — and the
 mansard itself, a steep dark stair slope that IS the top story's wall plus
 a flat top deck, is absent from technique 4 entirely. The mansard is what
@@ -1817,7 +1843,8 @@ at once.
   cross-gabled wings f0077.)
 
 ### 27. Central pedimented pavilion + grand stair
-Technique 11 stages the *approach* (gate, props, hero prop) but says
+
+Technique 11 stages the _approach_ (gate, props, hero prop) but says
 nothing about the facade's own centerpiece. A formal mansion needs its
 entrance to be a mass, not a door: the middle bay projects past the
 facade, rises through the eaves, and caps in a triangular pediment — the
@@ -1851,8 +1878,9 @@ what makes the door feel ceremonial rather than functional.
   ref: f0065, f0090, f0095, f0101; under-stair arch f0065.)
 
 ### 28. Hedge maze garden
-Technique 8's enclosed plots are *planted* rooms (beds, crops, flowers).
-A maze is a *walked* room: the hedges are walls you move through, not
+
+Technique 8's enclosed plots are _planted_ rooms (beds, crops, flowers).
+A maze is a _walked_ room: the hedges are walls you move through, not
 beds you look at. It gives formal grounds a second garden verb — the
 parterre is for viewing, the maze is for entering — and it fills a large
 flat garden area with almost no block variety (leaves + dirt paths).
@@ -1880,9 +1908,10 @@ flat garden area with almost no block variety (leaves + dirt paths).
   (French Mansion ref: f0114–f0126, f0123 closest aerial.)
 
 ### 29. White balustrade boundary + gate piers
+
 Technique 11's gate threshold is a single gate on the path axis;
 technique 7's parapet rules cover terrace edges. Neither gives the
-*grounds boundary*: a low, continuous, pale balustrade that says "this
+_grounds boundary_: a low, continuous, pale balustrade that says "this
 estate ends here" without hiding the garden behind it. The balustrade's
 job is enclosure with transparency — a solid wall would hide the
 parterre, a fence would read as farm, a hedge would read as wild.
@@ -1908,8 +1937,9 @@ parterre, a fence would read as farm, a hedge would read as wild.
   are. (French Mansion ref: f0085–f0096, f0090, f0095.)
 
 ### 30. Indoor orangery
+
 Technique 7's interiors cover room anchors, storage walls, and flower
-pots as the "alive" signal — but no entry gives a *garden room*: a room
+pots as the "alive" signal — but no entry gives a _garden room_: a room
 whose entire furnishing is planting. The orangery works because it
 inverts the normal interior rule (furniture first, plants as accents):
 here the planters ARE the furniture, stepped in height so the room reads
@@ -1936,6 +1966,7 @@ as a terraced greenhouse rather than a storage room with pots.
   for this technique.)
 
 ### 31. Outline-first layout
+
 Technique 2 says "mark the footprint before placing anything" — for one
 house. This scales that marking to the whole plan: draw the plan on the
 ground in 1-wide contrasting lines before building vertically. The
@@ -1979,9 +2010,10 @@ full outline, compounds use the zone plan.
   planned lines.)
 
 ### 32. Machicolation gallery band
+
 Technique 7's parapet is just an alternating high/low rim, and technique
 5's base crenellation is the same verb at the bottom. Neither gives the
-*projecting gallery*: a full course that juts past the wall face, topped
+_projecting gallery_: a full course that juts past the wall face, topped
 by a parapet, with a row of openings hanging below it. The projection +
 the opening row + the shadow gap underneath are what sell "fortified" —
 a flat parapet on a flush wall reads as trim; the gallery reads as a
@@ -2049,9 +2081,10 @@ fighting platform.
   facing, turret size. (Disruptive builds ref: mining outpost, bell tower.)
 
 ### 33. Stepped tower staging
-Technique 4's compound hierarchy composes *multiple* towers (flankers +
+
+Technique 4's compound hierarchy composes _multiple_ towers (flankers +
 one dominant); technique 13's stacking discipline governs ornament on
-*narrow* (≤6×6) towers. Neither covers a single WIDE tower that narrows
+_narrow_ (≤6×6) towers. Neither covers a single WIDE tower that narrows
 in discrete stages: wide base shaft → narrower second stage → narrower
 third stage → spire, each stage capped with its own gallery/parapet.
 The staging is the silhouette: without the steps the tower is an
@@ -2081,8 +2114,9 @@ extruded box; with them it reads as engineered mass.
   f0019 — three clear stages + spire from every angle.)
 
 ### 34. Stepped dark spire with accent + finial
+
 Technique 4 covers spires only as a generic "one vertical accent" and
-pyramid roofs at *pavilion* scale (stepped stair roof, slab + finial
+pyramid roofs at _pavilion_ scale (stepped stair roof, slab + finial
 cap). The heavy tower's spire is a different animal: a tall (roughly as
 tall as the stages below it) dark-stone stepped taper that contrasts
 the pale shaft, carrying exactly one accent block near the tip and a
@@ -2123,10 +2157,11 @@ a crown rather than a roof.
   f0010, f0011, f0016, f0017; arcade f0012, f0016.)
 
 ### 35. Paired slit window grid
+
 Technique 7's window recipe is domestic (glass panes + shutters +
 flower box, repeated in vertical columns). Technique 13's quiet-shaft
 corollary allows at most one narrow slit per face on landmark shafts.
-The heavy tower does neither: its windows are *pairs* of 1-wide ×
+The heavy tower does neither: its windows are _pairs_ of 1-wide ×
 2-tall dark slits (no glass, no shutters, no trim), repeated in a strict
 grid — several pairs per face, aligned in rows and columns across the
 whole shaft. The pairing + the grid are the grammar: single slits read
@@ -2158,6 +2193,7 @@ system.
   ref: f0007, f0013, f0014, f0016; lone slit f0013.)
 
 ### 36. East-Asian tiled roof grammar
+
 Technique 4 covers dark stair-block roofs and two-tone striping, but no
 East-Asian roof construction. This roof's read comes from three things
 working together: the dark tile field, a stacked eave band, and corners
@@ -2187,6 +2223,7 @@ that sweep upward instead of stopping flat.
   hall f0046/f0048; red ridge ticks/band f0049–f0052; corner lift f0019.)
 
 ### 37. Roofed compound wall + gatehouse pavilion
+
 The compound's edge is not a fence or a bare wall — it's architecture:
 a roofed corridor wall with a gatehouse pavilion breaking it. The wall
 carries the compound's palette (white plaster, red trim, dark tile roof)
@@ -2210,6 +2247,7 @@ so the boundary reads as part of the build, not as a property line.
   from inside f0064–f0065; full perimeter f0066–f0068.)
 
 ### 38. Vermillion pavilion pair
+
 Technique 10 says one oversized anchor justifies the theme — size-based.
 This is the color version: in a monochrome compound (white + dark +
 timber), paint the flanking side halls in a saturated accent —
@@ -2238,6 +2276,7 @@ already endorses symmetric pairs as anchors.
   twin pair in the finished showcase.)
 
 ### 39. Tile-and-sand courtyard grid
+
 Technique 8's zen bed is restraint (one sand bed, 3–5 elements, negative
 space). This courtyard is the formal counterpart: a white tile field
 with MULTIPLE sand rectangles inset in dark borders, composed as a grid
@@ -2249,9 +2288,9 @@ with MULTIPLE sand rectangles inset in dark borders, composed as a grid
   no central pillar: the tall dark pillar in the reference stands on the
   main-hall terrace, not in the courtyard. All verticals live at the
   edges (curb lanterns, rails). Edge the courtyard with a low stone curb
-  + bamboo rail caps (yellow bamboo rails on white stone posts), red
-  lanterns on curb posts at intervals. Enter it by a wide ceremonial
-  stair (5–6 wide, stone, bamboo-railed curbs).
+  - bamboo rail caps (yellow bamboo rails on white stone posts), red
+    lanterns on curb posts at intervals. Enter it by a wide ceremonial
+    stair (5–6 wide, stone, bamboo-railed curbs).
 - Apply when: formal courtyards, temple forecourts, palace grounds. NOT
   when: the garden story is wild/restrained (use technique 8's zen bed
   — one bed, negative space); small courtyards <7 wide (the grid chops
@@ -2263,6 +2302,7 @@ with MULTIPLE sand rectangles inset in dark borders, composed as a grid
   lanterns, wide stair; f0031/f0033 same courtyard from other angles.)
 
 ### 40. Porch as mini stepped-gable pavilion
+
 Technique 11 stages the approach (gate, path, hero prop) and technique
 27 gives the grand pavilion + stair — but no entry gives the small
 version: the entrance porch as a miniature of the main gable, a
@@ -2300,6 +2340,7 @@ arrow runs porch → crown, NOT crown → porch.
   down to grade; f_012 finished porch.)
 
 ### 41. Stepped east-face profile
+
 The tower's east wall steps down in pale stone toward the wing roof
 (~5–6 steps, 1 block in per 1 block down) — a staircase-profile wall
 that transitions a tall volume down to a lower roof without presenting
@@ -2324,6 +2365,7 @@ Tall Mansion draft at lock time (Luki tap 2026-11-07).
   frame-confirmed.)
 
 ### 43. Mid-tower skirt roof as stage separator
+
 Source: Alixxa cozy medieval tower (stage-1
 candidate 1, confidence HIGH; `reels/alixxa-tower/stage1/01-alixxa-tower.md`).
 Not folded, not in the band table; band proposed: mini (7×7 base, ~5×5 upper).
@@ -2376,6 +2418,7 @@ a box".
   two-stage tower, where a second skirt-type "hat" also sits under the crown.)
 
 ### 44. Steep stepped pyramid crown with spire finial (provisional — course count, eave, apex unresolved)
+
 Source: Alixxa cozy medieval tower (stage-1
 candidate 4, MED, PROVISIONAL). Smoke test required before folding. Band
 proposed: mini. The crown appears in ONE frame (f_017), from one oblique
@@ -2417,6 +2460,7 @@ contrast; no accent block is visible and none is needed.
   final frame.)
 
 ### 45. Stacked pier-and-post bay
+
 Source: Hibouk "Winter Mansion" (stage-1
 candidate 1, confidence MED; `reels/hibouk-winter-mansion/stage1/01-hibouk-winter-mansion.md`).
 Band proposed: mid (an 8-wide bay on a ~34-long front). Not in the band table.
@@ -2465,6 +2509,7 @@ stories.
   f_040, f_067.)
 
 ### 46. Ridge cresting — timber post-and-rail along the ridge
+
 Source: OMGGamer "Medieval Tavern" (stage-1
 candidate 1, confidence MED; `reels/omggamer-medieval-tavern/stage1/01-medieval-tavern.md`).
 Single reel. Band proposed: mini (a 1-block-high element; the minimum ridge
@@ -2498,6 +2543,7 @@ as a bare stair edge.
   and f_020 finished cresting on both ridges.)
 
 ### 47. Benched excavation pit
+
 Source: Dio Rods "Waterfall Quarry Survival Base"
 (stage-1 candidate 1, confidence MED; stills q01–q07, not video;
 `reels/dio-rods-waterfall-quarry/stage1/01-waterfall-quarry.md`). Band
@@ -2535,6 +2581,7 @@ scale. The construction is the cut.
   jitter, support beams, stairs; q06 stair, tunnel mouth and rim stock.)
 
 ### 48. Curtain wall in phase — pilaster, recess, hoarding slat and merlon on one period
+
 Source: Disruptive builds reel, the castle
 gatehouse (the mining outpost; frame evidence B4, stage-1
 `reels/disruptive-builds/stage1/04-mining.md`). Band proposed: mid (a guess:
@@ -2573,6 +2620,7 @@ the wall reads as engineered and not as a flat slab with a crenellated rim.
   stair feet, f_317 and f_208 whole front.)
 
 ### 49. Torii gate with portal veil
+
 Source: Disruptive builds reel, the torii shrine
 garden (frame evidence B3). Stage-1 (`stage1/03-torii.md`) studied the zen
 garden frame and not the gate, so this entry rests on the frame sweep. Band
@@ -2613,6 +2661,7 @@ gate to somewhere.
   beam and cap, f_162 veil, f_186 from the approach.)
 
 ### 50. Trapdoor hardware on timber — beam-end plates and post-foot ribbing
+
 Source: Disruptive builds reel, recurring on the
 dam gallery, the gazebo, the well and the torii gate (frame evidence rows
 TD05 and TD06 of `block-repurposing.md`). Band proposed: mini (a per-post
@@ -2646,6 +2695,7 @@ with one grammar.
 - (Disruptive builds ref: dam; gazebo; well; torii gate.)
 
 ### 51. Raised stage with a stepped timber arch (pillory)
+
 Source: Disruptive builds reel, the pillory (frame
 evidence B14; no stage-1, and not among the 14 builds the guide's source list
 names). Band proposed: mini. Not in the band table.
@@ -2677,6 +2727,7 @@ and it fills a town square with a destination.
   are the clearest.)
 
 ### 52. Abstract figure statue on a planter base
+
 Source: Disruptive builds reel, the statue and
 garden (frame evidence B12; the guide's source list marks it "idea-only, no
 patterns extracted" and there is no stage-1). Five frames only (f_501–f_505),
@@ -2714,8 +2765,8 @@ a small planted box.
   in a gate opening, technique 49, is the one exception).
 - Random dirt patches with no path logic ("ada tanah? wtf").
 - Floating builds with no foundation or ground connection.
-- Copying the *shape* of a reference (e.g. a gable roof on an underwater
-  build) instead of its *techniques*.
+- Copying the _shape_ of a reference (e.g. a gable roof on an underwater
+  build) instead of its _techniques_.
 - AI-generated "Minecraft-style" art as reference — image models hallucinate
   textures; use real build reels/screenshots only. (Exception: stylized
   renders are acceptable only when block reads are flagged interpretive and

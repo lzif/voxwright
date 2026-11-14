@@ -54,6 +54,10 @@ import {
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
 import { blockCounts, dimensions, exists, loadScript, scanDeterminism } from "./script.ts";
 
+/** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
+declare const __VOXWRIGHT_BUNDLED__: boolean | undefined;
+const BUNDLED = typeof __VOXWRIGHT_BUNDLED__ !== "undefined" && __VOXWRIGHT_BUNDLED__ === true;
+
 export class CliError extends Error {}
 
 export interface Io {
@@ -627,7 +631,12 @@ async function cmdInit(args: string[], io: Required<Io>): Promise<number> {
     );
   }
   await mkdir(dirname(abs), { recursive: true });
-  await writeFile(abs, HOUSE_TEMPLATE, "utf8");
+  // The published command line answers to "voxwright" (the name the documentation uses); inside
+  // the workspace only the package name resolves.
+  const template = BUNDLED
+    ? HOUSE_TEMPLATE.replace('"@voxwright/mcbuilder"', '"voxwright"')
+    : HOUSE_TEMPLATE;
+  await writeFile(abs, template, "utf8");
   io.out(`wrote ${target}`);
   io.out(`next: mcbuild check ${target}`);
   io.out(`then: mcbuild run ${target}`);

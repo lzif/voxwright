@@ -208,7 +208,7 @@ The numbers after MB7 are within the run-to-run noise of the numbers before it (
 
 ## M4 status
 
-**Status:** M4's features are built. The 0.1.0 release itself is not: the version bump, tag and npm publish are not done, and Luki decides those (#17 is still open on GitHub). CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
+**Status:** M4's features are built. The 0.1.0 release itself is not: its version bump and tag are not done, and Luki decides those (#17 is still open on GitHub). On 2026-11-14 the command line was published to npm as a trial, `@voxwright/mcbuild` 0.0.1 (tag `v0.0.1`, `.github/workflows/npm.yml`); the other packages stay private. CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
 
 **What is there.**
 

@@ -21,6 +21,7 @@ Voxwright brief, not in the lzif/mcbuilder repo or here. The notes live in `reel
 ## Open candidates (fold queue)
 
 ### Alixxa cozy medieval tower (`reels/alixxa-tower/stage1/01-alixxa-tower.md`)
+
 **Folded and locked 2026-11-13.** All four candidates are in the guide: the
 skirt roof is T43, the pyramid crown is T44 (locked as provisional, its open
 questions kept), the triplet slits are a T7 sub-entry, the ruined mound is a T5
@@ -35,6 +36,7 @@ them as named questions):
   in the T7 sub-entry, not resolved).
 
 ### Niitty90 floating wizard's tower (`reels/niitty-wizard-tower/stage1/01-wizard-tower.md`)
+
 All 7 candidates open, fold pending; build plan rev2 LOCKED (scope B: main
 tower + second floating tower + tether bridge):
 1. Magic-core lift plume (NEW).
@@ -46,11 +48,13 @@ tower + second floating tower + tether bridge):
 7. Night inversion — the core as the light source (NEW, LOW-CONFIDENCE).
 
 ### Life Laps French Mansion (`reels/french-mansion/stage1/01-french-mansion-v2.md`)
+
 T26–T30 folded. Still open:
 - **Sacrificial footprint outline in a contrasting block (NEW, MED-HIGH).**
 - **Parterre cross + circle node garden (NEW, MED — roast to decide).**
 
 ### TrixyBlox Ruined Temple (no stage-1 file in these docs — see note below)
+
 4 provisional candidates (from the reel study, not yet in `reels/`):
 pointed arch system, ribbed vault ceiling, bay window rhythm, subtractive
 ruin pass. The pointed arch is folded as the T15 arch-profiles sub-entry
@@ -58,6 +62,7 @@ ruin pass. The pointed arch is folded as the T15 arch-profiles sub-entry
 map-only until a stage-1 file exists.
 
 ### OMGGamer Gothic Castle (`reels/gothic-castle/stage1/01-gothic-castle.md`)
+
 - Rose window: FAILED smoke test — see Gates. Was candidate 1, fold-ready in
   the draft; the smoke build killed it.
 - Cross finial + turret cluster: demoted to T34, **with an explicit revision
@@ -66,6 +71,7 @@ map-only until a stage-1 file exists.
   Tall arched window + stepped buttress: already covered, no fold.
 
 ### Disruptive builds 14-build tour (`reels/disruptive-builds/stage1/`)
+
 **All builds entered the pipeline 2026-11-13.** Pattern extraction is done and
 the results are locked in the guide (without roast, at Luki's request): see
 "Disruptive builds pattern wave 2" below. Transcripts for 13 of the 14 builds exist here
