@@ -20,7 +20,7 @@ import { chromiumArgs, findChromium } from "./site.ts";
 const { values } = parseArgs({ options: { chromium: { type: "string" } } });
 const chromium = findChromium(values.chromium);
 const repo = fileURLToPath(new URL("../../../", import.meta.url));
-const CLI = join(repo, "scripts/voxwright-cli.mjs");
+const CLI = join(repo, "skills/voxwright/scripts/voxwright-cli.mjs");
 const FIXTURE = join(repo, "fixtures/real/rafeals-house/Rafeals_house.litematic");
 
 const checks: string[] = [];

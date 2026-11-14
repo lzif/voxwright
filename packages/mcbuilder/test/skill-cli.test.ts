@@ -17,7 +17,7 @@ import { runSkillCli } from "../src/node/skill/main.ts";
 
 const run = promisify(execFile);
 const repo = fileURLToPath(new URL("../../../", import.meta.url));
-const BUNDLE = join(repo, "scripts/voxwright-cli.mjs");
+const BUNDLE = join(repo, "skills/voxwright/scripts/voxwright-cli.mjs");
 // Recipes run in this process are imported by Vitest, which resolves the workspace package from
 // inside the repository; the bundle tests further down use a directory outside it.
 const base = fileURLToPath(new URL("./.tmp/", import.meta.url));
@@ -512,7 +512,7 @@ describe("inspect", () => {
 
 // The committed bundle, run the way an installed skill runs it: from a directory outside the
 // repository, with no node_modules to resolve anything from.
-describe("scripts/voxwright-cli.mjs", () => {
+describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
   let outside: string;
   const cli = (args: string[], cwd = outside) =>
     run(process.execPath, [BUNDLE, ...args], { cwd, env: { ...process.env, HOME: outside } }).then(
@@ -610,7 +610,7 @@ BUILD.scope(() => {
     const registry = existsSync(real) ? ["--registry", real] : ["--offline"];
     let n = 0;
     for (const doc of ["recipe-examples.md", "builder-api.md"]) {
-      const text = await readFile(join(repo, "references", doc), "utf8");
+      const text = await readFile(join(repo, "skills/voxwright/references", doc), "utf8");
       for (const [, source] of text.matchAll(
         /```ts\n((?:\/\/ recipe: \S+\n)?import [\s\S]*?)```/g,
       )) {

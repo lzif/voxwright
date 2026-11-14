@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The skill CLI: `node scripts/voxwright-cli.mjs build | inspect | preview`.
+// The skill CLI: `node skills/voxwright/scripts/voxwright-cli.mjs build | inspect | preview`.
 //
 // This module is two things at once. Run as a program it is the command line.
 // Imported, it is the library a recipe uses: the CLI maps the bare specifiers

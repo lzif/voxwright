@@ -3,7 +3,7 @@
 # Recipe API
 
 Everything a recipe can import from `"voxwright"`. Signatures are the ones in
-`packages/mcbuilder/src/` and `packages/core/src/`; if a call is not on this page, it does not
+`packages/mcbuilder/src/` and `packages/core/src/` of the Voxwright repository; if a call is not on this page, it does not
 exist. Block ids and block states are in [block-states.md](block-states.md); complete recipes are
 in [recipe-examples.md](recipe-examples.md).
 

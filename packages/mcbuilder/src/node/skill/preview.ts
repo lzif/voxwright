@@ -361,7 +361,7 @@ async function chooseSource(
 /**
  * The built web app of the repository checkout this file runs from: walk up from `from` to the
  * first directory that holds `apps/web`, and use its `build/` when it has an `index.html`. Works for
- * the bundle (`scripts/voxwright-cli.mjs`) and for the source (`packages/mcbuilder/src/node/skill/`).
+ * the bundle (`skills/voxwright/scripts/voxwright-cli.mjs`) and for the source (`packages/mcbuilder/src/node/skill/`).
  */
 export function findLocalWebBuild(from: string): string | null {
   let dir = resolve(from);

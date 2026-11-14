@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // Build the skill CLI: bundle packages/mcbuilder/src/node/skill/main.ts and
-// everything it imports into the single file scripts/voxwright-cli.mjs.
+// everything it imports into the single file skills/voxwright/scripts/voxwright-cli.mjs.
 //
 //   node scripts/build-skill.ts          write the bundle
 //   node scripts/build-skill.ts --check  fail when the committed bundle is stale
 //
-// The bundle is committed: `npx skills install` copies the repository without
+// The bundle is committed: `npx skills install` copies skills/voxwright/ without
 // installing or building anything, so the CLI has to run with Node alone.
 
 import { readFile, writeFile } from "node:fs/promises";
@@ -16,7 +16,7 @@ import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const ENTRY = "packages/mcbuilder/src/node/skill/main.ts";
-const OUT = "scripts/voxwright-cli.mjs";
+const OUT = "skills/voxwright/scripts/voxwright-cli.mjs";
 /** Browser-only or image code that the CLI must never carry. */
 const FORBIDDEN = [/(^|\/)node_modules\/(three|pngjs)\//, /^packages\/render\/src\/webgl\//];
 

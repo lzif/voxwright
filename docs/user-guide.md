@@ -11,7 +11,7 @@ Everything runs in your browser. Files you open are read on your machine and are
 Voxwright is first a programmatic Minecraft build engine and an Agent Skill. An agent or a script writes a short recipe for the build engine (`packages/mcbuilder`), which validates the blocks and writes a schematic as `.schem`, `.litematic`, `.nbt` or `.mcstructure`. This app is the human-in-the-loop part of that workflow:
 
 1. An agent or a script produces a schematic.
-2. You look at it. Either run the preview command of the skill CLI, `node scripts/voxwright-cli.mjs preview <file>` (an agent that has the skill does this for you), which serves the app and the file together and opens the page, or open the page yourself and open the file (section 1).
+2. You look at it. Either run the preview command of the skill CLI, `node skills/voxwright/scripts/voxwright-cli.mjs preview <file>` (an agent that has the skill does this for you), which serves the app and the file together and opens the page, or open the page yourself and open the file (section 1).
 3. You inspect the build in 3D: block placement, block states, layers (section 2).
 4. You fix details by hand with the editor (section 4) or the touch layout (section 5).
 5. You export the result in the format Minecraft needs (section 6) and load it into the game.

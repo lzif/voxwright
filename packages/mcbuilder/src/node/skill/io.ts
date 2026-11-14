@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Shared by every subcommand of the skill CLI (`scripts/voxwright-cli.mjs`).
+// Shared by every subcommand of the skill CLI (`skills/voxwright/scripts/voxwright-cli.mjs`).
 
 /** Everything a subcommand touches outside its arguments. Tests replace it. */
 export interface SkillIo {

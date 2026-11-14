@@ -23,9 +23,9 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
 ## Workflow
 
 1. **Plan the build.** Settle the footprint, the height and a palette of 4 to 8 blocks before
-   writing code. For anything beyond a simple box, read
-   `<skill-dir>/packages/mcbuilder/docs/build-patterns.md` for techniques (depth, palettes, roof
-   shapes, detailing).
+   writing code. For anything beyond a simple box, read the build-patterns guide for techniques
+   (depth, palettes, roof shapes, detailing). It is online, not part of the installed skill:
+   https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
 2. **Write the recipe**, an ES module that exports a `Build`:
 
    ```ts
@@ -158,8 +158,9 @@ Starts a local server with the 3D viewer and editor and the schematic open in it
   a block to see and change its state, place and erase blocks, and export the edited build in any
   of the four formats. Edits live in the browser: if the user changed the build there, ask for
   the exported file before continuing, and `inspect` it.
-- The viewer comes from a local build of `apps/web` when the skill directory has one, otherwise
-  from the published site through a caching proxy on localhost (first use needs network access).
+- The viewer comes from the published site through a caching proxy on localhost (first use needs
+  network access), or from a local build of `apps/web` when the skill runs inside a clone of the
+  repository that has one.
   The schematic is served from this machine either way and is not uploaded.
 
 ## References
@@ -170,5 +171,7 @@ Starts a local server with the 3D viewer and editor and the schematic open in it
   properties that matter for builds, rotation and mirroring, versions, per-format caveats.
 - [references/recipe-examples.md](references/recipe-examples.md): three complete recipes (a
   tower, terrain with a pond, a symmetric pavilion) and a pre-run checklist.
-- `packages/mcbuilder/docs/build-patterns.md`: design techniques for builds that look good.
-- `packages/mcbuilder/examples/`: larger recipes that run with the same `build` command.
+- [build-patterns.md](https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md):
+  design techniques for builds that look good. Online, not part of the installed skill.
+- [examples](https://github.com/lzif/voxwright/tree/main/packages/mcbuilder/examples): larger
+  recipes. Online; inside a clone of the repository they run with the same `build` command.

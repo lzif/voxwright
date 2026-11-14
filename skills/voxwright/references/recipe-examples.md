@@ -18,9 +18,10 @@ Run one from the directory that holds the file (`<skill-dir>` is the directory o
 node <skill-dir>/scripts/voxwright-cli.mjs build watchtower.ts --out out/watchtower.schem
 ```
 
-More recipes, larger and less commented, are in `packages/mcbuilder/examples/` of the skill
-directory (`storehouse/`, `homestead/`, `crystal_observatory/`, `waystones/`, ...). They run the
-same way.
+More recipes, larger and less commented (`storehouse/`, `homestead/`, `crystal_observatory/`,
+`waystones/`, ...), are online at
+https://github.com/lzif/voxwright/tree/main/packages/mcbuilder/examples. They are not part of the
+installed skill; inside a clone of the repository they run the same way.
 
 ## Watchtower
 

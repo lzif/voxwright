@@ -14,9 +14,9 @@
       "!**/dist",
       "!**/coverage",
       "!pnpm-lock.yaml",
-      "!scripts/voxwright-cli.mjs",
+      "!skills/voxwright/scripts/voxwright-cli.mjs",
       // The Markdown formatter does not know YAML frontmatter and would break the skill manifest.
-      "!SKILL.md",
+      "!skills/voxwright/SKILL.md",
       "!LICENSE",
       "!vectors/*.json",
       "!fixtures/**/*.json"
