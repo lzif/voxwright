@@ -994,3 +994,254 @@ export function skirtRoof(
   if (dentil) out = out.concat(dentil.geo);
   return out;
 }
+
+// -- bay walls ---------------------------------------------------------------
+
+export interface BayWallOptions extends SeedOption {
+  /**
+   * Required. A number is the distance between post centres (posts stand at both ends and every
+   * `period` cells; the run must fit it exactly). An array is the successive centre-to-centre
+   * distances (its sum must equal the run length minus 1), for uneven rhythms.
+   */
+  period: number | readonly number[];
+  /** Material of the vertical members. Default: `block`. */
+  post?: Material;
+  /** Material of the bays between posts; `null` leaves them open. Default: `block`. */
+  infill?: Material | null;
+  /** Material of a continuous top row over the whole run. Default: none. */
+  beam?: Material;
+  /** Material of a continuous bottom row over the whole run. Default: none. */
+  sill?: Material;
+  /** The frame (posts, beam, sill) stands 1 cell proud of the infill plane. Needs `face` and a 2-deep footprint. */
+  inset?: boolean;
+  /** The posts stand 1 cell proud of the wall face; beam, sill and bays stay flush. Needs `face` and a 2-deep footprint. */
+  pilaster?: boolean;
+  /** Direction the outer face looks. Required with `inset` or `pilaster`, perpendicular to the run. */
+  face?: "north" | "south" | "east" | "west";
+}
+
+/**
+ * Straight wall run of posts at a fixed rhythm with bays between them, an
+ * optional top beam and bottom sill, and two opt-in depth treatments: the
+ * timber-frame look (infill set behind the frame) and the pilaster look
+ * (posts proud of the wall). One shape for timber frame, arcade, pier-and-slit
+ * ground floor and pilaster-and-recess curtain wall (techniques 2 and 45).
+ *
+ * Arguments. `c1`..`c2` is the wall's footprint, corners inclusive and in any
+ * order, `y` from the lower corner to the upper: its height is the number of
+ * rows. Without `inset` or `pilaster` the footprint must be 1 thick in X or Z;
+ * the other horizontal axis is the run, at least 2 cells long (a 1 x 1
+ * footprint has no run and is refused). With `inset` or `pilaster` the
+ * footprint is 2 thick, the run is the other axis, and `face` (north, south,
+ * east or west, perpendicular to the run) says which of the two layers is the
+ * outer one. `block` is the default material of `post` and `infill`.
+ *
+ * Layout. Number the run's cells 0 .. n-1 from the lower coordinate. Posts
+ * stand on cells 0, `period`, 2 x `period` ... and always on n-1; a number
+ * `period` that does not divide n-1 is refused (nothing is guessed about a
+ * short last bay), and an array `period` lists the centre distances instead
+ * (hibouk f_008's ground bay P S P SS P S P is `[2, 3, 2]`). Posts are 1 cell
+ * wide, so a bay's clear width is its distance minus 1. A `beam` fills the top
+ * row and a `sill` the bottom row across the whole run, over the posts; the
+ * rows between them hold post and bay. They need at least 1 row between them,
+ * so the height must exceed the rows used. A bay with `infill: null` is empty.
+ *
+ * Elevation, plain, n = 8 (run x = 0..7), `period: [2, 3, 2]`, height 5 with
+ * `beam` (`=`) and `sill` (`_`), `P` post, `I` infill, `.` empty (`infill:
+ * null`); rows top first:
+ *
+ *   x=0 1 2 3 4 5 6 7
+ *     = = = = = = = =   y+4  beam
+ *     P . P . . P . P   y+3
+ *     P . P . . P . P   y+2
+ *     P . P . . P . P   y+1
+ *     _ _ _ _ _ _ _ _   y    sill
+ *
+ * Same with `infill` set and `period: 3` over n = 7 (x = 0..6), no beam or sill:
+ *
+ *   x=0 1 2 3 4 5 6
+ *     P I I P I I P
+ *
+ * `inset: true`. A 2-deep footprint; the back layer (away from `face`) is
+ * `infill` over the whole run and height, and the front layer holds only the
+ * frame: posts, plus beam and sill if given. Section through a bay (`F` frame
+ * in the front layer, `I` infill, `.` empty), `face: "south"`, height 4 with a
+ * beam, looking along the run:
+ *
+ *   back front
+ *    z=0   z=1
+ *     I     F    y+3  beam
+ *     I     .    y+2
+ *     I     .    y+1
+ *     I     .    y    (sill, if given, would be F)
+ *
+ * A post column is F at every row of the front layer. Needs an `infill`.
+ *
+ * `pilaster: true`. A 2-deep footprint; the back layer is the plain wall
+ * (posts, bays, beam, sill as above) and the front layer adds a second post
+ * cell in front of every post, over the rows the post occupies (not the beam or
+ * sill rows). Section through a post column, `face: "south"`, height 4 with a
+ * beam:
+ *
+ *   back front
+ *    z=0   z=1
+ *     B     .    y+3  beam, flush with the wall
+ *     P     P    y+2
+ *     P     P    y+1
+ *     P     P    y
+ *
+ * `inset` and `pilaster` together are refused (one depth rule at a time).
+ *
+ * Options and defaults. `period` has no default; the counts must be given.
+ * `post` and `infill` default to `block`; `beam`, `sill`, `inset`,
+ * `pilaster` are off. `axis` of log-like blocks is not set for you: shapes do
+ * not know which blocks carry an `axis`, so pass `oak_log[axis=y]` as `post`
+ * and a beam with the axis of the run (`axis=x` or `axis=z`) yourself.
+ * `seed` salts weighted palettes.
+ *
+ * Design choices (frames do not settle them): the post is 1 cell wide
+ * (noes-starter-house f_047, hibouk f_008 show 1-wide posts, arcade piers in
+ * disruptive-builds f_044 look wider and are not covered); where a post meets a
+ * beam or sill row, the beam or sill wins; the back layer in `inset` mode
+ * runs behind posts and beam too (a continuous wall plane); a pilaster is
+ * exactly 1 proud, and its beam and sill stay flush (french-mansion f_007,
+ * disruptive-builds f_313 do not resolve how a cornice meets a pilaster). Not
+ * covered: a lintel or frieze above the bays (disruptive-builds f_040, f_044),
+ * diagonal braces, and pillar modules with plinth and ornament stacks.
+ *
+ * Evidence: noes-starter-house f_036 and f_047 (corner and middle posts, top
+ * beam, infill added behind), arashy12-medieval-house f_045 (log posts, beams,
+ * white infill), gorillo-spruce-house f_026, hibouk-winter-mansion f_008 /
+ * f_011 / f_018 (pier-and-slit bay, upper floor posts), omggamer-medieval-tavern
+ * f_004 (half-timber upper floor), disruptive-builds f_044, f_067 (arcade),
+ * f_313 (pilasters over recessed slits), french-mansion f_007, f_068 (pilaster
+ * rhythm).
+ */
+export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallOptions): Geometry {
+  const [[x1, y1, z1], [x2, y2, z2]] = corners("bay_wall", c1, c2);
+  const { seed, inset = false, pilaster = false } = options;
+  if (options.period === undefined) {
+    throw new McbuilderError("bay_wall: period is required (a number or an array of distances)");
+  }
+  if (inset && pilaster) {
+    throw new McbuilderError("bay_wall: inset and pilaster cannot be combined; pick one");
+  }
+  if (inset && options.infill === null) {
+    throw new McbuilderError("bay_wall: inset needs an infill to sit behind the frame");
+  }
+  const sx = x2 - x1 + 1;
+  const sz = z2 - z1 + 1;
+  const height = y2 - y1 + 1;
+  const deep = inset || pilaster;
+
+  // Run axis and depth layers.
+  let runAxis: "x" | "z";
+  let frontIsHigh = false;
+  if (deep) {
+    if (options.face === undefined) {
+      throw new McbuilderError(
+        `bay_wall: ${inset ? "inset" : "pilaster"} needs face (north, south, east or west)`,
+      );
+    }
+    const face = direction("bay_wall: face", options.face);
+    const [dx] = DIRECTIONS[face] as readonly [number, number];
+    runAxis = dx === 0 ? "x" : "z";
+    frontIsHigh = face === "south" || face === "east";
+    const depth = runAxis === "x" ? sz : sx;
+    if (depth !== 2) {
+      throw new McbuilderError(
+        `bay_wall: with ${inset ? "inset" : "pilaster"} the footprint must be 2 thick across the run (face ${face}), got ${depth}`,
+      );
+    }
+  } else {
+    if (options.face !== undefined) direction("bay_wall: face", options.face);
+    if (sx !== 1 && sz !== 1) {
+      throw new McbuilderError(
+        `bay_wall: footprint must be 1 thick in x or z (2 with inset or pilaster), got ${sx} x ${sz}`,
+      );
+    }
+    if (sx === 1 && sz === 1) {
+      throw new McbuilderError(
+        "bay_wall: a 1 x 1 footprint has no run; it must be at least 2 long",
+      );
+    }
+    runAxis = sx === 1 ? "z" : "x";
+  }
+  const run0 = runAxis === "x" ? x1 : z1;
+  const n = runAxis === "x" ? sx : sz;
+  if (n < 2) throw new McbuilderError(`bay_wall: the run must be at least 2 cells long, got ${n}`);
+
+  // Post positions from `period`.
+  const posts = new Set<number>([0]);
+  if (typeof options.period === "number") {
+    const period = positive("bay_wall: period", options.period);
+    if ((n - 1) % period !== 0) {
+      throw new McbuilderError(
+        `bay_wall: period ${period} does not fit a run of ${n} cells (posts at both ends need (length - 1) divisible by period); use length ${n - ((n - 1) % period)} or ${n - ((n - 1) % period) + period}, or give period as an array`,
+      );
+    }
+    for (let i = period; i <= n - 1; i += period) posts.add(i);
+  } else {
+    if (!Array.isArray(options.period) || options.period.length === 0) {
+      throw new McbuilderError(
+        `bay_wall: period must be an int or a non-empty array of ints, got ${show(options.period)}`,
+      );
+    }
+    let at = 0;
+    for (const d of options.period) {
+      at += positive("bay_wall: period entry", d);
+      posts.add(at);
+    }
+    if (at !== n - 1) {
+      throw new McbuilderError(
+        `bay_wall: period distances sum to ${at} but the run of ${n} cells needs ${n - 1}`,
+      );
+    }
+  }
+
+  const rowsUsed = (options.beam === undefined ? 0 : 1) + (options.sill === undefined ? 0 : 1);
+  if (height <= rowsUsed) {
+    throw new McbuilderError(
+      `bay_wall: height ${height} leaves no row for posts and bays between the ${rowsUsed} beam / sill row${rowsUsed === 1 ? "" : "s"}`,
+    );
+  }
+
+  const postP = new Painter(options.post ?? block, seed);
+  const infillP = options.infill === null ? null : new Painter(options.infill ?? block, seed);
+  const beamP = options.beam === undefined ? null : new Painter(options.beam, seed);
+  const sillP = options.sill === undefined ? null : new Painter(options.sill, seed);
+  const geo = new Geometry();
+
+  const cell = (i: number, y: number, layer: 0 | 1, p: Painter): void => {
+    // layer 0 is the wall plane (or the back); layer 1 is the front of a 2-deep footprint.
+    const run = run0 + i;
+    if (runAxis === "x") {
+      const zBack = frontIsHigh ? z1 : z2;
+      const z = deep ? zBack + (layer === 1 ? (frontIsHigh ? 1 : -1) : 0) : z1;
+      geo.set(run, y, z, p.blockAt(run, y, z));
+    } else {
+      const xBack = frontIsHigh ? x1 : x2;
+      const x = deep ? xBack + (layer === 1 ? (frontIsHigh ? 1 : -1) : 0) : x1;
+      geo.set(x, y, run, p.blockAt(x, y, run));
+    }
+  };
+
+  for (let i = 0; i < n; i++) {
+    const isPost = posts.has(i);
+    for (let row = 0; row < height; row++) {
+      const y = y1 + row;
+      const rail = row === height - 1 && beamP ? beamP : row === 0 && sillP ? sillP : null;
+      // The wall plane (layer 0), or the whole footprint when it is 1 thick.
+      if (inset) {
+        if (infillP) cell(i, y, 0, infillP);
+        const frame = rail ?? (isPost ? postP : null);
+        if (frame) cell(i, y, 1, frame);
+      } else {
+        const body = rail ?? (isPost ? postP : infillP);
+        if (body) cell(i, y, 0, body);
+        if (pilaster && isPost && !rail) cell(i, y, 1, postP);
+      }
+    }
+  }
+  return geo;
+}

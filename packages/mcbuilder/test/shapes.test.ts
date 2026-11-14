@@ -849,3 +849,249 @@ describe("skirtRoof", () => {
     });
   });
 });
+
+describe("bayWall", () => {
+  const P = "minecraft:oak_log[axis=y]";
+  const I = "minecraft:white_terracotta";
+  const BM = "minecraft:stripped_oak_log[axis=x]";
+  const S = "minecraft:stone_bricks";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.bayWall>): Cell[] =>
+    sortCells(shapes.bayWall(...args).cells() as Cell[]);
+  /** Blocks at `x` in `0..n-1`, for a layer given as a row of `[x, block]`. */
+  const row = (y: number, z: number, blocks: string[]): Cell[] =>
+    blocks.map((b, x): Cell => [x, y, z, b]);
+
+  describe("plain run", () => {
+    it("stands posts at both ends and every period, infill between", () => {
+      // n = 7, period 3: posts at 0, 3, 6
+      expect(cellsOf([0, 0, 0], [6, 0, 0], I, { period: 3, post: P })).toEqual(
+        row(0, 0, [P, I, I, P, I, I, P]),
+      );
+    });
+
+    it("defaults post and infill to block", () => {
+      const cells = cellsOf([0, 4, 0], [4, 5, 0], S, { period: 2 });
+      expect(cells).toHaveLength(10);
+      expect(new Set(cells.map((c) => c[3]))).toEqual(new Set([S]));
+    });
+
+    it("leaves bays open with infill null; beam and sill cross the whole run", () => {
+      // hibouk-style P S P SS P S P is [2, 3, 2]; height 4: sill, 2 post rows, beam
+      const SILL = "minecraft:smooth_stone";
+      const BEAM = "minecraft:stone_brick_slab";
+      const cells = cellsOf([0, 1, 0], [7, 4, 0], S, {
+        period: [2, 3, 2],
+        infill: null,
+        sill: SILL,
+        beam: BEAM,
+      });
+      const posts = [0, 2, 5, 7];
+      expect(cells).toEqual(
+        sortCells([
+          ...row(1, 0, Array(8).fill(SILL)),
+          ...posts.flatMap((x): Cell[] => [
+            [x, 2, 0, S],
+            [x, 3, 0, S],
+          ]),
+          ...row(4, 0, Array(8).fill(BEAM)),
+        ]),
+      );
+    });
+
+    it("runs along z when the footprint is thin in x, corners in any order", () => {
+      const cells = cellsOf([2, 3, 4], [2, 3, 0], I, { period: 2, post: P });
+      expect(cells).toEqual([P, I, P, I, P].map((b, z): Cell => [2, 3, z, b]));
+    });
+
+    it("takes a 2 x 1 footprint as a run of 2 posts", () => {
+      expect(cellsOf([0, 0, 0], [1, 0, 0], I, { period: 1, post: P })).toEqual(row(0, 0, [P, P]));
+    });
+
+    it("lets a beam-only wall keep one post row", () => {
+      expect(cellsOf([0, 0, 0], [2, 1, 0], I, { period: 2, post: P, beam: BM })).toEqual(
+        sortCells([...row(0, 0, [P, I, P]), ...row(1, 0, [BM, BM, BM])]),
+      );
+    });
+  });
+
+  describe("inset", () => {
+    it("fills the back layer with infill and puts only the frame in front, face south", () => {
+      // run x = 0..2, depth z = 0 (back) and 1 (front, south), height 3 with beam
+      const cells = cellsOf([0, 0, 0], [2, 2, 1], I, {
+        period: 2,
+        post: P,
+        beam: BM,
+        inset: true,
+        face: "south",
+      });
+      expect(cells).toEqual(
+        sortCells([
+          ...[0, 1, 2].flatMap((y) => row(y, 0, [I, I, I])),
+          ...row(0, 1, [P, ".", P]).filter((c) => c[3] !== "."),
+          ...row(1, 1, [P, ".", P]).filter((c) => c[3] !== "."),
+          ...row(2, 1, [BM, BM, BM]),
+        ]),
+      );
+    });
+
+    it("puts the front on the low side for face north", () => {
+      const cells = cellsOf([0, 0, 0], [2, 0, 1], I, {
+        period: 2,
+        post: P,
+        inset: true,
+        face: "north",
+      });
+      expect(cells).toEqual(sortCells([...row(0, 1, [I, I, I]), [0, 0, 0, P], [2, 0, 0, P]]));
+    });
+
+    it("runs along z for face east, front on the high x side", () => {
+      const cells = cellsOf([5, 0, 0], [6, 1, 2], I, {
+        period: 2,
+        post: P,
+        sill: BM,
+        inset: true,
+        face: "east",
+      });
+      // height 2: sill row in front (x = 6), post row above it at z = 0 and 2
+      expect(cells).toEqual(
+        sortCells([
+          ...[0, 1].flatMap((y) => [0, 1, 2].map((z): Cell => [5, y, z, I])),
+          ...[0, 1, 2].map((z): Cell => [6, 0, z, BM]),
+          [6, 1, 0, P],
+          [6, 1, 2, P],
+        ]),
+      );
+    });
+  });
+
+  describe("pilaster", () => {
+    it("adds a proud post cell in front of each post, not over beam or sill rows", () => {
+      // run x = 0..2, z = 0 back / 1 front (south); height 4: sill, 2 post rows, beam
+      const SILL = "minecraft:polished_andesite";
+      const cells = cellsOf([0, 0, 0], [2, 3, 1], I, {
+        period: 2,
+        post: S,
+        sill: SILL,
+        beam: BM,
+        pilaster: true,
+        face: "south",
+      });
+      expect(cells).toEqual(
+        sortCells([
+          ...row(0, 0, [SILL, SILL, SILL]),
+          ...row(1, 0, [S, I, S]),
+          ...row(2, 0, [S, I, S]),
+          ...row(3, 0, [BM, BM, BM]),
+          [0, 1, 1, S],
+          [2, 1, 1, S],
+          [0, 2, 1, S],
+          [2, 2, 1, S],
+        ]),
+      );
+    });
+
+    it("leaves recessed bays open with infill null", () => {
+      expect(
+        cellsOf([0, 0, 0], [2, 0, 1], I, {
+          period: 2,
+          post: S,
+          infill: null,
+          pilaster: true,
+          face: "south",
+        }),
+      ).toEqual(
+        sortCells([
+          [0, 0, 0, S],
+          [2, 0, 0, S],
+          [0, 0, 1, S],
+          [2, 0, 1, S],
+        ]),
+      );
+    });
+  });
+
+  describe("validation", () => {
+    const wall = (opts: Partial<Parameters<typeof shapes.bayWall>[3]>) => () =>
+      shapes.bayWall([0, 0, 0], [6, 3, 0], I, { period: 3, ...opts });
+
+    it("requires period and checks it", () => {
+      refuses(() => shapes.bayWall([0, 0, 0], [6, 0, 0], I, {} as never), /period is required/);
+      refuses(wall({ period: 0 }), /period must be an int >= 1/);
+      refuses(wall({ period: 1.5 }), /period must be an int/);
+      refuses(wall({ period: [] }), /non-empty array/);
+      refuses(wall({ period: [3, 0, 3] }), /period entry must be an int >= 1/);
+    });
+
+    it("refuses a period that does not fit the run", () => {
+      refuses(wall({ period: 4 }), /period 4 does not fit a run of 7 cells/);
+      refuses(wall({ period: [2, 2] }), /sum to 4 but the run of 7 cells needs 6/);
+    });
+
+    it("refuses footprints of the wrong shape", () => {
+      refuses(
+        () => shapes.bayWall([0, 0, 0], [4, 0, 4], I, { period: 2 }),
+        /must be 1 thick in x or z/,
+      );
+      refuses(() => shapes.bayWall([0, 0, 0], [0, 4, 0], I, { period: 1 }), /1 x 1 footprint/);
+      refuses(
+        () => shapes.bayWall([0, 0, 0], [6, 0, 2], I, { period: 3, inset: true, face: "south" }),
+        /2 thick across the run/,
+      );
+      refuses(
+        () => shapes.bayWall([0, 0, 0], [6, 0, 0], I, { period: 3, pilaster: true, face: "south" }),
+        /2 thick across the run/,
+      );
+      refuses(
+        () => shapes.bayWall([0, 0] as never, [6, 0, 0], I, { period: 3 }),
+        /bay_wall: c1 must be 3 ints/,
+      );
+    });
+
+    it("refuses bad depth options", () => {
+      const deep = { period: 3, inset: true } as const;
+      const two = (o: Partial<Parameters<typeof shapes.bayWall>[3]>) => () =>
+        shapes.bayWall([0, 0, 0], [6, 0, 1], I, { ...deep, ...o });
+      refuses(two({}), /inset needs face/);
+      refuses(two({ face: "east" }), /2 thick across the run/);
+      refuses(two({ face: "up" as never }), /invalid direction/);
+      refuses(two({ face: "south", pilaster: true }), /cannot be combined/);
+      refuses(two({ face: "south", infill: null }), /inset needs an infill/);
+      refuses(wall({ face: "up" as never }), /invalid direction/);
+    });
+
+    it("refuses a height with no row left for posts", () => {
+      refuses(
+        () => shapes.bayWall([0, 0, 0], [6, 1, 0], I, { period: 3, beam: BM, sill: BM }),
+        /leaves no row/,
+      );
+      refuses(
+        () => shapes.bayWall([0, 0, 0], [6, 0, 0], I, { period: 3, beam: BM }),
+        /leaves no row/,
+      );
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [S, "minecraft:mossy_stone_bricks", "minecraft:cracked_stone_bricks"];
+
+    it("gives the same cells twice for the same seed", () => {
+      const run = () =>
+        shapes
+          .bayWall([0, 0, 0], [20, 5, 0], palette, { period: 4, beam: palette, seed: 9 })
+          .cells();
+      expect(run()).toEqual(run());
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      const run = (seed: number) =>
+        cellsOf([0, 0, 0], [20, 5, 0], palette, { period: 4, beam: palette, seed });
+      const [a, b] = [run(1), run(2)];
+      expect(a).not.toEqual(b);
+      expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+    });
+  });
+});

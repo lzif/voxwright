@@ -11722,6 +11722,7 @@ var shapes_exports = {};
 __export(shapes_exports, {
   DIRECTIONS: () => DIRECTIONS,
   arch: () => arch,
+  bayWall: () => bayWall,
   box: () => box,
   cone: () => cone,
   cylinder: () => cylinder,
@@ -12231,6 +12232,124 @@ function skirtRoof(c1, c2, block, options = {}) {
   if (rim !== body) out = out.concat(rim.geo);
   if (dentil) out = out.concat(dentil.geo);
   return out;
+}
+function bayWall(c1, c2, block, options) {
+  const [[x1, y1, z1], [x2, y2, z2]] = corners("bay_wall", c1, c2);
+  const { seed, inset = false, pilaster = false } = options;
+  if (options.period === void 0) {
+    throw new McbuilderError("bay_wall: period is required (a number or an array of distances)");
+  }
+  if (inset && pilaster) {
+    throw new McbuilderError("bay_wall: inset and pilaster cannot be combined; pick one");
+  }
+  if (inset && options.infill === null) {
+    throw new McbuilderError("bay_wall: inset needs an infill to sit behind the frame");
+  }
+  const sx = x2 - x1 + 1;
+  const sz = z2 - z1 + 1;
+  const height = y2 - y1 + 1;
+  const deep = inset || pilaster;
+  let runAxis;
+  let frontIsHigh = false;
+  if (deep) {
+    if (options.face === void 0) {
+      throw new McbuilderError(
+        `bay_wall: ${inset ? "inset" : "pilaster"} needs face (north, south, east or west)`
+      );
+    }
+    const face = direction("bay_wall: face", options.face);
+    const [dx] = DIRECTIONS[face];
+    runAxis = dx === 0 ? "x" : "z";
+    frontIsHigh = face === "south" || face === "east";
+    const depth = runAxis === "x" ? sz : sx;
+    if (depth !== 2) {
+      throw new McbuilderError(
+        `bay_wall: with ${inset ? "inset" : "pilaster"} the footprint must be 2 thick across the run (face ${face}), got ${depth}`
+      );
+    }
+  } else {
+    if (options.face !== void 0) direction("bay_wall: face", options.face);
+    if (sx !== 1 && sz !== 1) {
+      throw new McbuilderError(
+        `bay_wall: footprint must be 1 thick in x or z (2 with inset or pilaster), got ${sx} x ${sz}`
+      );
+    }
+    if (sx === 1 && sz === 1) {
+      throw new McbuilderError(
+        "bay_wall: a 1 x 1 footprint has no run; it must be at least 2 long"
+      );
+    }
+    runAxis = sx === 1 ? "z" : "x";
+  }
+  const run0 = runAxis === "x" ? x1 : z1;
+  const n2 = runAxis === "x" ? sx : sz;
+  if (n2 < 2) throw new McbuilderError(`bay_wall: the run must be at least 2 cells long, got ${n2}`);
+  const posts = /* @__PURE__ */ new Set([0]);
+  if (typeof options.period === "number") {
+    const period = positive("bay_wall: period", options.period);
+    if ((n2 - 1) % period !== 0) {
+      throw new McbuilderError(
+        `bay_wall: period ${period} does not fit a run of ${n2} cells (posts at both ends need (length - 1) divisible by period); use length ${n2 - (n2 - 1) % period} or ${n2 - (n2 - 1) % period + period}, or give period as an array`
+      );
+    }
+    for (let i2 = period; i2 <= n2 - 1; i2 += period) posts.add(i2);
+  } else {
+    if (!Array.isArray(options.period) || options.period.length === 0) {
+      throw new McbuilderError(
+        `bay_wall: period must be an int or a non-empty array of ints, got ${show(options.period)}`
+      );
+    }
+    let at = 0;
+    for (const d of options.period) {
+      at += positive("bay_wall: period entry", d);
+      posts.add(at);
+    }
+    if (at !== n2 - 1) {
+      throw new McbuilderError(
+        `bay_wall: period distances sum to ${at} but the run of ${n2} cells needs ${n2 - 1}`
+      );
+    }
+  }
+  const rowsUsed = (options.beam === void 0 ? 0 : 1) + (options.sill === void 0 ? 0 : 1);
+  if (height <= rowsUsed) {
+    throw new McbuilderError(
+      `bay_wall: height ${height} leaves no row for posts and bays between the ${rowsUsed} beam / sill row${rowsUsed === 1 ? "" : "s"}`
+    );
+  }
+  const postP = new Painter(options.post ?? block, seed);
+  const infillP = options.infill === null ? null : new Painter(options.infill ?? block, seed);
+  const beamP = options.beam === void 0 ? null : new Painter(options.beam, seed);
+  const sillP = options.sill === void 0 ? null : new Painter(options.sill, seed);
+  const geo = new Geometry();
+  const cell = (i2, y, layer, p) => {
+    const run = run0 + i2;
+    if (runAxis === "x") {
+      const zBack = frontIsHigh ? z1 : z2;
+      const z = deep ? zBack + (layer === 1 ? frontIsHigh ? 1 : -1 : 0) : z1;
+      geo.set(run, y, z, p.blockAt(run, y, z));
+    } else {
+      const xBack = frontIsHigh ? x1 : x2;
+      const x3 = deep ? xBack + (layer === 1 ? frontIsHigh ? 1 : -1 : 0) : x1;
+      geo.set(x3, y, run, p.blockAt(x3, y, run));
+    }
+  };
+  for (let i2 = 0; i2 < n2; i2++) {
+    const isPost = posts.has(i2);
+    for (let row = 0; row < height; row++) {
+      const y = y1 + row;
+      const rail = row === height - 1 && beamP ? beamP : row === 0 && sillP ? sillP : null;
+      if (inset) {
+        if (infillP) cell(i2, y, 0, infillP);
+        const frame = rail ?? (isPost ? postP : null);
+        if (frame) cell(i2, y, 1, frame);
+      } else {
+        const body = rail ?? (isPost ? postP : infillP);
+        if (body) cell(i2, y, 0, body);
+        if (pilaster && isPost && !rail) cell(i2, y, 1, postP);
+      }
+    }
+  }
+  return geo;
 }
 
 // packages/mcbuilder/src/voxels.ts
