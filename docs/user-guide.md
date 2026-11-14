@@ -11,7 +11,7 @@ Everything runs in your browser. Files you open are read on your machine and are
 Voxwright is first a programmatic Minecraft build engine and an Agent Skill. An agent or a script writes a short recipe for the build engine (`packages/mcbuilder`), which validates the blocks and writes a schematic as `.schem`, `.litematic`, `.nbt` or `.mcstructure`. This app is the human-in-the-loop part of that workflow:
 
 1. An agent or a script produces a schematic.
-2. You look at it. Either run the preview command of the skill CLI, `node skills/voxwright/scripts/voxwright-cli.mjs preview <file>` (an agent that has the skill does this for you), which serves the app and the file together and opens the page, or open the page yourself and open the file (section 1).
+2. You look at it. Either run `mcbuild preview <file>` (or `mcbuild view <file>`, from [`voxmc`](https://www.npmjs.com/package/voxmc) on npm; an agent with the skill runs `node skills/voxwright/scripts/voxwright-cli.mjs preview <file>` for you), which serves the app and the file together and opens the page, or open the page yourself and open the file (section 1). You can also pass a run folder or a run number (`mcbuild view 3`).
 3. You inspect the build in 3D: block placement, block states, layers (section 2).
 4. You fix details by hand with the editor (section 4) or the touch layout (section 5).
 5. You export the result in the format Minecraft needs (section 6) and load it into the game.
@@ -148,11 +148,11 @@ Typical lines:
 
 ### Block states between Java and Bedrock
 
-Block states are translated by rule, for stairs, slabs, doors, beds, logs and other pillars, fences, panes, walls, moss carpets and blocks with a facing. Block names are written as they are, apart from two renames (`cobweb` and Bedrock's `web`, `sugar_cane` and Bedrock's `reeds`). A block property the rules do not cover is dropped and listed in the loss report, not guessed. A block name that differs between the editions but is not one of the two renames is written unchanged and is not listed, so it can be wrong in the other game. This is not a full mapping table.
+Block states are translated by rule, for stairs, slabs, trapdoors, doors, beds, logs and other pillars, leaves, lanterns, torches, fences, panes, walls, moss carpets and blocks with a facing. Block names are written as they are, apart from `cobweb` (`web` on Bedrock), `sugar_cane` (`reeds`), beds (`*_bed` and `bed` with a colour), double slabs (`*_slab[type=double]` and `*_double_slab`) and wall torches (`*_wall_torch` and `*_torch` with `torch_facing_direction`). A block property the rules do not cover is dropped and listed in the loss report, not guessed. A block name that differs between the editions but is not one of those renames is written unchanged and is not listed, so it can be wrong in the other game. This is not a full mapping table.
 
 ## 4. The editor
 
-With a mouse and keyboard, a WebGL2 browser and a file open, the toolbar appears above the picture, and a column of panels appears on its left: the block palette, the block-state panel and the selection panel (which also holds **Block at coordinates**). The editor works in the **Orbit** camera only. This section is about the desktop layout, with a mouse and keyboard; on a phone or tablet the same editor is driven by fingers, as section 5 describes.
+With a mouse and keyboard, a WebGL2 browser and a file open, the toolbar appears above the picture, and a column of panels appears on its left: the block palette, the block-state panel, **Block at coordinates** and the selection panel. The editor works in the **Orbit** camera only. This section is about the desktop layout, with a mouse and keyboard; on a phone or tablet the same editor is driven by fingers, as section 5 describes.
 
 ### How the mouse works
 
@@ -218,15 +218,15 @@ The list shows names only, with no block pictures.
 
 ### Selection
 
-Choose the **Select** tool and drag from one block to another. The selection is a box. You can also press **select everything** in the selection panel, or type the box's corners into the number fields. There is one row per axis (x, y, z) with two fields in it: the lower corner first, the upper corner second (their labels for screen readers are "From x" and "To x").
+Choose the **Select** tool and drag from one block to another. The selection is a box. You can also press **Select everything** in the selection panel, or type the box's corners into the number fields under **Corners**: there are two rows (**From** and **To**), each with X, Y and Z fields (their labels for screen readers are "From x", "From y", "From z" and "To x", "To y", "To z"). On desktop, the selection panel is divided into collapsible sections (**Corners**, **Fill & replace**, **Transform**, **Move** and **Clipboard**).
 
-Under **Block at coordinates**, type x, y and z to set one cell to the chosen block (**Set to chosen block**) or clear it (**Erase**), with the keyboard alone. The panel also prints the extent of the build.
+In the **Block at coordinates** panel above **Selection**, type x, y and z to set one cell to the chosen block (**Set to chosen block**) or clear it (**Erase**), with the keyboard alone. The panel also prints the extent of the build.
 
 Actions on a selection:
 
 | Action  | How                                                                                                                                                                                                                                    |
 | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Fill    | **Fill** or F. Fills the box with the chosen block. Tick **only empty cells** to leave existing blocks alone.                                                                                                                          |
+| Fill    | **Fill** or F. Fills the box with the chosen block. Tick **Only empty cells** to leave existing blocks alone.                                                                                                                          |
 | Replace | Type the block to replace (or press **Pointed-at** to use the block last pointed at), then **Replace with the chosen block**. It matches the whole block state, such as `minecraft:stone` or `minecraft:oak_stairs[facing=north,...]`. |
 | Copy    | **Copy** or Ctrl+C.                                                                                                                                                                                                                    |
 | Paste   | **Paste** or Ctrl+V, then click. The copied box is placed with its lowest corner on the block next to the face you click. The pasted area becomes the new selection.                                                                   |
@@ -235,11 +235,11 @@ Actions on a selection:
 | Mirror  | **Mirror E–W** or **Mirror N–S**.                                                                                                                                                                                                      |
 | Clear   | **Clear** or Esc, to deselect.                                                                                                                                                                                                         |
 
-The checkbox **leave the target alone where there is air (paste and move)** is on by default. With it on, air in the copied or moved box does not overwrite blocks at the target.
+The checkbox **Leave the target alone where there is air** (under **Clipboard**) is on by default. With it on, air in a copied, moved or rotated box does not overwrite blocks at the target.
 
 Selection actions (Fill, Replace, Copy, Move, Rotate, Mirror) work on the box whatever the layer slider shows, so they also change hidden layers if the box reaches them.
 
-Rotate on a selection that is not square (different width and length) turns the box into a footprint that sticks out past it, and writes every selected cell there, air included. That air can overwrite blocks next to the selection. Undo brings them back. A square selection does not have this problem. Mirror stays inside its box.
+Rotate on a selection that is not square (different width and length) turns the box into a footprint that sticks out past it. With **Leave the target alone where there is air** on (the default), air in the rotated selection does not overwrite blocks beside it; if you untick that box, every selected cell is written to the rotated footprint, air included (and Undo brings overwritten blocks back). Mirror stays inside its box.
 
 ### Undo and redo
 

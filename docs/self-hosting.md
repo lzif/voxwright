@@ -58,7 +58,7 @@ This is the `mcbuild` command (`packages/mcbuilder`). It downloads, for the vers
 - the vanilla block textures, block models, block states and entity textures from `InventivetalentDev/minecraft-assets` on GitHub (or, with `--from mojang`, extracts them from the Minecraft client jar on Mojang's servers, found through `piston-meta.mojang.com`);
 - the block registry from the PrismarineJS `minecraft-data` repository on GitHub.
 
-Both go to `~/.cache/mcbuilder/<version>/` (the client files under `client/`). Options: `--from <source>` (`github` or `mojang`), `--cache-dir <dir>` to use another folder, and `--force` to download again. A file that is already there is skipped. (`packages/mcbuilder/src/node/assets.ts`, `packages/mcbuilder/src/node/cli.ts`)
+Both go to `~/.cache/mcbuilder/<version>/` (the client files under `client/`). Options: `--from <source>` (`mcasset` or `mojang`), `--cache-dir <dir>` to use another folder, and `--force` to download again. A file that is already there is skipped. (`packages/mcbuilder/src/node/assets.ts`, `packages/mcbuilder/src/node/cli.ts`)
 
 ### Step 2: bundle them into one file
 

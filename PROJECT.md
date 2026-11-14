@@ -97,7 +97,7 @@ The mobile editor introduces full touch-first editing capabilities on mobile dev
 | MB6   | Selection actions & block state by touch       | Selection bottom sheet (Fill, Replace, Copy, Paste, Rotate, Mirror, Move), block-state sheet (boolean switches, segmented chips, rotate block button), recent blocks hotbar + `localStorage` persistence, inspected follows taps | MB5          | DONE, IN VM |
 | MB7   | Phone performance pass                         | Dynamic resolution scaling during camera gestures, Auto/High/Low quality presets, demand-driven frame rendering, coarse-device history cap clamp, mobile worker pool clamp                                                       | MB6          | DONE, IN VM |
 | MB8   | Polish, accessibility and docs                 | Toasts with 4s Undo, haptic feedback (`navigator.vibrate`), left-handed toggle, optional multi-finger tap shortcuts, touch help/walkthrough, WCAG 2.5.5 touch target size pass, extended contrast suite, documentation           | MB7          | DONE, IN VM |
-| FINAL | E2E test pass & adversarial coverage hardening | Pass 100% of E2E test suite (Tiers 1-4) across mobile & desktop, followed by Tier 5 adversarial coverage hardening loop                                                                                                          | MB1–MB8      | PLANNED     |
+| FINAL | E2E test pass & adversarial coverage hardening | Pass 100% of E2E test suite (Tiers 1-4) across mobile & desktop, followed by Tier 5 adversarial coverage hardening loop                                                                                                          | MB1–MB8      | DONE, IN VM |
 
 ---
 

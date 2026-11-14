@@ -124,7 +124,7 @@ mcbuild preview house.schem
 
 `apps/web` is the human-in-the-loop half of the workflow: the place where a person looks at a
 generated build, checks block placement and block states, fixes what the agent got wrong, and
-exports the result. `voxwright-cli preview <file>` opens it with the build loaded (the page
+exports the result. `mcbuild preview <file>` (or `mcbuild view <file>`, or `voxwright-cli preview <file>`) opens it with the build loaded (the page
 accepts a same-origin `?open=` link). It also works on its own, for any schematic, at
 https://luki.is-a.dev/voxwright/.
 
@@ -290,9 +290,9 @@ entities are carried between the three Java formats, and kept as they are from
 one `.mcstructure` to another; between Java and Bedrock they are not
 translated, so they are listed with a count and kind instead. Bedrock block
 states are translated by rule: a property the rules do not cover is dropped and
-listed rather than guessed. Block names are written as they are apart from two
-renames, so an unknown or renamed Bedrock block name passes through without a
-report line. The report also lists blocks left out on purpose (`structure_void`,
+listed rather than guessed. Block names are written as they are apart from
+`cobweb`/`web`, `sugar_cane`/`reeds`, beds, double slabs and wall torches, so
+another unknown or renamed Bedrock block name passes through without a report line. The report also lists blocks left out on purpose (`structure_void`,
 `structure_block`, `jigsaw`), `cave_air` and `void_air` turned into air, `.schem`
 metadata and biomes that are not carried, and a `.litematic` with several regions
 (flattened into one; cells where regions overlap are overwritten). A build more

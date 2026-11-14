@@ -161,6 +161,7 @@ Caveats that hold for every format:
 trapdoors, beds, logs and other pillars, fences, panes, walls, torches, lanterns, leaves, and
 blocks with a `facing`. A property the rules do not cover is dropped and listed as a warning,
 never guessed. Read the warnings of a `.mcstructure` export and tell the user what was lost. Block
-names are passed through (apart from `grass_block` -> `grass` and wall torches -> `torch` with
-`torch_facing_direction`), so another block that has a different name on Bedrock arrives as an
-unknown block there.
+names are passed through (apart from `cobweb` -> `web`, `sugar_cane` -> `reeds`, beds `*_bed` ->
+`bed`, double slabs `*_slab[type=double]` -> `*_double_slab`, and wall torches `*_wall_torch` ->
+`*_torch` with `torch_facing_direction`), so another block that has a different name on Bedrock
+arrives as an unknown block there.

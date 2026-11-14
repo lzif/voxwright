@@ -10,10 +10,10 @@
 ## Test Architecture
 
 - **Unit & Logic Layer**: Vitest (`pnpm test`), executing pure modules (`apps/web/src/lib/gestures.ts`, pure core functions, coordinate math).
-- **Mobile Touch E2E Runner**: Headless Chromium via `puppeteer-core` in `apps/web/test/touch-e2e.ts`.
+- **Mobile Touch E2E Runner**: Headless Chromium via `puppeteer-core` in `apps/web/test/touch-e2e.ts` (804 checks).
   - Mobile Viewport: 390 x 844 px, DPR: 3.0, `hasTouch: true`, `isMobile: true`.
   - Touch Event Dispatching: Native CDP `Input.dispatchTouchEvent` and Puppeteer touch APIs.
-- **Desktop E2E Runner**: Headless Chromium via `puppeteer-core` in `apps/web/test/e2e.ts` (338 baseline assertions).
+- **Desktop E2E Runner**: Headless Chromium via `puppeteer-core` in `apps/web/test/e2e.ts` (346 checks; 338 baseline assertions).
 - **Accessibility & Contrast**: Automated axe-core checks in page tests + `apps/web/test/contrast.test.ts`.
 
 ## Feature Inventory Coverage Map
