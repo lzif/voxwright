@@ -5348,7 +5348,7 @@ var SkillCliError = class extends Error {
 };
 
 // packages/mcbuilder/src/node/skill/common.ts
-var PROG = "voxwright-cli";
+var PROG = /(^|[\\/])mcbuild(\.mjs)?$/.test(process.argv[1] ?? "") ? "mcbuild" : "voxwright-cli";
 var VERSION = true ? "0.0.0" : "dev";
 var DEFAULT_MC_VERSION = "26.2";
 function paletteOf(volume) {

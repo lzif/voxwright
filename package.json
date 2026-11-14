@@ -22,6 +22,7 @@
     "test:touch": "pnpm --filter @voxwright/web test:touch",
     "depcheck": "depcruise --config .dependency-cruiser.cjs .",
     "build:skill": "node scripts/build-skill.ts",
+    "pack:npm": "node scripts/pack-npm.ts",
     "convert": "node scripts/convert.ts",
     "licenses": "node scripts/licenses.ts"
   },

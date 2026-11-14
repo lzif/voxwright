@@ -8,7 +8,13 @@ import { AIR, compareCodePoints, type Volume } from "@voxwright/core";
 import { DATA_VERSIONS } from "../../dataversion.ts";
 import { SkillCliError } from "./io.ts";
 
-export const PROG = "voxwright-cli";
+/**
+ * The name in usage and error text. The npm package installs the same bundle as `mcbuild`
+ * (scripts/pack-npm.ts), so the text follows the name the program was started under.
+ */
+export const PROG = /(^|[\\/])mcbuild(\.mjs)?$/.test(process.argv[1] ?? "")
+  ? "mcbuild"
+  : "voxwright-cli";
 /** Replaced by the repository version when the bundle is built (scripts/build-skill.ts). */
 declare const __VOXWRIGHT_VERSION__: string | undefined;
 export const VERSION = typeof __VOXWRIGHT_VERSION__ === "string" ? __VOXWRIGHT_VERSION__ : "dev";

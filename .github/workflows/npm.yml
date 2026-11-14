@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Publishes the npm package `mcbuild` (the skill CLI bundle, see scripts/pack-npm.ts).
+#
+# Runs when a tag v<version> is pushed, and by hand. The tag must equal the version in the root
+# package.json. Needs the repository secret NPM_TOKEN: an npm token that may publish `mcbuild`.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Assemble and pack, but do not publish
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+      - name: The committed bundle is current
+        run: node scripts/build-skill.ts --check
+      - name: The tag names the version
+        if: github.event_name == 'push'
+        run: test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
+      - name: Assemble the package
+        run: node scripts/pack-npm.ts ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run && '--dry-run' || '' }}
+      - name: Smoke test
+        run: |
+          node dist/npm/mcbuild/mcbuild.mjs --version
+          node dist/npm/mcbuild/mcbuild.mjs --help
+      - name: Publish (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry-run
+        run: npm publish ./dist/npm/mcbuild --access public --dry-run
+      - name: Publish
+        if: github.event_name == 'push' || !inputs.dry-run
+        run: npm publish ./dist/npm/mcbuild --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

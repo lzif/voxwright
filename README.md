@@ -228,6 +228,12 @@ Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm d
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
+The skill CLI is also the npm package `mcbuild` (`npx mcbuild build house.ts --out house.schem`),
+which is the same bundle under another name. `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
+To release: set the version in the root `package.json`, run `pnpm build:skill`, commit, and push
+a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret. No
+version has been published yet.
+
 ## The `mcbuild` command
 
 `mcbuild` is the engine's development CLI, the direct port of the Python tool: it runs from the
