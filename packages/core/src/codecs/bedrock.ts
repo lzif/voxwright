@@ -4,8 +4,10 @@
 //
 // Bedrock keeps block states as typed values (bits as bytes, directions as
 // ints) under different names than Java. This module translates the families
-// that matter for builds: stairs, slabs, doors, beds, logs and other pillars,
-// fences, panes and walls, moss carpets, and blocks with a facing. Block
+// that matter for builds: stairs, slabs, doors, trapdoors, beds, logs and other
+// pillars, fences, panes and walls, leaves, lanterns, torches, moss carpets,
+// and blocks with a facing. The trapdoor, leaves, lantern and torch rules follow
+// Bedrock's documented states; no file saved by the game has confirmed them yet. Block
 // names are passed through unchanged apart from the renames below.
 //
 // It is rule based, not a complete table. Anything it does not understand is
@@ -59,6 +61,20 @@ const NAME_TO_BEDROCK: Readonly<Record<string, string>> = Object.fromEntries(
 
 /** `weirdo_direction` for stairs. */
 const STAIR_DIR = ["east", "west", "south", "north"] as const;
+/** `direction` for trapdoors: the same order as the stairs. */
+const TRAPDOOR_DIR = STAIR_DIR;
+/**
+ * Torches on a wall. Bedrock names the side the torch is attached to (`torch_facing_direction`),
+ * Java the side it points to, so the two are opposite.
+ */
+const TORCH_TO_JAVA: Readonly<Record<string, string>> = {
+  west: "east",
+  east: "west",
+  north: "south",
+  south: "north",
+};
+const WALL_TORCH = /^(?:(soul|copper)_)?wall_torch$/;
+const TORCH = /^(?:(soul|copper)_)?torch$/;
 /** `direction` for beds and similar. */
 const BED_DIR = ["south", "west", "north", "east"] as const;
 /** `facing_direction`. */
@@ -136,6 +152,22 @@ export function bedrockToJava(
     out.set("half", Number(take("upside_down_bit")) ? "top" : "bottom");
     const corner = String(take("corner") ?? "none");
     out.set("shape", corner === "none" ? "straight" : corner);
+  } else if (name.endsWith("trapdoor") && s.has("upside_down_bit")) {
+    out.set("facing", TRAPDOOR_DIR[Number(take("direction"))] ?? "north");
+    out.set("half", Number(take("upside_down_bit")) ? "top" : "bottom");
+    out.set("open", bool(take("open_bit")));
+  } else if (name.endsWith("_leaves") && s.has("persistent_bit")) {
+    out.set("persistent", bool(take("persistent_bit")));
+    take("update_bit");
+  } else if (name.endsWith("lantern") && s.has("hanging")) {
+    out.set("hanging", bool(take("hanging")));
+  } else if (TORCH.test(name) && s.has("torch_facing_direction")) {
+    const side = String(take("torch_facing_direction"));
+    const facing = TORCH_TO_JAVA[side];
+    if (facing !== undefined) {
+      name = name.replace(/torch$/, "wall_torch");
+      out.set("facing", facing);
+    }
   } else if (name.endsWith("_door") && s.has("upper_block_bit")) {
     out.set("facing", DOOR_TO_JAVA[String(take("cardinal_direction"))] ?? "north");
     out.set("half", Number(take("upper_block_bit")) ? "upper" : "lower");
@@ -238,6 +270,32 @@ export function javaToBedrock(canonical: string): ToBedrockResult {
     states.set("upside_down_bit", byte(take("half") === "top" ? 1 : 0));
     const shape = take("shape") ?? "straight";
     states.set("minecraft:corner", str(shape === "straight" ? "none" : shape));
+  } else if (name.endsWith("trapdoor")) {
+    states.set(
+      "direction",
+      int(
+        Math.max(
+          TRAPDOOR_DIR.indexOf((take("facing") ?? "north") as (typeof TRAPDOOR_DIR)[number]),
+          0,
+        ),
+      ),
+    );
+    states.set("upside_down_bit", byte(take("half") === "top" ? 1 : 0));
+    states.set("open_bit", byte(flag(take("open"))));
+    take("powered");
+  } else if (name.endsWith("_leaves")) {
+    states.set("persistent_bit", byte(flag(take("persistent"))));
+    states.set("update_bit", byte(0));
+    take("distance");
+  } else if (name.endsWith("lantern") && p.has("hanging")) {
+    states.set("hanging", byte(flag(take("hanging"))));
+  } else if (WALL_TORCH.test(name)) {
+    name = name.replace("wall_torch", "torch");
+    const side = Object.entries(TORCH_TO_JAVA).find(([, j]) => j === p.get("facing"))?.[0];
+    take("facing");
+    states.set("torch_facing_direction", str(side ?? "top"));
+  } else if (TORCH.test(name)) {
+    states.set("torch_facing_direction", str("top"));
   } else if (name.endsWith("_door") && p.has("half")) {
     states.set(
       "minecraft:cardinal_direction",

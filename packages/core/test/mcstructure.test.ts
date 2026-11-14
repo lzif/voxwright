@@ -145,6 +145,42 @@ describe(".mcstructure", () => {
     ).toBe(false);
   });
 
+  it("translates trapdoors, leaves, lanterns and torches both ways", () => {
+    const states = (java: string) =>
+      Object.fromEntries([...javaToBedrock(java).block.states].map(([k, v]) => [k, v.value]));
+    expect(states("minecraft:spruce_trapdoor[facing=west,half=top,open=true]")).toEqual({
+      direction: 1,
+      upside_down_bit: 1,
+      open_bit: 1,
+    });
+    expect(states("minecraft:oak_leaves[persistent=true]")).toEqual({
+      persistent_bit: 1,
+      update_bit: 0,
+    });
+    expect(states("minecraft:lantern[hanging=true]")).toEqual({ hanging: 1 });
+    // Bedrock has one torch block and names the side it is attached to.
+    const torch = javaToBedrock("minecraft:wall_torch[facing=south]");
+    expect(torch.block.name).toBe("minecraft:torch");
+    expect(torch.block.states.get("torch_facing_direction")?.value).toBe("north");
+    expect(states("minecraft:soul_torch")).toEqual({ torch_facing_direction: "top" });
+
+    for (const java of [
+      "minecraft:spruce_trapdoor[facing=west,half=top,open=true]",
+      "minecraft:iron_trapdoor[facing=north,half=bottom,open=false]",
+      "minecraft:oak_leaves[persistent=true]",
+      "minecraft:soul_lantern[hanging=true]",
+      "minecraft:lantern[hanging=false]",
+      "minecraft:wall_torch[facing=east]",
+      "minecraft:soul_wall_torch[facing=north]",
+      "minecraft:torch",
+    ]) {
+      const b = javaToBedrock(java);
+      expect(b.warnings, java).toEqual([]);
+      const back = new Map([...b.block.states].map(([k, v]) => [k, v.value]));
+      expect(bedrockToJava(b.block.name, back).state, java).toBe(canonicalize(java));
+    }
+  });
+
   it("rejects files that are not structures", async () => {
     await expect(readMcstructure(Uint8Array.from([1, 2, 3]))).rejects.toThrow(CodecError);
     expect(() => writeMcstructure(new Volume())).toThrow(CodecError);
