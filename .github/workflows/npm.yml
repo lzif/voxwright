@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Publishes the npm package `@voxwright/mcbuild` (the skill CLI bundle, see scripts/pack-npm.ts).
+# Publishes the npm package `voxmc` (the skill CLI bundle, see scripts/pack-npm.ts).
 #
 # Runs when a tag v<version> is pushed, and by hand. The tag must equal the version in the root
-# package.json. Needs the repository secret NPM_TOKEN: an npm token that may publish to the
-# @voxwright scope.
+# package.json. Needs the repository secret NPM_TOKEN: an npm token that may publish `voxmc`.
 
 on:
   push:

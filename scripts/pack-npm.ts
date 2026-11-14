@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Assemble the npm package `@voxwright/mcbuild` in dist/npm/mcbuild/: the
-// committed skill CLI bundle under the command name `mcbuild`, with the licence
-// files. (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`.)
+// Assemble the npm package `voxmc` in dist/npm/mcbuild/: the committed skill
+// CLI bundle under the command name `mcbuild`, with the licence files.
+// (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`.)
 //
 //   node scripts/pack-npm.ts            fails while the version is still 0.0.0
 //   node scripts/pack-npm.ts --dry-run  assembles any version, for CI
@@ -42,7 +42,7 @@ await writeFile(join(out, "mcbuild.mjs"), bundle, { mode: 0o755 });
 for (const file of ["LICENSE", "NOTICE"]) await cp(join(root, file), join(out, file));
 await cp(join(root, "scripts/npm/README.md"), join(out, "README.md"));
 const manifest = {
-  name: "@voxwright/mcbuild",
+  name: "voxmc",
   version: pkg.version,
   description:
     "Build Minecraft structures from a TypeScript recipe and export .schem, .litematic, .nbt or .mcstructure. The command line of Voxwright.",
@@ -59,4 +59,4 @@ const manifest = {
   publishConfig: { access: "public" },
 };
 await writeFile(join(out, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`${OUT}: @voxwright/mcbuild ${pkg.version}, ${(bundle.length / 1000).toFixed(0)} kB`);
+console.log(`${OUT}: voxmc ${pkg.version}, ${(bundle.length / 1000).toFixed(0)} kB`);

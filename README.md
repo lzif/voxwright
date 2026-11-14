@@ -114,7 +114,7 @@ The same seed always gives the same build. What the agent reads to write one:
 All of this works without an agent too. The same command line is on npm:
 
 ```sh
-npm install -g @voxwright/mcbuild     # or: npx @voxwright/mcbuild <command>
+npm install -g voxmc     # or: npx voxmc <command>
 mcbuild init house.ts
 mcbuild build house.ts --out house.schem
 mcbuild preview house.schem
@@ -186,7 +186,7 @@ Guides: the [user guide](docs/user-guide.md) for people using the app, and the
 ## Monorepo layout
 
 This is a pnpm monorepo. Workspace members live under `packages/*` and `apps/*` and are marked
-`private` in their `package.json`; the command line is published to npm as `@voxwright/mcbuild`
+`private` in their `package.json`; the command line is published to npm as `voxmc`
 (see Tooling below). The GitHub repository itself is public, and the skill is installed straight
 from it.
 
@@ -236,8 +236,8 @@ Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm d
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
-The command line is also the npm package `@voxwright/mcbuild`, which is the skill's bundle under
-another name (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`). `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
+The command line is also the npm package `voxmc`, which is the skill's bundle under the command
+name `mcbuild` (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`). `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
 To release: set the version in the root `package.json`, run `pnpm build:skill`, commit, and push
 a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret.
 
@@ -337,7 +337,7 @@ Not done yet:
   has only been driven by emulated touch so far; `docs/phone-test-checklist.md`
   lists what to try). Luki checked an edited export in Litematica and smooth
   navigation on a real GPU by hand on 2026-11-11; no GPU numbers were recorded.
-- The 0.1.0 release: the 0.1.0 version bump and tag (`@voxwright/mcbuild` is on npm at 0.0.3).
+- The 0.1.0 release: the 0.1.0 version bump and tag (`voxmc` is on npm at 0.0.3).
 - Deferred, not in 0.1.0: the parts catalog (the spec names it, nothing defines it, so it needs a
   definition first) and the fast and trusted preview tiers.
 - From the mcbuilder port: archiving the Python repository.

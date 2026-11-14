@@ -204,7 +204,7 @@ The numbers after MB7 are within the run-to-run noise of the numbers before it (
 
 ## M4 status
 
-**Status:** M4's features are built. The 0.1.0 release itself is not: its version bump and tag are not done, and Luki decides those (#17 is still open on GitHub). On 2026-11-14 the command line was published to npm as `@voxwright/mcbuild` (0.0.1, 0.0.2 and 0.0.3, `.github/workflows/npm.yml`); the other packages stay private. CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
+**Status:** M4's features are built. The 0.1.0 release itself is not: its version bump and tag are not done, and Luki decides those (#17 is still open on GitHub). On 2026-11-14 the command line was published to npm as `voxmc` (initially `@voxwright/mcbuild` 0.0.1–0.0.3, `.github/workflows/npm.yml`); the other packages stay private. CI on GitHub is green on `ada6daa` (run 42606415765, all four jobs, including the `touch-e2e.ts` step; checked 2026-11-11). Whether a public site may serve Mojang's block-state and block-model JSON is open; the textures part is avoided on the project's own site by using Faithful 32x (see below).
 
 **What is there.**
 
@@ -242,7 +242,7 @@ The numbers after MB7 are within the run-to-run noise of the numbers before it (
 - `pnpm licenses` (without `run`) hits pnpm's built-in command and fails. Use `pnpm run licenses` or `node scripts/licenses.ts`.
 - The licence check covers the production dependencies of `apps/web` only, not the other packages, and CI does not run it.
 - The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and the rest). MIT asks for the notice with every copy.
-- The 0.1.0 version bump and tag are not done (`@voxwright/mcbuild` is published on npm at 0.0.3).
+- The 0.1.0 version bump and tag are not done (`voxmc` is published on npm at 0.0.3).
 - Decided 2026-11-14 (Luki): the project's own GitHub Pages site serves a vanilla pack, Mojang's block states, block models and textures for 26.3, taken at build time from InventivetalentDev/minecraft-assets (`.github/workflows/pages.yml`) and not committed. From 2026-11-09 it had used Faithful 32x textures. What other hosts may serve is still theirs to check (see `docs/self-hosting.md`, section 8).
 - The default source link points at `github.com/lzif/voxwright`. The repository is public (checked 2026-11-11), so the link resolves; `/tree/ada6daa` returns 200.
 - axe-core leaves colour-contrast "needs review" items in some states; a person has to check those.

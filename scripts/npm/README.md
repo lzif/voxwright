@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 
-# @voxwright/mcbuild
+# voxmc
 
 Build Minecraft structures from a short TypeScript recipe. `mcbuild` runs the recipe, checks every
 block against the block registry of the Minecraft version, and writes `.schem` (WorldEdit),
@@ -10,7 +10,7 @@ It is the command line of [Voxwright](https://github.com/lzif/voxwright), in one
 dependencies. It needs Node 22.18 or later.
 
 ```sh
-npm install -g @voxwright/mcbuild
+npm install -g voxmc
 
 mcbuild init house.ts                                         # a starter recipe
 mcbuild build house.ts --out house.schem --out house.litematic
@@ -19,7 +19,7 @@ mcbuild preview house.litematic                               # 3D viewer in the
 mcbuild run house.ts --preview                                # PNG views
 ```
 
-Or without installing: `npx @voxwright/mcbuild build house.ts --out house.schem`.
+Or without installing: `npx voxmc build house.ts --out house.schem`.
 
 A recipe is an ES module that exports a `Build`:
 
