@@ -465,7 +465,7 @@ describe("preview: command line", () => {
     const { root } = await site();
     const h = io(root);
     expect(await cmdPreview(["--help"], h)).toBe(0);
-    expect(h.lines.join("\n")).toContain("Usage: voxwright-cli preview <schematic>");
+    expect(h.lines.join("\n")).toContain("Usage: voxwright-cli preview <schematic|run>");
     for (const args of [
       [],
       ["a.schem", "b.schem"],

@@ -9,6 +9,7 @@ import { basename, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Build } from "../build.ts";
 import { McbuilderError } from "../errors.ts";
+import type { VoxelGrid } from "../voxels.ts";
 
 /** A builder script that is missing, throws while loading, or exports no `Build`. */
 export class ScriptError extends McbuilderError {
@@ -81,4 +82,26 @@ export function dimensions(build: Build, dense: Dense): [number, number, number]
   const b = build.grid.bounds();
   if (b === null) return [...dense.size] as [number, number, number];
   return [b[1][0] - b[0][0] + 1, b[1][1] - b[0][1] + 1, b[1][2] - b[0][2] + 1];
+}
+
+/** `file:line:column` inside the recipe where `thrown` came from, if its stack says so. */
+export function locateInRecipe(thrown: unknown, recipe: string): string | null {
+  const stack = thrown instanceof Error ? (thrown.stack ?? "") : "";
+  for (const prefix of [pathToFileURL(recipe).href, recipe]) {
+    let from = 0;
+    for (;;) {
+      const at = stack.indexOf(prefix, from);
+      if (at === -1) break;
+      const m = /^(?:\?[^\s:)]*)?:(\d+)(?::(\d+))?/.exec(stack.slice(at + prefix.length));
+      if (m) return `${basename(recipe)}:${m[1]}${m[2] === undefined ? "" : `:${m[2]}`}`;
+      from = at + prefix.length;
+    }
+  }
+  return null;
+}
+
+/** The script line that first placed `block`, as `file:line:column`, or `null`. */
+export function placedAt(grid: VoxelGrid, block: string, recipe: string): string | null {
+  const first = grid.firstPlaced.get(block);
+  return first === undefined ? null : locateInRecipe(first, resolve(recipe));
 }

@@ -52,7 +52,14 @@ import {
   type HttpGet,
 } from "./assets.ts";
 import { diffRunDirs, resolveRunDir } from "./diff.ts";
-import { blockCounts, dimensions, exists, loadScript, scanDeterminism } from "./script.ts";
+import {
+  blockCounts,
+  dimensions,
+  exists,
+  loadScript,
+  placedAt,
+  scanDeterminism,
+} from "./script.ts";
 
 /** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
 declare const __VOXWRIGHT_BUNDLED__: boolean | undefined;
@@ -103,7 +110,8 @@ BUILD.scope(() => {
 });
 `;
 
-async function findConfig(startDir: string, home: string): Promise<McbuildConfig | null> {
+/** The nearest `mcbuild.toml` at or above `startDir`, parsed; `null` when there is none. */
+export async function findConfig(startDir: string, home: string): Promise<McbuildConfig | null> {
   let dir = resolve(startDir);
   for (;;) {
     const candidate = join(dir, "mcbuild.toml");
@@ -236,12 +244,20 @@ async function loadAndValidate(script: string, config: string | undefined, home:
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
   const { errors, warnings } = registry.validate(dense.palette, cfg.allowlist);
+  // As the Python tool does: name the script line that first placed the block.
+  const located = <T extends { block: string }>(issue: T): T & { at?: string } => {
+    const at = placedAt(build.grid, issue.block, script);
+    return at === null ? issue : { ...issue, at };
+  };
   return {
     build,
     cfg,
     dense,
-    errors: errors as unknown as Issue[],
-    warnings: [...warnings, ...detWarnings.map((message) => ({ message }))] as unknown as Issue[],
+    errors: errors.map(located) as unknown as Issue[],
+    warnings: [
+      ...warnings.map(located),
+      ...detWarnings.map((message) => ({ message })),
+    ] as unknown as Issue[],
   };
 }
 

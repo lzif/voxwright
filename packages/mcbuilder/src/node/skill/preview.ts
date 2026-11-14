@@ -15,6 +15,9 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import { DiffError } from "../../diff.ts";
+import { resolveRunDir, runArtifact } from "../diff.ts";
+import { PROG } from "./common.ts";
 import { SkillCliError, type SkillIo } from "./io.ts";
 
 export const DEFAULT_PORT = 4173;
@@ -25,21 +28,41 @@ export const PUBLISHED_WEB = "https://luki.is-a.dev/voxwright/";
 const PORT_TRIES = 50;
 const SCHEMATIC_EXTENSIONS = [".schem", ".litematic", ".nbt", ".mcstructure"];
 
-export const PREVIEW_USAGE = `Usage: voxwright-cli preview <schematic> [options]
+export const PREVIEW_USAGE = `Usage: ${PROG} preview <schematic|run> [options]
 
 Serve the web viewer and editor on this machine with <schematic> opened in it
 (.schem, .litematic, .nbt or .mcstructure). The file is read again on every page
 load, so rebuild and refresh the page to see the new build. Runs until Ctrl+C.
+
+Instead of a file, name a run: a run directory, or a run id such as 3 or run-003
+(looked up in --runs, default dist/). \`${PROG} view\` is the same command.
 
 Options:
   --port <n>          port to listen on (default ${DEFAULT_PORT}; when it is busy the next free
                       one is used; an explicit --port that is busy is an error)
   --host <h>          address to listen on (default ${DEFAULT_HOST})
   --no-open           do not open the page in the default browser
+  --runs <dir>        where run ids are looked up (default dist/)
   --web <dir|url>     web app to serve: a built apps/web directory or an http(s) URL
                       (default: $VOXWRIGHT_WEB, else apps/web/build of this checkout,
                       else ${PUBLISHED_WEB} through a local caching proxy)
   -h, --help          show this help`;
+
+/** The file to show: `given` itself, or the `.nbt` of the run it names. */
+async function schematicOf(given: string, runs: string, cwd: string): Promise<string> {
+  const path = resolve(cwd, given);
+  const kind = await stat(path).catch(() => null);
+  try {
+    if (kind?.isDirectory()) return await runArtifact(path);
+    if (kind === null && /^(run-)?\d+$/.test(given)) {
+      return await runArtifact(await resolveRunDir(resolve(cwd, runs), given));
+    }
+  } catch (e) {
+    if (e instanceof DiffError) throw new SkillCliError(e.message);
+    throw e;
+  }
+  return given;
+}
 
 /** Where the web app comes from. */
 export type WebSource =
@@ -93,7 +116,7 @@ export async function cmdPreview(args: string[], io: SkillIo): Promise<number> {
     return 0;
   }
   const preview = await startPreview({
-    schematic: parsed.schematic,
+    schematic: await schematicOf(parsed.schematic, parsed.runs, io.cwd),
     cwd: io.cwd,
     home: io.home,
     web: parsed.web ?? (io.env.VOXWRIGHT_WEB?.trim() || undefined),
@@ -125,6 +148,7 @@ function parsePreviewArgs(args: string[]): {
   host: string | undefined;
   web: string | undefined;
   open: boolean;
+  runs: string;
 } {
   const { values, positionals } = parseArgs({
     args,
@@ -135,6 +159,7 @@ function parsePreviewArgs(args: string[]): {
       host: { type: "string" },
       "no-open": { type: "boolean" },
       web: { type: "string" },
+      runs: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -146,6 +171,7 @@ function parsePreviewArgs(args: string[]): {
       host: undefined,
       web: undefined,
       open: false,
+      runs: "dist",
     };
   if (positionals.length !== 1)
     throw new SkillCliError(
@@ -170,6 +196,7 @@ function parsePreviewArgs(args: string[]): {
     host: values.host,
     web: values.web,
     open: !values["no-open"],
+    runs: values.runs ?? "dist",
   };
 }
 

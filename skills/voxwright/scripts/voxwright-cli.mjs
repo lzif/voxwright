@@ -2634,6 +2634,15 @@ var NAME_TO_BEDROCK = Object.fromEntries(
   Object.entries(NAME_TO_JAVA).map(([b, j]) => [j, b])
 );
 var STAIR_DIR = ["east", "west", "south", "north"];
+var TRAPDOOR_DIR = STAIR_DIR;
+var TORCH_TO_JAVA = {
+  west: "east",
+  east: "west",
+  north: "south",
+  south: "north"
+};
+var WALL_TORCH = /^(?:(soul|copper)_)?wall_torch$/;
+var TORCH = /^(?:(soul|copper)_)?torch$/;
 var BED_DIR = ["south", "west", "north", "east"];
 var FACING_DIR = ["down", "up", "north", "south", "west", "east"];
 var DOOR_TO_JAVA = {
@@ -2684,6 +2693,22 @@ function bedrockToJava(bedrockName, statesIn, extra = {}) {
     out.set("half", Number(take("upside_down_bit")) ? "top" : "bottom");
     const corner = String(take("corner") ?? "none");
     out.set("shape", corner === "none" ? "straight" : corner);
+  } else if (name.endsWith("trapdoor") && s.has("upside_down_bit")) {
+    out.set("facing", TRAPDOOR_DIR[Number(take("direction"))] ?? "north");
+    out.set("half", Number(take("upside_down_bit")) ? "top" : "bottom");
+    out.set("open", bool(take("open_bit")));
+  } else if (name.endsWith("_leaves") && s.has("persistent_bit")) {
+    out.set("persistent", bool(take("persistent_bit")));
+    take("update_bit");
+  } else if (name.endsWith("lantern") && s.has("hanging")) {
+    out.set("hanging", bool(take("hanging")));
+  } else if (TORCH.test(name) && s.has("torch_facing_direction")) {
+    const side = String(take("torch_facing_direction"));
+    const facing = TORCH_TO_JAVA[side];
+    if (facing !== void 0) {
+      name = name.replace(/torch$/, "wall_torch");
+      out.set("facing", facing);
+    }
   } else if (name.endsWith("_door") && s.has("upper_block_bit")) {
     out.set("facing", DOOR_TO_JAVA[String(take("cardinal_direction"))] ?? "north");
     out.set("half", Number(take("upper_block_bit")) ? "upper" : "lower");
@@ -2765,6 +2790,32 @@ function javaToBedrock(canonical2) {
     states.set("upside_down_bit", byte(take("half") === "top" ? 1 : 0));
     const shape = take("shape") ?? "straight";
     states.set("minecraft:corner", str(shape === "straight" ? "none" : shape));
+  } else if (name.endsWith("trapdoor")) {
+    states.set(
+      "direction",
+      int(
+        Math.max(
+          TRAPDOOR_DIR.indexOf(take("facing") ?? "north"),
+          0
+        )
+      )
+    );
+    states.set("upside_down_bit", byte(take("half") === "top" ? 1 : 0));
+    states.set("open_bit", byte(flag(take("open"))));
+    take("powered");
+  } else if (name.endsWith("_leaves")) {
+    states.set("persistent_bit", byte(flag(take("persistent"))));
+    states.set("update_bit", byte(0));
+    take("distance");
+  } else if (name.endsWith("lantern") && p.has("hanging")) {
+    states.set("hanging", byte(flag(take("hanging"))));
+  } else if (WALL_TORCH.test(name)) {
+    name = name.replace("wall_torch", "torch");
+    const side = Object.entries(TORCH_TO_JAVA).find(([, j]) => j === p.get("facing"))?.[0];
+    take("facing");
+    states.set("torch_facing_direction", str(side ?? "top"));
+  } else if (TORCH.test(name)) {
+    states.set("torch_facing_direction", str("top"));
   } else if (name.endsWith("_door") && p.has("half")) {
     states.set(
       "minecraft:cardinal_direction",
@@ -11106,6 +11157,15 @@ async function artifactNbtPath(runDir, report) {
   }
   throw new DiffError(`${name}: several .nbt files and report.json names none — cannot pick one`);
 }
+async function runArtifact(runDir) {
+  if (!await isDir(runDir)) throw new DiffError(`not a run directory: ${runDir}`);
+  let report = {};
+  try {
+    report = JSON.parse(await readFile(join4(runDir, "report.json"), "utf8"));
+  } catch {
+  }
+  return artifactNbtPath(runDir, report);
+}
 async function loadRunVoxels(runDir) {
   const name = runDir.split("/").pop();
   if (!await isDir(runDir)) throw new DiffError(`not a run directory: ${runDir}`);
@@ -12083,6 +12143,11 @@ var VoxelGrid = class _VoxelGrid {
   volume = new Volume();
   maxDims;
   overwrites = 0;
+  /**
+   * The call stack of the first placement of each block state, so that a validation error can
+   * name the script line that placed the block. One capture per distinct state.
+   */
+  firstPlaced = /* @__PURE__ */ new Map();
   constructor(maxDims = [256, 256, 256]) {
     if (maxDims.length !== 3 || maxDims.some((d) => !Number.isInteger(d) || d <= 0)) {
       throw new RangeError(`max_dims must be 3 positive ints, got [${maxDims.join(", ")}]`);
@@ -12115,6 +12180,12 @@ var VoxelGrid = class _VoxelGrid {
     const old = this.volume.get(x2, y, z);
     if (old !== void 0 && old !== canonical2 && old !== AIR && canonical2 !== AIR) {
       this.overwrites++;
+    }
+    if (canonical2 !== AIR && !this.firstPlaced.has(canonical2)) {
+      const limit = Error.stackTraceLimit;
+      Error.stackTraceLimit = 40;
+      this.firstPlaced.set(canonical2, new Error("first placement"));
+      Error.stackTraceLimit = limit;
     }
     this.volume.set(x2, y, z, canonical2);
   }
@@ -12415,6 +12486,24 @@ function dimensions(build, dense) {
   if (b === null) return [...dense.size];
   return [b[1][0] - b[0][0] + 1, b[1][1] - b[0][1] + 1, b[1][2] - b[0][2] + 1];
 }
+function locateInRecipe(thrown, recipe) {
+  const stack = thrown instanceof Error ? thrown.stack ?? "" : "";
+  for (const prefix of [pathToFileURL(recipe).href, recipe]) {
+    let from = 0;
+    for (; ; ) {
+      const at = stack.indexOf(prefix, from);
+      if (at === -1) break;
+      const m = /^(?:\?[^\s:)]*)?:(\d+)(?::(\d+))?/.exec(stack.slice(at + prefix.length));
+      if (m) return `${basename(recipe)}:${m[1]}${m[2] === void 0 ? "" : `:${m[2]}`}`;
+      from = at + prefix.length;
+    }
+  }
+  return null;
+}
+function placedAt(grid, block, recipe) {
+  const first = grid.firstPlaced.get(block);
+  return first === void 0 ? null : locateInRecipe(first, resolve2(recipe));
+}
 
 // packages/mcbuilder/src/node/cli.ts
 var BUNDLED = true;
@@ -12551,12 +12640,19 @@ async function loadAndValidate(script, config, home, net) {
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
   const { errors, warnings } = registry.validate(dense.palette, cfg.allowlist);
+  const located = (issue) => {
+    const at = placedAt(build.grid, issue.block, script);
+    return at === null ? issue : { ...issue, at };
+  };
   return {
     build,
     cfg,
     dense,
-    errors,
-    warnings: [...warnings, ...detWarnings.map((message) => ({ message }))]
+    errors: errors.map(located),
+    warnings: [
+      ...warnings.map(located),
+      ...detWarnings.map((message) => ({ message }))
+    ]
   };
 }
 async function nextRunDir(out) {
@@ -13030,7 +13126,6 @@ ${USAGE}`);
 // packages/mcbuilder/src/node/skill/build.ts
 import { mkdir as mkdir3, readFile as readFile4, writeFile as writeFile3 } from "node:fs/promises";
 import { basename as basename3, dirname as dirname3, extname as extname3, join as join8, resolve as resolve5 } from "node:path";
-import { pathToFileURL as pathToFileURL2 } from "node:url";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // packages/mcbuilder/src/node/skill/common.ts
@@ -13254,7 +13349,8 @@ Options:
   --offline             never download the registry; a build without a registry
                         is exported unvalidated, with a warning
   --allow <block>       accept this block name even if the registry lacks it
-                        (modded blocks); repeatable
+                        (modded blocks); repeatable. A mcbuild.toml next to the
+                        recipe can set mc_version and allowlist instead
   --schem-version <n>   Sponge schematic version to write: 2 or 3 (default 3)
   --air <mode>          .nbt only: none | explicit | all (default none)
   --name <text>         .litematic only: the schematic's name
@@ -13301,21 +13397,7 @@ function resolveTargets(outs, format, cwd) {
   }
   return targets;
 }
-function locateInRecipe(thrown, recipe) {
-  const stack = thrown instanceof Error ? thrown.stack ?? "" : "";
-  for (const prefix of [pathToFileURL2(recipe).href, recipe]) {
-    let from = 0;
-    for (; ; ) {
-      const at = stack.indexOf(prefix, from);
-      if (at === -1) break;
-      const m = /^(?:\?[^\s:)]*)?:(\d+)(?::(\d+))?/.exec(stack.slice(at + prefix.length));
-      if (m) return `${basename3(recipe)}:${m[1]}${m[2] === void 0 ? "" : `:${m[2]}`}`;
-      from = at + prefix.length;
-    }
-  }
-  return null;
-}
-var fmtError = (e) => e.suggestions.length > 0 ? `${e.message} (did you mean ${e.suggestions.join(" or ")}?)` : e.message;
+var fmtError = (e) => `${e.message}${e.at === void 0 ? "" : ` (at ${e.at})`}${e.suggestions.length > 0 ? ` (did you mean ${e.suggestions.join(" or ")}?)` : ""}`;
 function printSummary(s, io) {
   const v = s.validation;
   io.out(`build: ${s.ok ? "OK" : "FAILED"}`);
@@ -13408,11 +13490,18 @@ async function cmdBuild(args, io, deps = {}) {
   if (!["none", "explicit", "all"].includes(air)) {
     throw usageError(`--air must be none, explicit or all, got '${air}'`);
   }
-  const mcVersion = values["mc-version"] ?? DEFAULT_MC_VERSION;
-  if (mcVersion === "") throw usageError("--mc-version must not be empty");
   const dataVersionOverride = parseDataVersion(values["data-version"]);
   const json = values.json === true;
   const recipe = resolve5(io.cwd, positionals[0]);
+  let config;
+  try {
+    config = await findConfig(dirname3(recipe), io.home);
+  } catch (e) {
+    if (e instanceof CliError) throw new SkillCliError(e.message);
+    throw e;
+  }
+  const mcVersion = values["mc-version"] ?? config?.mcVersion ?? DEFAULT_MC_VERSION;
+  if (mcVersion === "") throw usageError("--mc-version must not be empty");
   try {
     const summary2 = await runBuild({
       recipe,
@@ -13421,7 +13510,7 @@ async function cmdBuild(args, io, deps = {}) {
       dataVersionOverride,
       registryFile: values.registry,
       offline: values.offline === true,
-      allow: values.allow ?? [],
+      allow: [...config?.allowlist ?? [], ...values.allow ?? []],
       schemVersion,
       air,
       name: values.name,
@@ -13467,6 +13556,10 @@ async function runBuild(req) {
     ...req.registryFile === void 0 ? {} : { file: req.registryFile },
     ...req.get === void 0 ? {} : { get: req.get }
   });
+  const at = (block) => {
+    const where = placedAt(build.grid, block, req.recipe);
+    return where === null ? {} : { at: where };
+  };
   let errors = [];
   let registryWarnings = [];
   if (found.registry === null) {
@@ -13480,6 +13573,7 @@ async function runBuild(req) {
     );
     errors = result.errors.map((e) => ({
       ...e,
+      ...at(e.block),
       message: e.message.replace(
         "add it to `allowlist` in mcbuild.toml",
         `pass --allow ${e.block.replace(/[[{].*$/s, "")}`
@@ -13657,21 +13751,39 @@ var DEFAULT_HOST = "127.0.0.1";
 var PUBLISHED_WEB = "https://luki.is-a.dev/voxwright/";
 var PORT_TRIES = 50;
 var SCHEMATIC_EXTENSIONS = [".schem", ".litematic", ".nbt", ".mcstructure"];
-var PREVIEW_USAGE = `Usage: voxwright-cli preview <schematic> [options]
+var PREVIEW_USAGE = `Usage: ${PROG} preview <schematic|run> [options]
 
 Serve the web viewer and editor on this machine with <schematic> opened in it
 (.schem, .litematic, .nbt or .mcstructure). The file is read again on every page
 load, so rebuild and refresh the page to see the new build. Runs until Ctrl+C.
+
+Instead of a file, name a run: a run directory, or a run id such as 3 or run-003
+(looked up in --runs, default dist/). \`${PROG} view\` is the same command.
 
 Options:
   --port <n>          port to listen on (default ${DEFAULT_PORT}; when it is busy the next free
                       one is used; an explicit --port that is busy is an error)
   --host <h>          address to listen on (default ${DEFAULT_HOST})
   --no-open           do not open the page in the default browser
+  --runs <dir>        where run ids are looked up (default dist/)
   --web <dir|url>     web app to serve: a built apps/web directory or an http(s) URL
                       (default: $VOXWRIGHT_WEB, else apps/web/build of this checkout,
                       else ${PUBLISHED_WEB} through a local caching proxy)
   -h, --help          show this help`;
+async function schematicOf(given, runs, cwd) {
+  const path = resolve7(cwd, given);
+  const kind = await stat5(path).catch(() => null);
+  try {
+    if (kind?.isDirectory()) return await runArtifact(path);
+    if (kind === null && /^(run-)?\d+$/.test(given)) {
+      return await runArtifact(await resolveRunDir(resolve7(cwd, runs), given));
+    }
+  } catch (e) {
+    if (e instanceof DiffError) throw new SkillCliError(e.message);
+    throw e;
+  }
+  return given;
+}
 async function cmdPreview(args, io) {
   let parsed;
   try {
@@ -13689,7 +13801,7 @@ ${PREVIEW_USAGE}`,
     return 0;
   }
   const preview = await startPreview({
-    schematic: parsed.schematic,
+    schematic: await schematicOf(parsed.schematic, parsed.runs, io.cwd),
     cwd: io.cwd,
     home: io.home,
     web: parsed.web ?? (io.env.VOXWRIGHT_WEB?.trim() || void 0),
@@ -13722,6 +13834,7 @@ function parsePreviewArgs(args) {
       host: { type: "string" },
       "no-open": { type: "boolean" },
       web: { type: "string" },
+      runs: { type: "string" },
       help: { type: "boolean", short: "h" }
     }
   });
@@ -13732,7 +13845,8 @@ function parsePreviewArgs(args) {
       port: void 0,
       host: void 0,
       web: void 0,
-      open: false
+      open: false,
+      runs: "dist"
     };
   if (positionals.length !== 1)
     throw new SkillCliError(
@@ -13757,7 +13871,8 @@ ${PREVIEW_USAGE}`,
     port,
     host: values.host,
     web: values.web,
-    open: !values["no-open"]
+    open: !values["no-open"],
+    runs: values.runs ?? "dist"
   };
 }
 function describeSource(source) {
@@ -14190,7 +14305,8 @@ var USAGE2 = `Usage: ${PROG} <command> [options]
 Commands:
   build <recipe> --out <path>   run a recipe, validate it and write a schematic
   inspect <schematic>           print what a schematic file holds
-  preview <schematic>           serve the 3D viewer and editor with the file open
+  preview <schematic|run>       serve the 3D viewer and editor with the file open
+                                (also: view)
 
   ${PROG} <command> --help      options of one of the three commands above
   ${PROG} --version
@@ -14258,7 +14374,8 @@ async function runSkillCli(argv, io = {}, deps = {}) {
   const usageOf = {
     build: BUILD_USAGE,
     inspect: INSPECT_USAGE,
-    preview: PREVIEW_USAGE
+    preview: PREVIEW_USAGE,
+    view: PREVIEW_USAGE
   };
   try {
     if (command !== void 0 && RUN_COMMANDS.includes(command)) {
@@ -14270,6 +14387,7 @@ async function runSkillCli(argv, io = {}, deps = {}) {
       case "inspect":
         return await cmdInspect(rest, full);
       case "preview":
+      case "view":
         return await cmdPreview(rest, full);
       case "-h":
       case "--help":

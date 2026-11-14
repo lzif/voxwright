@@ -50,6 +50,16 @@ async function artifactNbtPath(
   throw new DiffError(`${name}: several .nbt files and report.json names none — cannot pick one`);
 }
 
+/** The `.nbt` a run directory holds: the one its report names, else the only one in it. */
+export async function runArtifact(runDir: string): Promise<string> {
+  if (!(await isDir(runDir))) throw new DiffError(`not a run directory: ${runDir}`);
+  let report: { artifacts?: { format?: string; file?: string }[] } = {};
+  try {
+    report = JSON.parse(await readFile(join(runDir, "report.json"), "utf8"));
+  } catch {}
+  return artifactNbtPath(runDir, report);
+}
+
 /**
  * Load a run's voxel map from its `.nbt` artifact, with positions translated
  * to world coordinates by the report's `origin` and air excluded.

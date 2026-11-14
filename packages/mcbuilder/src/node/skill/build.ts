@@ -5,13 +5,23 @@
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import type { AirMode, SchemVersion, WriteResult } from "@voxwright/core";
 import { DATA_VERSIONS } from "../../dataversion.ts";
 import type { ValidationError, ValidationWarning } from "../../registry.ts";
 import type { HttpGet } from "../assets.ts";
-import { exists, loadScript, ScriptError, scanDeterminism } from "../script.ts";
+import { CliError, findConfig } from "../cli.ts";
+import {
+  exists,
+  loadScript,
+  locateInRecipe,
+  placedAt,
+  ScriptError,
+  scanDeterminism,
+} from "../script.ts";
+
+export { locateInRecipe };
+
 import {
   type Box,
   boxOf,
@@ -49,7 +59,8 @@ Options:
   --offline             never download the registry; a build without a registry
                         is exported unvalidated, with a warning
   --allow <block>       accept this block name even if the registry lacks it
-                        (modded blocks); repeatable
+                        (modded blocks); repeatable. A mcbuild.toml next to the
+                        recipe can set mc_version and allowlist instead
   --schem-version <n>   Sponge schematic version to write: 2 or 3 (default 3)
   --air <mode>          .nbt only: none | explicit | all (default none)
   --name <text>         .litematic only: the schematic's name
@@ -89,7 +100,7 @@ export interface BuildSummary {
     source: string | null;
     /** Why validation was skipped. */
     skipped: string | null;
-    errors: ValidationError[];
+    errors: (ValidationError & { at?: string })[];
     warnings: ValidationWarning[];
   };
   /** Every warning of the run, in the order found. */
@@ -147,26 +158,10 @@ export function resolveTargets(
   return targets;
 }
 
-/** `file:line:column` inside the recipe where `thrown` came from, if its stack says so. */
-export function locateInRecipe(thrown: unknown, recipe: string): string | null {
-  const stack = thrown instanceof Error ? (thrown.stack ?? "") : "";
-  for (const prefix of [pathToFileURL(recipe).href, recipe]) {
-    let from = 0;
-    for (;;) {
-      const at = stack.indexOf(prefix, from);
-      if (at === -1) break;
-      const m = /^(?:\?[^\s:)]*)?:(\d+)(?::(\d+))?/.exec(stack.slice(at + prefix.length));
-      if (m) return `${basename(recipe)}:${m[1]}${m[2] === undefined ? "" : `:${m[2]}`}`;
-      from = at + prefix.length;
-    }
-  }
-  return null;
-}
-
-const fmtError = (e: ValidationError): string =>
-  e.suggestions.length > 0
-    ? `${e.message} (did you mean ${e.suggestions.join(" or ")}?)`
-    : e.message;
+const fmtError = (e: ValidationError & { at?: string }): string =>
+  `${e.message}${e.at === undefined ? "" : ` (at ${e.at})`}${
+    e.suggestions.length > 0 ? ` (did you mean ${e.suggestions.join(" or ")}?)` : ""
+  }`;
 
 function printSummary(s: BuildSummary, io: SkillIo): void {
   const v = s.validation;
@@ -275,11 +270,20 @@ export async function cmdBuild(
   if (!["none", "explicit", "all"].includes(air)) {
     throw usageError(`--air must be none, explicit or all, got '${air}'`);
   }
-  const mcVersion = values["mc-version"] ?? DEFAULT_MC_VERSION;
-  if (mcVersion === "") throw usageError("--mc-version must not be empty");
   const dataVersionOverride = parseDataVersion(values["data-version"]);
   const json = values.json === true;
   const recipe = resolve(io.cwd, positionals[0] as string);
+  // A `mcbuild.toml` next to the recipe (or above it) gives the version and the allowlist, as it
+  // does for `check` and `run`; the command line wins over it.
+  let config: Awaited<ReturnType<typeof findConfig>>;
+  try {
+    config = await findConfig(dirname(recipe), io.home);
+  } catch (e) {
+    if (e instanceof CliError) throw new SkillCliError(e.message);
+    throw e;
+  }
+  const mcVersion = values["mc-version"] ?? config?.mcVersion ?? DEFAULT_MC_VERSION;
+  if (mcVersion === "") throw usageError("--mc-version must not be empty");
 
   try {
     const summary = await runBuild({
@@ -289,7 +293,7 @@ export async function cmdBuild(
       dataVersionOverride,
       registryFile: values.registry,
       offline: values.offline === true,
-      allow: values.allow ?? [],
+      allow: [...(config?.allowlist ?? []), ...(values.allow ?? [])],
       schemVersion,
       air: air as AirMode,
       name: values.name,
@@ -354,7 +358,12 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
     ...(req.registryFile === undefined ? {} : { file: req.registryFile }),
     ...(req.get === undefined ? {} : { get: req.get }),
   });
-  let errors: ValidationError[] = [];
+  // Where the script first placed a block, for the errors and warnings about it.
+  const at = (block: string): { at?: string } => {
+    const where = placedAt(build.grid, block, req.recipe);
+    return where === null ? {} : { at: where };
+  };
+  let errors: (ValidationError & { at?: string })[] = [];
   let registryWarnings: ValidationWarning[] = [];
   if (found.registry === null) {
     warnings.push(
@@ -368,6 +377,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
     // The registry's advice names mcbuild's config file; this CLI takes the allowlist as a flag.
     errors = result.errors.map((e) => ({
       ...e,
+      ...at(e.block),
       message: e.message.replace(
         "add it to `allowlist` in mcbuild.toml",
         `pass --allow ${e.block.replace(/[[{].*$/s, "")}`,

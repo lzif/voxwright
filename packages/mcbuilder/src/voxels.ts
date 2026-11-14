@@ -14,6 +14,11 @@ export class VoxelGrid {
   readonly volume = new Volume();
   readonly maxDims: Dims;
   private overwrites = 0;
+  /**
+   * The call stack of the first placement of each block state, so that a validation error can
+   * name the script line that placed the block. One capture per distinct state.
+   */
+  readonly firstPlaced = new Map<string, Error>();
 
   constructor(maxDims: Dims = [256, 256, 256]) {
     if (maxDims.length !== 3 || maxDims.some((d) => !Number.isInteger(d) || d <= 0)) {
@@ -51,6 +56,12 @@ export class VoxelGrid {
     if (old !== undefined && old !== canonical && old !== AIR && canonical !== AIR) {
       // A real block replaced by a different real block.
       this.overwrites++;
+    }
+    if (canonical !== AIR && !this.firstPlaced.has(canonical)) {
+      const limit = Error.stackTraceLimit;
+      Error.stackTraceLimit = 40;
+      this.firstPlaced.set(canonical, new Error("first placement"));
+      Error.stackTraceLimit = limit;
     }
     this.volume.set(x, y, z, canonical);
   }

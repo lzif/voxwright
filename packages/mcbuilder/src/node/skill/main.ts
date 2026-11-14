@@ -41,7 +41,8 @@ export const USAGE = `Usage: ${PROG} <command> [options]
 Commands:
   build <recipe> --out <path>   run a recipe, validate it and write a schematic
   inspect <schematic>           print what a schematic file holds
-  preview <schematic>           serve the 3D viewer and editor with the file open
+  preview <schematic|run>       serve the 3D viewer and editor with the file open
+                                (also: view)
 
   ${PROG} <command> --help      options of one of the three commands above
   ${PROG} --version
@@ -133,6 +134,7 @@ export async function runSkillCli(
     build: BUILD_USAGE,
     inspect: INSPECT_USAGE,
     preview: PREVIEW_USAGE,
+    view: PREVIEW_USAGE,
   };
   try {
     if (command !== undefined && RUN_COMMANDS.includes(command)) {
@@ -144,6 +146,7 @@ export async function runSkillCli(
       case "inspect":
         return await cmdInspect(rest, full);
       case "preview":
+      case "view":
         return await cmdPreview(rest, full);
       case "-h":
       case "--help":

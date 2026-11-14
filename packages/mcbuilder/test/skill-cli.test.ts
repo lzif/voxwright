@@ -249,17 +249,17 @@ describe("build", () => {
 
   it("passes on what a format could not carry, per file and for the run", async () => {
     await recipe(
-      "lantern.ts",
+      "lamp.ts",
       `import { Build } from "@voxwright/mcbuilder";
 export const BUILD = new Build();
 BUILD.scope(() => {
-  BUILD.set(0, 0, 0, "minecraft:lantern[hanging=true]");
+  BUILD.set(0, 0, 0, "minecraft:redstone_lamp[lit=true]");
 });
 `,
     );
     const c = capture();
     const code = await runSkillCli(
-      ["build", "lantern.ts", "--offline", "--json"].concat([
+      ["build", "lamp.ts", "--offline", "--json"].concat([
         "--out",
         "loss/l.mcstructure",
         "--out",
@@ -269,7 +269,7 @@ BUILD.scope(() => {
     );
     expect(code).toBe(0);
     const s = JSON.parse(c.out.join("\n"));
-    const lost = "lantern: dropped Java property hanging=true";
+    const lost = "redstone_lamp: dropped Java property lit=true";
     expect(s.outputs.map((o: { warnings: string[] }) => o.warnings)).toEqual([[lost], []]);
     expect(s.warnings).toContain(`l.mcstructure: ${lost}`);
     expect(s.validation.skipped).toContain("--offline is set");
@@ -297,6 +297,9 @@ BUILD.scope(() => {
     expect(text).toContain("build: FAILED");
     expect(text).toContain("validation: 26.2 registry, 3 errors");
     expect(text).toContain("unknown block 'minecraft:oak_plank'");
+    // Each error names the recipe line that first placed the block.
+    expect(text).toMatch(/unknown block 'minecraft:oak_plank'.*\(at bad\.ts:4:\d+\)/);
+    expect(text).toMatch(/illegal value 'up'.*\(at bad\.ts:5:\d+\)/);
     expect(text).toContain("did you mean minecraft:oak_planks");
     expect(text).toContain("illegal value 'up' for property 'facing'");
     expect(text).toContain("pass --allow mymod:gizmo");
@@ -448,6 +451,25 @@ BUILD.scope(() => {
     for (const word of ["init", "check", "run", "import", "diff", "assets fetch"]) {
       expect(help.out.join("\n")).toContain(word);
     }
+  });
+
+  it("takes the version and the allowlist from a mcbuild.toml next to the recipe", async () => {
+    await mkdir(join(root, "modded"), { recursive: true });
+    await writeFile(join(root, "modded/mcbuild.toml"), 'allowlist = ["mymod:gizmo"]\n');
+    await recipe(
+      "modded/g.ts",
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "mymod:gizmo"));
+`,
+    );
+    const c = capture();
+    const code = await runSkillCli(
+      ["build", "modded/g.ts", "--registry", registryFile, "--out", "modded/g.schem"],
+      c.io,
+    );
+    expect(code).toBe(0);
+    expect(c.out.join("\n")).toContain("mymod:gizmo is allowlisted");
   });
 
   it("writes the DataVersion given for a version it does not know", async () => {
