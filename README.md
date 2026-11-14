@@ -205,11 +205,11 @@ The web app is published at https://lzif.github.io/voxwright/ by `.github/workfl
 (GitHub redirects that address to https://luki.is-a.dev/voxwright/, the custom domain of the
 account's Pages site).
 
-Its built-in texture pack is [Faithful 32x](https://faithfulpack.net) (Faithful Resource Pack,
-[Faithful License](https://faithfulpack.net/license); a copy is published with the site at
-`pack/FAITHFUL-LICENSE.txt`). Faithful has textures only, so the block states and block models in
-that pack come from Minecraft's client assets, which belong to Mojang. They are fetched when the
-site is built and are not committed. Visitors can lay their own pack over it.
+Its built-in pack is vanilla Minecraft 26.3: block states, block models and textures, which belong
+to Mojang. The workflow takes them from
+[InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets/tree/26.3)
+(the files behind [mcasset.cloud](https://mcasset.cloud/)) when the site is built; they are not
+committed here. Visitors can lay their own pack over it.
 
 ## Tooling
 

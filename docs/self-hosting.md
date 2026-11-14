@@ -210,9 +210,9 @@ What the code does today:
 - If it does not exist, the site serves no Mojang files. It still opens, shows, edits and converts schematics, drawing blocks as flat colours.
 - Visitors can load their own resource pack or client jar in the page. It is read in their browser, not sent to your server, and stored in their browser.
 - The footer says "Not affiliated with Mojang or Microsoft."
-- The project's own site (GitHub Pages, `.github/workflows/pages.yml`) does not serve Mojang's textures. Its pack takes the textures from Faithful 32x (Faithful License; a copy is published with the site) and the block states and block models from Mojang's client JSON, which the workflow fetches when it builds the site.
+- The project's own site (GitHub Pages, `.github/workflows/pages.yml`) serves a vanilla pack: Mojang's block states, block models and textures for Minecraft 26.3, taken from [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets/tree/26.3) when the workflow builds the site. From 2026-11-09 to 2026-11-14 it used Faithful 32x textures instead.
 
-**Whether a public site may serve Mojang's assets is an open question. The project has not decided it, and this guide does not decide it or give legal advice.** For the project's own site the question is now narrower: the textures part is avoided by using Faithful 32x, and whether a public site may serve Mojang's block-state and block-model JSON is still open. A pack you build with `pnpm --filter @voxwright/web assets` from the client jar holds Mojang's textures as well. If you host a copy for the public, check Mojang's terms yourself. The two options the code supports:
+**Whether a public site may serve Mojang's assets is a question this guide does not answer, and it gives no legal advice.** The project's own site serves them since 2026-11-14, by the maintainer's decision. A pack you build with `pnpm --filter @voxwright/web assets` from the client jar holds the same files. If you host a copy for the public, check Mojang's terms yourself. The two options the code supports:
 
 1. Build without a pack. Visitors get flat colours, or they load their own pack or jar.
 2. Build with a pack you made from assets you are entitled to serve.
