@@ -1,6 +1,6 @@
 # Reel study: progress and handoff
 
-Status as of 2026-11-13. This is the entry point for picking the work up again.
+Status as of 2026-11-15. This is the entry point for picking the work up again.
 
 ## Goal
 
@@ -50,7 +50,29 @@ Shapes in `src/shapes.ts`, with tests:
 - `parapet`: merlon/crenel rhythm, optional corbel flare;
 - `skirtRoof`: flared skirt around a tower stage, with dentil and hole options.
 
-Example: `examples/reel_keep/` uses all three and passes `mcbuild check` and `run`.
+Example: `examples/reel_keep/` uses all three of these and passes `mcbuild check` and `run`.
+
+Second shape wave (2026-11-15), items 1 to 4 of "Next step" below, one commit each, all on main and
+not pushed:
+
+- `bayWall` (c2be3bf): post, bay, beam and sill rhythm with `inset`, `pilaster` and an array
+  `period`. It covers M11, M12, M13 and M15; M14 (the pillar module) is not covered. `postWidth`
+  followed in bcff5ec.
+- `roofGable` `endFill` and `ridgeCap` (cfb0a5b, reworked in 9f23e06 and bc2033f). `ridgeCap` is
+  `{ post, rail?, every = 3, height = 1 }`: posts rooted in the ridge row, replacing the roof cell,
+  and the rail in the top post row. A top-slab rail is recommended.
+- `polygon` (de12bdf): rectilinear footprint with mode walls, solid or floor.
+- `jetty` (9c208d4): overhanging deck with upside-down stair brackets.
+
+Added on top of the wave:
+
+- `roofGable` `profile` (b0ebf9e) with `slab` and `full`: `"straight"` (default, output unchanged),
+  `"steep"`, `"concave"`, `"gambrel"`, `"low"`, or an array of `"slab" | "stair" | "steep"` per column
+  from the eave.
+- `gradient(stops, { from, to, axis, blend, salt })` material, and the `mcbuild palette` command with
+  `near`, `ramp` and `show` (6d5a02b). `palette ramp` suggests the stops for `gradient()`.
+
+`SHAPE-MAPPING.md` (the shapes) and the skill's `builder-api.md`, `SKILL.md` and the READMEs (shapes, `gradient()` and `palette`) are updated for these.
 
 Guide (`docs/build-patterns.md`): T1–T52, all locked.
 
@@ -79,7 +101,37 @@ Issue #21 is closed.
 | spiral stairs | absent from every reel |
 | "pointed arch trixyblox" | its portal heads are segmental; only the lancet window is pointed |
 
-## Next step (planned, not started)
+## Next step
+
+Decided with Luki on 2026-11-15: rebuild the omggamer tavern (tav/f_009, tav/f_020) as
+`examples/reel_house/`, iterating side by side with the frame. Build what is missing on the way, in
+this order:
+
+1. roof intersection: cross-gable and valley;
+2. dormer;
+3. chimney;
+4. door and window helpers.
+
+The gradient material is done. Item 6 below (the example) is this work.
+
+Working rule (Luki, 2026-11-15): image-derived shape and build work is done by the orchestrating
+model itself, not delegated, and every result ships with a side-by-side PNG (reference left, render
+right).
+
+- Side-by-sides: `/data/workspace/minecraft-reels/work/side-by-side/`.
+- Preview scripts: `/data/workspace/minecraft-reels/work/shape-previews/`; `review/` holds the tavern
+  and frame-matching scenes.
+- Pinterest roof references: `/data/workspace/minecraft-reels/work/roof-refs/`.
+
+None of these are in the repo.
+
+Findings from the side-by-sides:
+
+- The Japanese roof in the reference has a deep multi-layer eave overhang that `roofGable` does not
+  do yet.
+- The tavern roof reads best as `profile: "straight"` with a `gradient()` of deepslate tile, deepslate
+  brick, cobbled deepslate, then stone brick stairs.
+- `patches()` on a roof reads as blotches; use `gradient()` there.
 
 The second shape wave, in the priority order of `mapping-draft.md` → "Shape priority". One commit
 per item, each following `SHAPE-WORKER-RULES.md`.
@@ -87,28 +139,24 @@ per item, each following `SHAPE-WORKER-RULES.md`.
 Rule for every option added to an existing shape: it must be opt-in, and the default output must
 stay byte-identical, with the oracle tests and vectors green and unedited.
 
-1. **`bayWall(c1, c2, block, {period, post, infill, beam, inset, pilaster})`.** A rhythmic wall of
-   post or pier, bay infill and beam. This one family covers timber frame, arcade, pier-and-slit and
-   pilaster rhythm (M11–M15; T2, T45). It has the strongest evidence: 9 sources.
-2. **`roofGable` options `endFill` and `ridgeCap`.** Gable-end triangle fill (M24, 6 reels) and
-   ridge cresting (M26, T46).
-3. **`polygon(vertices, y1, y2, block, {mode})`.** A rectilinear footprint from `[x, z]` vertices,
-   with mode walls, solid or floor (M47, 6 reels).
-4. **`jetty(c1, c2, block, {overhang, sides, beam})`.** An overhanging upper floor on an
-   upside-down stair bracket row (M17).
-5. **`stairs` option `half: "bottom" | "top"`.** Default `"bottom"`, unchanged.
-6. **Example.** `examples/reel_house/` uses all of them. Then update `SHAPE-MAPPING.md` and add a
-   `Shape:` line to each technique served.
+1. **`bayWall`.** Done (c2be3bf, `postWidth` in bcff5ec).
+2. **`roofGable` options `endFill` and `ridgeCap`.** Done (cfb0a5b, 9f23e06, bc2033f).
+3. **`polygon(vertices, y1, y2, block, {mode})`.** Done (de12bdf).
+4. **`jetty(c1, c2, block, {overhang, sides, bracket, every, beam})`.** Done (9c208d4).
+5. **`stairs` option `half: "bottom" | "top"`.** Default `"bottom"`, unchanged. Not done: it waits for
+   Luki's OK (mapping-draft: "Needs Luki's OK").
+6. **Example.** `examples/reel_house/` uses the shapes above. Not started. `SHAPE-MAPPING.md` is
+   already updated for items 1 to 4; add a `Shape:` line to each technique the example serves.
 
 Later, below the priority line:
 
-- `roofGable` valleys and cross-gables;
 - pit / terraced excavation (T47);
-- dormer;
 - concave `cone` profile (T34);
 - half-hip `roofHip`;
 - `cone` tiers;
 - trestle, canopy, prism.
+
+(`roofGable` valleys and cross-gables, and the dormer, moved up to the next step above.)
 
 ## Open questions
 

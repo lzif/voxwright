@@ -257,6 +257,7 @@ mcbuild view 1                           # open run-001's schematic in the 3D vi
 mcbuild import build.litematic -o build.ts
 mcbuild diff 1 2                         # cells added, removed, replaced + comparison PNG
 mcbuild assets fetch --version 26.2      # block registry + vanilla client assets
+mcbuild palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4 --family stairs   # blocks that step evenly in colour
 ```
 
 A script exports a `Build` as `BUILD`. The block registry of the version is downloaded into
@@ -265,6 +266,12 @@ previews and `run --guide` a build guide; the fast and trusted preview tiers are
 `--tier` says so instead of ignoring the flag. `diff` also writes a side-by-side comparison PNG
 (`diff-<run-a>-<run-b>.png`) when both runs share a preview view, and `view` is an alias for
 `preview` (accepting a schematic file, a run directory, or a run id).
+
+`palette` compares blocks by the mean colour of their vanilla textures: `palette near <block>` lists
+the closest blocks, `palette ramp <from> <to>` suggests blocks that step evenly in colour (for the
+stops of `gradient()`), `palette show <block>...` prints each face. It reads the client assets in
+the cache and writes `<cache>/<version>/texture-stats.json`; `--family stairs|slab|full|any` and
+`--face all|top|side|bottom` narrow the choice.
 
 The PNG previews draw with Minecraft's own block states, models and textures. They are downloaded
 when first needed (`run --preview`, unless `--offline`) or with `assets fetch`, into

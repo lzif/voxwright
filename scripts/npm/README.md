@@ -17,6 +17,7 @@ mcbuild build house.ts --out house.schem --out house.litematic
 mcbuild inspect house.schem
 mcbuild preview house.litematic                               # 3D viewer in the browser
 mcbuild run house.ts --preview                                # PNG views
+mcbuild palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4   # blocks that step evenly in colour
 ```
 
 Or without installing: `npx voxmc build house.ts --out house.schem`.
@@ -46,8 +47,9 @@ BUILD.scope(() => {
 
 Further commands work with numbered run directories: `init` (a starter recipe), `check`, `run`
 (`report.json`, the `.nbt`, and with `--preview` PNG views drawn with the game's textures),
-`import` (a schematic back into a recipe), `diff` (cell changes and a side-by-side comparison PNG)
-and `assets fetch`. `mcbuild --help` lists them.
+`import` (a schematic back into a recipe), `diff` (cell changes and a side-by-side comparison PNG),
+`assets fetch` and `palette` (`near`, `ramp` and `show` compare blocks by the mean colour of their
+textures; `ramp` suggests the stops of a `gradient()`). `mcbuild --help` lists them.
 
 `mcbuild <command> --help` lists the options of `build`, `inspect` and `preview` (or `view`). The first `build` for a Minecraft version downloads
 its block registry (about 120 kB) into `~/.cache/mcbuilder/`, and the first `run --preview`

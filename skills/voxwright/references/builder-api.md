@@ -60,6 +60,7 @@ Wherever a parameter is typed `Material`, any of these is accepted:
 | Block string     | `"minecraft:stone_bricks"`                                                  | That block in every cell                           |
 | Weighted palette | `["minecraft:stone_bricks", ["minecraft:mossy_stone_bricks", 0.3]]`         | Per cell, by a hash of seed and position (speckle) |
 | `patches(...)`   | `patches([["minecraft:stone", 3], "minecraft:andesite"], { scale: 4 })`     | Per cell, by smooth noise (clusters)               |
+| `gradient(...)`  | `gradient(["minecraft:deepslate_tile_stairs", "minecraft:stone_brick_stairs"], { from: 6, to: 0 })` | Per cell, by position along one axis (a smooth change) |
 | Function         | `(x, y, z) => (y % 4 === 0 ? "minecraft:oak_log" : "minecraft:oak_planks")` | Whatever it returns                                |
 
 ```ts
@@ -71,6 +72,18 @@ patches(palette: readonly (string | readonly [block: string, weight: number])[],
 - `scale` is the rough patch size in blocks (default 4). `salt` gives a different layout from the
   same palette; use one salt per surface so walls and floors do not share a pattern.
 - Palettes and `patches` are deterministic: a cell resolves the same way on every run.
+
+```ts
+gradient(stops: readonly Material[],
+         options: { from: number; to: number; axis?: "x" | "y" | "z"; blend?: number; salt?: string }): (x, y, z) => string
+```
+
+- The first stop sits at `from`, the last at `to` (both coordinates on `axis`, default `"y"`), the
+  others evenly between. Cells past either end take the end stop. `from` may be larger than `to`.
+- `blend` (0 to 1, default 1) is how far neighbouring stops mix: 1 mixes each stop into the next
+  cell by cell over the whole step, 0 gives hard bands. `salt` gives another mix from the same stops.
+- A stop is any `Material`: a block, a palette or `patches(...)`. Use it for a roof that darkens
+  toward the eave. `mcbuild palette ramp` suggests stops that step evenly in colour (see SKILL.md).
 - Stairs and slabs that a shape orients for you (`stairs`, roofs, `arch`, a `parapet` corbel) take
   the block **without** `facing` (stairs) or `type` (slabs); the shape refuses a block that
   carries one.
@@ -131,17 +144,40 @@ stairs(start: Point, direction: "north" | "south" | "east" | "west", block: Mate
 
 ```ts
 roofGable(c1: Point, c2: Point, block: Material,
-          o: { ridge: "x" | "z"; verge?: Material | null; eave?: Material | null }): Geometry
+          o: { ridge: "x" | "z"; verge?: Material | null; eave?: Material | null;
+               endFill?: Material | null; ridgeCap?: { post: Material; rail?: Material | null; every?: number; height?: number } | null;
+               profile?: "straight" | "steep" | "concave" | "gambrel" | "low" | ("slab" | "stair" | "steep")[];
+               slab?: Material; full?: Material }): Geometry
 roofHip(c1: Point, c2: Point, block: Material,
         o: { hip: Material; cap?: Material | null }): Geometry
 ```
 
 - `c1`..`c2` is the XZ footprint; the lowest row sits at the lower Y of the two corners. The roof
-  only places stairs: close the gable ends yourself.
+  only places stairs (plus slabs and full blocks with `profile`): close the gable ends yourself, or
+  use `endFill`.
 - `roofGable`: `ridge` is the axis the ridge line runs along. The roof rises one row per cell
   inward, `ceil(span / 2)` rows in all, where `span` is the footprint's size across the ridge.
   `verge` replaces the stairs on the two gable-end columns, `eave` those of the lowest row; both
   are stair blocks.
+- `roofGable` options, all opt-in (without them the output is the plain roof above):
+  - `endFill` is a full-block material that closes the triangle under each gable end, between the
+    outermost stairs (the same two columns as `verge`). It never overwrites a roof cell.
+  - `ridgeCap` puts a cresting on the ridge. `post` stands on the ridge about every `every` cells
+    (default 3, and always on the last cell), rooted in the top roof row and rising `height` rows
+    above it (default 1). `rail`, if given, fills the cells between the posts in the posts' top
+    row; omitted or `null` leaves the posts alone. The shape does not set block properties: write
+    the axis yourself (`"minecraft:stripped_oak_log[axis=y]"`), and a top slab
+    (`"minecraft:oak_slab[type=top]"`) is a good thin rail. On an even span the cresting stands on
+    the lower-coordinate ridge cell only.
+  - `profile` sets the pitch across the span. `"straight"` (default) is one stair per column.
+    `"steep"` is a full block under each stair (A-frame), `"low"` is slabs only, `"gambrel"` is
+    steep below and stairs above, `"concave"` is slabs at the eave then stairs then steep columns
+    (flared roofs). Or give an array with one pitch per column from the eave in: `"slab"` rises half
+    a block, `"stair"` one, `"steep"` two. The array has `floor(span / 2)` entries and the slab
+    columns before a stair or steep column must be an even number.
+  - `slab` and `full` override the slab and full block that profiles use. By default they follow
+    the stair block's name (`oak_stairs` gives `oak_slab` and `oak_planks`,
+    `stone_brick_stairs` gives `stone_bricks`).
 - `roofHip`: all four sides slope. `block` is the stair for the slopes, `hip` a full block for
   the diagonal hip lines, `cap` (default `hip`) the top line or cell.
 - For an overhang, make the footprint one cell larger than the walls on every side.
@@ -176,7 +212,7 @@ run.
 `shapes.cone`, `shapes.roofGable`, `shapes.roofHip`). A `shapes` call does not know the build's
 seed: pass `{ seed }` in the options when the material is a palette.
 
-Three shapes exist only in `shapes`; place them with `BUILD.place(...)`:
+Six shapes exist only in `shapes`; place them with `BUILD.place(...)`:
 
 ```ts
 shapes.arch(start: Point, width: number, block: Material, o: {
@@ -203,6 +239,27 @@ shapes.skirtRoof(c1: Point, c2: Point, block: Material, o?: {
   dentil?: Material | null;                     // row under the rim, default `block`; null leaves it out
   hole?: [Point, Point];                        // XZ footprint left open for the upper stage
 }): Geometry
+
+shapes.bayWall(c1: Point, c2: Point, block: Material, o: {
+  period: number | number[];                    // required: distance between post centres, or a list of them
+  post?: Material; infill?: Material | null;   // default `block`; `infill: null` leaves the bays open
+  beam?: Material; sill?: Material;             // continuous top and bottom row over the whole run
+  postWidth?: number;                           // cells per post along the run, default 1
+  inset?: boolean; pilaster?: boolean;          // depth treatments, need `face` and a 2-deep footprint
+  face?: "north" | "south" | "east" | "west";   // the outer face, perpendicular to the run
+}): Geometry
+
+shapes.polygon(vertices: [x: number, z: number][], y1: number, y2: number, block: Material, o?: {
+  mode?: "walls" | "solid" | "floor";           // default "walls"; "floor" needs y1 === y2
+}): Geometry
+
+shapes.jetty(c1: Point, c2: Point, block: Material, o?: {
+  overhang?: number;                            // cells past the wall line, default 1
+  sides?: ("north" | "south" | "east" | "west")[];  // default all four
+  bracket?: Material | null;                    // stair without `facing`, upside-down under the deck; none by default
+  every?: number;                               // a bracket every `every` cells, default 3
+  beam?: Material;                              // continuous row under the deck's outer edge
+}): Geometry
 ```
 
 - `arch` is the head only, from upside-down stairs. `start` is the left end of the span on the
@@ -213,6 +270,34 @@ shapes.skirtRoof(c1: Point, c2: Point, block: Material, o?: {
 - `parapet` crenellates the outline of the footprint, starting at the lower Y. Corners are always
   merlons.
 - `skirtRoof` is a flared brim with terraces around a tower stage, starting at the lower Y.
+- `bayWall` is a straight wall run of posts at a fixed rhythm with bays between them (timber
+  frame, arcade, pier-and-slit, pilasters). `c1`..`c2` is 1 thick in X or Z (2 thick with `inset`
+  or `pilaster`); the other axis is the run, at least 2 cells. Posts stand on cell 0, every
+  `period` and always on the last cell, so a number `period` must divide the run length minus
+  `postWidth` (minus 1 by default; with wider posts `period` counts from one post's first cell to
+  the next). An array `period` lists those distances, which must add up to the same value
+  (`[2, 3, 2]` for P S P SS P S P). A bay's clear width is its distance minus the post width.
+  A `beam` or `sill` wins where it meets a post. `inset` sets the infill in the back layer and
+  the frame in the front one; `pilaster` makes every post 1 cell proud of the wall (beam and
+  sill stay flush); they cannot be combined. Block axes are not set for you: pass
+  `oak_log[axis=y]` for `post` and a beam with the axis of the run.
+- `polygon` builds a rectilinear outline from `[x, z]` vertices, in order, closed back to the first
+  (do not repeat it). Every edge must be axis-aligned, an edge covers both end cells, and the
+  outline may not visit a cell twice. `"walls"` is the outline cells at every y from `y1` to `y2`,
+  `"solid"` adds the inside, `"floor"` is outline and inside at one layer. Use it for L, T,
+  cruciform and notched plans. It has no roof and no holes.
+- `jetty` is the overhanging deck of an upper storey. `c1`..`c2` is the footprint of the lower
+  storey's top; the deck row is the lower Y and holds `block` only on the projecting ring, outside
+  the footprint. Your lower wall's top row is at `y - 1` and the upper floor and walls are yours: stand
+  them on the outer outline of the deck. `bracket` puts upside-down stairs under the deck next to
+  the wall, every `every` cells counted from both ends of a side.
+
+```ts
+BUILD.place(shapes.bayWall([0, 1, 0], [10, 4, 0], "minecraft:white_concrete", { period: 5, post: "minecraft:oak_log[axis=y]", beam: "minecraft:oak_log[axis=x]" }));
+BUILD.place(shapes.polygon([[0, 0], [8, 0], [8, 4], [3, 4], [3, 8], [0, 8]], 1, 4, "minecraft:stone_bricks")); // L plan
+BUILD.place(shapes.jetty([0, 5, 0], [8, 5, 6], "minecraft:spruce_planks", { overhang: 1, bracket: "minecraft:spruce_stairs" }));
+BUILD.roofGable([-1, 9, -1], [9, 9, 7], "minecraft:spruce_stairs", { ridge: "x", endFill: "minecraft:white_concrete", profile: "concave" });
+```
 
 ### Geometry
 

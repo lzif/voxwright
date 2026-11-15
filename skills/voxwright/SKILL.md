@@ -178,6 +178,21 @@ yourself before reporting, when you can read images. Views, separated by semicol
 downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`); without
 network access blocks are drawn as plain cubes.
 
+### palette
+
+```sh
+node <skill-dir>/scripts/voxwright-cli.mjs palette near <block> [--family stairs|slab|full|any] [--limit N]
+node <skill-dir>/scripts/voxwright-cli.mjs palette ramp <from> <to> [--steps N] [--family stairs|slab|full|any]
+node <skill-dir>/scripts/voxwright-cli.mjs palette show <block>...
+```
+
+Compares blocks by the mean colour of their vanilla textures. `near` lists the blocks closest in
+colour to one block, `ramp` lists blocks that step evenly from one block to another, `show` prints
+the colour of each face of a block. Use `palette ramp` to pick the stops of `gradient(...)` (for
+example a roof that darkens toward the eave); `--family stairs` gives stair blocks for a roof. The
+first use downloads the game's textures (about 25 MB, into `~/.cache/mcbuilder/`) and writes
+`texture-stats.json` next to them; with `--offline` it fails if they are not cached yet.
+
 ## References
 
 - [references/builder-api.md](references/builder-api.md): every method, option and default of the

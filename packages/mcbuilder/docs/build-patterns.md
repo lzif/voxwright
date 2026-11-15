@@ -1537,7 +1537,7 @@ lintel says "doorway".
     step counts unresolved; no recipe is written.
   - Spans and rises are unresolved for every profile except the two measured
     above (trixyblox f_001, f_019). The nave rib vault is out of scope here.
-  - Shape: voxwright mcbuilder `shapes.arch` (draft, in progress).
+  - Shape: voxwright mcbuilder `shapes.arch` (implemented, 664edf7).
 - Corbelled stepped forms (sub-entry): Disruptive builds
   wave 2. The profiles above are heads over an opening. This reel adds stepped
   forms that are not openings. (A) Relieving frieze over an arcade: above the
@@ -2068,7 +2068,7 @@ fighting platform.
   - Unresolved: merlon and crenel counts per face; overhang depth; the default
     ratio. A 1:1 ratio is also reported by the evidence reader for another reel
     that is not cited here.
-  - Shape: voxwright mcbuilder `shapes.parapet` (draft, in progress).
+  - Shape: voxwright mcbuilder `shapes.parapet` (implemented, 668049a).
 - More merlon / crenel data points (sub-entry):
   Disruptive builds wave 2. The rhythm bullet above leaves the default ratio
   open. Two more readings: the castle curtain wall runs about 1:1 with a
@@ -2413,7 +2413,7 @@ a box".
   slab for the terrace pieces and the rim; the `facing` and `half` of any
   stairs; whether the dentil row is blocks, stairs or trapdoors; the width
   to ±1.
-- Shape: voxwright mcbuilder `shapes.skirtRoof` (draft, in progress).
+- Shape: voxwright mcbuilder `shapes.skirtRoof` (implemented, c73fccc).
 - (Alixxa ref: f_011 rim railing; f_012–f_014 upper shaft rising and the
   doorway; f_015 skirt from above; f_016 underside lanterns; f_017 finished
   two-stage tower, where a second skirt-type "hat" also sits under the crown.)
