@@ -1221,65 +1221,121 @@ describe("roofGable endFill and ridgeCap", () => {
   });
 
   describe("ridgeCap", () => {
-    it("lays a rail with posts at both ends and every 3rd cell, odd span", () => {
-      // x 0..6, z 0..4: apex row 2 at z2, rail y3 for x -1..7, posts y4 at idx 0,3,6,8.
-      const out = added([0, 0, 0], [6, 0, 4], {
+    const SLAB = "minecraft:oak_slab[type=top]";
+
+    it("stands posts at both ends and every 3rd cell with a rail between, odd span", () => {
+      // x 0..7 (n = 8), z 0..4: top stair row 2 at z2 (y2). Posts y3..y4 at x 0,3,6,7;
+      // rail at y4 (the top post row) on x 1,2,4,5. Nothing at y3 between posts, nothing past the ends.
+      const out = added([0, 0, 0], [7, 0, 4], {
         ridge: "x",
-        ridgeCap: { rail: LOG, post: POST },
+        ridgeCap: { post: POST, rail: SLAB },
       });
-      const rail: Cell[] = Array.from({ length: 9 }, (_, i): Cell => [i - 1, 3, 2, LOG]);
-      const posts: Cell[] = [-1, 2, 5, 7].map((x): Cell => [x, 4, 2, POST]);
-      expect(out).toEqual(sortCells([...rail, ...posts]));
+      const posts = [0, 3, 6, 7].flatMap((x): Cell[] => [
+        [x, 3, 2, POST],
+        [x, 4, 2, POST],
+      ]);
+      const rail = [1, 2, 4, 5].map((x): Cell => [x, 4, 2, SLAB]);
+      expect(out).toEqual(sortCells([...posts, ...rail]));
     });
 
-    it("covers both cells of an even span, ridge x", () => {
-      // z 0..3: top row 1 stairs at z1 and z2; rail y2 on both; overshoot 0, every 2.
+    it("honours every and height, with the last gap shorter", () => {
+      // x 0..6, z 0..2 (apex row 1 at z1, y1), every 4, height 3: posts y2..y4 at x 0,4,6;
+      // rail at y4 on x 1,2,3,5.
+      const out = added([0, 0, 0], [6, 0, 2], {
+        ridge: "x",
+        ridgeCap: { post: POST, rail: LOG, every: 4, height: 3 },
+      });
+      const posts = [0, 4, 6].flatMap((x): Cell[] => [2, 3, 4].map((y): Cell => [x, y, 1, POST]));
+      const rail = [1, 2, 3, 5].map((x): Cell => [x, 4, 1, LOG]);
+      expect(out).toEqual(sortCells([...posts, ...rail]));
+    });
+
+    it("uses one column, the lower across coordinate, for an even span", () => {
+      // z 0..3: top row 1 stairs at z1 and z2 (y1); cap on z1 only: posts y2..y3 at x 0,2,4, rail y3 at x 1,3.
       const out = added([0, 0, 0], [4, 0, 3], {
         ridge: "x",
-        ridgeCap: { rail: LOG, post: POST, every: 2, overshoot: 0 },
+        ridgeCap: { post: POST, rail: SLAB, every: 2 },
       });
-      const rail = [0, 1, 2, 3, 4].flatMap((x) => [1, 2].map((z): Cell => [x, 2, z, LOG]));
-      const posts = [0, 2, 4].flatMap((x) => [1, 2].map((z): Cell => [x, 3, z, POST]));
-      expect(out).toEqual(sortCells([...rail, ...posts]));
+      const posts = [0, 2, 4].flatMap((x): Cell[] => [
+        [x, 2, 1, POST],
+        [x, 3, 1, POST],
+      ]);
+      const rail = [1, 3].map((x): Cell => [x, 3, 1, SLAB]);
+      expect(out).toEqual(sortCells([...posts, ...rail]));
     });
 
-    it("runs along z, defaults post to the rail, adds the last post when the gap is short", () => {
-      // x 0..2, z 0..4, ridge z: apex x1 row 1; rail y1+1 = 2; z -1..5 (7 cells); posts idx 0,3,6.
-      const out = added([0, 0, 0], [2, 0, 4], { ridge: "z", ridgeCap: { rail: POST } });
-      const rail = Array.from({ length: 7 }, (_, i): Cell => [1, 2, i - 1, POST]);
-      const posts = [-1, 2, 5].map((z): Cell => [1, 3, z, POST]);
-      expect(out).toEqual(sortCells([...rail, ...posts]));
-    });
-
-    it("leaves the rail bare with post null", () => {
-      const out = added([0, 0, 0], [3, 0, 2], {
-        ridge: "x",
-        ridgeCap: { rail: LOG, post: null, overshoot: 0 },
-      });
-      expect(out).toEqual([0, 1, 2, 3].map((x): Cell => [x, 2, 1, LOG]));
-    });
-
-    it("places the same posts for a 1-wide roof (span 1)", () => {
-      const out = added([0, 0, 0], [2, 0, 0], {
-        ridge: "x",
-        ridgeCap: { rail: LOG, post: POST, overshoot: 0 },
+    it("uses x, not z, as the lower column for an even span with ridge z", () => {
+      // x 2..5, z 0..2: top row 1 stairs at x3 and x4; cap on x3: posts y2..y3 at z 0,2; rail y3 at z1.
+      const out = added([2, 0, 0], [5, 0, 2], {
+        ridge: "z",
+        ridgeCap: { post: POST, rail: SLAB },
       });
       expect(out).toEqual(
         sortCells([
-          ...[0, 1, 2].map((x): Cell => [x, 1, 0, LOG]),
-          ...[0, 2].map((x): Cell => [x, 2, 0, POST]),
+          [3, 2, 0, POST],
+          [3, 3, 0, POST],
+          [3, 3, 1, SLAB],
+          [3, 2, 2, POST],
+          [3, 3, 2, POST],
         ]),
       );
+    });
+
+    it("runs along z, on an elevated roof", () => {
+      // x 0..2, z 0..4, ridge z, base y 5: apex x1 row 1 (y6); posts y7..y8 at z 0,3,4; rail y8 at z 1,2.
+      const out = added([0, 5, 0], [2, 5, 4], {
+        ridge: "z",
+        ridgeCap: { post: POST, rail: SLAB },
+      });
+      const posts = [0, 3, 4].flatMap((z): Cell[] => [
+        [1, 7, z, POST],
+        [1, 8, z, POST],
+      ]);
+      const rail = [1, 2].map((z): Cell => [1, 8, z, SLAB]);
+      expect(out).toEqual(sortCells([...posts, ...rail]));
+    });
+
+    it("leaves posts alone with rail null or omitted", () => {
+      const posts = [0, 3, 4].flatMap((z): Cell[] => [
+        [1, 7, z, POST],
+        [1, 8, z, POST],
+      ]);
+      for (const ridgeCap of [{ post: POST, rail: null }, { post: POST }]) {
+        expect(added([0, 5, 0], [2, 5, 4], { ridge: "z", ridgeCap })).toEqual(sortCells(posts));
+      }
+    });
+
+    it("makes a low fence with height 1: posts and rail share the row above the ridge", () => {
+      // x 0..3, z 0..0: span 1, top row 0 (y0); posts and rail at y1.
+      const out = added([0, 0, 0], [3, 0, 0], {
+        ridge: "x",
+        ridgeCap: { post: POST, rail: SLAB, every: 2, height: 1 },
+      });
+      expect(out).toEqual([
+        [0, 1, 0, POST],
+        [1, 1, 0, SLAB],
+        [2, 1, 0, POST],
+        [3, 1, 0, POST],
+      ]);
+    });
+
+    it("never overshoots the gable ends: nothing outside the roof's run", () => {
+      const out = added([2, 0, 2], [9, 0, 6], { ridge: "x", ridgeCap: { post: POST, rail: SLAB } });
+      expect(Math.min(...out.map((c) => c[0]))).toBe(2);
+      expect(Math.max(...out.map((c) => c[0]))).toBe(9);
     });
 
     it("combines with endFill without overlapping it", () => {
       const both = cellsOf([0, 0, 0], [4, 0, 4], ST, {
         ridge: "x",
         endFill: F,
-        ridgeCap: { rail: LOG },
+        ridgeCap: { post: POST, rail: SLAB },
       });
       const fillOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x", endFill: F });
-      const capOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x", ridgeCap: { rail: LOG } });
+      const capOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, {
+        ridge: "x",
+        ridgeCap: { post: POST, rail: SLAB },
+      });
       expect(both).toHaveLength(
         fillOnly.length + capOnly.length - cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x" }).length,
       );
@@ -1291,14 +1347,11 @@ describe("roofGable endFill and ridgeCap", () => {
       shapes.roofGable([0, 0, 0], [4, 0, 4], ST, { ridge: "x", ...o });
 
     it("checks ridgeCap", () => {
-      refuses(roof({ ridgeCap: LOG as never }), /ridgeCap must be an object with a rail/);
-      refuses(roof({ ridgeCap: {} as never }), /ridgeCap must be an object with a rail/);
-      refuses(roof({ ridgeCap: { rail: LOG, every: 0 } }), /ridgeCap.every must be an int >= 1/);
-      refuses(roof({ ridgeCap: { rail: LOG, every: 1.5 } }), /ridgeCap.every must be an int/);
-      refuses(
-        roof({ ridgeCap: { rail: LOG, overshoot: -1 } }),
-        /ridgeCap.overshoot must be an int >= 0/,
-      );
+      refuses(roof({ ridgeCap: LOG as never }), /ridgeCap must be an object with a post/);
+      refuses(roof({ ridgeCap: {} as never }), /ridgeCap must be an object with a post/);
+      refuses(roof({ ridgeCap: { post: POST, every: 0 } }), /ridgeCap.every must be an int >= 1/);
+      refuses(roof({ ridgeCap: { post: POST, every: 1.5 } }), /ridgeCap.every must be an int/);
+      refuses(roof({ ridgeCap: { post: POST, height: 0 } }), /ridgeCap.height must be an int >= 1/);
     });
 
     it("still refuses a stair with facing and a bad ridge", () => {
@@ -1316,7 +1369,7 @@ describe("roofGable endFill and ridgeCap", () => {
       ({
         ridge: "x",
         endFill: palette,
-        ridgeCap: { rail: palette, post: palette },
+        ridgeCap: { post: palette, rail: palette },
         seed,
       }) as const;
 

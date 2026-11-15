@@ -429,16 +429,22 @@ export function cone(
 
 // -- roofs -------------------------------------------------------------------
 
-/** `ridgeCap` of `roofGable`: a rail along the ridge top with posts standing on it. */
+/**
+ * `ridgeCap` of `roofGable`: a fence-like cresting along the ridge, posts
+ * standing on the ridge row with a thinner rail between them near their top.
+ */
 export interface RidgeCapOptions {
-  /** The rail, one cell wide (two for an even span), one row above the ridge. */
-  rail: Material;
-  /** Posts on the rail. Default: `rail`. `null` leaves the rail bare. */
-  post?: Material | null;
-  /** A post every `every` rail cells, counted from the first. Default 3. */
+  /** The posts, vertical (put the axis in yourself, e.g. `stripped_oak_log[axis=y]`). */
+  post: Material;
+  /**
+   * The rail between the posts, in the top row of the posts. `null` or omitted
+   * leaves the posts alone; there is no default rail material.
+   */
+  rail?: Material | null;
+  /** A post every `every` cells from the first ridge cell, and one on the last. Default 3. */
   every?: number;
-  /** Cells the rail runs past each gable end. Default 1. */
-  overshoot?: number;
+  /** Rows the posts stand, from the row above the top stair row. Default 2. */
+  height?: number;
 }
 
 export interface RoofGableOptions extends SeedOption {
@@ -489,34 +495,54 @@ const halfDefault = (block: string): Record<string, string> =>
  * There is no window or oculus option (the hib/f_018 1x1 opening is left to
  * the caller).
  *
- * `ridgeCap` adds a ridge cresting: a one-block rail on the ridge with posts
- * standing on it. `rail` and `post` are any materials; put any `axis` they
- * need in the block yourself (`oak_log[axis=x]` for `ridge: "x"`,
- * `oak_log[axis=y]` posts), because the shape does not change the block's
- * properties. The rail sits one row above the top stair row and runs
- * `overshoot` cells past the roof at both gable ends. Posts sit one row above
- * the rail, at the first and last rail cell and every `every` cells from the
- * first (so the last gap can be shorter). Side view, ridge along x, 7 long,
- * `every` 3, `overshoot` 1 (`R` rail, `P` post, `S` top stair row, odd span):
+ * `ridgeCap` adds a ridge cresting that reads like a fence on the ridge: `post`
+ * blocks stand on the ridge, and a thinner `rail` runs between them near their
+ * top, leaving a gap of air below the rail where the roof shows through. The
+ * shape does not touch block properties: put the axis in yourself, e.g.
+ * `post: "minecraft:stripped_oak_log[axis=y]"` and `rail:
+ * "minecraft:oak_slab[type=top]"` (a thin rail), or an oak fence, or
+ * `stripped_oak_log[axis=x]` for `ridge: "x"` (a full-block rail).
  *
- *       P     P     P   P      y + top + 2
- *       R R R R R R R R R      y + top + 1
- *         S S S S S S S        y + top
+ * Cells. Let `top` be the top stair row (row index `ceil(span / 2) - 1`, y =
+ * base + top). The posts stand on the row above it, y + top + 1, and are
+ * `height` rows tall (default 2), so they span rows y + top + 1 ..
+ * y + top + height. Along the ridge, number the cells 0 .. n-1 (the run
+ * `c1`..`c2`): posts on cell 0, `every`, 2 x `every` ... and always on n-1 (the
+ * last gap can be shorter). The rail fills the cells BETWEEN posts in the top
+ * row of the posts (y + top + height), never overshooting the end posts; below
+ * it, between posts, is air. `rail: null` (or omitted) gives posts only. Side
+ * view, ridge along x, n = 8, `every` 3, `height` 2 (`P` post, `=` rail, `S`
+ * top stair row, `.` air, odd span):
  *
- * With an even span there is no single apex cell: the ridge is the two cells
- * of the top stair row, and both get a rail and a post, so the cap is two
- * cells wide. That is a design choice, not observed.
+ *     P = = P = = P P     y + top + 2   (rail row = top of the posts)
+ *     P . . P . . P P     y + top + 1   (gap, the roof shows through)
+ *     S S S S S S S S     y + top
+ *
+ * With `height` 1 the posts and rail share one row (a low fence). The cresting
+ * stands over the ridge cells only, so it never touches the gable-end stairs
+ * or `endFill`.
+ *
+ * Even span. There is no single apex cell: the ridge is the two cells of the top
+ * stair row. The cresting stands on only one of them, the one at the lower
+ * `across` coordinate (north for `ridge: "x"`, west for `ridge: "z"`), so it
+ * stays one cell wide and reads as a fence. It sits half a cell off the centre
+ * line. Putting posts and rail on both cells was tried in the preview and
+ * rejected: it gave a 2-wide bench-like slab on 2x1 posts. This is a design
+ * choice, not observed; mirror the roof's `c1`/`c2` if you want the other side.
  *
  * Evidence: endFill hib/f_018 (full planks under dark verge stairs, in the verge
  * plane, flush with the steps), tav/f_004, tav/f_005 (white infill under a slate
- * gable), NS/f_080, GV/f_023, AR/f_105; ridgeCap tav/f_009, tav/f_013,
- * tav/f_019, tav/f_020 (log rail with posts about every 3rd cell, one block
- * high; the plain rail overshooting both gable ends by 1 is tav/f_002, tav/f_004).
- * Design choices, not read from the frames: `every` default 3 (the frames
- * show about 3, +/-1), `overshoot` default 1 (frames show about 1), post
- * default `rail`, the end posts always present, the even-span two-cell cap,
- * the rail standing one row above the top stairs (the frames cannot tell
- * whether it sits on slabs or on the stairs).
+ * gable), NS/f_080, GV/f_023, AR/f_105; ridgeCap tav/f_020 (full-res, ridge
+ * crop), tav/f_009, tav/f_013, tav/f_019: vertical stripped-log posts stand on
+ * the ridge about every 3rd cell, rising about 2 above the roof; a thinner
+ * horizontal rail runs between them near their top with a visible gap below it;
+ * the posts end flush with or just above the rail. Design choices, not read
+ * from the frames: `every` default 3 (the frames show about 3, +/-1),
+ * `height` default 2, the end posts always present, the rail stopping at the
+ * end posts (the earlier version overshot the gable ends and hung in the air),
+ * the even-span single column on the lower side, and the rail being a one-cell block (which
+ * block, slab or fence or log, is yours to pick; the frames show it thinner than
+ * the posts).
  */
 export function roofGable(
   c1: Point,
@@ -534,12 +560,12 @@ export function roofGable(
   const eave = options.eave ? stairMaterial("roof_gable", options.eave, seed) : null;
   const cap = options.ridgeCap ?? null;
   if (cap) {
-    if (typeof cap !== "object" || Array.isArray(cap) || cap.rail === undefined) {
-      throw new McbuilderError("roof_gable: ridgeCap must be an object with a rail material");
+    if (typeof cap !== "object" || Array.isArray(cap) || cap.post === undefined) {
+      throw new McbuilderError("roof_gable: ridgeCap must be an object with a post material");
     }
   }
   const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
-  const capOvershoot = cap ? positive("roof_gable: ridgeCap.overshoot", cap.overshoot ?? 1, 0) : 0;
+  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 2) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] =
     ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = (hi as number) - (lo as number) + 1;
@@ -583,19 +609,20 @@ export function roofGable(
   }
 
   if (cap) {
-    const rail = new Painter(cap.rail, seed);
-    const post = cap.post === null ? null : new Painter(cap.post ?? cap.rail, seed);
+    const post = new Painter(cap.post, seed);
+    const rail = cap.rail ? new Painter(cap.rail, seed) : null;
     const top = Math.ceil(span / 2) - 1;
-    const columns =
-      span % 2 ? [(lo as number) + top] : [(lo as number) + top, (hi as number) - top];
-    const first = (runLo as number) - capOvershoot;
-    const last = (runHi as number) + capOvershoot;
-    for (let run = first; run <= last; run++) {
-      const isPost = post !== null && ((run - first) % capEvery === 0 || run === last);
-      for (const across of columns) {
-        const [x, z] = xz(across, run);
-        geo.set(x, y0 + top + 1, z, rail.blockAt(x, y0 + top + 1, z));
-        if (isPost) geo.set(x, y0 + top + 2, z, (post as Painter).blockAt(x, y0 + top + 2, z));
+    const column = (lo as number) + top;
+    const n = (runHi as number) - (runLo as number) + 1;
+    const railRow = y0 + top + capHeight;
+    for (let i = 0; i < n; i++) {
+      const run = (runLo as number) + i;
+      const isPost = i % capEvery === 0 || i === n - 1;
+      const [x, z] = xz(column, run);
+      if (isPost) {
+        for (let y = y0 + top + 1; y <= railRow; y++) geo.set(x, y, z, post.blockAt(x, y, z));
+      } else if (rail) {
+        geo.set(x, railRow, z, rail.blockAt(x, railRow, z));
       }
     }
   }

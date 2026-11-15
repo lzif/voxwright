@@ -12003,12 +12003,12 @@ function roofGable(c1, c2, block, options) {
   const eave = options.eave ? stairMaterial("roof_gable", options.eave, seed) : null;
   const cap = options.ridgeCap ?? null;
   if (cap) {
-    if (typeof cap !== "object" || Array.isArray(cap) || cap.rail === void 0) {
-      throw new McbuilderError("roof_gable: ridgeCap must be an object with a rail material");
+    if (typeof cap !== "object" || Array.isArray(cap) || cap.post === void 0) {
+      throw new McbuilderError("roof_gable: ridgeCap must be an object with a post material");
     }
   }
   const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
-  const capOvershoot = cap ? positive("roof_gable: ridgeCap.overshoot", cap.overshoot ?? 1, 0) : 0;
+  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 2) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] = ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = hi - lo + 1;
   const geo = new Geometry();
@@ -12045,18 +12045,20 @@ function roofGable(c1, c2, block, options) {
     }
   }
   if (cap) {
-    const rail = new Painter(cap.rail, seed);
-    const post = cap.post === null ? null : new Painter(cap.post ?? cap.rail, seed);
+    const post = new Painter(cap.post, seed);
+    const rail = cap.rail ? new Painter(cap.rail, seed) : null;
     const top = Math.ceil(span / 2) - 1;
-    const columns = span % 2 ? [lo + top] : [lo + top, hi - top];
-    const first = runLo - capOvershoot;
-    const last = runHi + capOvershoot;
-    for (let run = first; run <= last; run++) {
-      const isPost = post !== null && ((run - first) % capEvery === 0 || run === last);
-      for (const across of columns) {
-        const [x3, z] = xz(across, run);
-        geo.set(x3, y0 + top + 1, z, rail.blockAt(x3, y0 + top + 1, z));
-        if (isPost) geo.set(x3, y0 + top + 2, z, post.blockAt(x3, y0 + top + 2, z));
+    const column = lo + top;
+    const n2 = runHi - runLo + 1;
+    const railRow = y0 + top + capHeight;
+    for (let i2 = 0; i2 < n2; i2++) {
+      const run = runLo + i2;
+      const isPost = i2 % capEvery === 0 || i2 === n2 - 1;
+      const [x3, z] = xz(column, run);
+      if (isPost) {
+        for (let y = y0 + top + 1; y <= railRow; y++) geo.set(x3, y, z, post.blockAt(x3, y, z));
+      } else if (rail) {
+        geo.set(x3, railRow, z, rail.blockAt(x3, railRow, z));
       }
     }
   }
