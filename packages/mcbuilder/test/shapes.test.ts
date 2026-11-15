@@ -1332,3 +1332,439 @@ describe("roofGable endFill and ridgeCap", () => {
     });
   });
 });
+
+describe("polygon", () => {
+  const S = "minecraft:stone_bricks";
+  const PL = "minecraft:spruce_planks";
+  type Cell = [number, number, number, string];
+  type V = [number, number][];
+  type Geo = ReturnType<typeof shapes.polygon>;
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (g: Geo): Cell[] => sortCells(g.cells() as Cell[]);
+  /** `x,y,z` triples of a Geometry, sorted. */
+  const keys = (g: Geo): number[][] => cellsOf(g).map((c) => [c[0], c[1], c[2]]);
+  /** Plan rows at one y, top row is z = 0, `#` where a cell exists. */
+  const plan = (g: Geo, y: number, w: number, d: number): string[] => {
+    const set = new Set(
+      cellsOf(g)
+        .filter((c) => c[1] === y)
+        .map((c) => `${c[0]},${c[2]}`),
+    );
+    return Array.from({ length: d }, (_, z) =>
+      Array.from({ length: w }, (_, x) => (set.has(`${x},${z}`) ? "#" : ".")).join(""),
+    );
+  };
+  const refuses = (fn: () => unknown, pattern: RegExp) => {
+    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(pattern);
+  };
+
+  const RECT: V = [
+    [0, 0],
+    [6, 0],
+    [6, 4],
+    [0, 4],
+  ];
+  const L: V = [
+    [0, 0],
+    [5, 0],
+    [5, 2],
+    [2, 2],
+    [2, 4],
+    [0, 4],
+  ];
+  const T: V = [
+    [0, 0],
+    [6, 0],
+    [6, 1],
+    [4, 1],
+    [4, 4],
+    [2, 4],
+    [2, 1],
+    [0, 1],
+  ];
+  const CRUCIFORM: V = [
+    [2, 0],
+    [4, 0],
+    [4, 2],
+    [6, 2],
+    [6, 4],
+    [4, 4],
+    [4, 6],
+    [2, 6],
+    [2, 4],
+    [0, 4],
+    [0, 2],
+    [2, 2],
+  ];
+  // Dumbbell: two wings 5 wide, a neck x 5..7 only 3 rows deep, outline 13 x 5.
+  const DUMBBELL: V = [
+    [0, 0],
+    [4, 0],
+    [4, 1],
+    [8, 1],
+    [8, 0],
+    [12, 0],
+    [12, 4],
+    [8, 4],
+    [8, 3],
+    [4, 3],
+    [4, 4],
+    [0, 4],
+  ];
+
+  describe("walls (default)", () => {
+    it("has the exact cell set of the L outline, corners not doubled", () => {
+      // Listed in x-major order, as `keys` sorts.
+      expect(keys(shapes.polygon(L, 0, 0, S))).toEqual([
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, 0, 2],
+        [0, 0, 3],
+        [0, 0, 4],
+        [1, 0, 0],
+        [1, 0, 4],
+        [2, 0, 0],
+        [2, 0, 2],
+        [2, 0, 3],
+        [2, 0, 4],
+        [3, 0, 0],
+        [3, 0, 2],
+        [4, 0, 0],
+        [4, 0, 2],
+        [5, 0, 0],
+        [5, 0, 1],
+        [5, 0, 2],
+      ]);
+    });
+
+    it("repeats the ring at every y, in either y order", () => {
+      const a = shapes.polygon(L, 1, 3, S);
+      const b = shapes.polygon(L, 3, 1, S);
+      expect(cellsOf(a)).toEqual(cellsOf(b));
+      expect(a.cells()).toHaveLength(18 * 3);
+      expect(new Set(cellsOf(a).map((c) => c[1]))).toEqual(new Set([1, 2, 3]));
+      expect(cellsOf(a).every((c) => c[3] === S)).toBe(true);
+    });
+
+    it("leaves the notches of a T and a cruciform empty", () => {
+      expect(plan(shapes.polygon(T, 0, 0, S), 0, 7, 5)).toEqual([
+        "#######",
+        "###.###",
+        "..#.#..",
+        "..#.#..",
+        "..###..",
+      ]);
+      expect(plan(shapes.polygon(CRUCIFORM, 0, 0, S), 0, 7, 7)).toEqual([
+        "..###..",
+        "..#.#..",
+        "###.###",
+        "#.....#",
+        "###.###",
+        "..#.#..",
+        "..###..",
+      ]);
+    });
+
+    it("traces a dumbbell back wall of stepped segments", () => {
+      expect(plan(shapes.polygon(DUMBBELL, 0, 0, S), 0, 13, 5)).toEqual([
+        "#####...#####",
+        "#...#####...#",
+        "#...........#",
+        "#...#####...#",
+        "#####...#####",
+      ]);
+    });
+
+    it("equals walls for a plain rectangle", () => {
+      const rect: V = [
+        [2, 1],
+        [8, 1],
+        [8, 6],
+        [2, 6],
+      ];
+      expect(cellsOf(shapes.polygon(rect, 3, 6, S))).toEqual(
+        sortCells(shapes.walls([2, 3, 1], [8, 6, 6], S).cells() as Cell[]),
+      );
+    });
+
+    it("equals walls with a palette and seed, whatever the vertex order or start", () => {
+      const palette = [S, "minecraft:cobblestone", "minecraft:andesite"];
+      const ref = sortCells(
+        shapes.walls([0, 0, 0], [6, 2, 4], palette, { seed: 7 }).cells() as Cell[],
+      );
+      const order = (v: V) => cellsOf(shapes.polygon(v, 0, 2, palette, { seed: 7 }));
+      expect(order(RECT)).toEqual(ref);
+      expect(
+        order([
+          [6, 4],
+          [6, 0],
+          [0, 0],
+          [0, 4],
+        ]),
+      ).toEqual(ref);
+      expect(
+        order([
+          [0, 4],
+          [0, 0],
+          [6, 0],
+          [6, 4],
+        ]),
+      ).toEqual(ref);
+    });
+
+    it("allows a vertex in the middle of a straight edge", () => {
+      const split: V = [
+        [0, 0],
+        [3, 0],
+        [6, 0],
+        [6, 4],
+        [0, 4],
+      ];
+      expect(cellsOf(shapes.polygon(split, 0, 0, S))).toEqual(
+        cellsOf(shapes.polygon(RECT, 0, 0, S)),
+      );
+    });
+  });
+
+  describe("solid", () => {
+    it("fills an L shape at every y", () => {
+      const g = shapes.polygon(L, 0, 1, PL, { mode: "solid" });
+      for (const y of [0, 1]) {
+        expect(plan(g, y, 6, 5)).toEqual(["######", "######", "######", "###...", "###..."]);
+      }
+      expect(g.cells()).toHaveLength(2 * (6 + 6 + 6 + 3 + 3));
+    });
+
+    it("fills a T and a cruciform without filling the notches", () => {
+      expect(plan(shapes.polygon(T, 0, 0, PL, { mode: "solid" }), 0, 7, 5)).toEqual([
+        "#######",
+        "#######",
+        "..###..",
+        "..###..",
+        "..###..",
+      ]);
+      expect(plan(shapes.polygon(CRUCIFORM, 0, 0, PL, { mode: "solid" }), 0, 7, 7)).toEqual([
+        "..###..",
+        "..###..",
+        "#######",
+        "#######",
+        "#######",
+        "..###..",
+        "..###..",
+      ]);
+    });
+
+    it("fills a dumbbell through its neck and keeps the end notches open", () => {
+      expect(plan(shapes.polygon(DUMBBELL, 0, 0, PL, { mode: "solid" }), 0, 13, 5)).toEqual([
+        "#####...#####",
+        "#############",
+        "#############",
+        "#############",
+        "#####...#####",
+      ]);
+    });
+
+    it("fills a plain rectangle completely", () => {
+      expect(shapes.polygon(RECT, 0, 0, PL, { mode: "solid" }).cells()).toHaveLength(7 * 5);
+    });
+  });
+
+  describe("floor", () => {
+    it("is outline plus interior at the single y", () => {
+      const g = shapes.polygon(L, 5, 5, PL, { mode: "floor" });
+      expect(plan(g, 5, 6, 5)).toEqual(["######", "######", "######", "###...", "###..."]);
+      expect(new Set(cellsOf(g).map((c) => c[1]))).toEqual(new Set([5]));
+      expect(cellsOf(g).every((c) => c[3] === PL)).toBe(true);
+    });
+
+    it("matches solid at that one layer", () => {
+      expect(cellsOf(shapes.polygon(T, 2, 2, PL, { mode: "floor" }))).toEqual(
+        cellsOf(shapes.polygon(T, 2, 2, PL, { mode: "solid" })),
+      );
+    });
+
+    it("refuses a range of more than one layer", () => {
+      refuses(() => shapes.polygon(L, 0, 1, PL, { mode: "floor" }), /mode floor is one layer/);
+    });
+  });
+
+  describe("validation", () => {
+    const poly =
+      (v: unknown, extra: Record<string, unknown> = {}) =>
+      () =>
+        shapes.polygon(v as V, 0, 0, S, extra);
+
+    it("refuses fewer than 4 vertices", () => {
+      refuses(
+        poly([
+          [0, 0],
+          [3, 0],
+          [3, 3],
+        ]),
+        /at least 4/,
+      );
+      refuses(poly([]), /at least 4/);
+      refuses(poly("nope"), /at least 4/);
+    });
+
+    it("refuses a diagonal edge", () => {
+      refuses(
+        poly([
+          [0, 0],
+          [4, 1],
+          [4, 4],
+          [0, 4],
+        ]),
+        /edge 0 .* is diagonal/,
+      );
+    });
+
+    it("refuses a loop that does not close axis-aligned", () => {
+      // last (0,3) to first (0,0) is fine; here last (1,3) to first (0,0) is diagonal
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [4, 3],
+          [1, 3],
+        ]),
+        /edge 3 .* is diagonal/,
+      );
+      // five vertices, closing edge diagonal
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [4, 3],
+          [2, 3],
+          [1, 2],
+        ]),
+        /is diagonal/,
+      );
+    });
+
+    it("refuses a zero-length edge", () => {
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [4, 0],
+          [4, 3],
+          [0, 3],
+        ]),
+        /edge 1 .* zero length/,
+      );
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [4, 3],
+          [0, 3],
+          [0, 0],
+        ]),
+        /zero length/,
+      );
+    });
+
+    it("refuses edges that cross", () => {
+      // bow tie of two crossing strokes
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [4, 4],
+          [2, 4],
+          [2, -2],
+          [0, -2],
+        ]),
+        /revisits cell/,
+      );
+    });
+
+    it("refuses edges that overlap or double back", () => {
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0],
+          [2, 0],
+          [2, 3],
+        ]),
+        /revisits cell/,
+      );
+    });
+
+    it("refuses edges that touch", () => {
+      // the first and the third vertical edge meet at one cell
+      refuses(
+        poly([
+          [0, 0],
+          [6, 0],
+          [6, 4],
+          [3, 4],
+          [3, 0],
+          [2, 0],
+          [2, 4],
+          [0, 4],
+        ]),
+        /revisits cell/,
+      );
+    });
+
+    it("refuses bad vertices, y values and modes", () => {
+      refuses(
+        poly([
+          [0, 0],
+          [4, 0, 1],
+          [4, 3],
+          [0, 3],
+        ]),
+        /vertex 1 must be \[x, z\] ints/,
+      );
+      refuses(
+        poly([
+          [0, 0],
+          [4.5, 0],
+          [4, 3],
+          [0, 3],
+        ]),
+        /vertex 1 must be \[x, z\] ints/,
+      );
+      refuses(
+        poly([
+          [0, 0],
+          ["a", 0],
+          [4, 3],
+          [0, 3],
+        ]),
+        /vertex 1 must be/,
+      );
+      refuses(() => shapes.polygon(RECT, 0.5, 1, S), /y1 and y2 must be ints/);
+      refuses(poly(RECT, { mode: "roof" }), /invalid mode roof/);
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [S, "minecraft:cobblestone", "minecraft:andesite"];
+    const run = (seed: number) => shapes.polygon(DUMBBELL, 0, 2, palette, { mode: "solid", seed });
+
+    it("gives the same cells twice for the same seed", () => {
+      expect(run(3).cells()).toEqual(run(3).cells());
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      const [a, b] = [cellsOf(run(1)), cellsOf(run(2))];
+      expect(a).not.toEqual(b);
+      expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+    });
+
+    it("does not depend on the vertex starting point", () => {
+      const rotated = [...L.slice(2), ...L.slice(0, 2)];
+      expect(cellsOf(shapes.polygon(rotated, 0, 1, palette, { mode: "solid", seed: 4 }))).toEqual(
+        cellsOf(shapes.polygon(L, 0, 1, palette, { mode: "solid", seed: 4 })),
+      );
+    });
+  });
+});

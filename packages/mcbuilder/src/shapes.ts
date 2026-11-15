@@ -1359,3 +1359,171 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
   }
   return geo;
 }
+
+// -- polygon -----------------------------------------------------------------
+
+export interface PolygonOptions extends SeedOption {
+  /**
+   * What to build. `"walls"` (default): the outline cells only, at every y.
+   * `"solid"`: outline and interior, at every y. `"floor"`: outline and interior,
+   * one layer; needs `y1 === y2`.
+   */
+  mode?: "walls" | "solid" | "floor";
+}
+
+const POLYGON_MODES = ["walls", "solid", "floor"] as const;
+
+/**
+ * Footprint from a rectilinear outline: a closed loop of `[x, z]` vertices with
+ * only axis-aligned edges, built as walls, as a solid, or as a one-layer floor.
+ * It covers the stepped plans that `walls` and `floor` (one rectangle each)
+ * cannot: L, T, cruciform, notched and dumbbell outlines (technique 47).
+ *
+ * Arguments. `vertices` is the outline in order, `[x, z]` block cells (+X east,
+ * +Z south). The last vertex connects back to the first; do not repeat the
+ * first. Every consecutive pair, including last to first, must share `x` or
+ * `z`. Each edge covers every cell from one end vertex to the other, both end
+ * cells included, so the vertex cells themselves are part of the outline and a
+ * "length 8" edge is 8 cells including both corners. `y1` and `y2` are the
+ * inclusive vertical range, in either order; `block` is any material spec.
+ *
+ * Refused (all as `polygon: ...` errors): fewer than 4 vertices, a vertex that
+ * is not 2 ints, a diagonal edge (this includes a loop whose last vertex does
+ * not line up with the first, so the closing edge is diagonal), a zero-length
+ * edge (a repeated vertex), and an outline that visits any cell twice. That
+ * last test catches edges that cross, touch, overlap or double back on each
+ * other; it is a cell-level check, so two edges that run side by side on
+ * neighbouring cells are fine. Consecutive collinear vertices (a vertex in the
+ * middle of a straight edge) are allowed.
+ *
+ * Modes, plan view (x east, z south) of the L outline
+ * `[[0,0],[5,0],[5,2],[2,2],[2,4],[0,4]]`; `#` outline, `+` interior, blank is empty:
+ *
+ *   x=0 1 2 3 4 5
+ *     # # # # # #   z=0
+ *     # + + + + #   z=1
+ *     # + # # # #   z=2
+ *     # + #         z=3
+ *     # # #         z=4
+ *
+ * - `"walls"` (default): the `#` cells at every y from `y1` to `y2`. A corner
+ *   is one cell, never doubled. A plain rectangle gives exactly the cells of
+ *   `walls` for the same box.
+ * - `"solid"`: `#` and `+` cells at every y.
+ * - `"floor"`: `#` and `+` cells at `y1` only.
+ *
+ * Interior test. A cell that is not on the outline is inside when a ray from
+ * its centre toward +x crosses an odd number of vertical edges (even-odd rule,
+ * half-open in z so vertices count once). The outline is the polygon through
+ * the vertex cells' centres, so the outline cells are always included and the
+ * notches of concave plans stay empty.
+ *
+ * Design choices (the frames do not settle them): `walls` is the default mode
+ * because the first step in the frames is the outline ring; `floor` is a single
+ * layer and requires `y1 === y2` rather than silently ignoring `y2`; `floor`
+ * and `solid` include the outline cells (hibouk f_004-f_005 lays the plank
+ * floor inside a ring; for that look, floor a smaller outline one cell in); no
+ * vertex is added or moved. Not covered: edges that are not axis-aligned,
+ * outlines with holes, wall thickness above 1, and a roof over the footprint.
+ *
+ * Evidence: hibouk-winter-mansion f_001-f_005 (dumbbell: outline in markers,
+ * stone-brick ring, plank floor inside it; labels 8, 5, 8 down the back wall),
+ * arashy12-medieval-house f_001-f_002 (notched plan 7, 4, 12, 5, 3),
+ * french-mansion f_007 (cruciform 21, 30, 9), noes-starter-house f_030 (L plan,
+ * 9x5 house with a 5x4 porch arm). Segment lengths there are estimates; pass the
+ * vertices you want.
+ */
+export function polygon(
+  vertices: readonly (readonly [number, number])[],
+  y1: number,
+  y2: number,
+  block: Material,
+  options: PolygonOptions = {},
+): Geometry {
+  const { seed, mode = "walls" } = options;
+  if (!isInt(y1) || !isInt(y2)) {
+    throw new McbuilderError(`polygon: y1 and y2 must be ints, got ${show(y1)}, ${show(y2)}`);
+  }
+  if (!POLYGON_MODES.includes(mode)) {
+    throw new McbuilderError(
+      `polygon: invalid mode ${show(mode)}; expected one of [${POLYGON_MODES.join(", ")}]`,
+    );
+  }
+  if (!Array.isArray(vertices) || vertices.length < 4) {
+    throw new McbuilderError(
+      `polygon: vertices must be an array of at least 4 [x, z] points, got ${Array.isArray(vertices) ? vertices.length : show(vertices)}`,
+    );
+  }
+  for (const [i, v] of vertices.entries()) {
+    if (!Array.isArray(v) || v.length !== 2 || !v.every(isInt)) {
+      throw new McbuilderError(`polygon: vertex ${i} must be [x, z] ints, got ${show(v)}`);
+    }
+  }
+  const yLow = Math.min(y1, y2);
+  const yHigh = Math.max(y1, y2);
+  if (mode === "floor" && y1 !== y2) {
+    throw new McbuilderError(
+      `polygon: mode floor is one layer; y1 and y2 must be equal, got ${y1}, ${y2}`,
+    );
+  }
+
+  // Edges, outline cells and the visit-once check.
+  const outline = new Map<string, [number, number]>();
+  const verticals: { x: number; zLow: number; zHigh: number }[] = [];
+  const n = vertices.length;
+  for (let i = 0; i < n; i++) {
+    const [ax, az] = vertices[i] as readonly [number, number];
+    const [bx, bz] = vertices[(i + 1) % n] as readonly [number, number];
+    const label = `edge ${i} (${ax},${az}) to (${bx},${bz})`;
+    if (ax !== bx && az !== bz) {
+      throw new McbuilderError(`polygon: ${label} is diagonal; edges must share x or z`);
+    }
+    if (ax === bx && az === bz) {
+      throw new McbuilderError(`polygon: ${label} has zero length (repeated vertex)`);
+    }
+    const dx = Math.sign(bx - ax);
+    const dz = Math.sign(bz - az);
+    const steps = Math.abs(bx - ax) + Math.abs(bz - az);
+    // The last cell of this edge is the first cell of the next edge: visit steps cells only.
+    for (let s = 0; s < steps; s++) {
+      const cx = ax + dx * s;
+      const cz = az + dz * s;
+      const key = `${cx},${cz}`;
+      if (outline.has(key)) {
+        throw new McbuilderError(
+          `polygon: ${label} revisits cell (${cx},${cz}); the outline must not cross, touch or overlap itself`,
+        );
+      }
+      outline.set(key, [cx, cz]);
+    }
+    if (ax === bx) verticals.push({ x: ax, zLow: Math.min(az, bz), zHigh: Math.max(az, bz) });
+  }
+
+  const cells: [number, number][] = [...outline.values()];
+  if (mode !== "walls") {
+    // Scanline: per row, sorted x of the vertical edges crossing it (half-open in z);
+    // consecutive pairs bound the inside. Pair endpoints are outline cells.
+    let zMin = Number.POSITIVE_INFINITY;
+    let zMax = Number.NEGATIVE_INFINITY;
+    for (const [, cz] of cells) {
+      zMin = Math.min(zMin, cz);
+      zMax = Math.max(zMax, cz);
+    }
+    for (let z = zMin; z <= zMax; z++) {
+      const xs = verticals
+        .filter((e) => e.zLow <= z && z < e.zHigh)
+        .map((e) => e.x)
+        .sort((a, b) => a - b);
+      for (let k = 0; k + 1 < xs.length; k += 2) {
+        for (let x = xs[k] as number; x <= (xs[k + 1] as number); x++) {
+          if (!outline.has(`${x},${z}`)) cells.push([x, z]);
+        }
+      }
+    }
+  }
+
+  const p = new Painter(block, seed);
+  const top = mode === "floor" ? yLow : yHigh;
+  for (const [x, z] of cells) for (let y = yLow; y <= top; y++) p.put(x, y, z);
+  return p.geo;
+}

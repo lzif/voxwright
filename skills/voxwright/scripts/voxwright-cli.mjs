@@ -11729,6 +11729,7 @@ __export(shapes_exports, {
   line: () => line,
   parapet: () => parapet,
   pillar: () => pillar,
+  polygon: () => polygon,
   railing: () => railing,
   roofGable: () => roofGable,
   roofHip: () => roofHip,
@@ -12386,6 +12387,85 @@ function bayWall(c1, c2, block, options) {
     }
   }
   return geo;
+}
+var POLYGON_MODES = ["walls", "solid", "floor"];
+function polygon(vertices, y1, y2, block, options = {}) {
+  const { seed, mode = "walls" } = options;
+  if (!isInt(y1) || !isInt(y2)) {
+    throw new McbuilderError(`polygon: y1 and y2 must be ints, got ${show(y1)}, ${show(y2)}`);
+  }
+  if (!POLYGON_MODES.includes(mode)) {
+    throw new McbuilderError(
+      `polygon: invalid mode ${show(mode)}; expected one of [${POLYGON_MODES.join(", ")}]`
+    );
+  }
+  if (!Array.isArray(vertices) || vertices.length < 4) {
+    throw new McbuilderError(
+      `polygon: vertices must be an array of at least 4 [x, z] points, got ${Array.isArray(vertices) ? vertices.length : show(vertices)}`
+    );
+  }
+  for (const [i2, v] of vertices.entries()) {
+    if (!Array.isArray(v) || v.length !== 2 || !v.every(isInt)) {
+      throw new McbuilderError(`polygon: vertex ${i2} must be [x, z] ints, got ${show(v)}`);
+    }
+  }
+  const yLow = Math.min(y1, y2);
+  const yHigh = Math.max(y1, y2);
+  if (mode === "floor" && y1 !== y2) {
+    throw new McbuilderError(
+      `polygon: mode floor is one layer; y1 and y2 must be equal, got ${y1}, ${y2}`
+    );
+  }
+  const outline = /* @__PURE__ */ new Map();
+  const verticals = [];
+  const n2 = vertices.length;
+  for (let i2 = 0; i2 < n2; i2++) {
+    const [ax, az] = vertices[i2];
+    const [bx, bz] = vertices[(i2 + 1) % n2];
+    const label = `edge ${i2} (${ax},${az}) to (${bx},${bz})`;
+    if (ax !== bx && az !== bz) {
+      throw new McbuilderError(`polygon: ${label} is diagonal; edges must share x or z`);
+    }
+    if (ax === bx && az === bz) {
+      throw new McbuilderError(`polygon: ${label} has zero length (repeated vertex)`);
+    }
+    const dx = Math.sign(bx - ax);
+    const dz = Math.sign(bz - az);
+    const steps = Math.abs(bx - ax) + Math.abs(bz - az);
+    for (let s = 0; s < steps; s++) {
+      const cx = ax + dx * s;
+      const cz = az + dz * s;
+      const key2 = `${cx},${cz}`;
+      if (outline.has(key2)) {
+        throw new McbuilderError(
+          `polygon: ${label} revisits cell (${cx},${cz}); the outline must not cross, touch or overlap itself`
+        );
+      }
+      outline.set(key2, [cx, cz]);
+    }
+    if (ax === bx) verticals.push({ x: ax, zLow: Math.min(az, bz), zHigh: Math.max(az, bz) });
+  }
+  const cells = [...outline.values()];
+  if (mode !== "walls") {
+    let zMin = Number.POSITIVE_INFINITY;
+    let zMax = Number.NEGATIVE_INFINITY;
+    for (const [, cz] of cells) {
+      zMin = Math.min(zMin, cz);
+      zMax = Math.max(zMax, cz);
+    }
+    for (let z = zMin; z <= zMax; z++) {
+      const xs = verticals.filter((e) => e.zLow <= z && z < e.zHigh).map((e) => e.x).sort((a, b) => a - b);
+      for (let k = 0; k + 1 < xs.length; k += 2) {
+        for (let x2 = xs[k]; x2 <= xs[k + 1]; x2++) {
+          if (!outline.has(`${x2},${z}`)) cells.push([x2, z]);
+        }
+      }
+    }
+  }
+  const p = new Painter(block, seed);
+  const top = mode === "floor" ? yLow : yHigh;
+  for (const [x2, z] of cells) for (let y = yLow; y <= top; y++) p.put(x2, y, z);
+  return p.geo;
 }
 
 // packages/mcbuilder/src/voxels.ts
