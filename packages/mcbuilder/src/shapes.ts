@@ -1554,3 +1554,164 @@ export function polygon(
   for (const [x, z] of cells) for (let y = yLow; y <= top; y++) p.put(x, y, z);
   return p.geo;
 }
+
+// -- jetties -----------------------------------------------------------------
+
+const JETTY_SIDES = ["north", "south", "east", "west"] as const;
+
+export interface JettyOptions extends SeedOption {
+  /** How far the deck projects past the wall line on each chosen side, in cells. Default 1. */
+  overhang?: number;
+  /** Sides that project, a non-empty subset of north, south, east, west. Default: all four. */
+  sides?: readonly ("north" | "south" | "east" | "west")[];
+  /** Stair material (no `facing`) for the upside-down brackets under the deck. Omitted or `null`: no brackets. */
+  bracket?: Material | null;
+  /** A bracket every `every` cells along a side, counted from both ends. Default 3. */
+  every?: number;
+  /** Material of an optional continuous row under the deck along the outer edge. Default: none. */
+  beam?: Material;
+}
+
+/**
+ * Jetty: the overhanging deck of an upper storey, projecting past the wall of
+ * the storey below, on a row of upside-down stair brackets (technique 17,
+ * "jetty").
+ *
+ * Arguments. `c1`..`c2` (corners inclusive, any order) is the XZ footprint of
+ * the lower storey's top, that is the wall line the jetty projects from. The
+ * deck row is `min(c1.y, c2.y)`; the other y is ignored. `block` is the deck.
+ * The lower wall's top row is at `y - 1` on the footprint outline, which is
+ * your wall (this shape places nothing on the footprint).
+ *
+ * Layout. Take the footprint's XZ rectangle and grow it on the chosen `sides`
+ * by `overhang`. The deck row `y` holds `block` on every cell of that grown
+ * shape that is outside the footprint: only the projecting ring. The
+ * footprint cells at `y` (the floor of the upper storey) are yours, as are
+ * its walls: stand them at `y + 1` on the outer outline of the deck, flush
+ * with the projection. A corner where two projecting sides meet is filled as a square
+ * of `overhang` x `overhang`. A corner of two sides of which one is not
+ * chosen has no ring cell. Choosing `["north"]` gives a deck strip along the
+ * north wall only, as wide as the footprint.
+ *
+ * Brackets. With `bracket` set, the row `y - 1` holds a stair on the ring cells
+ * adjacent to the wall (distance 1 from the footprint, not the whole
+ * overhang), on each chosen side. Number a side's cells 0 .. n-1 along the
+ * wall; a stair stands on cell `i` when `min(i, n - 1 - i) % every === 0`. So
+ * the rhythm reads the same from both ends, the two cells at the ends of each
+ * side (the wall's corner columns) always carry a bracket, and a side that
+ * does not fit the rhythm ends up with a wider gap in the middle. The diagonal
+ * corner cell of the deck has no bracket of its own: the end brackets of the
+ * two sides next to it hold it. Every stair is upside-down (`half=top`) and
+ * faces the wall: its tall back is against the wall and the hanging half
+ * stands under the deck, thinning outward.
+ *
+ * Beam. With `beam` set, the row `y - 1` also holds one continuous row of
+ * `beam` along the outer edge of the projecting ring (the cells whose distance
+ * from the footprint equals `overhang` on a chosen side), wrapping the
+ * corners. It wins over a bracket on the same cell: with `overhang` 1 the outer
+ * edge IS the bracket row, so the beam replaces the brackets; use `overhang`
+ * 2 or more to have beam and brackets together. The shape does not know which
+ * blocks carry an `axis`, so it does not set one: a log beam keeps the
+ * block's default axis (vertical); use a plank or other axis-free block for
+ * a clean fascia, or accept the vertical grain.
+ *
+ * Elevation, section through the middle of a north side (`x` fixed, looking
+ * west), footprint `z=0..4`, defaults plus `bracket` (`D` deck, `S` bracket
+ * stair, `W` your lower wall, `F` your upper floor, `.` empty):
+ *
+ *   z=-1  0  1  2  3  4  5
+ *     D   F  F  F  F  F  D    y      deck row
+ *     S   W  .  .  .  W  S    y - 1  (a section through a bracket column)
+ *
+ * Plan of the row `y - 1`, footprint `x=0..6`, `z=0..4`, `every` 3, `bracket` set
+ * (`S` stair, `W` your wall top, `.` empty); the deck row above covers every
+ * `.` of the ring and every `S`:
+ *
+ *   x=-1  0  1  2  3  4  5  6  7
+ *     .   S  .  .  S  .  .  S  .    z=-1
+ *     S   W  W  W  W  W  W  W  S    z=0
+ *     .   W  .  .  .  .  .  W  .    z=1
+ *     .   W  .  .  .  .  .  W  .    z=2
+ *     .   W  .  .  .  .  .  W  .    z=3
+ *     S   W  W  W  W  W  W  W  S    z=4
+ *     .   S  .  .  S  .  .  S  .    z=5
+ *
+ * Stair facing. The stair on the north side faces south, on the south side
+ * north, on the west side east and on the east side west (toward the wall).
+ *
+ * Options and defaults. `overhang` 1 (AR/f_034, f_049 show the deck 1 out; the
+ * tavern's upper floor reads 1 out as well, tav/f_004). `sides`: all four (a
+ * design choice: AR/f_034 shows a front and side, the tavern's jetty is on the
+ * free front only; pass the sides you want). `bracket`: none unless given (a
+ * design choice: the shape cannot guess a stair material). `every` 3 (AR,
+ * "about every 3 blocks", f_049; the spacing is eyeballed). `beam`: none (a
+ * choice; AR/f_049 reads the edge as 2 stacked rows of stair and slab or
+ * plank, GS/f_023 as a log ring beam, tav/f_004 as a timber sill row; which
+ * of these, and at which row, the frames do not settle). Not part of the
+ * shape: the log-end stubs at the corners and mid-side of GS/f_023, the stack
+ * of 2 or 3 stepped log brackets of tav/f_013 and hib/f_042, and the corner
+ * post carried through the deck (place those yourself). `seed` salts weighted
+ * palettes.
+ *
+ * Evidence: arashy12-medieval-house f_034 (deck over the stone wall, brackets
+ * in a rhythm), f_049 (full-res crop: 2 edge layers, stairs under, about every
+ * 3, corner post carried through); gorillo-spruce-house f_023 (log ring beam
+ * with stubs); omggamer-medieval-tavern f_004 (upper floor over stone).
+ */
+export function jetty(c1: Point, c2: Point, block: Material, options: JettyOptions = {}): Geometry {
+  const [[x1, y0, z1], [x2, , z2]] = corners("jetty", c1, c2);
+  const overhang = positive("jetty: overhang", options.overhang ?? 1);
+  const every = positive("jetty: every", options.every ?? 3);
+  const { seed } = options;
+  const sideArg = options.sides ?? JETTY_SIDES;
+  if (!Array.isArray(sideArg) || sideArg.length === 0) {
+    throw new McbuilderError(
+      `jetty: sides must be a non-empty array of [${JETTY_SIDES.join(", ")}], got ${show(sideArg)}`,
+    );
+  }
+  const sides = new Set(sideArg.map((s) => direction("jetty: sides", s)));
+  const bracket =
+    options.bracket === undefined || options.bracket === null
+      ? null
+      : stairMaterial("jetty", options.bracket, seed);
+  const deck = new Painter(block, seed);
+  const beam = options.beam === undefined ? null : new Painter(options.beam, seed);
+  const geo = new Geometry();
+
+  const beamCell = new Set<string>();
+  for (let x = x1 - overhang; x <= x2 + overhang; x++) {
+    for (let z = z1 - overhang; z <= z2 + overhang; z++) {
+      const ex = x < x1 ? x1 - x : x > x2 ? x - x2 : 0;
+      const ez = z < z1 ? z1 - z : z > z2 ? z - z2 : 0;
+      if (ex === 0 && ez === 0) continue;
+      if (ex > 0 && !sides.has(x < x1 ? "west" : "east")) continue;
+      if (ez > 0 && !sides.has(z < z1 ? "north" : "south")) continue;
+      deck.put(x, y0, z);
+      if (beam && (ex === overhang || ez === overhang)) {
+        beam.put(x, y0 - 1, z);
+        beamCell.add(`${x},${z}`);
+      }
+    }
+  }
+
+  if (bracket) {
+    const lay = (x: number, z: number, facing: string): void => {
+      if (beamCell.has(`${x},${z}`)) return;
+      geo.set(x, y0 - 1, z, withProps(bracket(x, y0 - 1, z), { facing, half: "top" }));
+    };
+    const onRhythm = (i: number, n: number): boolean => Math.min(i, n - 1 - i) % every === 0;
+    const nx = x2 - x1 + 1;
+    const nz = z2 - z1 + 1;
+    for (let i = 0; i < nx; i++) {
+      if (!onRhythm(i, nx)) continue;
+      if (sides.has("north")) lay(x1 + i, z1 - 1, "south");
+      if (sides.has("south")) lay(x1 + i, z2 + 1, "north");
+    }
+    for (let i = 0; i < nz; i++) {
+      if (!onRhythm(i, nz)) continue;
+      if (sides.has("west")) lay(x1 - 1, z1 + i, "east");
+      if (sides.has("east")) lay(x2 + 1, z1 + i, "west");
+    }
+  }
+  return deck.geo.concat(beam ? beam.geo : new Geometry()).concat(geo);
+}

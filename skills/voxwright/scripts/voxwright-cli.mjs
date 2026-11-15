@@ -11726,6 +11726,7 @@ __export(shapes_exports, {
   box: () => box,
   cone: () => cone,
   cylinder: () => cylinder,
+  jetty: () => jetty,
   line: () => line,
   parapet: () => parapet,
   pillar: () => pillar,
@@ -12468,6 +12469,59 @@ function polygon(vertices, y1, y2, block, options = {}) {
   const top = mode === "floor" ? yLow : yHigh;
   for (const [x2, z] of cells) for (let y = yLow; y <= top; y++) p.put(x2, y, z);
   return p.geo;
+}
+var JETTY_SIDES = ["north", "south", "east", "west"];
+function jetty(c1, c2, block, options = {}) {
+  const [[x1, y0, z1], [x2, , z2]] = corners("jetty", c1, c2);
+  const overhang = positive("jetty: overhang", options.overhang ?? 1);
+  const every = positive("jetty: every", options.every ?? 3);
+  const { seed } = options;
+  const sideArg = options.sides ?? JETTY_SIDES;
+  if (!Array.isArray(sideArg) || sideArg.length === 0) {
+    throw new McbuilderError(
+      `jetty: sides must be a non-empty array of [${JETTY_SIDES.join(", ")}], got ${show(sideArg)}`
+    );
+  }
+  const sides = new Set(sideArg.map((s) => direction("jetty: sides", s)));
+  const bracket = options.bracket === void 0 || options.bracket === null ? null : stairMaterial("jetty", options.bracket, seed);
+  const deck = new Painter(block, seed);
+  const beam = options.beam === void 0 ? null : new Painter(options.beam, seed);
+  const geo = new Geometry();
+  const beamCell = /* @__PURE__ */ new Set();
+  for (let x3 = x1 - overhang; x3 <= x2 + overhang; x3++) {
+    for (let z = z1 - overhang; z <= z2 + overhang; z++) {
+      const ex = x3 < x1 ? x1 - x3 : x3 > x2 ? x3 - x2 : 0;
+      const ez = z < z1 ? z1 - z : z > z2 ? z - z2 : 0;
+      if (ex === 0 && ez === 0) continue;
+      if (ex > 0 && !sides.has(x3 < x1 ? "west" : "east")) continue;
+      if (ez > 0 && !sides.has(z < z1 ? "north" : "south")) continue;
+      deck.put(x3, y0, z);
+      if (beam && (ex === overhang || ez === overhang)) {
+        beam.put(x3, y0 - 1, z);
+        beamCell.add(`${x3},${z}`);
+      }
+    }
+  }
+  if (bracket) {
+    const lay = (x3, z, facing) => {
+      if (beamCell.has(`${x3},${z}`)) return;
+      geo.set(x3, y0 - 1, z, withProps(bracket(x3, y0 - 1, z), { facing, half: "top" }));
+    };
+    const onRhythm = (i2, n2) => Math.min(i2, n2 - 1 - i2) % every === 0;
+    const nx = x2 - x1 + 1;
+    const nz = z2 - z1 + 1;
+    for (let i2 = 0; i2 < nx; i2++) {
+      if (!onRhythm(i2, nx)) continue;
+      if (sides.has("north")) lay(x1 + i2, z1 - 1, "south");
+      if (sides.has("south")) lay(x1 + i2, z2 + 1, "north");
+    }
+    for (let i2 = 0; i2 < nz; i2++) {
+      if (!onRhythm(i2, nz)) continue;
+      if (sides.has("west")) lay(x1 - 1, z1 + i2, "east");
+      if (sides.has("east")) lay(x2 + 1, z1 + i2, "west");
+    }
+  }
+  return deck.geo.concat(beam ? beam.geo : new Geometry()).concat(geo);
 }
 
 // packages/mcbuilder/src/voxels.ts

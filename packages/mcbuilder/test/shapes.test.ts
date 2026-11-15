@@ -1821,3 +1821,266 @@ describe("polygon", () => {
     });
   });
 });
+
+describe("jetty", () => {
+  const D = "minecraft:oak_planks";
+  const STAIR_O = "minecraft:oak_stairs";
+  const BEAM = "minecraft:stripped_oak_log";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.jetty>): Cell[] =>
+    sortCells(shapes.jetty(...args).cells() as Cell[]);
+  const stair = (facing: string): string => `${STAIR_O}[facing=${facing},half=top]`;
+  const row = (cells: Cell[], y: number): Cell[] => cells.filter((c) => c[1] === y);
+  const keys = (cells: Cell[]): string[] => cells.map((c) => `${c[0]},${c[2]}`);
+
+  describe("deck", () => {
+    it("is a 1-wide ring around a 3 x 3 footprint, corners included, nothing on the footprint", () => {
+      const cells = cellsOf([0, 5, 0], [2, 5, 2], D);
+      expect(cells).toHaveLength(16);
+      expect(cells.every((c) => c[1] === 5 && c[3] === D)).toBe(true);
+      expect(cells.some((c) => c[0] >= 0 && c[0] <= 2 && c[2] >= 0 && c[2] <= 2)).toBe(false);
+      expect(cells.map((c) => Math.max(Math.abs(c[0] - 1), Math.abs(c[2] - 1)))).toEqual(
+        cells.map(() => 2),
+      );
+    });
+
+    it("takes the corners in any order and uses the lower y", () => {
+      expect(cellsOf([2, 9, 2], [0, 5, 0], D)).toEqual(cellsOf([0, 5, 0], [2, 5, 2], D));
+    });
+
+    it("honours overhang 2, filling each corner as a 2 x 2 square", () => {
+      const cells = cellsOf([0, 0, 0], [2, 0, 2], D, { overhang: 2 });
+      // 7 x 7 grown shape less the 3 x 3 footprint
+      expect(cells).toHaveLength(49 - 9);
+      expect(keys(cells)).toContain("-2,-2");
+      expect(keys(cells)).toContain("-1,-2");
+      expect(keys(cells)).toContain("4,4");
+    });
+
+    it("projects on one side only, as wide as the footprint", () => {
+      const cells = cellsOf([0, 5, 0], [3, 5, 2], D, { sides: ["north"] });
+      expect(keys(cells)).toEqual(["0,-1", "1,-1", "2,-1", "3,-1"]);
+    });
+
+    it("projects on south only", () => {
+      const cells = cellsOf([0, 5, 0], [1, 5, 2], D, { sides: ["south"], overhang: 2 });
+      expect(keys(cells)).toEqual(["0,3", "0,4", "1,3", "1,4"]);
+    });
+
+    it("projects on east only", () => {
+      expect(keys(cellsOf([0, 5, 0], [2, 5, 1], D, { sides: ["east"] }))).toEqual(["3,0", "3,1"]);
+    });
+
+    it("projects on west only", () => {
+      expect(keys(cellsOf([0, 5, 0], [2, 5, 1], D, { sides: ["west"] }))).toEqual(["-1,0", "-1,1"]);
+    });
+
+    it("fills a corner only where both sides project", () => {
+      const both = keys(cellsOf([0, 5, 0], [2, 5, 2], D, { sides: ["north", "west"] }));
+      expect(both).toEqual(
+        ["-1,-1", "-1,0", "-1,1", "-1,2", "0,-1", "1,-1", "2,-1"].sort((a, b) => {
+          const [ax, az] = a.split(",").map(Number) as [number, number];
+          const [bx, bz] = b.split(",").map(Number) as [number, number];
+          return ax - bx || az - bz;
+        }),
+      );
+      const opposite = keys(cellsOf([0, 5, 0], [2, 5, 2], D, { sides: ["north", "south"] }));
+      expect(opposite).not.toContain("-1,-1");
+      expect(opposite).toHaveLength(6);
+    });
+
+    it("accepts a 1 x 1 footprint", () => {
+      expect(cellsOf([4, 0, 4], [4, 0, 4], D)).toHaveLength(8);
+    });
+  });
+
+  describe("brackets", () => {
+    // footprint 7 x 5: x 0..6, z 0..4, every 3
+    const cells = cellsOf([0, 5, 0], [6, 5, 4], D, { bracket: STAIR_O });
+    const brackets = row(cells, 4);
+    const at = (x: number, z: number): string | undefined =>
+      brackets.find((c) => c[0] === x && c[2] === z)?.[3];
+
+    it("stands on the ring cells next to the wall, one row under the deck", () => {
+      expect(row(cells, 5)).toHaveLength(9 * 7 - 7 * 5);
+      expect(keys(brackets)).toEqual(
+        keys(
+          sortCells(
+            [
+              [0, 4, -1],
+              [3, 4, -1],
+              [6, 4, -1],
+              [0, 4, 5],
+              [3, 4, 5],
+              [6, 4, 5],
+              [-1, 4, 0],
+              [-1, 4, 4],
+              [7, 4, 0],
+              [7, 4, 4],
+            ].map(([x, y, z]) => [x as number, y as number, z as number, ""] as Cell),
+          ),
+        ),
+      );
+    });
+
+    it("faces each stair toward the wall, upside-down", () => {
+      expect(at(3, -1)).toBe(stair("south"));
+      expect(at(3, 5)).toBe(stair("north"));
+      expect(at(-1, 0)).toBe(stair("east"));
+      expect(at(7, 0)).toBe(stair("west"));
+      expect(brackets.every((c) => c[3].includes("half=top"))).toBe(true);
+    });
+
+    it("puts a bracket at both ends of every side and leaves the diagonal corner bare", () => {
+      expect(at(0, -1)).toBe(stair("south"));
+      expect(at(6, -1)).toBe(stair("south"));
+      expect(at(-1, -1)).toBeUndefined();
+      expect(at(7, 5)).toBeUndefined();
+    });
+
+    it("reads the same from both ends and widens the gap in the middle", () => {
+      // 8 cells: d = 0 1 2 3 3 2 1 0 -> brackets at 0, 3, 4, 7 with every 3
+      const wide = cellsOf([0, 0, 0], [7, 0, 0], D, { bracket: STAIR_O, sides: ["north"] });
+      expect(row(wide, -1).map((c) => c[0])).toEqual([0, 3, 4, 7]);
+    });
+
+    it("honours every", () => {
+      const dense = cellsOf([0, 0, 0], [4, 0, 0], D, {
+        bracket: STAIR_O,
+        sides: ["north"],
+        every: 1,
+      });
+      expect(row(dense, -1).map((c) => c[0])).toEqual([0, 1, 2, 3, 4]);
+      const sparse = cellsOf([0, 0, 0], [8, 0, 0], D, {
+        bracket: STAIR_O,
+        sides: ["north"],
+        every: 4,
+      });
+      expect(row(sparse, -1).map((c) => c[0])).toEqual([0, 4, 8]);
+    });
+
+    it("keeps brackets next to the wall when the overhang is deeper", () => {
+      const deep = cellsOf([0, 0, 0], [2, 0, 0], D, {
+        bracket: STAIR_O,
+        sides: ["north"],
+        overhang: 2,
+      });
+      expect(keys(row(deep, -1))).toEqual(["0,-1", "2,-1"]);
+      expect(row(deep, 0)).toHaveLength(6);
+    });
+
+    it("places brackets on chosen sides only", () => {
+      const south = cellsOf([0, 5, 0], [2, 5, 2], D, { bracket: STAIR_O, sides: ["south"] });
+      expect(row(south, 4).map((c) => c[3])).toEqual([stair("north"), stair("north")]);
+      expect(keys(row(south, 4))).toEqual(["0,3", "2,3"]);
+    });
+
+    it("leaves a null or omitted bracket out", () => {
+      expect(row(cellsOf([0, 5, 0], [6, 5, 4], D, { bracket: null }), 4)).toEqual([]);
+      expect(row(cellsOf([0, 5, 0], [6, 5, 4], D), 4)).toEqual([]);
+    });
+
+    it("keeps other block properties on the stair", () => {
+      const wet = cellsOf([0, 5, 0], [0, 5, 0], D, {
+        bracket: `${STAIR_O}[waterlogged=true]`,
+        sides: ["east"],
+      });
+      expect(row(wet, 4)[0]?.[3]).toBe(`${STAIR_O}[facing=west,half=top,waterlogged=true]`);
+    });
+  });
+
+  describe("beam", () => {
+    it("runs one row under the deck along the outer edge, wrapping the corners", () => {
+      const cells = cellsOf([0, 5, 0], [2, 5, 2], D, { beam: BEAM, overhang: 2 });
+      const beam = row(cells, 4);
+      expect(beam.every((c) => c[3] === BEAM)).toBe(true);
+      // outer ring of the 7 x 7 grown shape: 24 cells
+      expect(beam).toHaveLength(24);
+      expect(beam.every((c) => Math.max(Math.abs(c[0] - 1), Math.abs(c[2] - 1)) === 3)).toBe(true);
+    });
+
+    it("wins over a bracket on the same cell, so overhang 1 replaces the brackets", () => {
+      const cells = cellsOf([0, 5, 0], [2, 5, 2], D, { beam: BEAM, bracket: STAIR_O });
+      expect(row(cells, 4)).toHaveLength(16);
+      expect(row(cells, 4).every((c) => c[3] === BEAM)).toBe(true);
+    });
+
+    it("sits beside the brackets when the overhang is 2", () => {
+      const cells = cellsOf([0, 5, 0], [2, 5, 0], D, {
+        beam: BEAM,
+        bracket: STAIR_O,
+        sides: ["north"],
+        overhang: 2,
+      });
+      const under = row(cells, 4);
+      expect(under.filter((c) => c[3] === BEAM).map((c) => [c[0], c[2]])).toEqual([
+        [0, -2],
+        [1, -2],
+        [2, -2],
+      ]);
+      expect(under.filter((c) => c[3] === stair("south")).map((c) => [c[0], c[2]])).toEqual([
+        [0, -1],
+        [2, -1],
+      ]);
+    });
+
+    it("follows only the chosen sides", () => {
+      const cells = cellsOf([0, 5, 0], [2, 5, 2], D, { beam: BEAM, sides: ["north"] });
+      expect(keys(row(cells, 4))).toEqual(["0,-1", "1,-1", "2,-1"]);
+    });
+  });
+
+  describe("validation", () => {
+    it("refuses a bracket stair with facing", () => {
+      refuses(
+        () => shapes.jetty([0, 0, 0], [3, 0, 3], D, { bracket: `${STAIR_O}[facing=north]` }),
+        /computes 'facing'/,
+      );
+    });
+
+    it("refuses a bad overhang or every", () => {
+      refuses(() => shapes.jetty([0, 0, 0], [3, 0, 3], D, { overhang: 0 }), /jetty: overhang/);
+      refuses(() => shapes.jetty([0, 0, 0], [3, 0, 3], D, { overhang: 1.5 }), /jetty: overhang/);
+      refuses(() => shapes.jetty([0, 0, 0], [3, 0, 3], D, { every: 0 }), /jetty: every/);
+    });
+
+    it("refuses bad sides", () => {
+      refuses(() => shapes.jetty([0, 0, 0], [3, 0, 3], D, { sides: [] }), /jetty: sides/);
+      refuses(
+        () => shapes.jetty([0, 0, 0], [3, 0, 3], D, { sides: "north" as never }),
+        /jetty: sides/,
+      );
+      refuses(
+        () => shapes.jetty([0, 0, 0], [3, 0, 3], D, { sides: ["up" as never] }),
+        /jetty: sides: invalid direction/,
+      );
+    });
+
+    it("refuses bad corners", () => {
+      refuses(() => shapes.jetty([0, 0] as never, [3, 0, 3], D), /jetty: c1 must be 3 ints/);
+      refuses(() => shapes.jetty([0, 0, 0], [3, 0.5, 3], D), /jetty: c2 coordinates must be ints/);
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [D, "minecraft:spruce_planks", "minecraft:birch_planks"];
+    const stairs = [STAIR_O, "minecraft:spruce_stairs"];
+
+    it("gives the same cells twice for the same seed", () => {
+      const run = () =>
+        shapes.jetty([0, 0, 0], [12, 0, 9], palette, { bracket: stairs, seed: 9 }).cells();
+      expect(run()).toEqual(run());
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      const run = (seed: number) =>
+        cellsOf([0, 0, 0], [12, 0, 9], palette, { bracket: stairs, seed });
+      const [a, b] = [run(1), run(2)];
+      expect(a).not.toEqual(b);
+      expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+    });
+  });
+});
