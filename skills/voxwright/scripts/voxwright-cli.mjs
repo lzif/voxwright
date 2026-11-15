@@ -9856,6 +9856,14 @@ function buildGuide(dense, assets, options = {}) {
 }
 
 // packages/mcbuilder/src/importer.ts
+var RENAMED_BLOCKS = {
+  "minecraft:grass_path": "minecraft:dirt_path",
+  // 1.17
+  "minecraft:grass": "minecraft:short_grass",
+  // 1.20.3
+  "minecraft:chain": "minecraft:iron_chain"
+  // 1.21.9
+};
 function structureFromVolume(volume, source, meta = {}) {
   const cells = [];
   volume.eachCell((x2, y, z, idx) => {
@@ -9875,15 +9883,21 @@ var AIR4 = "minecraft:air";
 function cleanProperties(structure, registry) {
   const cache = /* @__PURE__ */ new Map();
   const dropped = new Map(structure.droppedProperties);
+  const renamed = new Map(structure.renamedBlocks ?? []);
+  const known = (name) => Object.hasOwn(registry.blocks, name);
   const blocks = structure.blocks.map(([x2, y, z, b]) => {
     let hit = cache.get(b);
     if (hit === void 0) {
       const bracket = b.indexOf("[");
-      const name = bracket === -1 ? b : b.slice(0, bracket);
+      const oldName = bracket === -1 ? b : b.slice(0, bracket);
+      const newName = Object.hasOwn(RENAMED_BLOCKS, oldName) ? RENAMED_BLOCKS[oldName] : void 0;
+      const rename2 = newName !== void 0 && !known(oldName) && known(newName);
+      const name = rename2 ? newName : oldName;
+      const renamedNote = rename2 ? `${localName(oldName)} -> ${localName(name)}` : void 0;
       const rest = bracket === -1 ? "" : b.slice(bracket + 1);
-      const legal = Object.hasOwn(registry.blocks, name) ? registry.blocks[name] : void 0;
+      const legal = known(name) ? registry.blocks[name] : void 0;
       if (legal === void 0 || rest === "") {
-        hit = { state: b, dropped: [] };
+        hit = { state: rename2 ? name + b.slice(oldName.length) : b, dropped: [] };
       } else {
         const props = /* @__PURE__ */ new Map();
         for (const kv of rest.replace(/\]+$/, "").split(",")) {
@@ -9902,12 +9916,16 @@ function cleanProperties(structure, registry) {
           dropped: gone
         };
       }
+      if (renamedNote !== void 0) hit.renamed = renamedNote;
       cache.set(b, hit);
     }
     for (const k of hit.dropped) dropped.set(k, (dropped.get(k) ?? 0) + 1);
+    if (hit.renamed !== void 0) renamed.set(hit.renamed, (renamed.get(hit.renamed) ?? 0) + 1);
     return [x2, y, z, hit.state];
   });
-  return { ...structure, blocks, droppedProperties: dropped };
+  const out = { ...structure, blocks, droppedProperties: dropped };
+  if (renamed.size > 0) out.renamedBlocks = renamed;
+  return out;
 }
 function pyFixed(x2, digits) {
   const exact = Math.abs(x2).toFixed(Math.min(100, digits + 25));
@@ -9948,6 +9966,10 @@ function summary(structure, top = 25) {
     lines.push(
       `dropped unknown properties (Bedrock leftovers?): ${items.map(([k, n2]) => `${k} x${n2}`).join(", ")}`
     );
+  }
+  if (structure.renamedBlocks !== void 0 && structure.renamedBlocks.size > 0) {
+    const items = [...structure.renamedBlocks].sort((a, b) => compareCodePoints(a[0], b[0]));
+    lines.push(`renamed to current block ids: ${items.map(([k, n2]) => `${k} x${n2}`).join(", ")}`);
   }
   lines.push("", `top block types (of ${byName.size}):`);
   const ranked = [...byName].sort((a, b) => b[1] - a[1]).slice(0, top);
@@ -10066,7 +10088,7 @@ function toScript(structure, options = {}) {
     "/**",
     ...comment,
     " */",
-    'import { Build } from "@voxwright/mcbuilder";',
+    `import { Build } from ${JSON.stringify(options.specifier ?? "@voxwright/mcbuilder")};`,
     "",
     `export const BUILD = new Build({ seed: ${options.seed ?? 0}, views: "iso;az200_el025;top" });`,
     "",
@@ -13689,6 +13711,7 @@ async function cmdRun(args, io, get) {
   for (const w of warnings) io.out(`  warning: ${fmtIssue(w)}`);
   return ctx.errors.length > 0 ? 1 : 0;
 }
+var RECIPE_EXTENSIONS = [".ts", ".mts", ".mjs", ".js"];
 async function cmdImport(args, io) {
   const { values, positionals } = parseArgs({
     args,
@@ -13704,7 +13727,13 @@ async function cmdImport(args, io) {
   const [file] = positionals;
   if (file === void 0) throw new CliError("import: give a file");
   if (!await exists2(file)) throw new CliError(`no such file: ${file}`);
-  const out = values.output ?? `${file.slice(0, file.length - extname(file).length)}.ts`;
+  const stem = file.slice(0, file.length - extname(file).length);
+  const canRunTs = Boolean(process.features.typescript);
+  const out = values.output ?? `${stem}.${canRunTs ? "ts" : "mjs"}`;
+  if (!RECIPE_EXTENSIONS.includes(extname(out).toLowerCase()))
+    throw new CliError(
+      `import writes a recipe: -o must end in ${RECIPE_EXTENSIONS.join(", ")} (got '${out}')`
+    );
   if (await exists2(out) && !values.force)
     throw new CliError(`refusing to overwrite ${out} (use --force)`);
   const bytes = new Uint8Array(await readFile3(file));
@@ -13777,11 +13806,14 @@ async function cmdImport(args, io) {
       );
       structure = cleanProperties(structure, registry);
     } catch (e) {
-      io.err(`warning: properties not cleaned (${e.message})`);
+      io.err(
+        `warning: properties not cleaned and renamed blocks not updated (${e.message})`
+      );
     }
   }
   await mkdir3(dirname3(resolve3(out)), { recursive: true });
-  await writeFile4(out, toScript(structure), "utf8");
+  const specifier = BUNDLED ? "voxwright" : "@voxwright/mcbuilder";
+  await writeFile4(out, toScript(structure, { specifier }), "utf8");
   io.out(`wrote ${out}`);
   for (const line2 of summary(structure, 10)) io.out(line2 ? `  ${line2}` : "");
   return 0;
@@ -13999,7 +14031,7 @@ check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
     [--offline]
-import <file> [-o out] [--force] [--keep-air] [--raw]
+import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff <run-a> <run-b> [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]
@@ -15432,6 +15464,7 @@ export {
   MAX_EXTENT,
   McbuilderError,
   NbtError,
+  RENAMED_BLOCKS,
   ROTATIONS,
   Registry,
   RegistryError,

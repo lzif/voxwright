@@ -2,7 +2,7 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readStructureNbt } from "@voxwright/core";
+import { readStructureNbt, Volume, writeStructureNbt } from "@voxwright/core";
 import { decodePng } from "@voxwright/render/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HOUSE_TEMPLATE, runCli, scanDeterminism } from "../src/node/index.ts";
@@ -48,6 +48,9 @@ const REGISTRY = {
     "minecraft:spruce_stairs": { properties: stairs },
     "minecraft:dark_oak_stairs": { properties: stairs },
     "minecraft:stone": { properties: {} },
+    "minecraft:iron_chain": {
+      properties: { axis: ["x", "y", "z"], waterlogged: ["true", "false"] },
+    },
   },
 };
 
@@ -594,6 +597,45 @@ describe("mcbuild import", () => {
     expect(
       Object.values(report.block_counts as Record<string, number>).reduce((a, b) => a + b, 0),
     ).toBe(762);
+  });
+
+  it("writes an .mjs recipe, renames old block ids and rebuilds the same blocks", async () => {
+    const v = new Volume();
+    v.set(0, 0, 0, "minecraft:stone");
+    v.set(1, 0, 0, "minecraft:stone");
+    v.set(0, 1, 0, "minecraft:chain[axis=y,waterlogged=false]");
+    v.set(0, 2, 0, "minecraft:chain[axis=y,waterlogged=false]");
+    const src = join(root, "old-1.19.nbt");
+    await writeFile(src, (await writeStructureNbt(v, { dataVersion: 3105 })).bytes);
+    const out = join(root, "old-import/old.mjs");
+    const c = capture();
+    expect(await runCli(["import", src, "-o", out], c.io)).toBe(0);
+    expect(c.out[0]).toBe(`wrote ${out}`);
+    expect(c.out.join("\n")).toContain("renamed to current block ids: chain -> iron_chain x2");
+    const script = await readFile(out, "utf8");
+    // From source the workspace package name; the bundled command line writes "voxwright".
+    expect(script).toContain('import { Build } from "@voxwright/mcbuilder";');
+    expect(script).toContain('"minecraft:iron_chain[axis=y,waterlogged=false]"');
+    expect(script).not.toContain("minecraft:chain");
+
+    const run = capture();
+    expect(await runCli(["run", out, "--out", join(root, "old-import/dist")], run.io)).toBe(0);
+    const report = JSON.parse(
+      await readFile(join(root, "old-import/dist/run-001/report.json"), "utf8"),
+    );
+    expect(report.block_counts).toEqual({
+      "minecraft:iron_chain[axis=y,waterlogged=false]": 2,
+      "minecraft:stone": 2,
+    });
+  });
+
+  it("only writes recipe file types", async () => {
+    const src = fileURLToPath(
+      new URL("../../../fixtures/real/rafeals-house/Rafeals_house.litematic", import.meta.url),
+    );
+    const c = capture();
+    expect(await runCli(["import", src, "-o", join(root, "house.txt")], c.io)).toBe(1);
+    expect(c.err[0]).toContain("-o must end in .ts, .mts, .mjs, .js");
   });
 
   it("rejects unknown file types", async () => {

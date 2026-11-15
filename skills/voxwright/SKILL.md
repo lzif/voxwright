@@ -142,6 +142,28 @@ Prints what a `.schem`, `.litematic`, `.nbt` or `.mcstructure` file holds: forma
 DataVersion, size, block count, block entities, entities, metadata and the palette with counts.
 Use it to check a file you wrote, or to understand a schematic the user gives you.
 
+### import (schematic back to a recipe)
+
+```sh
+node <skill-dir>/scripts/voxwright-cli.mjs import <schematic> [-o <recipe>.ts|.mjs] [--force]
+```
+
+Turns a `.schem`, `.litematic`, `.nbt` or `.mcstructure` into a recipe that imports `Build` from
+`"voxwright"` and rebuilds the structure block for block: one constant per block state, runs of
+the same block merged into `BUILD.box(...)`, the rest `BUILD.set(...)`, layer by layer. Use it
+when the user wants to change a build they already have: import it, edit the recipe (or move parts
+of it into your own recipe), then `build` it again.
+
+- `-o` picks the file and the module type: `.ts`, `.mts`, `.mjs` or `.js` (the code is the same
+  plain JavaScript). Without `-o` it writes `<name>.ts`, or `<name>.mjs` on a Node that cannot run
+  TypeScript.
+- Block ids that Minecraft renamed (`chain` to `iron_chain`, `grass` to `short_grass`,
+  `grass_path` to `dirt_path`) are updated when the cached registry knows only the new id, and
+  properties the registry does not know (Bedrock leftovers) are dropped. Both are listed in the
+  header and the output. `--raw` keeps every block exactly as the file has it.
+- Not imported: block-entity data (sign text, chest contents) and entities (item frames, armor
+  stands). The header says how many were left out.
+
 ### preview (or view)
 
 ```sh

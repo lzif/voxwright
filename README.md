@@ -48,11 +48,12 @@ an address: the page shows the build in 3D, and a refresh shows the next version
 
 ## What the skill does
 
-| Step    | Command                                     | Result                                                                                                                     |
-| ------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Build   | `voxwright-cli build <recipe> --out <file>` | Runs the recipe, validates block names and block states, writes the schematic                                              |
-| Inspect | `voxwright-cli inspect <schematic>`         | Format, DataVersion, size, block count, palette, block entities, entities                                                  |
-| Preview | `voxwright-cli preview <schematic>`         | Serves the 3D viewer and editor on localhost with the file open (`view` is an alias; also takes a run directory or run id) |
+| Step    | Command                                            | Result                                                                                                                     |
+| ------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Build   | `voxwright-cli build <recipe> --out <file>`        | Runs the recipe, validates block names and block states, writes the schematic                                              |
+| Inspect | `voxwright-cli inspect <schematic>`                | Format, DataVersion, size, block count, palette, block entities, entities                                                  |
+| Preview | `voxwright-cli preview <schematic>`                | Serves the 3D viewer and editor on localhost with the file open (`view` is an alias; also takes a run directory or run id) |
+| Import  | `voxwright-cli import <schematic> -o <recipe>.mjs` | Turns a schematic back into a `"voxwright"` recipe (`.ts` or `.mjs`) that rebuilds it, with renamed block ids updated      |
 
 `voxwright-cli` stands for `node skills/voxwright/scripts/voxwright-cli.mjs` (in an installed
 skill, `scripts/voxwright-cli.mjs` of the skill directory): a single committed file, bundled from
