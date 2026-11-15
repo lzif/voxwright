@@ -447,16 +447,124 @@ export interface RidgeCapOptions {
   height?: number;
 }
 
+/**
+ * How much one roof column rises, from the eave in: `slab` half a block (a
+ * slab), `stair` one block (a stair), `steep` two blocks (a full block under a
+ * stair).
+ */
+export type RoofPitch = "slab" | "stair" | "steep";
+
+/** A named roof profile of `roofGable`, or one pitch per column from the eave in. */
+export type RoofProfile =
+  | "straight"
+  | "steep"
+  | "concave"
+  | "gambrel"
+  | "low"
+  | readonly RoofPitch[];
+
 export interface RoofGableOptions extends SeedOption {
   ridge: "x" | "z";
   verge?: Material | null;
   eave?: Material | null;
   endFill?: Material | null;
   ridgeCap?: RidgeCapOptions | null;
+  /** Roof profile across the span. Default `"straight"` (one stair per column). */
+  profile?: RoofProfile;
+  /** Slab for `slab` columns. Default: the stair block's slab (`oak_stairs` → `oak_slab`). */
+  slab?: Material;
+  /** Full block under the stair of `steep` columns. Default: the stair block's full block. */
+  full?: Material;
 }
 
 const halfDefault = (block: string): Record<string, string> =>
   parseBlockString(block).props.has("half") ? {} : { half: "bottom" };
+
+const WOOD_STAIRS = new Set([
+  "oak",
+  "spruce",
+  "birch",
+  "jungle",
+  "acacia",
+  "dark_oak",
+  "mangrove",
+  "cherry",
+  "bamboo",
+  "crimson",
+  "warped",
+  "pale_oak",
+]);
+
+/**
+ * The slab or full block that goes with a stair block, by vanilla naming:
+ * `x_stairs` → `x_slab`; full block `x_planks` for woods, `x_bricks` /
+ * `x_tiles` for brick and tile stairs, `quartz_block` / `purpur_block`, else
+ * `x`. Stair properties are dropped. An unusual name the rule gets wrong is
+ * caught by registry validation; pass `slab` / `full` explicitly then.
+ */
+function stairSibling(what: string, block: string, kind: "slab" | "full"): string {
+  const { name } = parseBlockString(block);
+  const m = /^(?:([a-z0-9_.-]+):)?([a-z0-9_]+)_stairs$/.exec(name);
+  if (!m) {
+    throw new McbuilderError(
+      `${what}: cannot derive a ${kind} block from ${block}; pass '${kind}' explicitly`,
+    );
+  }
+  const ns = m[1] ?? "minecraft";
+  const base = m[2] as string;
+  let out = `${base}_slab`;
+  if (kind === "full") {
+    if (WOOD_STAIRS.has(base)) out = `${base}_planks`;
+    else if (/(brick|tile)$/.test(base)) out = `${base}s`;
+    else if (base === "quartz" || base === "purpur") out = `${base}_block`;
+    else out = base;
+  }
+  return canonicalize(`${ns}:${out}`);
+}
+
+/** One pitch per column for a named profile over `half` columns (eave first). */
+function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
+  if (Array.isArray(profile)) {
+    if (profile.length !== half) {
+      throw new McbuilderError(
+        `roof_gable: profile lists ${profile.length} pitches but the span needs ${half} (one per column from the eave to the ridge)`,
+      );
+    }
+    for (const p of profile) {
+      if (p !== "slab" && p !== "stair" && p !== "steep") {
+        throw new McbuilderError(
+          `roof_gable: invalid pitch ${show(p)}; expected one of [slab, stair, steep]`,
+        );
+      }
+    }
+    return [...profile];
+  }
+  const fill = (p: RoofPitch, n: number): RoofPitch[] => Array.from({ length: n }, () => p);
+  switch (profile) {
+    case "straight":
+      return fill("stair", half);
+    case "steep":
+      return fill("steep", half);
+    case "low":
+      return fill("slab", half);
+    case "gambrel": {
+      const lower = Math.ceil(half / 2);
+      return [...fill("steep", lower), ...fill("stair", half - lower)];
+    }
+    case "concave": {
+      // Flat at the eave, steeper toward the ridge: an even run of slabs (so the
+      // stairs above start on a whole block), then stairs, then steep columns.
+      const slabs = half >= 3 ? 2 * Math.floor(half / 3) : 0;
+      const rest = half - slabs;
+      const stairs = Math.ceil(rest / 2);
+      return [...fill("slab", slabs), ...fill("stair", stairs), ...fill("steep", rest - stairs)];
+    }
+    default:
+      throw new McbuilderError(
+        `roof_gable: invalid profile ${show(profile)}; expected straight, steep, concave, gambrel, low or an array of pitches`,
+      );
+  }
+}
 
 /**
  * Gable roof of stairs over the XZ footprint of `c1`..`c2`. The lowest (eave)
@@ -530,6 +638,45 @@ const halfDefault = (block: string): Record<string, string> =>
  * rejected: it gave a 2-wide bench-like slab on 2x1 posts. This is a design
  * choice, not observed; mirror the roof's `c1`/`c2` if you want the other side.
  *
+ * `profile` changes the pitch across the span (opt-in; `"straight"`, the
+ * default, is the roof above, one stair per column). Each of the
+ * `floor(span / 2)` columns from the eave to the ridge gets a pitch: `slab`
+ * rises half a block (a bottom slab, then a top slab, alternating), `stair`
+ * one block (a stair), `steep` two blocks (a full block with a stair on it).
+ * Both slopes mirror each other; an odd span's apex column is a slab half a
+ * block above its neighbours. Named profiles, for `n` columns:
+ *
+ * - `"steep"`: all steep (an A-frame);
+ * - `"low"`: all slab (a lower pitch);
+ * - `"gambrel"`: the lower `ceil(n / 2)` steep, the rest stair (a barn roof:
+ *   steep below, flatter above);
+ * - `"concave"`: an even run of `2 * floor(n / 3)` slabs at the eave, then
+ *   stairs, then steep columns (half each, stairs first): flat at the eave and
+ *   steeper toward the ridge, the flared roof of Japanese and "elven" builds.
+ *
+ * Or pass the pitches yourself, eave first, e.g. `["slab", "slab", "stair",
+ * "steep"]`. A stair or steep column must start on a whole block, so the slab
+ * columns before it must be even in number. End view, span 9, `"concave"`
+ * (columns slab, slab, stair, steep; `b`/`t` bottom/top slab, `S` stair, `F`
+ * full block, `^` the apex slab):
+ *
+ *               ^               row 4 (bottom slab)
+ *             S   S             row 3
+ *             F   F             row 2
+ *           S       S           row 1
+ *       b t           t b       row 0
+ *
+ * Slabs and full blocks follow the stair block by vanilla naming
+ * (`oak_stairs` → `oak_slab` and `oak_planks`, `stone_brick_stairs` →
+ * `stone_bricks`, `deepslate_tile_stairs` → `deepslate_tiles`), also for the
+ * `verge` and `eave` trim; `slab` and `full` override them for the body.
+ * `endFill` fills each end column up to its lowest roof cell and `ridgeCap`
+ * stands on the ridge column's top cell, whatever the profile. Design
+ * choices, from reference images (Pinterest "Roof Profiles for Minecraft
+ * builders", a Japanese castle roof breakdown of stairs over slabs, seefro's
+ * "four roof designs"), not from the reel frames: the preset ratios and the
+ * slab apex.
+ *
  * Evidence: endFill hib/f_018 (full planks under dark verge stairs, in the verge
  * plane, flush with the steps), tav/f_004, tav/f_005 (white infill under a slate
  * gable), NS/f_080, GV/f_023, AR/f_105; ridgeCap tav/f_020 (full-res, ridge
@@ -569,38 +716,146 @@ export function roofGable(
   const [lo, hi, runLo, runHi, faceLo, faceHi] =
     ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = (hi as number) - (lo as number) + 1;
+  const half = Math.floor(span / 2);
   const geo = new Geometry();
-
-  const put = (across: number, run: number, row: number, facing: string): void => {
-    const [x, z] = ridge === "x" ? [run, across] : [across, run];
-    const y = y0 + row;
-    let mat = body;
-    if (verge && (run === runLo || run === runHi)) mat = verge;
-    else if (eave && row === 0) mat = eave;
-    const b = mat(x, y, z);
-    geo.set(x, y, z, withProps(b, { facing, ...halfDefault(b) }));
-  };
-
-  for (let row = 0; row < Math.floor(span / 2); row++) {
-    for (let run = runLo as number; run <= (runHi as number); run++) {
-      put((lo as number) + row, run, row, faceLo as string);
-      put((hi as number) - row, run, row, faceHi as string);
-    }
-  }
-  if (span % 2) {
-    const row = Math.floor(span / 2);
-    for (let run = runLo as number; run <= (runHi as number); run++)
-      put((lo as number) + row, run, row, faceHi as string);
-  }
-
   const xz = (across: number, run: number): [number, number] =>
     ridge === "x" ? [run, across] : [across, run];
 
+  // Stair block for a cell: verge on the gable-end columns, eave on the eave column.
+  const stairAt = (column: number, run: number, x: number, y: number, z: number): string => {
+    if (verge && (run === runLo || run === runHi)) return verge(x, y, z);
+    if (eave && column === 0) return eave(x, y, z);
+    return body(x, y, z);
+  };
+  const isTrim = (column: number, run: number): boolean =>
+    Boolean((verge && (run === runLo || run === runHi)) || (eave && column === 0));
+
+  // Lowest and highest row each column (by `across`) occupies, for endFill and ridgeCap.
+  const colLow = new Map<number, number>();
+  const colHigh = new Map<number, number>();
+  const mark = (across: number, row: number): void => {
+    colLow.set(across, Math.min(colLow.get(across) ?? row, row));
+    colHigh.set(across, Math.max(colHigh.get(across) ?? row, row));
+  };
+
+  const profile = options.profile ?? "straight";
+  if (profile === "straight") {
+    const put = (across: number, run: number, row: number, facing: string): void => {
+      const [x, z] = xz(across, run);
+      const y = y0 + row;
+      let mat = body;
+      if (verge && (run === runLo || run === runHi)) mat = verge;
+      else if (eave && row === 0) mat = eave;
+      const b = mat(x, y, z);
+      geo.set(x, y, z, withProps(b, { facing, ...halfDefault(b) }));
+    };
+
+    for (let row = 0; row < half; row++) {
+      for (let run = runLo as number; run <= (runHi as number); run++) {
+        put((lo as number) + row, run, row, faceLo as string);
+        put((hi as number) - row, run, row, faceHi as string);
+      }
+      mark((lo as number) + row, row);
+      mark((hi as number) - row, row);
+    }
+    if (span % 2) {
+      for (let run = runLo as number; run <= (runHi as number); run++)
+        put((lo as number) + half, run, half, faceHi as string);
+      mark((lo as number) + half, half);
+    }
+  } else {
+    const pitches = roofPitches(profile, half);
+    const slabP = options.slab === undefined ? null : new Painter(options.slab, seed);
+    const fullP = options.full === undefined ? null : new Painter(options.full, seed);
+    const sibling = (
+      kind: "slab" | "full",
+      column: number,
+      run: number,
+      x: number,
+      y: number,
+      z: number,
+    ): string => {
+      const own = kind === "slab" ? slabP : fullP;
+      if (own && !isTrim(column, run)) return own.blockAt(x, y, z);
+      return stairSibling("roof_gable", stairAt(column, run, x, y, z), kind);
+    };
+
+    // Each column's top surface, in half blocks above the base row.
+    let t = 0;
+    const columnCells: { row: number; kind: "slab-bottom" | "slab-top" | "stair" | "full" }[][] =
+      [];
+    for (const [k, p] of pitches.entries()) {
+      if (p !== "slab" && t % 2) {
+        throw new McbuilderError(
+          `roof_gable: profile column ${k} (${p}) would start half a block up; put an even number of slab columns before a stair or steep column`,
+        );
+      }
+      const cells: { row: number; kind: "slab-bottom" | "slab-top" | "stair" | "full" }[] = [];
+      if (p === "slab") {
+        t += 1;
+        cells.push(
+          t % 2 ? { row: (t - 1) / 2, kind: "slab-bottom" } : { row: t / 2 - 1, kind: "slab-top" },
+        );
+      } else if (p === "stair") {
+        cells.push({ row: t / 2, kind: "stair" });
+        t += 2;
+      } else {
+        cells.push({ row: t / 2, kind: "full" }, { row: t / 2 + 1, kind: "stair" });
+        t += 4;
+      }
+      columnCells.push(cells);
+    }
+
+    const place = (
+      column: number,
+      across: number,
+      run: number,
+      cell: { row: number; kind: string },
+      facing: string,
+    ): void => {
+      const [x, z] = xz(across, run);
+      const y = y0 + cell.row;
+      let b: string;
+      if (cell.kind === "stair") {
+        const s = stairAt(column, run, x, y, z);
+        b = withProps(s, { facing, ...halfDefault(s) });
+      } else if (cell.kind === "full") {
+        b = sibling("full", column, run, x, y, z);
+      } else {
+        b = withProps(sibling("slab", column, run, x, y, z), {
+          type: cell.kind === "slab-top" ? "top" : "bottom",
+        });
+      }
+      geo.set(x, y, z, b);
+      mark(across, cell.row);
+    };
+
+    for (const [k, cells] of columnCells.entries()) {
+      for (let run = runLo as number; run <= (runHi as number); run++) {
+        for (const cell of cells) {
+          place(k, (lo as number) + k, run, cell, faceLo as string);
+          place(k, (hi as number) - k, run, cell, faceHi as string);
+        }
+      }
+    }
+    if (span % 2) {
+      // The apex column rises half a block above its neighbours, as a slab.
+      const apex = t + 1;
+      const cell =
+        apex % 2
+          ? { row: (apex - 1) / 2, kind: "slab-bottom" }
+          : { row: apex / 2 - 1, kind: "slab-top" };
+      for (let run = runLo as number; run <= (runHi as number); run++)
+        place(half, (lo as number) + half, run, cell, faceHi as string);
+    }
+  }
+
   if (options.endFill) {
     const fill = new Painter(options.endFill, seed);
-    for (let row = 0; row < Math.floor(span / 2); row++) {
-      for (const run of [runLo as number, runHi as number]) {
-        for (let across = (lo as number) + row + 1; across <= (hi as number) - row - 1; across++) {
+    for (let across = lo as number; across <= (hi as number); across++) {
+      const low = colLow.get(across) ?? 0;
+      for (let row = 0; row < low; row++) {
+        for (const run of [runLo as number, runHi as number]) {
           const [x, z] = xz(across, run);
           geo.set(x, y0 + row, z, fill.blockAt(x, y0 + row, z));
         }
@@ -611,8 +866,8 @@ export function roofGable(
   if (cap) {
     const post = new Painter(cap.post, seed);
     const rail = cap.rail ? new Painter(cap.rail, seed) : null;
-    const top = Math.ceil(span / 2) - 1;
-    const column = (lo as number) + top;
+    const column = (lo as number) + (span % 2 ? half : half - 1);
+    const top = colHigh.get(column) ?? 0;
     const n = (runHi as number) - (runLo as number) + 1;
     const railRow = y0 + top + capHeight;
     for (let i = 0; i < n; i++) {

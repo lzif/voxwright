@@ -2084,3 +2084,227 @@ describe("jetty", () => {
     });
   });
 });
+
+describe("roofGable profile", () => {
+  const ST = "minecraft:spruce_stairs";
+  type Cell = [number, number, number, string];
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.roofGable>): Cell[] =>
+    sortCells(shapes.roofGable(...args).cells() as Cell[]);
+  const blocks = (cells: Cell[]): Set<string> => new Set(cells.map((c) => c[3]));
+  const stair = (facing: string) => `minecraft:spruce_stairs[facing=${facing},half=bottom]`;
+  const slab = (type: string) => `minecraft:spruce_slab[type=${type}]`;
+  const P = "minecraft:spruce_planks";
+  const throws = (fn: () => unknown, re: RegExp): void => {
+    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(re);
+  };
+
+  it("leaves the roof unchanged with profile straight", () => {
+    for (const [c1, c2, ridge] of [
+      [[0, 0, 0], [5, 0, 6], "x"],
+      [[0, 2, 0], [4, 2, 7], "z"],
+    ] as const) {
+      expect(cellsOf(c1, c2, ST, { ridge, profile: "straight" })).toEqual(
+        cellsOf(c1, c2, ST, { ridge }),
+      );
+    }
+  });
+
+  it("lays slab columns half a block apart, alternating bottom and top slabs", () => {
+    expect(cellsOf([0, 0, 0], [0, 0, 3], ST, { ridge: "x", profile: ["slab", "slab"] })).toEqual([
+      [0, 0, 0, slab("bottom")],
+      [0, 0, 1, slab("top")],
+      [0, 0, 2, slab("top")],
+      [0, 0, 3, slab("bottom")],
+    ]);
+  });
+
+  it("stacks a stair on a full block for steep columns and caps an odd span with a slab", () => {
+    expect(cellsOf([0, 0, 0], [0, 0, 4], ST, { ridge: "x", profile: "steep" })).toEqual([
+      [0, 0, 0, P],
+      [0, 0, 4, P],
+      [0, 1, 0, stair("south")],
+      [0, 1, 4, stair("north")],
+      [0, 2, 1, P],
+      [0, 2, 3, P],
+      [0, 3, 1, stair("south")],
+      [0, 3, 3, stair("north")],
+      [0, 4, 2, slab("bottom")],
+    ]);
+  });
+
+  it("puts a stair after slabs on a whole block (concave, ridge z)", () => {
+    expect(
+      cellsOf([0, 5, 0], [5, 5, 0], ST, { ridge: "z", profile: ["slab", "slab", "stair"] }),
+    ).toEqual([
+      [0, 5, 0, slab("bottom")],
+      [1, 5, 0, slab("top")],
+      [2, 6, 0, "minecraft:spruce_stairs[facing=east,half=bottom]"],
+      [3, 6, 0, "minecraft:spruce_stairs[facing=west,half=bottom]"],
+      [4, 5, 0, slab("top")],
+      [5, 5, 0, slab("bottom")],
+    ]);
+  });
+
+  it("expands the named profiles to one pitch per column", () => {
+    const same = (profile: Parameters<typeof shapes.roofGable>[3]["profile"], pitches: string[]) =>
+      expect(cellsOf([0, 0, 0], [1, 0, 2 * pitches.length], ST, { ridge: "x", profile })).toEqual(
+        cellsOf([0, 0, 0], [1, 0, 2 * pitches.length], ST, {
+          ridge: "x",
+          profile: pitches as ("slab" | "stair" | "steep")[],
+        }),
+      );
+    same("concave", ["slab", "slab", "stair", "stair", "steep"]);
+    same("concave", ["slab", "slab", "stair", "steep"]);
+    same("concave", ["slab", "slab", "slab", "slab", "stair", "steep"]);
+    same("gambrel", ["steep", "steep", "stair", "stair"]);
+    same("gambrel", ["steep", "steep", "stair"]);
+    same("low", ["slab", "slab", "slab"]);
+    same("steep", ["steep", "steep"]);
+  });
+
+  it("derives slabs and full blocks from the stair names", () => {
+    const steepOf = (stairs: string) =>
+      blocks(cellsOf([0, 0, 0], [0, 0, 3], stairs, { ridge: "x", profile: "steep" }));
+    expect(steepOf("minecraft:oak_stairs")).toContain("minecraft:oak_planks");
+    expect(steepOf("minecraft:stone_brick_stairs")).toContain("minecraft:stone_bricks");
+    expect(steepOf("minecraft:deepslate_tile_stairs")).toContain("minecraft:deepslate_tiles");
+    expect(steepOf("minecraft:quartz_stairs")).toContain("minecraft:quartz_block");
+    expect(steepOf("minecraft:cobbled_deepslate_stairs")).toContain("minecraft:cobbled_deepslate");
+    expect(
+      blocks(
+        cellsOf([0, 0, 0], [0, 0, 3], "minecraft:mud_brick_stairs", { ridge: "x", profile: "low" }),
+      ),
+    ).toEqual(
+      new Set(["minecraft:mud_brick_slab[type=bottom]", "minecraft:mud_brick_slab[type=top]"]),
+    );
+  });
+
+  it("uses explicit slab and full blocks for the body, and the verge's own siblings on the ends", () => {
+    const cells = cellsOf([0, 0, 0], [2, 0, 3], ST, {
+      ridge: "x",
+      profile: ["steep", "slab"],
+      full: "minecraft:bricks",
+      slab: "minecraft:brick_slab",
+      verge: "minecraft:dark_oak_stairs",
+    });
+    const at = (x: number) => blocks(cells.filter((c) => c[0] === x));
+    expect(at(1)).toEqual(
+      new Set([
+        "minecraft:bricks",
+        stair("south"),
+        stair("north"),
+        "minecraft:brick_slab[type=bottom]",
+      ]),
+    );
+    for (const x of [0, 2]) {
+      expect(at(x)).toEqual(
+        new Set([
+          "minecraft:dark_oak_planks",
+          "minecraft:dark_oak_stairs[facing=south,half=bottom]",
+          "minecraft:dark_oak_stairs[facing=north,half=bottom]",
+          "minecraft:dark_oak_slab[type=bottom]",
+        ]),
+      );
+    }
+  });
+
+  it("fills the gable end under each column's lowest cell and stands ridgeCap on the top", () => {
+    const cells = cellsOf([0, 0, 0], [1, 0, 4], ST, {
+      ridge: "x",
+      profile: "steep",
+      endFill: "minecraft:white_wool",
+      ridgeCap: { post: "minecraft:oak_log[axis=y]", height: 1 },
+    });
+    const wool = cells.filter((c) => c[3] === "minecraft:white_wool").map((c) => c.slice(0, 3));
+    // Column 1 (z 1, 3) starts at row 2; the apex (z 2) slab sits at row 4.
+    expect(wool).toEqual(
+      [
+        [0, 0, 1],
+        [0, 0, 2],
+        [0, 0, 3],
+        [0, 1, 1],
+        [0, 1, 2],
+        [0, 1, 3],
+        [0, 2, 2],
+        [0, 3, 2],
+        [1, 0, 1],
+        [1, 0, 2],
+        [1, 0, 3],
+        [1, 1, 1],
+        [1, 1, 2],
+        [1, 1, 3],
+        [1, 2, 2],
+        [1, 3, 2],
+      ].sort(
+        (a, b) =>
+          (a[0] as number) - (b[0] as number) ||
+          (a[1] as number) - (b[1] as number) ||
+          (a[2] as number) - (b[2] as number),
+      ),
+    );
+    const posts = cells
+      .filter((c) => c[3] === "minecraft:oak_log[axis=y]")
+      .map((c) => c.slice(0, 3));
+    expect(posts).toEqual([
+      [0, 5, 2],
+      [1, 5, 2],
+    ]);
+  });
+
+  it("refuses a stair or steep column that would start half a block up", () => {
+    throws(
+      () => shapes.roofGable([0, 0, 0], [0, 0, 3], ST, { ridge: "x", profile: ["slab", "stair"] }),
+      /even number of slab columns/,
+    );
+  });
+
+  it("refuses a pitch list of the wrong length, a bad pitch and a bad profile name", () => {
+    throws(
+      () => shapes.roofGable([0, 0, 0], [0, 0, 5], ST, { ridge: "x", profile: ["stair"] }),
+      /lists 1 pitches but the span needs 3/,
+    );
+    throws(
+      () =>
+        shapes.roofGable([0, 0, 0], [0, 0, 3], ST, {
+          ridge: "x",
+          profile: ["stair", "flat" as "slab"],
+        }),
+      /invalid pitch flat/,
+    );
+    throws(
+      () => shapes.roofGable([0, 0, 0], [0, 0, 3], ST, { ridge: "x", profile: "dome" as "low" }),
+      /invalid profile dome/,
+    );
+  });
+
+  it("asks for an explicit block when the stair name has no sibling", () => {
+    throws(
+      () =>
+        shapes.roofGable([0, 0, 0], [0, 0, 3], "minecraft:stone", { ridge: "x", profile: "low" }),
+      /cannot derive a slab block from minecraft:stone; pass 'slab' explicitly/,
+    );
+    expect(
+      blocks(
+        cellsOf([0, 0, 0], [0, 0, 3], "minecraft:stone", {
+          ridge: "x",
+          profile: "low",
+          slab: "minecraft:stone_slab",
+        }),
+      ),
+    ).toEqual(new Set(["minecraft:stone_slab[type=bottom]", "minecraft:stone_slab[type=top]"]));
+  });
+
+  it("is deterministic with a weighted palette and changes with the seed", () => {
+    const palette: [string, number][] = [
+      ["minecraft:stone_brick_stairs", 1],
+      ["minecraft:cobbled_deepslate_stairs", 1],
+    ];
+    const run = (seed: number) =>
+      cellsOf([0, 0, 0], [9, 0, 8], palette, { ridge: "x", profile: "concave", seed });
+    expect(run(4)).toEqual(run(4));
+    expect(run(4)).not.toEqual(run(5));
+  });
+});
