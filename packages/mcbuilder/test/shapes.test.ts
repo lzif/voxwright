@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+
+import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { McbuilderError, shapes } from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
@@ -1092,6 +1094,241 @@ describe("bayWall", () => {
       const [a, b] = [run(1), run(2)];
       expect(a).not.toEqual(b);
       expect(a.map((c) => c.slice(0, 3))).toEqual(b.map((c) => c.slice(0, 3)));
+    });
+  });
+});
+
+describe("roofGable endFill and ridgeCap", () => {
+  const ST = "minecraft:spruce_stairs";
+  const F = "minecraft:spruce_planks";
+  const LOG = "minecraft:oak_log[axis=x]";
+  const POST = "minecraft:oak_log[axis=y]";
+  type Cell = [number, number, number, string];
+
+  const sortCells = (cells: Cell[]): Cell[] =>
+    [...cells].sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const cellsOf = (...args: Parameters<typeof shapes.roofGable>): Cell[] =>
+    sortCells(shapes.roofGable(...args).cells() as Cell[]);
+  /** Cells present with the option but not in the plain roof; the plain cells must survive intact. */
+  const added = (
+    c1: [number, number, number],
+    c2: [number, number, number],
+    options: Parameters<typeof shapes.roofGable>[3],
+  ): Cell[] => {
+    const { ridge } = options;
+    const plain = cellsOf(c1, c2, ST, { ridge });
+    const withOption = cellsOf(c1, c2, ST, options);
+    const key = (c: Cell) => c.slice(0, 3).join(",");
+    const byKey = new Map(withOption.map((c) => [key(c), c]));
+    for (const c of plain) expect(byKey.get(key(c))).toEqual(c);
+    const had = new Set(plain.map(key));
+    return withOption.filter((c) => !had.has(key(c)));
+  };
+  const f = (x: number, y: number, z: number): Cell => [x, y, z, F];
+
+  describe("without the options", () => {
+    const hash = (cells: unknown): string =>
+      createHash("sha1").update(JSON.stringify(cells)).digest("hex");
+
+    it("keeps the output of the plain roof exactly (hashes taken before the options existed)", () => {
+      const cells = (...a: Parameters<typeof shapes.roofGable>) => shapes.roofGable(...a).cells();
+      const g1 = cells([0, 4, 0], [8, 4, 5], ST, { ridge: "x" });
+      const g2 = cells([-2, 3, 1], [4, 3, 6], ST, {
+        ridge: "z",
+        verge: "minecraft:cobblestone_stairs",
+        eave: "minecraft:stone_brick_stairs",
+      });
+      const g3 = cells(
+        [0, 0, 0],
+        [6, 0, 6],
+        [
+          [ST, 2],
+          ["minecraft:oak_stairs", 1],
+        ],
+        { ridge: "x", seed: 7, verge: "minecraft:oak_stairs[half=top]" },
+      );
+      expect([hash(g1), g1.length]).toEqual(["b2839cdd030a9e04656915c58c37e331ef9430b5", 54]);
+      expect([hash(g2), g2.length]).toEqual(["7a189f1645d7a2d49eb296d8858fd7546a6d6245", 42]);
+      expect([hash(g3), g3.length]).toEqual(["edcd7e388a94e7cad4655128f2f728b7edaf5578", 49]);
+    });
+
+    it("treats undefined and null options like no options", () => {
+      const plain = shapes.roofGable([0, 0, 0], [4, 0, 4], ST, { ridge: "x" }).cells();
+      const nulls = shapes
+        .roofGable([0, 0, 0], [4, 0, 4], ST, { ridge: "x", endFill: null, ridgeCap: null })
+        .cells();
+      const unset = shapes
+        .roofGable([0, 0, 0], [4, 0, 4], ST, {
+          ridge: "x",
+          endFill: undefined,
+          ridgeCap: undefined,
+        })
+        .cells();
+      expect(nulls).toEqual(plain);
+      expect(unset).toEqual(plain);
+    });
+  });
+
+  describe("endFill", () => {
+    it("fills the triangle under the stairs at both ends, odd span, ridge x", () => {
+      // x 0..2, z 0..4: stairs at (z0,z4) row 0, (z1,z3) row 1, apex z2 row 2.
+      // Row 0 fill z1..3, row 1 fill z2, at x = 0 and x = 2. None at x = 1.
+      expect(added([0, 0, 0], [2, 0, 4], { ridge: "x", endFill: F })).toEqual(
+        sortCells([
+          ...[0, 2].flatMap((x): Cell[] => [f(x, 0, 1), f(x, 0, 2), f(x, 0, 3), f(x, 1, 2)]),
+        ]),
+      );
+    });
+
+    it("leaves nothing at the top for an even span, ridge x", () => {
+      // z 0..3: row 0 stairs z0, z3; row 1 stairs z1, z2 adjacent. Fill row 0 z1..2 only.
+      expect(added([0, 2, 0], [3, 2, 3], { ridge: "x", endFill: F })).toEqual(
+        sortCells([...[0, 3].flatMap((x): Cell[] => [f(x, 2, 1), f(x, 2, 2)])]),
+      );
+    });
+
+    it("works along z and sits in the base row of an elevated roof", () => {
+      // x 0..4, z 0..2, base y = 7: fill at z = 0 and z = 2, x 1..3 at y7, x 2 at y8.
+      expect(added([0, 7, 0], [4, 7, 2], { ridge: "z", endFill: F })).toEqual(
+        sortCells([
+          ...[0, 2].flatMap((z): Cell[] => [f(1, 7, z), f(2, 7, z), f(3, 7, z), f(2, 8, z)]),
+        ]),
+      );
+    });
+
+    it("sits in the verge columns and leaves the verge stairs as they were", () => {
+      const V = "minecraft:cobblestone_stairs";
+      const cells = cellsOf([0, 0, 0], [3, 0, 4], ST, { ridge: "x", verge: V, endFill: F });
+      const byKey = new Map(cells.map((c) => [c.slice(0, 3).join(","), c[3]]));
+      expect(byKey.get("0,0,0")).toBe(`${V}[facing=south,half=bottom]`);
+      expect(byKey.get("0,0,2")).toBe(F);
+      expect(byKey.get("3,1,2")).toBe(F);
+      // x = 1, 2 is the open roof: no fill there
+      expect(byKey.has("1,0,2")).toBe(false);
+    });
+
+    it("adds nothing for spans of 1 and 2", () => {
+      expect(added([0, 0, 0], [3, 0, 0], { ridge: "x", endFill: F })).toEqual([]);
+      expect(added([0, 0, 0], [3, 0, 1], { ridge: "x", endFill: F })).toEqual([]);
+    });
+
+    it("accepts any full-block material, including a palette", () => {
+      const palette = [F, "minecraft:birch_planks"];
+      const cells = added([0, 0, 0], [2, 0, 6], { ridge: "x", endFill: palette, seed: 1 });
+      expect(cells.length).toBeGreaterThan(0);
+      expect(cells.every((c) => palette.includes(c[3]))).toBe(true);
+    });
+  });
+
+  describe("ridgeCap", () => {
+    it("lays a rail with posts at both ends and every 3rd cell, odd span", () => {
+      // x 0..6, z 0..4: apex row 2 at z2, rail y3 for x -1..7, posts y4 at idx 0,3,6,8.
+      const out = added([0, 0, 0], [6, 0, 4], {
+        ridge: "x",
+        ridgeCap: { rail: LOG, post: POST },
+      });
+      const rail: Cell[] = Array.from({ length: 9 }, (_, i): Cell => [i - 1, 3, 2, LOG]);
+      const posts: Cell[] = [-1, 2, 5, 7].map((x): Cell => [x, 4, 2, POST]);
+      expect(out).toEqual(sortCells([...rail, ...posts]));
+    });
+
+    it("covers both cells of an even span, ridge x", () => {
+      // z 0..3: top row 1 stairs at z1 and z2; rail y2 on both; overshoot 0, every 2.
+      const out = added([0, 0, 0], [4, 0, 3], {
+        ridge: "x",
+        ridgeCap: { rail: LOG, post: POST, every: 2, overshoot: 0 },
+      });
+      const rail = [0, 1, 2, 3, 4].flatMap((x) => [1, 2].map((z): Cell => [x, 2, z, LOG]));
+      const posts = [0, 2, 4].flatMap((x) => [1, 2].map((z): Cell => [x, 3, z, POST]));
+      expect(out).toEqual(sortCells([...rail, ...posts]));
+    });
+
+    it("runs along z, defaults post to the rail, adds the last post when the gap is short", () => {
+      // x 0..2, z 0..4, ridge z: apex x1 row 1; rail y1+1 = 2; z -1..5 (7 cells); posts idx 0,3,6.
+      const out = added([0, 0, 0], [2, 0, 4], { ridge: "z", ridgeCap: { rail: POST } });
+      const rail = Array.from({ length: 7 }, (_, i): Cell => [1, 2, i - 1, POST]);
+      const posts = [-1, 2, 5].map((z): Cell => [1, 3, z, POST]);
+      expect(out).toEqual(sortCells([...rail, ...posts]));
+    });
+
+    it("leaves the rail bare with post null", () => {
+      const out = added([0, 0, 0], [3, 0, 2], {
+        ridge: "x",
+        ridgeCap: { rail: LOG, post: null, overshoot: 0 },
+      });
+      expect(out).toEqual([0, 1, 2, 3].map((x): Cell => [x, 2, 1, LOG]));
+    });
+
+    it("places the same posts for a 1-wide roof (span 1)", () => {
+      const out = added([0, 0, 0], [2, 0, 0], {
+        ridge: "x",
+        ridgeCap: { rail: LOG, post: POST, overshoot: 0 },
+      });
+      expect(out).toEqual(
+        sortCells([
+          ...[0, 1, 2].map((x): Cell => [x, 1, 0, LOG]),
+          ...[0, 2].map((x): Cell => [x, 2, 0, POST]),
+        ]),
+      );
+    });
+
+    it("combines with endFill without overlapping it", () => {
+      const both = cellsOf([0, 0, 0], [4, 0, 4], ST, {
+        ridge: "x",
+        endFill: F,
+        ridgeCap: { rail: LOG },
+      });
+      const fillOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x", endFill: F });
+      const capOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x", ridgeCap: { rail: LOG } });
+      expect(both).toHaveLength(
+        fillOnly.length + capOnly.length - cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x" }).length,
+      );
+    });
+  });
+
+  describe("validation", () => {
+    const roof = (o: Partial<Parameters<typeof shapes.roofGable>[3]>) => () =>
+      shapes.roofGable([0, 0, 0], [4, 0, 4], ST, { ridge: "x", ...o });
+
+    it("checks ridgeCap", () => {
+      refuses(roof({ ridgeCap: LOG as never }), /ridgeCap must be an object with a rail/);
+      refuses(roof({ ridgeCap: {} as never }), /ridgeCap must be an object with a rail/);
+      refuses(roof({ ridgeCap: { rail: LOG, every: 0 } }), /ridgeCap.every must be an int >= 1/);
+      refuses(roof({ ridgeCap: { rail: LOG, every: 1.5 } }), /ridgeCap.every must be an int/);
+      refuses(
+        roof({ ridgeCap: { rail: LOG, overshoot: -1 } }),
+        /ridgeCap.overshoot must be an int >= 0/,
+      );
+    });
+
+    it("still refuses a stair with facing and a bad ridge", () => {
+      refuses(
+        roof({ endFill: F, verge: "minecraft:oak_stairs[facing=east]" }),
+        /computes 'facing'/,
+      );
+      refuses(roof({ ridge: "y" as never, endFill: F }), /ridge must be 'x' or 'z'/);
+    });
+  });
+
+  describe("determinism", () => {
+    const palette = [F, "minecraft:birch_planks", "minecraft:oak_planks"];
+    const opts = (seed: number) =>
+      ({
+        ridge: "x",
+        endFill: palette,
+        ridgeCap: { rail: palette, post: palette },
+        seed,
+      }) as const;
+
+    it("gives the same cells twice for the same seed", () => {
+      const run = () => shapes.roofGable([0, 0, 0], [20, 0, 10], ST, opts(5)).cells();
+      expect(run()).toEqual(run());
+    });
+
+    it("changes the picks, not the positions, with another seed", () => {
+      const [a, b] = [1, 2].map((s) => cellsOf([0, 0, 0], [20, 0, 10], ST, opts(s)));
+      expect(a).not.toEqual(b);
+      expect(a?.map((c) => c.slice(0, 3))).toEqual(b?.map((c) => c.slice(0, 3)));
     });
   });
 });

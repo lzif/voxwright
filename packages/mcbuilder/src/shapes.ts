@@ -429,10 +429,24 @@ export function cone(
 
 // -- roofs -------------------------------------------------------------------
 
+/** `ridgeCap` of `roofGable`: a rail along the ridge top with posts standing on it. */
+export interface RidgeCapOptions {
+  /** The rail, one cell wide (two for an even span), one row above the ridge. */
+  rail: Material;
+  /** Posts on the rail. Default: `rail`. `null` leaves the rail bare. */
+  post?: Material | null;
+  /** A post every `every` rail cells, counted from the first. Default 3. */
+  every?: number;
+  /** Cells the rail runs past each gable end. Default 1. */
+  overshoot?: number;
+}
+
 export interface RoofGableOptions extends SeedOption {
   ridge: "x" | "z";
   verge?: Material | null;
   eave?: Material | null;
+  endFill?: Material | null;
+  ridgeCap?: RidgeCapOptions | null;
 }
 
 const halfDefault = (block: string): Record<string, string> =>
@@ -444,6 +458,65 @@ const halfDefault = (block: string): Record<string, string> =>
  * along. The roof rises `ceil(span / 2)` rows; an odd span gets a single
  * ridge row. Optional trim, both stair materials without `facing`: `verge`
  * (the two gable-end columns) and `eave` (the lowest row on both slopes).
+ *
+ * Two more options, both opt-in: with neither given the output is exactly
+ * what it was without them.
+ *
+ * `endFill` (a full-block material) closes the triangle the stairs leave open
+ * at each gable end. At row `r` (0 = eave row, y = base + r) the stairs sit at
+ * `across = lo + r` and `hi - r`, where `across` is the coordinate
+ * perpendicular to the ridge and `lo`..`hi` is the span. The fill takes the
+ * cells strictly between them, in both end columns (the same columns `verge`
+ * uses), so it lies in the plane of the outermost roof column and never
+ * overwrites a roof cell. End view (`S` stair, `F` fill), base row 0 at the
+ * bottom. Span 6 (even: the top row has no cells between its stairs):
+ *
+ *           S S              row 2
+ *         S F F S            row 1
+ *       S F F F F S          row 0
+ *
+ * Span 7 (odd: the apex stair stands on one cell of fill):
+ *
+ *             S              row 3
+ *           S F S            row 2
+ *         S F F F S          row 1
+ *       S F F F F F S        row 0
+ *
+ * The wall under the fill (the box the roof sits on) is not part of this
+ * shape: the fill starts at the base row, so the wall top is the row below.
+ * A roof that overhangs its wall puts the fill in the overhang plane, one
+ * column out from the wall; size `c1`..`c2` to the wall for a flush gable.
+ * There is no window or oculus option (the hib/f_018 1x1 opening is left to
+ * the caller).
+ *
+ * `ridgeCap` adds a ridge cresting: a one-block rail on the ridge with posts
+ * standing on it. `rail` and `post` are any materials; put any `axis` they
+ * need in the block yourself (`oak_log[axis=x]` for `ridge: "x"`,
+ * `oak_log[axis=y]` posts), because the shape does not change the block's
+ * properties. The rail sits one row above the top stair row and runs
+ * `overshoot` cells past the roof at both gable ends. Posts sit one row above
+ * the rail, at the first and last rail cell and every `every` cells from the
+ * first (so the last gap can be shorter). Side view, ridge along x, 7 long,
+ * `every` 3, `overshoot` 1 (`R` rail, `P` post, `S` top stair row, odd span):
+ *
+ *       P     P     P   P      y + top + 2
+ *       R R R R R R R R R      y + top + 1
+ *         S S S S S S S        y + top
+ *
+ * With an even span there is no single apex cell: the ridge is the two cells
+ * of the top stair row, and both get a rail and a post, so the cap is two
+ * cells wide. That is a design choice, not observed.
+ *
+ * Evidence: endFill hib/f_018 (full planks under dark verge stairs, in the verge
+ * plane, flush with the steps), tav/f_004, tav/f_005 (white infill under a slate
+ * gable), NS/f_080, GV/f_023, AR/f_105; ridgeCap tav/f_009, tav/f_013,
+ * tav/f_019, tav/f_020 (log rail with posts about every 3rd cell, one block
+ * high; the plain rail overshooting both gable ends by 1 is tav/f_002, tav/f_004).
+ * Design choices, not read from the frames: `every` default 3 (the frames
+ * show about 3, +/-1), `overshoot` default 1 (frames show about 1), post
+ * default `rail`, the end posts always present, the even-span two-cell cap,
+ * the rail standing one row above the top stairs (the frames cannot tell
+ * whether it sits on slabs or on the stairs).
  */
 export function roofGable(
   c1: Point,
@@ -459,6 +532,14 @@ export function roofGable(
   const body = stairMaterial("roof_gable", block, seed);
   const verge = options.verge ? stairMaterial("roof_gable", options.verge, seed) : null;
   const eave = options.eave ? stairMaterial("roof_gable", options.eave, seed) : null;
+  const cap = options.ridgeCap ?? null;
+  if (cap) {
+    if (typeof cap !== "object" || Array.isArray(cap) || cap.rail === undefined) {
+      throw new McbuilderError("roof_gable: ridgeCap must be an object with a rail material");
+    }
+  }
+  const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
+  const capOvershoot = cap ? positive("roof_gable: ridgeCap.overshoot", cap.overshoot ?? 1, 0) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] =
     ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = (hi as number) - (lo as number) + 1;
@@ -484,6 +565,39 @@ export function roofGable(
     const row = Math.floor(span / 2);
     for (let run = runLo as number; run <= (runHi as number); run++)
       put((lo as number) + row, run, row, faceHi as string);
+  }
+
+  const xz = (across: number, run: number): [number, number] =>
+    ridge === "x" ? [run, across] : [across, run];
+
+  if (options.endFill) {
+    const fill = new Painter(options.endFill, seed);
+    for (let row = 0; row < Math.floor(span / 2); row++) {
+      for (const run of [runLo as number, runHi as number]) {
+        for (let across = (lo as number) + row + 1; across <= (hi as number) - row - 1; across++) {
+          const [x, z] = xz(across, run);
+          geo.set(x, y0 + row, z, fill.blockAt(x, y0 + row, z));
+        }
+      }
+    }
+  }
+
+  if (cap) {
+    const rail = new Painter(cap.rail, seed);
+    const post = cap.post === null ? null : new Painter(cap.post ?? cap.rail, seed);
+    const top = Math.ceil(span / 2) - 1;
+    const columns =
+      span % 2 ? [(lo as number) + top] : [(lo as number) + top, (hi as number) - top];
+    const first = (runLo as number) - capOvershoot;
+    const last = (runHi as number) + capOvershoot;
+    for (let run = first; run <= last; run++) {
+      const isPost = post !== null && ((run - first) % capEvery === 0 || run === last);
+      for (const across of columns) {
+        const [x, z] = xz(across, run);
+        geo.set(x, y0 + top + 1, z, rail.blockAt(x, y0 + top + 1, z));
+        if (isPost) geo.set(x, y0 + top + 2, z, (post as Painter).blockAt(x, y0 + top + 2, z));
+      }
+    }
   }
   return geo;
 }

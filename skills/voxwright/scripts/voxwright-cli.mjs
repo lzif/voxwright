@@ -12000,6 +12000,14 @@ function roofGable(c1, c2, block, options) {
   const body = stairMaterial("roof_gable", block, seed);
   const verge = options.verge ? stairMaterial("roof_gable", options.verge, seed) : null;
   const eave = options.eave ? stairMaterial("roof_gable", options.eave, seed) : null;
+  const cap = options.ridgeCap ?? null;
+  if (cap) {
+    if (typeof cap !== "object" || Array.isArray(cap) || cap.rail === void 0) {
+      throw new McbuilderError("roof_gable: ridgeCap must be an object with a rail material");
+    }
+  }
+  const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
+  const capOvershoot = cap ? positive("roof_gable: ridgeCap.overshoot", cap.overshoot ?? 1, 0) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] = ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = hi - lo + 1;
   const geo = new Geometry();
@@ -12022,6 +12030,34 @@ function roofGable(c1, c2, block, options) {
     const row = Math.floor(span / 2);
     for (let run = runLo; run <= runHi; run++)
       put(lo + row, run, row, faceHi);
+  }
+  const xz = (across, run) => ridge === "x" ? [run, across] : [across, run];
+  if (options.endFill) {
+    const fill = new Painter(options.endFill, seed);
+    for (let row = 0; row < Math.floor(span / 2); row++) {
+      for (const run of [runLo, runHi]) {
+        for (let across = lo + row + 1; across <= hi - row - 1; across++) {
+          const [x3, z] = xz(across, run);
+          geo.set(x3, y0 + row, z, fill.blockAt(x3, y0 + row, z));
+        }
+      }
+    }
+  }
+  if (cap) {
+    const rail = new Painter(cap.rail, seed);
+    const post = cap.post === null ? null : new Painter(cap.post ?? cap.rail, seed);
+    const top = Math.ceil(span / 2) - 1;
+    const columns = span % 2 ? [lo + top] : [lo + top, hi - top];
+    const first = runLo - capOvershoot;
+    const last = runHi + capOvershoot;
+    for (let run = first; run <= last; run++) {
+      const isPost = post !== null && ((run - first) % capEvery === 0 || run === last);
+      for (const across of columns) {
+        const [x3, z] = xz(across, run);
+        geo.set(x3, y0 + top + 1, z, rail.blockAt(x3, y0 + top + 1, z));
+        if (isPost) geo.set(x3, y0 + top + 2, z, post.blockAt(x3, y0 + top + 2, z));
+      }
+    }
   }
   return geo;
 }
