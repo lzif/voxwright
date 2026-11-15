@@ -97,8 +97,9 @@ const status = $derived(session.error !== "" ? session.error : session.message);
     <div class="actions">
       <button class="ore-btn ore-btn--dark ore-type-ui" class:ore-btn--touch={touch} onclick={() => session.placeAt([at[0], at[1], at[2]], session.block)} data-testid="at-set">Set to chosen block</button>
       <button class="ore-btn ore-btn--secondary ore-type-ui" class:ore-btn--touch={touch} onclick={() => session.eraseAt([at[0], at[1], at[2]])} data-testid="at-erase">Erase</button>
+      <button class="ore-btn ore-btn--secondary ore-type-ui" class:ore-btn--touch={touch} onclick={() => session.inspectAt([at[0], at[1], at[2]])} data-testid="at-inspect">Inspect</button>
     </div>
-    <p class="hint ore-type-ui-small">Works with the keyboard alone. {span} The block state panel then shows that block.</p>
+    <p class="hint ore-type-ui-small">Works with the keyboard alone. {span} Set or Inspect shows that block in the block state panel.</p>
   </div>
 </section>
 {/snippet}
@@ -217,7 +218,7 @@ const status = $derived(session.error !== "" ? session.error : session.message);
       <label class="check ore-choice__row">
         <input type="checkbox" class="ore-choice__input" bind:checked={session.skipAir} />
         <span class="ore-box" aria-hidden="true"><svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M2 6.5l3 3 5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" /></svg></span>
-        <span class="ore-choice__text ore-type-ui">leave the target alone where there is air (paste and move)</span>
+        <span class="ore-choice__text ore-type-ui">leave the target alone where there is air (paste, move and rotate)</span>
       </label>
 
       <h3 class="ore-type-ui-strong">Corners, typed</h3>
@@ -300,7 +301,7 @@ const status = $derived(session.error !== "" ? session.error : session.message);
           <label class="check ore-choice__row">
             <input type="checkbox" class="ore-choice__input" bind:checked={session.skipAir} />
             <span class="ore-box" aria-hidden="true"><svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="M2 6.5l3 3 5-6.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter" /></svg></span>
-            <span class="ore-choice__text ore-type-ui">leave the target alone where there is air (paste and move)</span>
+            <span class="ore-choice__text ore-type-ui">leave the target alone where there is air (paste, move and rotate)</span>
           </label>
         </div>
       </div>

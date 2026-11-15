@@ -146,7 +146,7 @@ const STATS_FORMAT = 1;
  */
 export async function loadTextureStats(
   versionDir: string,
-  options: { refresh?: boolean } = {},
+  options: { refresh?: boolean; registryFile?: string } = {},
 ): Promise<TextureStats> {
   const file = join(versionDir, "texture-stats.json");
   if (!options.refresh && existsSync(file)) {
@@ -160,7 +160,8 @@ export async function loadTextureStats(
   if (!existsSync(join(assetsRoot, "textures"))) {
     throw new Error(`no client assets in ${assetsRoot}`);
   }
-  const registry = JSON.parse(await readFile(join(versionDir, "minecraft-data.json"), "utf8")) as {
+  const registryPath = options.registryFile ?? join(versionDir, "minecraft-data.json");
+  const registry = JSON.parse(await readFile(registryPath, "utf8")) as {
     blocks: Record<string, unknown>;
   };
   const stats = computeTextureStats(assetsRoot, Object.keys(registry.blocks).sort());

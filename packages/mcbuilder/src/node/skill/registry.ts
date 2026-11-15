@@ -7,9 +7,15 @@
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { Registry } from "../../registry.ts";
-import { AssetError, fetchRegistry, type HttpGet } from "../assets.ts";
+import {
+  AssetError,
+  assetVersionCandidates,
+  defaultCacheRoot,
+  fetchRegistry,
+  findAssetVersionDir,
+  type HttpGet,
+} from "../assets.ts";
 import { exists } from "../script.ts";
-import { cacheRoot } from "./common.ts";
 import { SkillCliError } from "./io.ts";
 
 export interface RegistryLookup {
@@ -26,6 +32,8 @@ export interface RegistryRequest {
   mcVersion: string;
   /** `--registry`: a normalized registry (or minecraft-data `blocks.json`) file. */
   file?: string;
+  /** Configured `assets_dir`, if any. */
+  assetsDir?: string | null;
   offline: boolean;
   cwd: string;
   home: string;
@@ -58,13 +66,30 @@ export async function findRegistry(req: RegistryRequest): Promise<RegistryLookup
       downloaded: false,
     };
   }
-  const root = cacheRoot(req.home);
-  const cached = join(root, req.mcVersion, "minecraft-data.json");
-  if (await exists(cached)) {
+  const assetsDir = req.assetsDir ?? null;
+  const foundDir = await findAssetVersionDir(
+    assetsDir,
+    req.mcVersion,
+    req.home,
+    "minecraft-data.json",
+  );
+  if (foundDir !== null) {
+    const path = join(foundDir, "minecraft-data.json");
     return {
-      registry: await read(cached, req.mcVersion),
-      source: cached,
+      registry: await read(path, req.mcVersion),
+      source: path,
       skipped: null,
+      downloaded: false,
+    };
+  }
+  const tried = assetVersionCandidates(assetsDir, req.mcVersion, req.home)
+    .map((d) => join(d, "minecraft-data.json"))
+    .join(" or ");
+  if (assetsDir !== null) {
+    return {
+      registry: null,
+      source: null,
+      skipped: `no block registry for ${req.mcVersion} at ${tried} (assets_dir is configured)`,
       downloaded: false,
     };
   }
@@ -72,14 +97,14 @@ export async function findRegistry(req: RegistryRequest): Promise<RegistryLookup
     return {
       registry: null,
       source: null,
-      skipped: `no block registry for ${req.mcVersion} at ${cached} and --offline is set`,
+      skipped: `no block registry for ${req.mcVersion} at ${tried} and --offline is set`,
       downloaded: false,
     };
   }
   try {
     const path = await fetchRegistry(
       req.mcVersion,
-      root,
+      defaultCacheRoot(req.home),
       req.get === undefined ? {} : { get: req.get },
     );
     return {

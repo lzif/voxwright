@@ -96,11 +96,20 @@ const SIDE_TO_BEDROCK: Readonly<Record<string, string>> = {
   tall: "tall",
 };
 const SHELF_CHAIN = ["unconnected", "right", "center", "left"] as const;
+const BELL_TO_BEDROCK: Readonly<Record<string, string>> = {
+  floor: "standing",
+  ceiling: "hanging",
+  single_wall: "side",
+  double_wall: "multiple",
+};
+const BELL_TO_JAVA: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(BELL_TO_BEDROCK).map(([j, b]) => [b, j]),
+);
 
 const HORIZONTAL = new Set(["north", "south", "east", "west"]);
 /** Blocks whose facing is a Bedrock `facing_direction` int. Everything else uses `cardinal_direction`. */
 const FACING_DIRECTION_BLOCKS =
-  /^(barrel|hopper|dropper|dispenser|piston|sticky_piston|observer|ladder|.*_wall_sign|.*_wall_banner|.*_wall_hanging_sign)$/;
+  /^(barrel|hopper|dropper|dispenser|piston|sticky_piston|observer|ladder|end_rod|(?:.*_)?lightning_rod|.*_wall_sign|.*_wall_banner|.*_wall_hanging_sign)$/;
 
 const bare = (id: string): string => id.slice(id.indexOf(":") + 1);
 const withNs = (n: string): string => (n.includes(":") ? n : `minecraft:${n}`);
@@ -193,6 +202,19 @@ export function bedrockToJava(
     const chain = Number(take("powered_shelf_type"));
     out.set("side_chain", SHELF_CHAIN[chain] ?? "unconnected");
     if (chain !== 0) warnings.push(`${name}: side_chain value ${chain} is assumed, not verified`);
+  } else if ((name === "campfire" || name === "soul_campfire") && s.has("extinguished")) {
+    out.set("lit", Number(take("extinguished")) ? "false" : "true");
+  } else if (
+    name === "bell" &&
+    (s.has("attachment") || s.has("direction") || s.has("toggle_bit"))
+  ) {
+    const att = String(take("attachment") ?? "standing");
+    out.set(
+      "attachment",
+      Object.hasOwn(BELL_TO_JAVA, att) ? (BELL_TO_JAVA[att] as string) : "floor",
+    );
+    out.set("facing", BED_DIR[Number(take("direction"))] ?? "north");
+    out.set("powered", bool(take("toggle_bit")));
   }
 
   // Connections: fences, panes and bars use 0/1, walls use none/short/tall.
@@ -335,6 +357,29 @@ export function javaToBedrock(canonical: string): ToBedrockResult {
         ),
       ),
     );
+  } else if (name === "campfire" || name === "soul_campfire") {
+    const facing = take("facing") ?? "north";
+    if (HORIZONTAL.has(facing)) {
+      states.set("minecraft:cardinal_direction", str(facing));
+    } else {
+      warnings.push(`${name}: facing=${facing} has no Bedrock cardinal_direction`);
+    }
+    states.set("extinguished", byte(take("lit") === "false" ? 1 : 0));
+    if (p.get("signal_fire") === "false") take("signal_fire");
+  } else if (name === "bell") {
+    const att = take("attachment") ?? "floor";
+    const bedrockAtt = Object.hasOwn(BELL_TO_BEDROCK, att) ? BELL_TO_BEDROCK[att] : undefined;
+    if (bedrockAtt === undefined) {
+      warnings.push(`${name}: unknown attachment=${att}`);
+    }
+    states.set("attachment", str(bedrockAtt ?? "standing"));
+    const facing = take("facing") ?? "north";
+    const dir = BED_DIR.indexOf(facing as (typeof BED_DIR)[number]);
+    if (dir === -1) {
+      warnings.push(`${name}: facing=${facing} has no Bedrock direction`);
+    }
+    states.set("direction", int(dir === -1 ? 2 : dir));
+    states.set("toggle_bit", byte(flag(take("powered"))));
   }
 
   // Connections. Fences and panes carry booleans; walls carry none/low/tall.
@@ -344,7 +389,7 @@ export function javaToBedrock(canonical: string): ToBedrockResult {
     if (v === undefined) continue;
     p.delete(side);
     if (isWall) states.set(`wall_connection_type_${side}`, str(SIDE_TO_BEDROCK[v] ?? "none"));
-    else states.set(`minecraft:connection_${side}`, int(flag(v)));
+    else states.set(`minecraft:connection_${side}`, byte(flag(v)));
   }
   if (isWall && p.has("up")) states.set("wall_post_bit", byte(flag(take("up"))));
 

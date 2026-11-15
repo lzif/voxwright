@@ -2,12 +2,15 @@
 export {
   AssetError,
   type AssetSource,
+  assetVersionCandidates,
   CLIENT_PREFIXES,
   closestPcLayout,
+  defaultCacheRoot,
   defaultHttpGet,
   fetchAssets,
   fetchClientAssets,
   fetchRegistry,
+  findAssetVersionDir,
   type HttpGet,
   versionKey,
 } from "./assets.ts";
@@ -16,6 +19,7 @@ export {
   comparisonImage,
   diffRunDirs,
   firstCommonView,
+  listCleanRuns,
   loadRunVoxels,
   resolveRunDir,
 } from "./diff.ts";
@@ -37,4 +41,9 @@ export {
   srgbToLab,
   type TextureStats,
 } from "./palette.ts";
-export { loadScript, ScriptError, scanDeterminism } from "./script.ts";
+export {
+  type LoadScriptOptions,
+  loadScript,
+  ScriptError,
+  scanDeterminism,
+} from "./script.ts";
