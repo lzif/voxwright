@@ -582,6 +582,40 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
     expect(JSON.parse(seen.stdout)).toMatchObject({ format: "schem", blocks: HUT_BLOCKS });
   });
 
+  it("imports a schematic back into a 'voxwright' recipe that rebuilds it", async () => {
+    await writeFile(join(outside, "hut2.ts"), hut("voxwright"));
+    const first = await cli([
+      "build",
+      "hut2.ts",
+      "--registry",
+      "registry.json",
+      "--out",
+      "hut2.schem",
+    ]);
+    expect(first.code).toBe(0);
+    const imported = await cli(["import", "hut2.schem", "-o", "hut2-back.mjs", "--force"]);
+    expect(imported.code).toBe(0);
+    const script = await readFile(join(outside, "hut2-back.mjs"), "utf8");
+    expect(script).toContain('import { Build } from "voxwright";');
+    const again = await cli([
+      "build",
+      "hut2-back.mjs",
+      "--registry",
+      "registry.json",
+      "--out",
+      "hut2-back.schem",
+      "--json",
+    ]);
+    expect(again.code).toBe(0);
+    const [a, b] = await Promise.all(
+      ["hut2.schem", "hut2-back.schem"].map(async (f) =>
+        JSON.parse((await cli(["inspect", f, "--json"])).stdout),
+      ),
+    );
+    expect(b.blocks).toBe(HUT_BLOCKS);
+    expect(b.palette).toEqual(a.palette);
+  });
+
   it("resolves the workspace package names and plain JavaScript recipes too", async () => {
     await writeFile(
       join(outside, "parts.mjs"),

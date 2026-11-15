@@ -8,6 +8,7 @@ import {
   normalizeBlockData,
   planImport,
   pyFixed,
+  RENAMED_BLOCKS,
   Registry,
   type Structure,
   summary,
@@ -142,5 +143,76 @@ describe("cleanProperties against the Python oracle", () => {
     expect(summary(out).join("\n")).toContain(
       "dropped unknown properties (Bedrock leftovers?): oak_slab.half x1",
     );
+  });
+});
+
+describe("import: specifier and renamed blocks", () => {
+  const st = (blocks: [number, number, number, string][]): Structure => ({
+    blocks,
+    source: "old.litematic",
+    dataVersion: 3105,
+    droppedBlockEntities: 0,
+    droppedEntities: 0,
+    droppedProperties: new Map(),
+  });
+  const registryOf = (names: string[]) =>
+    new Registry(
+      normalizeBlockData(
+        names.map((name) =>
+          name === "iron_chain" || name === "chain"
+            ? {
+                name,
+                states: [
+                  { name: "axis", type: "enum", values: ["x", "y", "z"] },
+                  { name: "waterlogged", type: "bool", values: ["true", "false"] },
+                ],
+              }
+            : { name, states: [] },
+        ),
+      ),
+      "t",
+    );
+
+  it("imports Build from the workspace package unless told otherwise", () => {
+    const s = st([[0, 0, 0, "minecraft:stone"]]);
+    expect(toScript(s)).toContain('import { Build } from "@voxwright/mcbuilder";');
+    expect(toScript(s, { specifier: "voxwright" })).toContain('import { Build } from "voxwright";');
+  });
+
+  it("renames old block ids the registry no longer knows, and says so", () => {
+    const old = st([
+      [0, 0, 0, "minecraft:chain[axis=y,waterlogged=false]"],
+      [0, 1, 0, "minecraft:chain[axis=y,waterlogged=false]"],
+      [1, 0, 0, "minecraft:grass"],
+      [2, 0, 0, "minecraft:grass_path"],
+      [3, 0, 0, "minecraft:stone"],
+    ]);
+    const out = cleanProperties(
+      old,
+      registryOf(["iron_chain", "short_grass", "dirt_path", "stone"]),
+    );
+    expect(out.blocks.map((c) => c[3])).toEqual([
+      "minecraft:iron_chain[axis=y,waterlogged=false]",
+      "minecraft:iron_chain[axis=y,waterlogged=false]",
+      "minecraft:short_grass",
+      "minecraft:dirt_path",
+      "minecraft:stone",
+    ]);
+    expect(Object.fromEntries(out.renamedBlocks ?? [])).toEqual({
+      "chain -> iron_chain": 2,
+      "grass -> short_grass": 1,
+      "grass_path -> dirt_path": 1,
+    });
+    expect(summary(out)).toContain(
+      "renamed to current block ids: chain -> iron_chain x2, grass -> short_grass x1, grass_path -> dirt_path x1",
+    );
+  });
+
+  it("keeps an old id the registry still knows (an older target version)", () => {
+    const old = st([[0, 0, 0, "minecraft:chain[axis=x,waterlogged=false]"]]);
+    const out = cleanProperties(old, registryOf(["chain", "iron_chain"]));
+    expect(out.blocks[0]?.[3]).toBe("minecraft:chain[axis=x,waterlogged=false]");
+    expect(out.renamedBlocks).toBeUndefined();
+    expect(Object.keys(RENAMED_BLOCKS)).toContain("minecraft:chain");
   });
 });

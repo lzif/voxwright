@@ -22,7 +22,19 @@ export interface Structure {
   droppedEntities: number;
   /** Unknown properties dropped on import, with counts. */
   droppedProperties: ReadonlyMap<string, number>;
+  /** Blocks renamed to their current id on import (`"old -> new"`), with counts. */
+  renamedBlocks?: ReadonlyMap<string, number>;
 }
+
+/**
+ * Block ids that Minecraft renamed after 1.13, old id to new id. A schematic saved by an older
+ * version still carries the old id, which the newer registry rejects.
+ */
+export const RENAMED_BLOCKS: Readonly<Record<string, string>> = {
+  "minecraft:grass_path": "minecraft:dirt_path", // 1.17
+  "minecraft:grass": "minecraft:short_grass", // 1.20.3
+  "minecraft:chain": "minecraft:iron_chain", // 1.21.9
+};
 
 /** Wrap a {@link Volume} (cells sorted by x, y, z, as mcbuilder's exporter writes them). */
 export function structureFromVolume(
@@ -56,20 +68,29 @@ const AIR = "minecraft:air";
  * often carry extra Bedrock-only properties next to the Java ones
  * (`wall_post_bit`, `occupied_bit`, `half` on slabs...); the Java properties
  * are already there, so dropping the extras gives the right Java block.
- * Returns a new structure; what was dropped is counted in `droppedProperties`.
+ * A block id from {@link RENAMED_BLOCKS} that the registry does not know is
+ * renamed to its new id when the registry knows that one.
+ * Returns a new structure; what was dropped is counted in `droppedProperties`
+ * and what was renamed in `renamedBlocks`.
  */
 export function cleanProperties(structure: Structure, registry: Registry): Structure {
-  const cache = new Map<string, { state: string; dropped: string[] }>();
+  const cache = new Map<string, { state: string; dropped: string[]; renamed?: string }>();
   const dropped = new Map(structure.droppedProperties);
+  const renamed = new Map(structure.renamedBlocks ?? []);
+  const known = (name: string): boolean => Object.hasOwn(registry.blocks, name);
   const blocks = structure.blocks.map(([x, y, z, b]): StructureCell => {
     let hit = cache.get(b);
     if (hit === undefined) {
       const bracket = b.indexOf("[");
-      const name = bracket === -1 ? b : b.slice(0, bracket);
+      const oldName = bracket === -1 ? b : b.slice(0, bracket);
+      const newName = Object.hasOwn(RENAMED_BLOCKS, oldName) ? RENAMED_BLOCKS[oldName] : undefined;
+      const rename = newName !== undefined && !known(oldName) && known(newName);
+      const name = rename ? newName : oldName;
+      const renamedNote = rename ? `${localName(oldName)} -> ${localName(name)}` : undefined;
       const rest = bracket === -1 ? "" : b.slice(bracket + 1);
-      const legal = Object.hasOwn(registry.blocks, name) ? registry.blocks[name] : undefined;
+      const legal = known(name) ? registry.blocks[name] : undefined;
       if (legal === undefined || rest === "") {
-        hit = { state: b, dropped: [] };
+        hit = { state: rename ? name + b.slice(oldName.length) : b, dropped: [] };
       } else {
         const props = new Map<string, string>();
         for (const kv of rest.replace(/\]+$/, "").split(",")) {
@@ -88,12 +109,16 @@ export function cleanProperties(structure: Structure, registry: Registry): Struc
           dropped: gone,
         };
       }
+      if (renamedNote !== undefined) hit.renamed = renamedNote;
       cache.set(b, hit);
     }
     for (const k of hit.dropped) dropped.set(k, (dropped.get(k) ?? 0) + 1);
+    if (hit.renamed !== undefined) renamed.set(hit.renamed, (renamed.get(hit.renamed) ?? 0) + 1);
     return [x, y, z, hit.state];
   });
-  return { ...structure, blocks, droppedProperties: dropped };
+  const out: Structure = { ...structure, blocks, droppedProperties: dropped };
+  if (renamed.size > 0) out.renamedBlocks = renamed;
+  return out;
 }
 
 /** Python's `format(x, ".{digits}f")`: round half to even on exact ties. */
@@ -146,6 +171,10 @@ export function summary(structure: Structure, top = 25): string[] {
     lines.push(
       `dropped unknown properties (Bedrock leftovers?): ${items.map(([k, n]) => `${k} x${n}`).join(", ")}`,
     );
+  }
+  if (structure.renamedBlocks !== undefined && structure.renamedBlocks.size > 0) {
+    const items = [...structure.renamedBlocks].sort((a, b) => compareCodePoints(a[0], b[0]));
+    lines.push(`renamed to current block ids: ${items.map(([k, n]) => `${k} x${n}`).join(", ")}`);
   }
   lines.push("", `top block types (of ${byName.size}):`);
   const ranked = [...byName].sort((a, b) => b[1] - a[1]).slice(0, top);
@@ -283,8 +312,16 @@ export function planImport(structure: Structure): ImportPlan {
   return { names, counts, calls };
 }
 
-/** A runnable TypeScript builder script that rebuilds `structure` exactly. */
-export function toScript(structure: Structure, options: { seed?: number } = {}): string {
+/**
+ * A runnable builder script that rebuilds `structure` exactly. The code is plain JavaScript and
+ * also valid TypeScript, so it may be saved as `.ts`, `.mts`, `.mjs` or `.js`. It imports `Build`
+ * from `options.specifier`: the workspace package name by default; the published command line
+ * passes `"voxwright"`, the name it answers to.
+ */
+export function toScript(
+  structure: Structure,
+  options: { seed?: number; specifier?: string } = {},
+): string {
   const { names, counts, calls } = planImport(structure);
   const comment = [
     `Imported from ${structure.source} by \`mcbuild import\`.`,
@@ -297,7 +334,7 @@ export function toScript(structure: Structure, options: { seed?: number } = {}):
     "/**",
     ...comment,
     " */",
-    'import { Build } from "@voxwright/mcbuilder";',
+    `import { Build } from ${JSON.stringify(options.specifier ?? "@voxwright/mcbuilder")};`,
     "",
     `export const BUILD = new Build({ seed: ${options.seed ?? 0}, views: "iso;az200_el025;top" });`,
     "",

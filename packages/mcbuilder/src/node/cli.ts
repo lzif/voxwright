@@ -6,7 +6,7 @@
 //   mcbuild check <script> [--config file] [--offline]
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
 //                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-//   mcbuild import <file> [-o out] [--force] [--keep-air] [--raw] [--config file]
+//   mcbuild import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw] [--config file]
 //   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
 //   mcbuild assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 //
@@ -499,6 +499,9 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
   return ctx.errors.length > 0 ? 1 : 0;
 }
 
+/** File extensions `import` may write: the module types a recipe can be. */
+const RECIPE_EXTENSIONS = [".ts", ".mts", ".mjs", ".js"];
+
 async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
   const { values, positionals } = parseArgs({
     args,
@@ -514,7 +517,15 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
   const [file] = positionals;
   if (file === undefined) throw new CliError("import: give a file");
   if (!(await exists(file))) throw new CliError(`no such file: ${file}`);
-  const out = values.output ?? `${file.slice(0, file.length - extname(file).length)}.ts`;
+  // The script is plain JavaScript and valid TypeScript: `.ts` where this Node can run
+  // TypeScript, `.mjs` where it cannot, unless `-o` names the file.
+  const stem = file.slice(0, file.length - extname(file).length);
+  const canRunTs = Boolean((process.features as { typescript?: unknown }).typescript);
+  const out = values.output ?? `${stem}.${canRunTs ? "ts" : "mjs"}`;
+  if (!RECIPE_EXTENSIONS.includes(extname(out).toLowerCase()))
+    throw new CliError(
+      `import writes a recipe: -o must end in ${RECIPE_EXTENSIONS.join(", ")} (got '${out}')`,
+    );
   if ((await exists(out)) && !values.force)
     throw new CliError(`refusing to overwrite ${out} (use --force)`);
 
@@ -593,11 +604,16 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
       );
       structure = cleanProperties(structure, registry);
     } catch (e) {
-      io.err(`warning: properties not cleaned (${(e as Error).message})`);
+      io.err(
+        `warning: properties not cleaned and renamed blocks not updated (${(e as Error).message})`,
+      );
     }
   }
   await mkdir(dirname(resolve(out)), { recursive: true });
-  await writeFile(out, toScript(structure), "utf8");
+  // As in `init`: the published command line answers to "voxwright"; inside the workspace only
+  // the package name resolves.
+  const specifier = BUNDLED ? "voxwright" : "@voxwright/mcbuilder";
+  await writeFile(out, toScript(structure, { specifier }), "utf8");
   io.out(`wrote ${out}`);
   for (const line of summary(structure, 10)) io.out(line ? `  ${line}` : "");
   return 0;
@@ -842,7 +858,7 @@ check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
     [--offline]
-import <file> [-o out] [--force] [--keep-air] [--raw]
+import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff <run-a> <run-b> [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]

@@ -39,6 +39,7 @@ export {
   mergeBoxes,
   planImport,
   pyFixed,
+  RENAMED_BLOCKS,
   type Structure,
   type StructureCell,
   structureFromVolume,
