@@ -6,6 +6,7 @@
 // cells. After every change the sections core marked dirty go to the renderer to be re-meshed.
 
 import {
+  AIR,
   type Box,
   type Clipboard,
   type Command,
@@ -279,7 +280,7 @@ export class EditSession {
     const p = this.inspected;
     if (p === null) return null;
     const b = this.volume.get(p[0], p[1], p[2]);
-    return b === undefined ? null : b;
+    return b === undefined || b === AIR ? null : b;
   }
 
   get paletteBlocks(): ReturnType<typeof paletteEntries> {
@@ -439,7 +440,9 @@ export class EditSession {
     this.canvas.focus({ preventScroll: true });
     this.canvas.setPointerCapture(e.pointerId);
     this.error = "";
-    this.begin(this.pick(e.clientX, e.clientY), e.clientX, e.clientY);
+    const hit = this.pick(e.clientX, e.clientY);
+    this.applyHover(hit);
+    this.begin(hit, e.clientX, e.clientY);
   }
 
   private begin(hit: Hover | null, x: number, y: number): void {
@@ -593,14 +596,16 @@ export class EditSession {
     this.applyHover(this.pick(x, y));
   }
 
-  /** Make a pick the hover, redrawing only if it names another cell. */
+  /** Make a pick the hover, redrawing only if it names another cell or block. */
   private applyHover(hit: Hover | null): void {
     const same =
       hit === null
         ? this.hover === null
         : this.hover !== null &&
           keyOf(hit.position) === keyOf(this.hover.position) &&
-          keyOf(hit.adjacent) === keyOf(this.hover.adjacent);
+          keyOf(hit.adjacent) === keyOf(this.hover.adjacent) &&
+          keyOf(hit.normal) === keyOf(this.hover.normal) &&
+          hit.block === this.hover.block;
     if (same) return;
     this.hover = hit;
     if (hit !== null) this.inspected = hit.position;
@@ -615,10 +620,10 @@ export class EditSession {
         const hit = this.pick(
           x,
           y,
-          drag.tool === "erase" ? undefined : (cx, cy, cz) => drag.touched.has(`${cx},${cy},${cz}`),
+          drag.tool === "place" ? (cx, cy, cz) => drag.touched.has(`${cx},${cy},${cz}`) : undefined,
         );
-        if (hit !== null) this.brushTo(drag, hit);
         this.hover = hit;
+        if (hit !== null) this.brushTo(drag, hit);
         break;
       }
       case "line": {
@@ -783,6 +788,7 @@ export class EditSession {
     const hit = this.pick(x, ry);
     if (hit === null) return;
     this.error = "";
+    this.hover = hit;
     this.begin(hit, x, ry);
     this.schedule();
   }
@@ -1360,6 +1366,7 @@ export class EditSession {
     if (drag.kind === "brush") {
       drag.stroke.cancel();
       this.flush();
+      this.syncHover();
     } else if (drag.kind === "select") this.selection = drag.before;
     this.refreshHighlight();
   }
@@ -1444,6 +1451,7 @@ export class EditSession {
     this.error = "";
     this.flush();
     this.revision++;
+    this.syncHover();
     this.refreshHighlight();
   }
 
@@ -1470,6 +1478,19 @@ export class EditSession {
     this.onEvent?.(event);
   }
 
+  /** Keep `hover` matching the volume after an edit or history step; returns whether it cleared to `null`. */
+  private syncHover(): boolean {
+    const h = this.hover;
+    if (h === null) return false;
+    const b = this.volume.get(h.position[0], h.position[1], h.position[2]);
+    if (b === undefined || b === AIR) {
+      this.hover = null;
+      return true;
+    }
+    if (b !== h.block) this.hover = { ...h, block: b };
+    return false;
+  }
+
   /** Tell the renderer which sections to rebuild, keep the pick bounds covering the volume, and refresh the panels. */
   private afterChange(command: Command): void {
     forEachChange(command, (x, y, z, _before, after) => {
@@ -1492,6 +1513,15 @@ export class EditSession {
     });
     this.flush();
     this.revision++;
+    if (
+      this.syncHover() ||
+      (this.drag === null &&
+        this.pending === null &&
+        this.inspected !== null &&
+        this.inspectedBlock === null)
+    ) {
+      this.refreshHighlight();
+    }
   }
 
   private flush(): void {
@@ -1599,6 +1629,27 @@ export class EditSession {
     const done = this.attempt(() => eraseCells(this.volume, [pos], { toAir: true }, "erase"));
     if (done) this.pointAt(pos);
     return done;
+  }
+
+  /** Point the block-state panel at a cell without editing it. Returns whether a block was there. */
+  inspectAt(pos: Vec3): boolean {
+    if (pos.length !== 3 || !pos.every((n) => Number.isInteger(n) && Math.abs(n) <= 0x7fffffff)) {
+      this.error = "position must be integer coordinates";
+      this.message = "";
+      return false;
+    }
+    const cell: Vec3 = [pos[0] || 0, pos[1] || 0, pos[2] || 0];
+    const b = this.volume.get(cell[0], cell[1], cell[2]);
+    if (b === undefined || b === AIR) {
+      this.inspected = null;
+      this.say(`No block at ${cellText(cell)}.`);
+      this.refreshHighlight();
+      return false;
+    }
+    this.inspected = cell;
+    this.say(`${withoutNbt(b)} at ${cellText(cell)}`);
+    this.refreshHighlight();
+    return true;
   }
 
   /** Make a cell the one the block-state panel shows, as if the pointer were over it. */

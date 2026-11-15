@@ -4,7 +4,13 @@
 
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { canonicalize, parseBlockString, pyStrip, readNbtFile } from "@voxwright/core";
+import {
+  canonicalize,
+  compareCodePoints,
+  parseBlockString,
+  pyStrip,
+  readNbtFile,
+} from "@voxwright/core";
 import {
   type Canvas,
   createCanvas,
@@ -75,6 +81,37 @@ export async function runArtifact(runDir: string): Promise<string> {
     report = JSON.parse(await readFile(join(runDir, "report.json"), "utf8"));
   } catch {}
   return artifactNbtPath(runDir, report);
+}
+
+const runNumber = (name: string): number | null => {
+  const m = /^run-(\d+)$/.exec(name);
+  return m ? Number(m[1]) : null;
+};
+
+/**
+ * List clean `run-*` directories in `runsDir`, sorted cleanly (numerical for
+ * `run-\d+`). A run is clean when `runArtifact(dir)` resolves to an existing
+ * `.nbt` file without throwing.
+ */
+export async function listCleanRuns(runsDir: string): Promise<string[]> {
+  const names = (await readdir(runsDir)).filter((name) => name.startsWith("run-"));
+  names.sort((a, b) => {
+    const na = runNumber(a);
+    const nb = runNumber(b);
+    if (na !== null && nb !== null) return na - nb || compareCodePoints(a, b);
+    if (na !== null) return 1;
+    if (nb !== null) return -1;
+    return compareCodePoints(a, b);
+  });
+  const clean: string[] = [];
+  for (const name of names) {
+    const dir = join(runsDir, name);
+    try {
+      const art = await runArtifact(dir);
+      if (await isFile(art)) clean.push(dir);
+    } catch {}
+  }
+  return clean;
 }
 
 /**

@@ -7,9 +7,9 @@
 import { stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { Build } from "../build.ts";
+import { Build, setDefaultMaxDimensions } from "../build.ts";
 import { McbuilderError } from "../errors.ts";
-import type { VoxelGrid } from "../voxels.ts";
+import { type Dims, VoxelGrid } from "../voxels.ts";
 
 /** A builder script that is missing, throws while loading, or exports no `Build`. */
 export class ScriptError extends McbuilderError {
@@ -28,10 +28,16 @@ export const exists = (p: string): Promise<boolean> =>
     () => false,
   );
 
+export interface LoadScriptOptions {
+  maxDimensions?: Dims;
+}
+
 /** Import a builder script and return its exported `BUILD` (or default export). */
-export async function loadScript(path: string): Promise<Build> {
+export async function loadScript(path: string, options: LoadScriptOptions = {}): Promise<Build> {
   const abs = resolve(path);
   if (!(await exists(abs))) throw new ScriptError(`no such script: ${path}`);
+  const prev =
+    options.maxDimensions === undefined ? null : setDefaultMaxDimensions(options.maxDimensions);
   let mod: Record<string, unknown>;
   try {
     mod = (await import(`${pathToFileURL(abs).href}?t=${Date.now()}`)) as Record<string, unknown>;
@@ -42,12 +48,18 @@ export async function loadScript(path: string): Promise<Build> {
       `error in ${basename(path)}: ${e instanceof Error ? e.message : String(e)}${at}`,
       e,
     );
+  } finally {
+    if (prev !== null) setDefaultMaxDimensions(prev);
   }
   const build = mod.BUILD ?? mod.default;
   if (!(build instanceof Build)) {
     throw new ScriptError(
       `${basename(path)} must export a Build as BUILD (export const BUILD = new Build(...))`,
     );
+  }
+  if (options.maxDimensions !== undefined) {
+    const guard = new VoxelGrid(options.maxDimensions);
+    build.grid.volume.eachCell((x, y, z) => guard.checkBounds(x, y, z));
   }
   return build;
 }

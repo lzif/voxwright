@@ -98,6 +98,8 @@ export interface PatchesOptions {
   scale?: number;
   /** Change this to get a different layout from the same palette. */
   salt?: string;
+  /** Optional seed salting the patch noise lattice. */
+  seed?: Seed;
 }
 
 /**
@@ -110,11 +112,13 @@ export function patches(
 ): MaterialFn {
   const scale = options.scale ?? 4;
   const salt = options.salt ?? "";
+  const hasSeed = options.seed !== undefined && options.seed !== null;
+  const seed = options.seed;
   const es = entries(palette);
   if (!(scale > 0)) throw new McbuilderError(`patches: scale must be > 0, got ${scale}`);
 
   const lattice = (ix: number, iy: number, iz: number): number =>
-    unitHash("patches", salt, ix, iy, iz);
+    hasSeed ? unitHash("patches", salt, ix, iy, iz, seed) : unitHash("patches", salt, ix, iy, iz);
   const smooth = (t: number): number => t * t * (3 - 2 * t);
 
   const noise = (x: number, y: number, z: number): number => {

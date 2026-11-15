@@ -2661,8 +2661,17 @@ var SIDE_TO_BEDROCK = {
   tall: "tall"
 };
 var SHELF_CHAIN = ["unconnected", "right", "center", "left"];
+var BELL_TO_BEDROCK = {
+  floor: "standing",
+  ceiling: "hanging",
+  single_wall: "side",
+  double_wall: "multiple"
+};
+var BELL_TO_JAVA = Object.fromEntries(
+  Object.entries(BELL_TO_BEDROCK).map(([j, b]) => [b, j])
+);
 var HORIZONTAL = /* @__PURE__ */ new Set(["north", "south", "east", "west"]);
-var FACING_DIRECTION_BLOCKS = /^(barrel|hopper|dropper|dispenser|piston|sticky_piston|observer|ladder|.*_wall_sign|.*_wall_banner|.*_wall_hanging_sign)$/;
+var FACING_DIRECTION_BLOCKS = /^(barrel|hopper|dropper|dispenser|piston|sticky_piston|observer|ladder|end_rod|(?:.*_)?lightning_rod|.*_wall_sign|.*_wall_banner|.*_wall_hanging_sign)$/;
 var bare = (id) => id.slice(id.indexOf(":") + 1);
 var withNs = (n2) => n2.includes(":") ? n2 : `minecraft:${n2}`;
 var stripNs = (k) => k.startsWith("minecraft:") ? k.slice("minecraft:".length) : k;
@@ -2734,6 +2743,16 @@ function bedrockToJava(bedrockName, statesIn, extra = {}) {
     const chain = Number(take("powered_shelf_type"));
     out.set("side_chain", SHELF_CHAIN[chain] ?? "unconnected");
     if (chain !== 0) warnings.push(`${name}: side_chain value ${chain} is assumed, not verified`);
+  } else if ((name === "campfire" || name === "soul_campfire") && s.has("extinguished")) {
+    out.set("lit", Number(take("extinguished")) ? "false" : "true");
+  } else if (name === "bell" && (s.has("attachment") || s.has("direction") || s.has("toggle_bit"))) {
+    const att = String(take("attachment") ?? "standing");
+    out.set(
+      "attachment",
+      Object.hasOwn(BELL_TO_JAVA, att) ? BELL_TO_JAVA[att] : "floor"
+    );
+    out.set("facing", BED_DIR[Number(take("direction"))] ?? "north");
+    out.set("powered", bool(take("toggle_bit")));
   }
   for (const side of ["north", "east", "south", "west"]) {
     if (s.has(`connection_${side}`)) out.set(side, bool(take(`connection_${side}`)));
@@ -2855,6 +2874,29 @@ function javaToBedrock(canonical2) {
         )
       )
     );
+  } else if (name === "campfire" || name === "soul_campfire") {
+    const facing2 = take("facing") ?? "north";
+    if (HORIZONTAL.has(facing2)) {
+      states.set("minecraft:cardinal_direction", str(facing2));
+    } else {
+      warnings.push(`${name}: facing=${facing2} has no Bedrock cardinal_direction`);
+    }
+    states.set("extinguished", byte(take("lit") === "false" ? 1 : 0));
+    if (p.get("signal_fire") === "false") take("signal_fire");
+  } else if (name === "bell") {
+    const att = take("attachment") ?? "floor";
+    const bedrockAtt = Object.hasOwn(BELL_TO_BEDROCK, att) ? BELL_TO_BEDROCK[att] : void 0;
+    if (bedrockAtt === void 0) {
+      warnings.push(`${name}: unknown attachment=${att}`);
+    }
+    states.set("attachment", str(bedrockAtt ?? "standing"));
+    const facing2 = take("facing") ?? "north";
+    const dir = BED_DIR.indexOf(facing2);
+    if (dir === -1) {
+      warnings.push(`${name}: facing=${facing2} has no Bedrock direction`);
+    }
+    states.set("direction", int(dir === -1 ? 2 : dir));
+    states.set("toggle_bit", byte(flag(take("powered"))));
   }
   const isWall = name.endsWith("_wall");
   for (const side of ["north", "east", "south", "west"]) {
@@ -2862,7 +2904,7 @@ function javaToBedrock(canonical2) {
     if (v === void 0) continue;
     p.delete(side);
     if (isWall) states.set(`wall_connection_type_${side}`, str(SIDE_TO_BEDROCK[v] ?? "none"));
-    else states.set(`minecraft:connection_${side}`, int(flag(v)));
+    else states.set(`minecraft:connection_${side}`, byte(flag(v)));
   }
   if (isWall && p.has("up")) states.set("wall_post_bit", byte(flag(take("up"))));
   const axis = take("axis");
@@ -10881,6 +10923,20 @@ var exists = (p) => stat(p).then(
   () => true,
   () => false
 );
+var defaultCacheRoot = (home) => join3(home, ".cache", "mcbuilder");
+function assetVersionCandidates(assetsDir, mcVersion, home) {
+  if (assetsDir !== null) {
+    const base = resolve(assetsDir);
+    return [base, join3(base, mcVersion)];
+  }
+  return [join3(defaultCacheRoot(home), mcVersion)];
+}
+async function findAssetVersionDir(assetsDir, mcVersion, home, marker2) {
+  for (const dir of assetVersionCandidates(assetsDir, mcVersion, home)) {
+    if (await exists(join3(dir, marker2))) return dir;
+  }
+  return null;
+}
 async function clientCacheComplete(clientDir) {
   for (const prefix of CLIENT_PREFIXES) {
     const d = join3(clientDir, prefix);
@@ -11198,6 +11254,31 @@ async function runArtifact(runDir) {
   }
   return artifactNbtPath(runDir, report);
 }
+var runNumber = (name) => {
+  const m = /^run-(\d+)$/.exec(name);
+  return m ? Number(m[1]) : null;
+};
+async function listCleanRuns(runsDir) {
+  const names = (await readdir2(runsDir)).filter((name) => name.startsWith("run-"));
+  names.sort((a, b) => {
+    const na = runNumber(a);
+    const nb = runNumber(b);
+    if (na !== null && nb !== null) return na - nb || compareCodePoints(a, b);
+    if (na !== null) return 1;
+    if (nb !== null) return -1;
+    return compareCodePoints(a, b);
+  });
+  const clean = [];
+  for (const name of names) {
+    const dir = join4(runsDir, name);
+    try {
+      const art = await runArtifact(dir);
+      if (await isFile(art)) clean.push(dir);
+    } catch {
+    }
+  }
+  return clean;
+}
 async function loadRunVoxels(runDir) {
   const name = runDir.split("/").pop();
   if (!await isDir(runDir)) throw new DiffError(`not a run directory: ${runDir}`);
@@ -11435,7 +11516,8 @@ async function loadTextureStats(versionDir, options = {}) {
   if (!existsSync2(join5(assetsRoot, "textures"))) {
     throw new Error(`no client assets in ${assetsRoot}`);
   }
-  const registry = JSON.parse(await readFile2(join5(versionDir, "minecraft-data.json"), "utf8"));
+  const registryPath = options.registryFile ?? join5(versionDir, "minecraft-data.json");
+  const registry = JSON.parse(await readFile2(registryPath, "utf8"));
   const stats = computeTextureStats(assetsRoot, Object.keys(registry.blocks).sort());
   await mkdir2(dirname2(file), { recursive: true });
   await writeFile3(file, `${JSON.stringify({ format: STATS_FORMAT, blocks: stats })}
@@ -11699,9 +11781,11 @@ function resolveMaterial(spec, x2, y, z, seed) {
 function patches(palette, options = {}) {
   const scale = options.scale ?? 4;
   const salt = options.salt ?? "";
+  const hasSeed = options.seed !== void 0 && options.seed !== null;
+  const seed = options.seed;
   const es = entries(palette);
   if (!(scale > 0)) throw new McbuilderError(`patches: scale must be > 0, got ${scale}`);
-  const lattice = (ix, iy, iz) => unitHash("patches", salt, ix, iy, iz);
+  const lattice = (ix, iy, iz) => hasSeed ? unitHash("patches", salt, ix, iy, iz, seed) : unitHash("patches", salt, ix, iy, iz);
   const smooth = (t) => t * t * (3 - 2 * t);
   const noise = (x2, y, z) => {
     const fx = x2 / scale;
@@ -13011,6 +13095,12 @@ function ints(what, p) {
   }
   return p;
 }
+var defaultMaxDimensions = [256, 256, 256];
+function setDefaultMaxDimensions(dims) {
+  const prev = defaultMaxDimensions;
+  defaultMaxDimensions = [...dims];
+  return prev;
+}
 var Build = class {
   seedValue;
   sharedRng = null;
@@ -13019,7 +13109,7 @@ var Build = class {
   views = null;
   constructor(options = {}) {
     this.seedValue = options.seed ?? null;
-    this.voxelGrid = new VoxelGrid(options.maxDimensions ?? [256, 256, 256]);
+    this.voxelGrid = new VoxelGrid(options.maxDimensions ?? defaultMaxDimensions);
     if (options.views !== void 0) this.setViews(options.views);
   }
   /** Run `fn` with placements enabled. Scopes nest. */
@@ -13285,9 +13375,10 @@ var exists2 = (p) => stat3(p).then(
   () => true,
   () => false
 );
-async function loadScript(path) {
+async function loadScript(path, options = {}) {
   const abs = resolve2(path);
   if (!await exists2(abs)) throw new ScriptError(`no such script: ${path}`);
+  const prev = options.maxDimensions === void 0 ? null : setDefaultMaxDimensions(options.maxDimensions);
   let mod;
   try {
     mod = await import(`${pathToFileURL(abs).href}?t=${Date.now()}`);
@@ -13298,12 +13389,18 @@ async function loadScript(path) {
       `error in ${basename2(path)}: ${e instanceof Error ? e.message : String(e)}${at}`,
       e
     );
+  } finally {
+    if (prev !== null) setDefaultMaxDimensions(prev);
   }
   const build = mod.BUILD ?? mod.default;
   if (!(build instanceof Build)) {
     throw new ScriptError(
       `${basename2(path)} must export a Build as BUILD (export const BUILD = new Build(...))`
     );
+  }
+  if (options.maxDimensions !== void 0) {
+    const guard = new VoxelGrid(options.maxDimensions);
+    build.grid.volume.eachCell((x2, y, z) => guard.checkBounds(x2, y, z));
   }
   return build;
 }
@@ -13356,7 +13453,6 @@ function placedAt(grid, block, recipe) {
 var BUNDLED = true;
 var CliError = class extends Error {
 };
-var defaultCacheRoot = (home) => join7(home, ".cache", "mcbuilder");
 var HOUSE_TEMPLATE = `// house.ts: starter build written by \`mcbuild init\`.
 //
 // Loop:  mcbuild check house.ts   ->   mcbuild run house.ts
@@ -13417,17 +13513,26 @@ async function resolveConfig(scriptPath, explicit, home) {
   }
   return await findConfig(dirname3(resolve3(scriptPath)), home) ?? parseConfig("", { home });
 }
-function cacheRoot(cfg, home) {
-  return cfg.assetsDir ?? defaultCacheRoot(home);
-}
 async function loadRegistry(cfg, home, net) {
-  const path = join7(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
-  if (!await exists2(path) && !cfg.assetsDir && !net.offline) {
+  const candidates = assetVersionCandidates(cfg.assetsDir, cfg.mcVersion, home);
+  let versionDir = await findAssetVersionDir(
+    cfg.assetsDir,
+    cfg.mcVersion,
+    home,
+    "minecraft-data.json"
+  );
+  if (versionDir === null && cfg.assetsDir === null && !net.offline) {
     net.out(`downloading the block registry for ${cfg.mcVersion} (once)`);
     try {
-      await fetchRegistry(cfg.mcVersion, cacheRoot(cfg, home), {
+      await fetchRegistry(cfg.mcVersion, defaultCacheRoot(home), {
         ...net.get ? { get: net.get } : {}
       });
+      versionDir = await findAssetVersionDir(
+        cfg.assetsDir,
+        cfg.mcVersion,
+        home,
+        "minecraft-data.json"
+      );
     } catch (e) {
       if (!(e instanceof AssetError)) throw e;
       throw new CliError(
@@ -13435,13 +13540,15 @@ async function loadRegistry(cfg, home, net) {
       );
     }
   }
-  if (!await exists2(path)) {
+  if (versionDir === null) {
+    const tried = candidates.map((d) => join7(d, "minecraft-data.json")).join(" or ");
     throw new CliError(
       new RegistryError(
-        `block registry for version '${cfg.mcVersion}' not found at ${path} — run \`mcbuild assets fetch --version ${cfg.mcVersion}\` first.`
+        `block registry for version '${cfg.mcVersion}' not found at ${tried} — run \`mcbuild assets fetch --version ${cfg.mcVersion}\` first.`
       ).message
     );
   }
+  const path = join7(versionDir, "minecraft-data.json");
   try {
     return Registry.fromData(JSON.parse(await readFile3(path, "utf8")), cfg.mcVersion);
   } catch (e) {
@@ -13481,8 +13588,8 @@ function fmtIssue(issue) {
   return msg;
 }
 async function loadAndValidate(script, config, home, net) {
-  const build = await loadScript(script);
   const cfg = await resolveConfig(script, config, home);
+  const build = await loadScript(script, { maxDimensions: cfg.maxDimensions });
   const detWarnings = scanDeterminism(await readFile3(script, "utf8"), basename3(script));
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
@@ -13574,9 +13681,9 @@ async function cmdRun(args, io, get) {
   const viewList = values.preview ? resolveCliViews(values.views, values.count, ctx.build.viewsConfig) : [];
   const artifacts = [];
   if (ctx.errors.length === 0) {
-    const versionDir = resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, "");
-    const candidates = [join7(versionDir, "version.json")];
-    if (ctx.cfg.assetsDir) candidates.push(join7(versionDir, ctx.cfg.mcVersion, "version.json"));
+    const candidates = assetVersionCandidates(ctx.cfg.assetsDir, ctx.cfg.mcVersion, io.home).map(
+      (dir) => join7(dir, "version.json")
+    );
     let versionJson;
     for (const vj of candidates) {
       if (await exists2(vj)) {
@@ -13601,18 +13708,17 @@ async function cmdRun(args, io, get) {
     warnings.push(...result.warnings.map((message) => ({ message })));
     artifacts.push({ file: `${stem}.nbt`, format: "nbt", data_version: dataVersion });
   }
+  const blockstatesMarker = join7("client", "assets", "minecraft", "blockstates");
   const viewEntries = [];
   if (values.preview && ctx.errors.length === 0) {
-    const root = join7(
-      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+    let versionDir = await findAssetVersionDir(
+      ctx.cfg.assetsDir,
       ctx.cfg.mcVersion,
-      "client",
-      "assets",
-      "minecraft"
+      io.home,
+      blockstatesMarker
     );
-    let haveAssets = await exists2(join7(root, "blockstates"));
     let why = "";
-    if (!haveAssets && !ctx.cfg.assetsDir && !values.offline) {
+    if (versionDir === null && ctx.cfg.assetsDir === null && !values.offline) {
       io.out(
         `downloading the vanilla assets for ${ctx.cfg.mcVersion} (once, for the previews; --offline skips this)`
       );
@@ -13620,13 +13726,18 @@ async function cmdRun(args, io, get) {
         await fetchClientAssets(ctx.cfg.mcVersion, defaultCacheRoot(io.home), {
           ...get ? { get } : {}
         });
-        haveAssets = await exists2(join7(root, "blockstates"));
+        versionDir = await findAssetVersionDir(
+          ctx.cfg.assetsDir,
+          ctx.cfg.mcVersion,
+          io.home,
+          blockstatesMarker
+        );
       } catch (e) {
         if (!(e instanceof AssetError)) throw e;
         why = ` (download failed: ${e.message})`;
       }
     }
-    if (!haveAssets) {
+    if (versionDir === null) {
       warnings.push({
         message: `faithful preview: vanilla client assets not found — all blocks rendered as fallback cubes${why}`
       });
@@ -13635,7 +13746,7 @@ async function cmdRun(args, io, get) {
     if (focus !== null && grid.volume.countNonAir() === 0)
       throw new CliError(`--focus ${values.focus}: no blocks inside that box`);
     const dense = grid.toDense();
-    const assets = haveAssets ? directoryAssets(root) : null;
+    const assets = versionDir === null ? null : directoryAssets(join7(versionDir, "client", "assets", "minecraft"));
     for (const [name, n2] of untrustedBlocks(dense, assets)) {
       warnings.push({
         message: `faithful preview: ${n2} \`${name}\` rendered as magenta fallback cube — orientation not verified`
@@ -13660,19 +13771,24 @@ async function cmdRun(args, io, get) {
     }
   }
   if (values.guide && ctx.errors.length === 0) {
-    const root = join7(
-      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+    const versionDir = await findAssetVersionDir(
+      ctx.cfg.assetsDir,
       ctx.cfg.mcVersion,
-      "client",
-      "assets",
-      "minecraft"
+      io.home,
+      blockstatesMarker
     );
-    const haveAssets = await exists2(join7(root, "blockstates"));
+    const assets = versionDir === null ? null : directoryAssets(join7(versionDir, "client", "assets", "minecraft"));
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
-    const iso = join7(runDir, "previews_faithful", "iso.png");
-    const guide = buildGuide(grid.toDense(), haveAssets ? directoryAssets(root) : null, {
+    let cover = null;
+    if (values.preview && viewEntries.length > 0) {
+      const picked = viewEntries.find((v) => v.label === "iso") ?? viewEntries.find((v) => v.label !== "top") ?? viewEntries[0];
+      if (picked && await exists2(join7(runDir, picked.file))) {
+        cover = `../${picked.file}`;
+      }
+    }
+    const guide = buildGuide(grid.toDense(), assets, {
       title: titleCase(stem.replaceAll("_", " ")),
-      cover: await exists2(iso) ? "../previews_faithful/iso.png" : null
+      cover
     });
     const dir = join7(runDir, "guide");
     await mkdir3(dir, { recursive: true });
@@ -13836,8 +13952,7 @@ async function cmdDiff(args, io) {
     allowPositionals: true,
     options: { out: { type: "string", default: "dist/" }, max: { type: "string", default: "30" } }
   });
-  const [runA, runB] = positionals;
-  if (runA === void 0 || runB === void 0 || positionals.length !== 2)
+  if (positionals.length !== 0 && positionals.length !== 2)
     throw new CliError("diff: give two run ids");
   const runsDir = resolve3(io.cwd, values.out);
   if (!(await stat4(runsDir).catch(() => null))?.isDirectory())
@@ -13845,8 +13960,22 @@ async function cmdDiff(args, io) {
   const max2 = Number(values.max);
   if (!Number.isInteger(max2) || max2 < 0)
     throw new CliError(`invalid --max: ${values.max} (must be >= 0)`);
-  const aDir = await resolveRunDir(runsDir, runA);
-  const bDir = await resolveRunDir(runsDir, runB);
+  let aDir;
+  let bDir;
+  if (positionals.length === 0) {
+    const clean = await listCleanRuns(runsDir);
+    if (clean.length < 2) {
+      throw new CliError(
+        `diff: found ${clean.length} clean run${clean.length === 1 ? "" : "s"} in ${runsDir} (need at least 2, or pass two run ids)`
+      );
+    }
+    const lastTwo = clean.slice(-2);
+    [aDir, bDir] = lastTwo;
+  } else {
+    const [runA, runB] = positionals;
+    aDir = await resolveRunDir(runsDir, runA);
+    bDir = await resolveRunDir(runsDir, runB);
+  }
   const [aId, bId] = [basename3(aDir), basename3(bDir)];
   const diff = await diffRunDirs(aDir, bDir);
   io.out(formatDiff(diff, aId, bId, { maxEntries: max2 }));
@@ -13943,25 +14072,37 @@ async function cmdPalette(args, io, get) {
   }
   const cfg = await resolveConfig(join7(io.cwd, "palette"), values.config, io.home);
   const version = values.version ?? cfg.mcVersion;
-  const root = cfg.assetsDir ?? defaultCacheRoot(io.home);
-  const versionDir = join7(root, version);
-  if (!await exists2(join7(versionDir, "client", "assets", "minecraft", "textures"))) {
-    if (cfg.assetsDir || values.offline) {
+  const texturesMarker = join7("client", "assets", "minecraft", "textures");
+  let versionDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, texturesMarker);
+  if (versionDir === null) {
+    if (cfg.assetsDir !== null || values.offline) {
+      const tried = assetVersionCandidates(cfg.assetsDir, version, io.home).join(" or ");
       throw new CliError(
-        `palette: no client assets for ${version} in ${versionDir}; run \`mcbuild assets fetch --version ${version}\``
+        `palette: no client assets for ${version} in ${tried}; run \`mcbuild assets fetch --version ${version}\``
       );
     }
     io.out(`downloading the vanilla assets for ${version} (once)`);
-    await fetchClientAssets(version, root, { ...get ? { get } : {} });
+    await fetchClientAssets(version, defaultCacheRoot(io.home), { ...get ? { get } : {} });
+    versionDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, texturesMarker);
+    if (versionDir === null) {
+      throw new CliError(
+        `palette: no client assets for ${version} in ${join7(defaultCacheRoot(io.home), version)}; run \`mcbuild assets fetch --version ${version}\``
+      );
+    }
   }
-  if (!await exists2(join7(versionDir, "minecraft-data.json"))) {
+  let regDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, "minecraft-data.json");
+  if (regDir === null) {
     await loadRegistry({ ...cfg, mcVersion: version }, io.home, {
       offline: values.offline ?? false,
       get,
       out: io.out
     });
+    regDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, "minecraft-data.json");
   }
-  const stats = await loadTextureStats(versionDir, { refresh: values.refresh ?? false });
+  const stats = await loadTextureStats(versionDir, {
+    refresh: values.refresh ?? false,
+    ...regDir ? { registryFile: join7(regDir, "minecraft-data.json") } : {}
+  });
   const full = (name) => name.includes(":") ? name : `minecraft:${name}`;
   const statOf = (name) => {
     const s = stats[full(name)];
@@ -14032,7 +14173,7 @@ run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
     [--offline]
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
-diff <run-a> <run-b> [--out dir] [--max N]
+diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]
 palette ramp <from> <to> [--steps N] [--family F] [--face F]
@@ -14109,11 +14250,8 @@ ${USAGE}`);
 
 // packages/mcbuilder/src/node/skill/build.ts
 import { mkdir as mkdir4, readFile as readFile5, writeFile as writeFile5 } from "node:fs/promises";
-import { basename as basename4, dirname as dirname4, extname as extname3, join as join10, resolve as resolve5 } from "node:path";
+import { basename as basename4, dirname as dirname4, extname as extname3, join as join9, resolve as resolve5 } from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
-
-// packages/mcbuilder/src/node/skill/common.ts
-import { join as join8 } from "node:path";
 
 // packages/mcbuilder/src/node/skill/io.ts
 var SkillCliError = class extends Error {
@@ -14149,7 +14287,6 @@ function releaseOf(dataVersion) {
   for (const [release, dv] of Object.entries(DATA_VERSIONS)) if (dv === dataVersion) return release;
   return null;
 }
-var cacheRoot2 = (home) => join8(home, ".cache", "mcbuilder");
 var usageError = (message) => new SkillCliError(message, 2);
 
 // packages/mcbuilder/src/node/skill/formats.ts
@@ -14248,7 +14385,7 @@ async function decode(bytes, format) {
 
 // packages/mcbuilder/src/node/skill/registry.ts
 import { readFile as readFile4 } from "node:fs/promises";
-import { join as join9, resolve as resolve4 } from "node:path";
+import { join as join8, resolve as resolve4 } from "node:path";
 async function read(path, version) {
   let raw;
   try {
@@ -14273,13 +14410,28 @@ async function findRegistry(req) {
       downloaded: false
     };
   }
-  const root = cacheRoot2(req.home);
-  const cached = join9(root, req.mcVersion, "minecraft-data.json");
-  if (await exists2(cached)) {
+  const assetsDir = req.assetsDir ?? null;
+  const foundDir = await findAssetVersionDir(
+    assetsDir,
+    req.mcVersion,
+    req.home,
+    "minecraft-data.json"
+  );
+  if (foundDir !== null) {
+    const path = join8(foundDir, "minecraft-data.json");
     return {
-      registry: await read(cached, req.mcVersion),
-      source: cached,
+      registry: await read(path, req.mcVersion),
+      source: path,
       skipped: null,
+      downloaded: false
+    };
+  }
+  const tried = assetVersionCandidates(assetsDir, req.mcVersion, req.home).map((d) => join8(d, "minecraft-data.json")).join(" or ");
+  if (assetsDir !== null) {
+    return {
+      registry: null,
+      source: null,
+      skipped: `no block registry for ${req.mcVersion} at ${tried} (assets_dir is configured)`,
       downloaded: false
     };
   }
@@ -14287,14 +14439,14 @@ async function findRegistry(req) {
     return {
       registry: null,
       source: null,
-      skipped: `no block registry for ${req.mcVersion} at ${cached} and --offline is set`,
+      skipped: `no block registry for ${req.mcVersion} at ${tried} and --offline is set`,
       downloaded: false
     };
   }
   try {
     const path = await fetchRegistry(
       req.mcVersion,
-      root,
+      defaultCacheRoot(req.home),
       req.get === void 0 ? {} : { get: req.get }
     );
     return {
@@ -14419,14 +14571,16 @@ function parseDataVersion(value) {
     throw usageError(`--data-version must be a whole number, got '${value}'`);
   return Number(value);
 }
-async function resolveDataVersionFor(mcVersion, override, home) {
+async function resolveDataVersionFor(mcVersion, override, home, assetsDir) {
   if (override !== void 0) return override;
-  const versionJson = join10(cacheRoot2(home), mcVersion, "version.json");
-  if (await exists2(versionJson)) {
-    try {
-      const wv = JSON.parse(await readFile5(versionJson, "utf8")).world_version;
-      if (typeof wv === "number" && Number.isInteger(wv)) return wv;
-    } catch {
+  for (const dir of assetVersionCandidates(assetsDir, mcVersion, home)) {
+    const versionJson = join9(dir, "version.json");
+    if (await exists2(versionJson)) {
+      try {
+        const wv = JSON.parse(await readFile5(versionJson, "utf8")).world_version;
+        if (typeof wv === "number" && Number.isInteger(wv)) return wv;
+      } catch {
+      }
     }
   }
   const known = Object.hasOwn(DATA_VERSIONS, mcVersion) ? DATA_VERSIONS[mcVersion] : void 0;
@@ -14493,6 +14647,8 @@ async function cmdBuild(args, io, deps = {}) {
       mcVersion,
       dataVersionOverride,
       registryFile: values.registry,
+      assetsDir: config?.assetsDir ?? null,
+      maxDimensions: config?.maxDimensions,
       offline: values.offline === true,
       allow: [...config?.allowlist ?? [], ...values.allow ?? []],
       schemVersion,
@@ -14516,10 +14672,15 @@ async function cmdBuild(args, io, deps = {}) {
 async function runBuild(req) {
   let build;
   try {
-    build = await loadScript(req.recipe);
+    build = await loadScript(
+      req.recipe,
+      req.maxDimensions === void 0 ? {} : { maxDimensions: req.maxDimensions }
+    );
   } catch (e) {
-    if (!(e instanceof ScriptError)) throw e;
-    throw new SkillCliError(e.message);
+    if (e instanceof ScriptError || e instanceof GridBoundsError) {
+      throw new SkillCliError(e.message);
+    }
+    throw e;
   }
   const volume = build.grid.volume;
   const palette = paletteOf(volume);
@@ -14533,6 +14694,7 @@ async function runBuild(req) {
   const warnings = scanDeterminism(await readFile5(req.recipe, "utf8"), basename4(req.recipe));
   const found = await findRegistry({
     mcVersion: req.mcVersion,
+    assetsDir: req.assetsDir,
     offline: req.offline,
     cwd: req.io.cwd,
     home: req.io.home,
@@ -14589,7 +14751,8 @@ async function runBuild(req) {
   const dataVersion = await resolveDataVersionFor(
     req.mcVersion,
     req.dataVersionOverride,
-    req.io.home
+    req.io.home,
+    req.assetsDir
   );
   summary2.dataVersion = dataVersion;
   const encoded = [];
@@ -14726,7 +14889,7 @@ import { createHash as createHash2 } from "node:crypto";
 import { existsSync as existsSync3, statSync as statSync2 } from "node:fs";
 import { mkdir as mkdir5, readFile as readFile7, rename, stat as stat5, writeFile as writeFile6 } from "node:fs/promises";
 import { createServer } from "node:http";
-import { basename as basename5, dirname as dirname5, extname as extname5, join as join11, resolve as resolve7, sep as sep3 } from "node:path";
+import { basename as basename5, dirname as dirname5, extname as extname5, join as join10, resolve as resolve7, sep as sep3 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs as parseArgs4 } from "node:util";
 var DEFAULT_PORT = 4173;
@@ -14984,11 +15147,11 @@ function listenError(err2, port, host, explicit) {
   );
 }
 async function chooseSource(options, notes, timeoutMs) {
-  const cacheRoot3 = join11(options.home, ".cache", "voxwright", "web");
+  const cacheRoot = join10(options.home, ".cache", "voxwright", "web");
   if (options.web !== void 0) {
     if (/^https?:\/\//i.test(options.web)) {
-      const upstream2 = await resolveUpstream(options.web, cacheRoot3, notes, timeoutMs);
-      return { kind: "proxy", upstream: upstream2, cacheDir: cacheRoot3, why: "explicit" };
+      const upstream2 = await resolveUpstream(options.web, cacheRoot, notes, timeoutMs);
+      return { kind: "proxy", upstream: upstream2, cacheDir: cacheRoot, why: "explicit" };
     }
     if (/^[a-z][a-z0-9+.-]*:\/\//i.test(options.web))
       throw new SkillCliError(
@@ -14996,7 +15159,7 @@ async function chooseSource(options, notes, timeoutMs) {
         2
       );
     const dir = resolve7(options.cwd, options.web);
-    if (!existsSync3(join11(dir, "index.html")))
+    if (!existsSync3(join10(dir, "index.html")))
       throw new SkillCliError(
         `--web ${dir} has no index.html; build the web app first (pnpm --filter @voxwright/web build)`,
         2
@@ -15007,18 +15170,18 @@ async function chooseSource(options, notes, timeoutMs) {
   if (local !== null) return { kind: "dir", dir: local, why: "local-build" };
   const upstream = await resolveUpstream(
     options.published ?? PUBLISHED_WEB,
-    cacheRoot3,
+    cacheRoot,
     notes,
     timeoutMs
   );
-  return { kind: "proxy", upstream, cacheDir: cacheRoot3, why: "published" };
+  return { kind: "proxy", upstream, cacheDir: cacheRoot, why: "published" };
 }
 function findLocalWebBuild(from) {
   let dir = resolve7(from);
   for (; ; ) {
-    if (existsSync3(join11(dir, "apps", "web"))) {
-      const build = join11(dir, "apps", "web", "build");
-      return existsSync3(join11(build, "index.html")) ? build : null;
+    if (existsSync3(join10(dir, "apps", "web"))) {
+      const build = join10(dir, "apps", "web", "build");
+      return existsSync3(join10(build, "index.html")) ? build : null;
     }
     const up = dirname5(dir);
     if (up === dir) return null;
@@ -15032,7 +15195,7 @@ function asDirectoryUrl(u) {
   if (!copy.pathname.endsWith("/")) copy.pathname = copy.pathname.replace(/[^/]*$/, "");
   return copy.href;
 }
-async function resolveUpstream(given, cacheRoot3, notes, timeoutMs) {
+async function resolveUpstream(given, cacheRoot, notes, timeoutMs) {
   let start;
   try {
     start = new URL(given);
@@ -15042,7 +15205,7 @@ async function resolveUpstream(given, cacheRoot3, notes, timeoutMs) {
   if (!start.pathname.endsWith("/")) start.pathname = `${start.pathname}/`;
   start.search = "";
   start.hash = "";
-  const aliasesFile = join11(cacheRoot3, "aliases.json");
+  const aliasesFile = join10(cacheRoot, "aliases.json");
   let aliases = {};
   try {
     aliases = JSON.parse(await readFile7(aliasesFile, "utf8"));
@@ -15120,18 +15283,18 @@ async function serveStatic(req, res, root, path, rawPath) {
   if (path.includes("\0") || path.includes("\\")) return notFound(req, res);
   const segments = path.split("/").filter((s) => s !== "");
   if (segments.some((s) => s === "." || s === "..")) return notFound(req, res);
-  let file = join11(root, ...segments);
+  let file = join10(root, ...segments);
   if (file !== root && !file.startsWith(root + sep3)) return notFound(req, res);
   let st = await stat5(file).catch(() => null);
   if (st?.isDirectory()) {
     if (!path.endsWith("/"))
       return send(req, res, 301, "text/plain; charset=utf-8", "", { location: `${rawPath}/` });
-    file = join11(file, "index.html");
+    file = join10(file, "index.html");
     st = await stat5(file).catch(() => null);
   }
   if (!st?.isFile()) {
     if (extname5(path) !== "") return notFound(req, res);
-    file = join11(root, "200.html");
+    file = join10(root, "200.html");
     st = await stat5(file).catch(() => null);
     if (!st?.isFile()) return notFound(req, res);
   }
@@ -15146,8 +15309,8 @@ function cachePaths(cacheDir, upstreamUrl) {
   const key2 = createHash2("sha256").update(`${u.origin}${u.pathname}`).digest("hex");
   const host = u.host.replace(/[^a-z0-9.-]/gi, "_");
   return {
-    body: join11(cacheDir, host, `${key2}.body`),
-    meta: join11(cacheDir, host, `${key2}.json`)
+    body: join10(cacheDir, host, `${key2}.body`),
+    meta: join10(cacheDir, host, `${key2}.json`)
   };
 }
 async function readCache(cacheDir, upstreamUrl) {

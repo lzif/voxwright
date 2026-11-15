@@ -86,6 +86,33 @@ describe("materials against the Python oracle", () => {
     const spec = ["minecraft:a", "minecraft:b"];
     expect(resolveMaterial(spec, 1, 2, 3)).toBe(resolveMaterial(spec, 1, 2, 3, null));
   });
+
+  it("supports an optional patches() seed while keeping unseeded calls identical", () => {
+    const palette = ["minecraft:stone", "minecraft:andesite", "minecraft:cobblestone"];
+    const base = patches(palette, { scale: 2, salt: "wall" });
+    const withUndef = patches(palette, { scale: 2, salt: "wall", seed: undefined });
+    const withNull = patches(palette, { scale: 2, salt: "wall", seed: null });
+    const withSeed0 = patches(palette, { scale: 2, salt: "wall", seed: 0 });
+    const withSeed0Again = patches(palette, { scale: 2, salt: "wall", seed: 0 });
+    const withSeed1 = patches(palette, { scale: 2, salt: "wall", seed: 1 });
+    const withSeedStr = patches(palette, { scale: 2, salt: "wall", seed: "alpha" });
+
+    const sample = (fn: (x: number, y: number, z: number) => string) => {
+      const out: string[] = [];
+      for (let x = 0; x < 12; x += 2) {
+        for (let z = 0; z < 12; z += 2) out.push(fn(x, 0, z));
+      }
+      return out;
+    };
+
+    const unseeded = sample(base);
+    expect(sample(withUndef)).toEqual(unseeded);
+    expect(sample(withNull)).toEqual(unseeded);
+    expect(sample(withSeed0)).toEqual(sample(withSeed0Again));
+    expect(sample(withSeed0)).not.toEqual(unseeded);
+    expect(sample(withSeed0)).not.toEqual(sample(withSeed1));
+    expect(sample(withSeed1)).not.toEqual(sample(withSeedStr));
+  });
 });
 
 describe("gradient", () => {

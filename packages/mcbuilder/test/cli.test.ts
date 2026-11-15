@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readStructureNbt, Volume, writeStructureNbt } from "@voxwright/core";
-import { decodePng } from "@voxwright/render/node";
+import { createCanvas } from "@voxwright/render";
+import { decodePng, encodePng } from "@voxwright/render/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HOUSE_TEMPLATE, runCli, scanDeterminism } from "../src/node/index.ts";
 
@@ -479,6 +480,49 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
     expect(await readFile(join(root, "dist-guide2/run-001/guide/guide.md"), "utf8")).toContain(
       "![Tiny](../previews_faithful/iso.png)",
     );
+
+    // Without `iso`, pick the first non-top view; if only `top` exists, fall back to it.
+    const withAz = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-guide3"),
+          "--preview",
+          "--offline",
+          "--views",
+          "top;az135_el025",
+          "--guide",
+        ],
+        withAz.io,
+      ),
+    ).toBe(0);
+    expect(await readFile(join(root, "dist-guide3/run-001/guide/guide.md"), "utf8")).toContain(
+      "![Tiny](../previews_faithful/az135_el025.png)",
+    );
+
+    const withTopOnly = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          script,
+          "--out",
+          join(root, "dist-guide4"),
+          "--preview",
+          "--offline",
+          "--views",
+          "top",
+          "--guide",
+        ],
+        withTopOnly.io,
+      ),
+    ).toBe(0);
+    expect(await readFile(join(root, "dist-guide4/run-001/guide/guide.md"), "utf8")).toContain(
+      "![Tiny](../previews_faithful/top.png)",
+    );
   });
 
   it("reads mcbuild.toml next to the script, honours allowlist and rejects bad --config", async () => {
@@ -583,6 +627,7 @@ describe("mcbuild import", () => {
     expect(c.out[0]).toBe(`wrote ${out}`);
     expect(c.out.join("\n")).toContain("762 blocks");
     const script = await readFile(out, "utf8");
+    expect(script).toContain('import { Build } from "@voxwright/mcbuilder";');
     expect(script).toContain("BUILD.scope(() => {");
 
     expect(await runCli(["import", src, "-o", out, "--raw"], capture().io)).toBe(1);
@@ -700,5 +745,319 @@ describe("determinism scan", () => {
     expect(scanDeterminism("const a = 1;", "s.ts")).toEqual([]);
     expect(scanDeterminism("Date.now()", "s.ts")).toHaveLength(1);
     expect(scanDeterminism("crypto.randomUUID(); Math.random()", "s.ts")).toHaveLength(2);
+  });
+});
+
+describe("max_dimensions enforcement", () => {
+  it("rejects tightened limits (both default and explicit Build maxDimensions) and allows relaxed limits", async () => {
+    const tight = join(root, "maxdims-tight");
+    await mkdir(tight, { recursive: true });
+    await writeFile(join(tight, "mcbuild.toml"), "max_dimensions = [10, 10, 10]\n");
+    await writeFile(
+      join(tight, "default-build.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(10, 0, 0, "minecraft:stone"));
+`,
+    );
+    await writeFile(
+      join(tight, "explicit-large.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ maxDimensions: [64, 64, 64] });
+BUILD.scope(() => BUILD.set(20, 0, 0, "minecraft:stone"));
+`,
+    );
+    await writeFile(
+      join(tight, "within.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(9, 0, 0, "minecraft:stone"));
+`,
+    );
+
+    for (const file of ["default-build.ts", "explicit-large.ts"]) {
+      const checkRes = capture();
+      expect(await runCli(["check", join(tight, file)], checkRes.io)).toBe(1);
+      expect(checkRes.err.join("\n")).toContain("out of bounds");
+
+      const outDir = join(tight, `out-${file}`);
+      const runRes = capture();
+      expect(await runCli(["run", join(tight, file), "--out", outDir], runRes.io)).toBe(1);
+      expect(runRes.err.join("\n")).toContain("out of bounds");
+      expect(await stat(outDir).catch(() => null)).toBeNull();
+    }
+
+    expect(await runCli(["check", join(tight, "within.ts")], capture().io)).toBe(0);
+
+    const relaxed = join(root, "maxdims-relaxed");
+    await mkdir(relaxed, { recursive: true });
+    await writeFile(join(relaxed, "mcbuild.toml"), "max_dimensions = [512, 512, 512]\n");
+    await writeFile(
+      join(relaxed, "wide.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
+`,
+    );
+    const checkRelaxed = capture();
+    expect(await runCli(["check", join(relaxed, "wide.ts")], checkRelaxed.io)).toBe(0);
+    expect(checkRelaxed.out[0]).toContain("OK");
+
+    const runRelaxed = capture();
+    expect(
+      await runCli(
+        ["run", join(relaxed, "wide.ts"), "--out", join(relaxed, "dist")],
+        runRelaxed.io,
+      ),
+    ).toBe(0);
+    const report = JSON.parse(await readFile(join(relaxed, "dist/run-001/report.json"), "utf8"));
+    expect(report.origin).toEqual([300, 0, 0]);
+    expect(report.dimensions).toEqual({ x: 1, y: 1, z: 1 });
+
+    // Default 256 limit is restored once the relaxed script finishes loading.
+    const unconfigured = join(root, "maxdims-default");
+    await mkdir(unconfigured, { recursive: true });
+    await writeFile(
+      join(unconfigured, "too-wide.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
+`,
+    );
+    const afterRelaxed = capture();
+    expect(await runCli(["check", join(unconfigured, "too-wide.ts")], afterRelaxed.io)).toBe(1);
+    expect(afterRelaxed.err.join("\n")).toContain("out of bounds");
+  });
+});
+
+describe("consistent assets_dir resolution across CLI commands", () => {
+  const DISTINCT = 7654321;
+
+  async function seedAssets(versionDir: string) {
+    const mc = join(versionDir, "client/assets/minecraft");
+    await mkdir(join(mc, "blockstates"), { recursive: true });
+    await mkdir(join(mc, "models/block"), { recursive: true });
+    await mkdir(join(mc, "textures/block"), { recursive: true });
+    await writeFile(join(versionDir, "minecraft-data.json"), JSON.stringify(REGISTRY));
+    await writeFile(
+      join(versionDir, "version.json"),
+      JSON.stringify({ id: "26.2", world_version: DISTINCT }),
+    );
+    await writeFile(
+      join(mc, "blockstates/stone.json"),
+      JSON.stringify({ variants: { "": { model: "block/stone" } } }),
+    );
+    const faces = Object.fromEntries(
+      ["down", "up", "north", "south", "west", "east"].map((f) => [
+        f,
+        { texture: "#all", cullface: f },
+      ]),
+    );
+    await writeFile(
+      join(mc, "models/block/stone.json"),
+      JSON.stringify({
+        textures: { all: "block/stone" },
+        elements: [{ from: [0, 0, 0], to: [16, 16, 16], faces }],
+      }),
+    );
+    await writeFile(
+      join(mc, "textures/block/stone.png"),
+      encodePng(createCanvas(16, 16, [120, 120, 120])),
+    );
+  }
+
+  for (const layout of ["direct", "nested", "tilde-direct"] as const) {
+    it(`supports ${layout} assets_dir for check, run --preview --guide, and palette`, async () => {
+      const isolatedHome = join(root, `assets-home-${layout}`);
+      await mkdir(isolatedHome, { recursive: true });
+      const rawAssetsDir =
+        layout === "tilde-direct" ? "~/custom-assets" : join(root, `assets-dir-${layout}`);
+      const resolvedAssetsDir =
+        layout === "tilde-direct" ? join(isolatedHome, "custom-assets") : rawAssetsDir;
+      const versionDir = layout === "nested" ? join(resolvedAssetsDir, "26.2") : resolvedAssetsDir;
+      await seedAssets(versionDir);
+
+      const proj = join(root, `assets-proj-${layout}`);
+      await mkdir(proj, { recursive: true });
+      await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(rawAssetsDir)}\n`);
+      const script = join(proj, "stone.ts");
+      await writeFile(
+        script,
+        `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
+`,
+      );
+
+      const calls: string[] = [];
+      const get = async (url: string) => {
+        calls.push(url);
+        return { status: 500, body: new Uint8Array() };
+      };
+
+      const chk = capture();
+      chk.io.home = isolatedHome;
+      expect(await runCli(["check", script], chk.io, { get })).toBe(0);
+      expect(chk.out[0]).toContain("OK");
+
+      const run = capture();
+      run.io.home = isolatedHome;
+      const outDir = join(proj, "dist");
+      expect(
+        await runCli(
+          ["run", script, "--out", outDir, "--preview", "--views", "top", "--guide"],
+          run.io,
+          { get },
+        ),
+      ).toBe(0);
+      const report = JSON.parse(await readFile(join(outDir, "run-001/report.json"), "utf8"));
+      expect(
+        report.artifacts.find((a: { format: string }) => a.format === "nbt")?.data_version,
+      ).toBe(DISTINCT);
+      expect(report.warnings).toEqual([]);
+      expect(await stat(join(outDir, "run-001/previews_faithful/top.png"))).toBeTruthy();
+      expect(await readFile(join(outDir, "run-001/guide/guide.md"), "utf8")).toContain(
+        "![Stone](../previews_faithful/top.png)",
+      );
+
+      const pal = capture();
+      pal.io.cwd = proj;
+      pal.io.home = isolatedHome;
+      expect(await runCli(["palette", "show", "stone"], pal.io, { get })).toBe(0);
+      expect(pal.out[0]).toBe("minecraft:stone");
+      expect(pal.out.join("\n")).toContain("#787878");
+      expect(calls).toEqual([]);
+      expect(await stat(join(isolatedHome, ".cache")).catch(() => null)).toBeNull();
+    });
+  }
+
+  it("never auto-downloads into default cache when configured assets_dir lacks assets", async () => {
+    const emptyAssets = join(root, "assets-empty");
+    await mkdir(emptyAssets, { recursive: true });
+    const isolatedHome = join(root, "assets-empty-home");
+    await mkdir(isolatedHome, { recursive: true });
+    const proj = join(root, "assets-empty-proj");
+    await mkdir(proj, { recursive: true });
+    await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(emptyAssets)}\n`);
+    const script = join(proj, "stone.ts");
+    await writeFile(
+      script,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
+`,
+    );
+
+    const calls: string[] = [];
+    const get = async (url: string) => {
+      calls.push(url);
+      return { status: 200, body: new Uint8Array() };
+    };
+
+    const chk = capture();
+    chk.io.home = isolatedHome;
+    expect(await runCli(["check", script], chk.io, { get })).toBe(1);
+    expect(chk.err[0]).toContain("not found at");
+
+    // Put only registry in assets_dir, leave client assets absent -> preview uses fallback without downloading.
+    await writeFile(join(emptyAssets, "minecraft-data.json"), JSON.stringify(REGISTRY));
+    const prev = capture();
+    prev.io.home = isolatedHome;
+    expect(
+      await runCli(
+        ["run", script, "--out", join(proj, "dist"), "--preview", "--views", "top"],
+        prev.io,
+        { get },
+      ),
+    ).toBe(0);
+    expect(prev.out.join("\n")).toContain("vanilla client assets not found");
+    expect(prev.out.join("\n")).not.toContain("downloading");
+
+    const pal = capture();
+    pal.io.cwd = proj;
+    pal.io.home = isolatedHome;
+    expect(await runCli(["palette", "show", "stone"], pal.io, { get })).toBe(1);
+    expect(pal.err[0]).toContain("no client assets for 26.2");
+
+    expect(calls).toEqual([]);
+    expect(await stat(join(isolatedHome, ".cache")).catch(() => null)).toBeNull();
+  });
+});
+
+describe("mcbuild diff 0-arg default", () => {
+  it("picks the last two clean runs in numerical order while skipping dirty runs", async () => {
+    const proj = join(root, "diff-default");
+    await mkdir(proj, { recursive: true });
+    const runs = join(proj, "dist");
+    await mkdir(runs, { recursive: true });
+    await writeFile(
+      join(proj, "a.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
+`,
+    );
+    await writeFile(
+      join(proj, "b.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => {
+  BUILD.set(0, 0, 0, "minecraft:stone");
+  BUILD.set(1, 0, 0, "minecraft:cobblestone");
+});
+`,
+    );
+
+    // Fewer than 2 clean runs fails cleanly.
+    const emptyErr = capture();
+    expect(await runCli(["diff", "--out", runs], emptyErr.io)).toBe(1);
+    expect(emptyErr.err[0]).toContain("need at least 2");
+
+    expect(await runCli(["run", join(proj, "a.ts"), "--out", runs], capture().io)).toBe(0); // run-001 (clean)
+    const oneCleanErr = capture();
+    expect(await runCli(["diff", "--out", runs], oneCleanErr.io)).toBe(1);
+    expect(oneCleanErr.err[0]).toContain("found 1 clean run");
+
+    // Dirty/broken run dirs of various shapes.
+    await mkdir(join(runs, "run-002"), { recursive: true });
+    await writeFile(join(runs, "run-002/report.json"), JSON.stringify({ artifacts: [] }));
+    await mkdir(join(runs, "run-broken"), { recursive: true });
+    await mkdir(join(runs, "run-003"), { recursive: true });
+    await writeFile(
+      join(runs, "run-003/report.json"),
+      JSON.stringify({ artifacts: [{ format: "nbt", file: "missing.nbt" }] }),
+    );
+
+    // Clean run-009 and clean run-1000 (tests numerical sort over lexicographical: 1000 > 9).
+    await mkdir(join(runs, "run-009"), { recursive: true });
+    await mkdir(join(runs, "run-1000"), { recursive: true });
+    const tmpOut = join(proj, "tmp-dist");
+    expect(await runCli(["run", join(proj, "a.ts"), "--out", tmpOut], capture().io)).toBe(0);
+    expect(await runCli(["run", join(proj, "b.ts"), "--out", tmpOut], capture().io)).toBe(0);
+    await writeFile(join(runs, "run-009/a.nbt"), await readFile(join(tmpOut, "run-001/a.nbt")));
+    await writeFile(
+      join(runs, "run-009/report.json"),
+      await readFile(join(tmpOut, "run-001/report.json"), "utf8"),
+    );
+    await writeFile(join(runs, "run-1000/b.nbt"), await readFile(join(tmpOut, "run-002/b.nbt")));
+    await writeFile(
+      join(runs, "run-1000/report.json"),
+      await readFile(join(tmpOut, "run-002/report.json"), "utf8"),
+    );
+    // A trailing broken run-1001 with no .nbt should be skipped.
+    await mkdir(join(runs, "run-1001"), { recursive: true });
+
+    const def = capture();
+    expect(await runCli(["diff", "--out", runs], def.io)).toBe(1);
+    expect(def.out[0]).toContain("diff run-009 -> run-1000");
+    expect(def.out.join("\n")).toContain("+ (1, 0, 0) minecraft:cobblestone");
+
+    // 1 or 3 positionals still fail with "diff: give two run ids".
+    const oneArg = capture();
+    expect(await runCli(["diff", "1", "--out", runs], oneArg.io)).toBe(1);
+    expect(oneArg.err[0]).toContain("diff: give two run ids");
+    const threeArgs = capture();
+    expect(await runCli(["diff", "1", "9", "1000", "--out", runs], threeArgs.io)).toBe(1);
+    expect(threeArgs.err[0]).toContain("diff: give two run ids");
   });
 });
