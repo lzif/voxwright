@@ -409,6 +409,7 @@ describe("Build.validate and Build.render", () => {
     expect(res.warnings.some((w) => w.block === "create:brass_casing")).toBe(true);
   });
 
+  // Renders several software previews: about 45 s on a fast machine, over 60 s on CI runners.
   it("renders views to PNGs with precedence, region cropping and determinism", () => {
     const dir = mkdtempSync(join(tmpdir(), "voxwright-build-render-"));
     try {
@@ -459,5 +460,5 @@ describe("Build.validate and Build.render", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
-  });
+  }, 180_000);
 });

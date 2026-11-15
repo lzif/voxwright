@@ -55,13 +55,13 @@ BUILD.scope(() => {
 
 Wherever a parameter is typed `Material`, any of these is accepted:
 
-| Form             | Example                                                                     | Picks                                              |
-| ---------------- | --------------------------------------------------------------------------- | -------------------------------------------------- |
-| Block string     | `"minecraft:stone_bricks"`                                                  | That block in every cell                           |
-| Weighted palette | `["minecraft:stone_bricks", ["minecraft:mossy_stone_bricks", 0.3]]`         | Per cell, by a hash of seed and position (speckle) |
-| `patches(...)`   | `patches([["minecraft:stone", 3], "minecraft:andesite"], { scale: 4 })`     | Per cell, by smooth noise (clusters)               |
+| Form             | Example                                                                                             | Picks                                                  |
+| ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Block string     | `"minecraft:stone_bricks"`                                                                          | That block in every cell                               |
+| Weighted palette | `["minecraft:stone_bricks", ["minecraft:mossy_stone_bricks", 0.3]]`                                 | Per cell, by a hash of seed and position (speckle)     |
+| `patches(...)`   | `patches([["minecraft:stone", 3], "minecraft:andesite"], { scale: 4 })`                             | Per cell, by smooth noise (clusters)                   |
 | `gradient(...)`  | `gradient(["minecraft:deepslate_tile_stairs", "minecraft:stone_brick_stairs"], { from: 6, to: 0 })` | Per cell, by position along one axis (a smooth change) |
-| Function         | `(x, y, z) => (y % 4 === 0 ? "minecraft:oak_log" : "minecraft:oak_planks")` | Whatever it returns                                |
+| Function         | `(x, y, z) => (y % 4 === 0 ? "minecraft:oak_log" : "minecraft:oak_planks")`                         | Whatever it returns                                    |
 
 ```ts
 patches(palette: readonly (string | readonly [block: string, weight: number])[],
@@ -293,10 +293,39 @@ shapes.jetty(c1: Point, c2: Point, block: Material, o?: {
   the wall, every `every` cells counted from both ends of a side.
 
 ```ts
-BUILD.place(shapes.bayWall([0, 1, 0], [10, 4, 0], "minecraft:white_concrete", { period: 5, post: "minecraft:oak_log[axis=y]", beam: "minecraft:oak_log[axis=x]" }));
-BUILD.place(shapes.polygon([[0, 0], [8, 0], [8, 4], [3, 4], [3, 8], [0, 8]], 1, 4, "minecraft:stone_bricks")); // L plan
-BUILD.place(shapes.jetty([0, 5, 0], [8, 5, 6], "minecraft:spruce_planks", { overhang: 1, bracket: "minecraft:spruce_stairs" }));
-BUILD.roofGable([-1, 9, -1], [9, 9, 7], "minecraft:spruce_stairs", { ridge: "x", endFill: "minecraft:white_concrete", profile: "concave" });
+BUILD.place(
+  shapes.bayWall([0, 1, 0], [10, 4, 0], "minecraft:white_concrete", {
+    period: 5,
+    post: "minecraft:oak_log[axis=y]",
+    beam: "minecraft:oak_log[axis=x]",
+  }),
+);
+BUILD.place(
+  shapes.polygon(
+    [
+      [0, 0],
+      [8, 0],
+      [8, 4],
+      [3, 4],
+      [3, 8],
+      [0, 8],
+    ],
+    1,
+    4,
+    "minecraft:stone_bricks",
+  ),
+); // L plan
+BUILD.place(
+  shapes.jetty([0, 5, 0], [8, 5, 6], "minecraft:spruce_planks", {
+    overhang: 1,
+    bracket: "minecraft:spruce_stairs",
+  }),
+);
+BUILD.roofGable([-1, 9, -1], [9, 9, 7], "minecraft:spruce_stairs", {
+  ridge: "x",
+  endFill: "minecraft:white_concrete",
+  profile: "concave",
+});
 ```
 
 ### Geometry
