@@ -53,6 +53,16 @@ import {
 } from "./assets.ts";
 import { comparisonImage, diffRunDirs, resolveRunDir } from "./diff.ts";
 import {
+  type BlockStat,
+  type Face,
+  type Family,
+  hex,
+  loadTextureStats,
+  type Match,
+  nearest,
+  ramp,
+} from "./palette.ts";
+import {
   blockCounts,
   dimensions,
   exists,
@@ -708,8 +718,123 @@ async function cmdAssets(
   return 0;
 }
 
+const FAMILIES: readonly Family[] = ["stairs", "slab", "full", "any"];
+const FACES: readonly Face[] = ["all", "top", "side", "bottom"];
+
+async function cmdPalette(args: string[], io: Required<Io>, get?: HttpGet): Promise<number> {
+  const [sub, ...rest] = args;
+  if (sub !== "near" && sub !== "ramp" && sub !== "show") {
+    throw new CliError("palette: expected `near`, `ramp` or `show`");
+  }
+  const { values, positionals } = parseArgs({
+    args: rest,
+    allowPositionals: true,
+    options: {
+      family: { type: "string" },
+      face: { type: "string", default: "all" },
+      limit: { type: "string", default: "10" },
+      steps: { type: "string", default: "5" },
+      version: { type: "string" },
+      config: { type: "string" },
+      refresh: { type: "boolean" },
+      offline: { type: "boolean" },
+    },
+  });
+  const face = values.face as Face;
+  if (!FACES.includes(face))
+    throw new CliError(`palette: --face must be one of ${FACES.join(", ")}`);
+  if (values.family !== undefined && !FAMILIES.includes(values.family as Family)) {
+    throw new CliError(`palette: --family must be one of ${FAMILIES.join(", ")}`);
+  }
+  const cfg = await resolveConfig(join(io.cwd, "palette"), values.config, io.home);
+  const version = values.version ?? cfg.mcVersion;
+  const root = cfg.assetsDir ?? defaultCacheRoot(io.home);
+  const versionDir = join(root, version);
+  if (!(await exists(join(versionDir, "client", "assets", "minecraft", "textures")))) {
+    if (cfg.assetsDir || values.offline) {
+      throw new CliError(
+        `palette: no client assets for ${version} in ${versionDir}; run \`mcbuild assets fetch --version ${version}\``,
+      );
+    }
+    io.out(`downloading the vanilla assets for ${version} (once)`);
+    await fetchClientAssets(version, root, { ...(get ? { get } : {}) });
+  }
+  if (!(await exists(join(versionDir, "minecraft-data.json")))) {
+    await loadRegistry({ ...cfg, mcVersion: version }, io.home, {
+      offline: values.offline ?? false,
+      get,
+      out: io.out,
+    });
+  }
+  const stats = await loadTextureStats(versionDir, { refresh: values.refresh ?? false });
+  const full = (name: string): string => (name.includes(":") ? name : `minecraft:${name}`);
+  const statOf = (name: string): BlockStat => {
+    const s = stats[full(name)];
+    if (!s)
+      throw new CliError(`palette: unknown block ${name} (no texture statistics for ${version})`);
+    return s;
+  };
+  const count = (v: string, what: string, min: number): number => {
+    const n = Number(v);
+    if (!Number.isInteger(n) || n < min)
+      throw new CliError(`palette: ${what} must be an int >= ${min}, got ${v}`);
+    return n;
+  };
+  const line = (m: Match): string =>
+    `${m.name.replace(/^minecraft:/, "").padEnd(36)} ${hex(m.face.rgb)}  L ${m.face.lab.L.toFixed(1).padStart(5)}  a ${m.face.lab.a.toFixed(1).padStart(6)}  b ${m.face.lab.b.toFixed(1).padStart(6)}  spread ${m.face.spread.toFixed(1).padStart(4)}  dE ${m.deltaE.toFixed(1).padStart(5)}`;
+
+  if (sub === "show") {
+    if (positionals.length === 0) throw new CliError("palette show: give one or more blocks");
+    for (const name of positionals) {
+      const s = statOf(name);
+      io.out(full(name));
+      for (const f of FACES) {
+        const st = s[f];
+        io.out(
+          `  ${f.padEnd(6)} ${hex(st.rgb)}  L ${st.lab.L.toFixed(1)}  a ${st.lab.a.toFixed(1)}  b ${st.lab.b.toFixed(1)}  spread ${st.spread.toFixed(1)}  coverage ${st.coverage}`,
+        );
+      }
+    }
+    return 0;
+  }
+  if (sub === "near") {
+    if (positionals.length !== 1) throw new CliError("palette near: give one block");
+    const target = statOf(positionals[0] as string)[face].lab;
+    const family = (values.family ?? "any") as Family;
+    for (const m of nearest(stats, target, {
+      family,
+      face,
+      limit: count(values.limit, "--limit", 1),
+    })) {
+      io.out(line(m));
+    }
+    return 0;
+  }
+  if (positionals.length !== 2)
+    throw new CliError("palette ramp: give two blocks, the first and last stop");
+  const [from, to] = positionals as [string, string];
+  statOf(from);
+  statOf(to);
+  const family = (values.family ?? "any") as Family;
+  for (const m of ramp(stats, full(from), full(to), count(values.steps, "--steps", 2), {
+    family,
+    face,
+  })) {
+    io.out(line(m));
+  }
+  return 0;
+}
+
 /** The commands of this module; the command line in `skill/main.ts` hands them over by name. */
-export const RUN_COMMANDS: readonly string[] = ["init", "check", "run", "import", "diff", "assets"];
+export const RUN_COMMANDS: readonly string[] = [
+  "init",
+  "check",
+  "run",
+  "import",
+  "diff",
+  "assets",
+  "palette",
+];
 
 /** One line of syntax per command, without the program name. */
 export const RUN_SYNTAX = `init [path] [--force]
@@ -719,17 +844,28 @@ run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--offline]
 import <file> [-o out] [--force] [--keep-air] [--raw]
 diff <run-a> <run-b> [--out dir] [--max N]
-assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]`;
+assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
+palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]
+palette ramp <from> <to> [--steps N] [--family F] [--face F]
+palette show <block>... [--version V] [--refresh] [--offline]`;
 
 const isHelpFlag = (a: string): boolean => a === "--help" || a === "-h";
 
 /** The syntax lines of one command, with the program name. */
 function syntaxOf(command: string): string[] {
-  const lines = RUN_SYNTAX.split("\n");
-  const start = lines.findIndex((l) => l.startsWith(`${command} `));
-  const out = [`Usage: mcbuild ${lines[start]}`];
-  for (let i = start + 1; i < lines.length && (lines[i] as string).startsWith(" "); i++) {
-    out.push(`         ${(lines[i] as string).trimStart()}`);
+  // Every line of the command (a command with subcommands has several), each
+  // with its indented continuation lines.
+  const out: string[] = [];
+  let inside = false;
+  for (const l of RUN_SYNTAX.split("\n")) {
+    if (l.startsWith(`${command} `)) {
+      out.push(`${out.length === 0 ? "Usage:" : "      "} mcbuild ${l}`);
+      inside = true;
+    } else if (inside && l.startsWith(" ")) {
+      out.push(`         ${l.trimStart()}`);
+    } else {
+      inside = false;
+    }
   }
   return out;
 }
@@ -776,6 +912,8 @@ export async function runCli(
         return command === undefined ? 2 : 0;
       case "diff":
         return await cmdDiff(rest, full);
+      case "palette":
+        return await cmdPalette(rest, full, deps.get);
       default:
         full.err(`mcbuild: unknown command '${command}'\n${USAGE}`);
         return 2;

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from "vitest";
-import { patches, resolveMaterial, sha256, unitHash } from "../src/index.ts";
+import { gradient, patches, resolveMaterial, sha256, unitHash } from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
 
 interface Vectors {
@@ -85,5 +85,67 @@ describe("materials against the Python oracle", () => {
   it("treats a missing seed like Python's None", () => {
     const spec = ["minecraft:a", "minecraft:b"];
     expect(resolveMaterial(spec, 1, 2, 3)).toBe(resolveMaterial(spec, 1, 2, 3, null));
+  });
+});
+
+describe("gradient", () => {
+  const A = "minecraft:black_concrete";
+  const B = "minecraft:gray_concrete";
+  const C = "minecraft:white_concrete";
+
+  it("puts the first stop at from and the last at to, and clamps past the ends", () => {
+    const g = gradient([A, B, C], { from: 0, to: 10 });
+    expect(g(0, 0, 0)).toBe(A);
+    expect(g(3, -5, 7)).toBe(A);
+    expect(g(0, 10, 0)).toBe(C);
+    expect(g(0, 99, 0)).toBe(C);
+    // Halfway sits on the middle stop exactly.
+    expect(g(4, 5, 1)).toBe(B);
+  });
+
+  it("makes hard bands with blend 0 and mixes cells with blend 1", () => {
+    const hard = gradient([A, C], { from: 0, to: 10, blend: 0 });
+    expect([4, 5, 6].map((y) => hard(0, y, 0))).toEqual([A, C, C]);
+    const soft = gradient([A, C], { from: 0, to: 10 });
+    // Around the middle both stops appear; near the ends only one.
+    const row = (y: number) => new Set(Array.from({ length: 40 }, (_, x) => soft(x, y, 0)));
+    expect(row(5)).toEqual(new Set([A, C]));
+    expect(row(0)).toEqual(new Set([A]));
+    const share = (y: number) =>
+      Array.from({ length: 400 }, (_, x) => soft(x, y, 0)).filter((b) => b === C).length;
+    expect(share(3)).toBeLessThan(share(7));
+  });
+
+  it("runs along x or z, and resolves palette and function stops", () => {
+    const gx = gradient([A, C], { axis: "x", from: 0, to: 1, blend: 0 });
+    expect([gx(0, 9, 9), gx(1, 9, 9)]).toEqual([A, C]);
+    const gz = gradient([A, (x: number) => (x % 2 ? B : C)], {
+      axis: "z",
+      from: 0,
+      to: 1,
+      blend: 0,
+    });
+    expect([gz(0, 0, 1), gz(1, 0, 1)]).toEqual([C, B]);
+    const gp = gradient([[A, [B, 0]]], { from: 0, to: 1 });
+    expect(gp(5, 5, 5)).toBe(A);
+  });
+
+  it("is stable per cell and changes with the salt", () => {
+    const g1 = gradient([A, B, C], { from: 0, to: 20 });
+    const g2 = gradient([A, B, C], { from: 0, to: 20, salt: "other" });
+    const cells = Array.from({ length: 200 }, (_, i) => [i % 13, i % 20, i] as const);
+    expect(cells.map(([x, y, z]) => g1(x, y, z))).toEqual(cells.map(([x, y, z]) => g1(x, y, z)));
+    expect(cells.map(([x, y, z]) => g1(x, y, z))).not.toEqual(
+      cells.map(([x, y, z]) => g2(x, y, z)),
+    );
+  });
+
+  it("refuses bad options", () => {
+    expect(() => gradient([], { from: 0, to: 1 })).toThrow(/at least one stop/);
+    expect(() => gradient([A], { from: 0, to: 1, axis: "w" as "x" })).toThrow(/axis must be/);
+    expect(() => gradient([A], { from: Number.NaN, to: 1 })).toThrow(/from and to must be numbers/);
+    expect(() => gradient([A], { from: 0, to: 1, blend: 2 })).toThrow(
+      /blend must be between 0 and 1/,
+    );
   });
 });

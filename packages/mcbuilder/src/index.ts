@@ -46,6 +46,8 @@ export {
   toScript,
 } from "./importer.ts";
 export {
+  type GradientOptions,
+  gradient,
   type Material,
   type MaterialEntry,
   type MaterialFn,

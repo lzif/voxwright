@@ -156,3 +156,67 @@ export function patches(
 
   return (x, y, z) => pick(es, equalize(noise(x, y, z)));
 }
+
+export interface GradientOptions {
+  /** The axis the gradient runs along. Default `"y"`. */
+  axis?: "x" | "y" | "z";
+  /** Coordinate (on `axis`) where the first stop sits. */
+  from: number;
+  /** Coordinate (on `axis`) where the last stop sits. */
+  to: number;
+  /**
+   * How far neighbouring stops mix, 0..1. 0 gives hard bands; 1 (the default)
+   * blends each stop into the next over the whole step, cell by cell, so the
+   * change reads as a gradient instead of stripes.
+   */
+  blend?: number;
+  /** Change this to get a different mix from the same stops. */
+  salt?: string;
+}
+
+/**
+ * Stops picked by position along one axis: the first stop at `from`, the last
+ * at `to`, the others evenly between, and cells between two stops mixed by a
+ * stable hash so the change is gradual. Positions past either end take the end
+ * stop. A stop may be any material spec (a block, a palette, `patches()` ...);
+ * a palette stop resolves without a seed. Use it for a roof that darkens toward
+ * the eave or a wall that lightens upward; `mcbuild palette ramp` suggests
+ * stops that step evenly in colour.
+ */
+export function gradient(stops: readonly Material[], options: GradientOptions): MaterialFn {
+  const { axis = "y", from, to, blend = 1, salt = "" } = options;
+  if (!Array.isArray(stops) || stops.length === 0) {
+    throw new McbuilderError("gradient: give at least one stop");
+  }
+  if (axis !== "x" && axis !== "y" && axis !== "z") {
+    throw new McbuilderError(`gradient: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
+  }
+  if (
+    typeof from !== "number" ||
+    typeof to !== "number" ||
+    !Number.isFinite(from) ||
+    !Number.isFinite(to)
+  ) {
+    throw new McbuilderError(
+      `gradient: from and to must be numbers, got ${String(from)}, ${String(to)}`,
+    );
+  }
+  if (!(blend >= 0 && blend <= 1)) {
+    throw new McbuilderError(`gradient: blend must be between 0 and 1, got ${String(blend)}`);
+  }
+  const n = stops.length;
+  return (x, y, z) => {
+    const c = axis === "x" ? x : axis === "y" ? y : z;
+    const t = from === to ? 0 : Math.min(1, Math.max(0, (c - from) / (to - from)));
+    const f = t * (n - 1);
+    let i = Math.min(n - 1, Math.floor(f));
+    const frac = f - i;
+    if (i < n - 1) {
+      // Probability of the next stop: a ramp centred on the halfway point, `blend` wide.
+      const p =
+        blend === 0 ? (frac >= 0.5 ? 1 : 0) : Math.min(1, Math.max(0, (frac - 0.5) / blend + 0.5));
+      if (unitHash("gradient", salt, x, y, z) < p) i += 1;
+    }
+    return resolveMaterial(stops[i] as Material, x, y, z);
+  };
+}

@@ -2232,9 +2232,9 @@ var GridBoundsError = class extends McbuilderError {
 };
 
 // packages/mcbuilder/src/node/cli.ts
-import { mkdir as mkdir2, readFile as readFile2, stat as stat4, writeFile as writeFile3 } from "node:fs/promises";
+import { mkdir as mkdir3, readFile as readFile3, stat as stat4, writeFile as writeFile4 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
-import { basename as basename3, dirname as dirname2, extname, join as join6, resolve as resolve3, sep as sep2 } from "node:path";
+import { basename as basename3, dirname as dirname3, extname, join as join7, resolve as resolve3, sep as sep2 } from "node:path";
 import { parseArgs } from "node:util";
 
 // packages/core/src/blocks/pystr.ts
@@ -8086,10 +8086,10 @@ function untrustedBlocks(dense, assets) {
 
 // packages/render/src/rasterize.ts
 var BG_PRESENTATION = [244, 241, 235];
-var rgbOf = (hex) => [
-  hex >> 16 & 255,
-  hex >> 8 & 255,
-  hex & 255
+var rgbOf = (hex2) => [
+  hex2 >> 16 & 255,
+  hex2 >> 8 & 255,
+  hex2 & 255
 ];
 var PRESENTATION_LONGEST_PX = 2048;
 var SUPERSAMPLE = 2;
@@ -8811,14 +8811,14 @@ function parseString(ctx) {
         let value = 0;
         let len = c === 120 ? 2 : c === 117 ? 4 : 8;
         for (let j = 0; j < len; j++, ctx.p++) {
-          let hex = ctx.s.charCodeAt(ctx.p);
+          let hex2 = ctx.s.charCodeAt(ctx.p);
           let digit = (
             /* 0-9 */
-            hex >= 48 && hex <= 57 ? hex - 48 : (
+            hex2 >= 48 && hex2 <= 57 ? hex2 - 48 : (
               /* A-F */
-              hex >= 65 && hex <= 70 ? hex - 65 + 10 : (
+              hex2 >= 65 && hex2 <= 70 ? hex2 - 65 + 10 : (
                 /* a-f */
-                hex >= 97 && hex <= 102 ? hex - 97 + 10 : -1
+                hex2 >= 97 && hex2 <= 102 ? hex2 - 97 + 10 : -1
               )
             )
           );
@@ -11325,6 +11325,164 @@ async function comparisonImage(aDir, bDir, diff, outPath, options = {}) {
   return outPath;
 }
 
+// packages/mcbuilder/src/node/palette.ts
+import { existsSync as existsSync2 } from "node:fs";
+import { mkdir as mkdir2, readFile as readFile2, writeFile as writeFile3 } from "node:fs/promises";
+import { dirname as dirname2, join as join5 } from "node:path";
+var srgbToLinear = (c) => {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+var linearToSrgb = (v) => {
+  const c = v <= 31308e-7 ? v * 12.92 : 1.055 * v ** (1 / 2.4) - 0.055;
+  return Math.round(Math.min(1, Math.max(0, c)) * 255);
+};
+function linearToLab(r, g, b) {
+  const x2 = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / 0.95047;
+  const y = 0.2126729 * r + 0.7151522 * g + 0.072175 * b;
+  const z = (0.0193339 * r + 0.119192 * g + 0.9503041 * b) / 1.08883;
+  const f = (t) => t > 216 / 24389 ? Math.cbrt(t) : 24389 / 27 * t / 116 + 16 / 116;
+  const fx = f(x2);
+  const fy = f(y);
+  const fz = f(z);
+  return { L: 116 * fy - 16, a: 500 * (fx - fy), b: 200 * (fy - fz) };
+}
+function deltaE(p, q2) {
+  return Math.hypot(p.L - q2.L, p.a - q2.a, p.b - q2.b);
+}
+function faceStat(images) {
+  let n2 = 0;
+  let total2 = 0;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  const ls = [];
+  for (const img of images) {
+    const px = img.width * img.height;
+    total2 += px;
+    for (let i2 = 0; i2 < px; i2++) {
+      const o = i2 * img.channels;
+      if (img.channels === 4 && img.data[o + 3] < 128) continue;
+      const lr = srgbToLinear(img.data[o]);
+      const lg = srgbToLinear(img.data[o + 1]);
+      const lb = srgbToLinear(img.data[o + 2]);
+      r += lr;
+      g += lg;
+      b += lb;
+      ls.push(linearToLab(lr, lg, lb).L);
+      n2++;
+    }
+  }
+  if (n2 === 0) return { rgb: [0, 0, 0], lab: { L: 0, a: 0, b: 0 }, spread: 0, coverage: 0 };
+  const mean = linearToLab(r / n2, g / n2, b / n2);
+  const meanL = ls.reduce((s, v) => s + v, 0) / n2;
+  const spread = Math.sqrt(ls.reduce((s, v) => s + (v - meanL) ** 2, 0) / n2);
+  const round = (v, d = 2) => Math.round(v * 10 ** d) / 10 ** d;
+  return {
+    rgb: [linearToSrgb(r / n2), linearToSrgb(g / n2), linearToSrgb(b / n2)],
+    lab: { L: round(mean.L), a: round(mean.a), b: round(mean.b) },
+    spread: round(spread),
+    coverage: round(n2 / total2, 3)
+  };
+}
+function computeTextureStats(assetsRoot, blocks) {
+  const assets = directoryAssets(assetsRoot);
+  const out = {};
+  for (const name of blocks) {
+    if (name === "minecraft:air" || name.endsWith(":cave_air") || name.endsWith(":void_air"))
+      continue;
+    const t = buildFaceTextures(name, assets);
+    const sides = [t.north, t.south, t.east, t.west];
+    out[name] = {
+      top: faceStat([t.up]),
+      side: faceStat(sides),
+      bottom: faceStat([t.down]),
+      all: faceStat([t.up, ...sides])
+    };
+  }
+  return out;
+}
+var STATS_FORMAT = 1;
+async function loadTextureStats(versionDir, options = {}) {
+  const file = join5(versionDir, "texture-stats.json");
+  if (!options.refresh && existsSync2(file)) {
+    const cached = JSON.parse(await readFile2(file, "utf8"));
+    if (cached.format === STATS_FORMAT && cached.blocks) return cached.blocks;
+  }
+  const assetsRoot = join5(versionDir, "client", "assets", "minecraft");
+  if (!existsSync2(join5(assetsRoot, "textures"))) {
+    throw new Error(`no client assets in ${assetsRoot}`);
+  }
+  const registry = JSON.parse(await readFile2(join5(versionDir, "minecraft-data.json"), "utf8"));
+  const stats = computeTextureStats(assetsRoot, Object.keys(registry.blocks).sort());
+  await mkdir2(dirname2(file), { recursive: true });
+  await writeFile3(file, `${JSON.stringify({ format: STATS_FORMAT, blocks: stats })}
+`);
+  return stats;
+}
+var NOT_FULL = /_(stairs|slab|wall|fence|fence_gate|pane|bars|door|trapdoor|button|pressure_plate|carpet|sign|hanging_sign|banner|bed|candle|torch|rail|sapling|head|skull|pot|lantern|chain|rod|grate|bulb|vent|shelf)$|^minecraft:(glass|tinted_glass|ice|slime_block|honey_block|scaffolding|ladder|vine|cobweb|snow|chest|ender_chest|trapped_chest|anvil|chipped_anvil|damaged_anvil|lectern|enchanting_table|cake|composter|cauldron|hopper|brewing_stand|bell|campfire|soul_campfire|grindstone|stonecutter|daylight_detector|conduit|beacon|end_portal_frame|dragon_egg|lightning_rod)$/;
+var DUPLICATE = /^minecraft:(infested_|waxed_|petrified_oak_slab$)/;
+function inFamily(name, stat6, family) {
+  switch (family) {
+    case "any":
+      return true;
+    case "stairs":
+      return name.endsWith("_stairs");
+    case "slab":
+      return name.endsWith("_slab");
+    case "full":
+      return !NOT_FULL.test(name) && stat6.top.coverage === 1 && stat6.side.coverage === 1 && stat6.bottom.coverage === 1;
+  }
+}
+function nearest(stats, target, options = {}) {
+  const { family = "any", face = "all", limit = 10, exclude } = options;
+  const out = [];
+  for (const [name, stat6] of Object.entries(stats)) {
+    if (exclude?.has(name) || DUPLICATE.test(name) || !inFamily(name, stat6, family)) continue;
+    const f = stat6[face];
+    if (f.coverage < 0.5) continue;
+    out.push({ name, deltaE: deltaE(f.lab, target), face: f });
+  }
+  out.sort((p, q2) => p.deltaE - q2.deltaE || (p.name < q2.name ? -1 : 1));
+  return out.slice(0, limit);
+}
+function ramp(stats, from, to, steps, options = {}) {
+  const { family = "any", face = "all" } = options;
+  const a = stats[from];
+  const b = stats[to];
+  if (!a) throw new Error(`no texture statistics for ${from}`);
+  if (!b) throw new Error(`no texture statistics for ${to}`);
+  if (!Number.isInteger(steps) || steps < 2)
+    throw new Error(`steps must be an int >= 2, got ${steps}`);
+  const pa = a[face].lab;
+  const pb = b[face].lab;
+  const used = /* @__PURE__ */ new Set();
+  const out = [];
+  for (let i2 = 0; i2 < steps; i2++) {
+    const t = i2 / (steps - 1);
+    const target = {
+      L: pa.L + (pb.L - pa.L) * t,
+      a: pa.a + (pb.a - pa.a) * t,
+      b: pa.b + (pb.b - pa.b) * t
+    };
+    const end = i2 === 0 ? from : i2 === steps - 1 ? to : null;
+    if (end && inFamily(end, stats[end], family) && !used.has(end)) {
+      const f = stats[end][face];
+      out.push({ name: end, deltaE: deltaE(f.lab, target), face: f });
+      used.add(end);
+      continue;
+    }
+    const [best] = nearest(stats, target, { family, face, limit: 1, exclude: used });
+    if (!best) break;
+    out.push(best);
+    used.add(best.name);
+  }
+  return out;
+}
+function hex(rgb) {
+  return `#${rgb.map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
 // packages/mcbuilder/src/node/script.ts
 import { stat as stat3 } from "node:fs/promises";
 import { basename as basename2, resolve as resolve2 } from "node:path";
@@ -11333,7 +11491,7 @@ import { pathToFileURL } from "node:url";
 // packages/mcbuilder/src/build.ts
 import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join as join5 } from "node:path";
+import { join as join6 } from "node:path";
 
 // packages/mcbuilder/src/sha256.ts
 var K2 = new Uint32Array([
@@ -11557,6 +11715,36 @@ function patches(palette, options = {}) {
     return Math.min(0.999999, smooth(v));
   };
   return (x2, y, z) => pick(es, equalize(noise(x2, y, z)));
+}
+function gradient(stops, options) {
+  const { axis = "y", from, to, blend: blend2 = 1, salt = "" } = options;
+  if (!Array.isArray(stops) || stops.length === 0) {
+    throw new McbuilderError("gradient: give at least one stop");
+  }
+  if (axis !== "x" && axis !== "y" && axis !== "z") {
+    throw new McbuilderError(`gradient: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
+  }
+  if (typeof from !== "number" || typeof to !== "number" || !Number.isFinite(from) || !Number.isFinite(to)) {
+    throw new McbuilderError(
+      `gradient: from and to must be numbers, got ${String(from)}, ${String(to)}`
+    );
+  }
+  if (!(blend2 >= 0 && blend2 <= 1)) {
+    throw new McbuilderError(`gradient: blend must be between 0 and 1, got ${String(blend2)}`);
+  }
+  const n2 = stops.length;
+  return (x2, y, z) => {
+    const c = axis === "x" ? x2 : axis === "y" ? y : z;
+    const t = from === to ? 0 : Math.min(1, Math.max(0, (c - from) / (to - from)));
+    const f = t * (n2 - 1);
+    let i2 = Math.min(n2 - 1, Math.floor(f));
+    const frac = f - i2;
+    if (i2 < n2 - 1) {
+      const p = blend2 === 0 ? frac >= 0.5 ? 1 : 0 : Math.min(1, Math.max(0, (frac - 0.5) / blend2 + 0.5));
+      if (unitHash("gradient", salt, x2, y, z) < p) i2 += 1;
+    }
+    return resolveMaterial(stops[i2], x2, y, z);
+  };
 }
 
 // packages/mcbuilder/src/geometry.ts
@@ -12782,12 +12970,12 @@ function isDirSync(p) {
   }
 }
 function resolveAssetsRoot(assetsDir) {
-  const direct = join5(assetsDir, "client", "assets", "minecraft");
+  const direct = join6(assetsDir, "client", "assets", "minecraft");
   if (isDirSync(direct)) return direct;
-  if (isDirSync(join5(assetsDir, "blockstates"))) return assetsDir;
+  if (isDirSync(join6(assetsDir, "blockstates"))) return assetsDir;
   if (isDirSync(assetsDir)) {
     for (const child2 of readdirSync(assetsDir).sort()) {
-      const cand = join5(assetsDir, child2, "client", "assets", "minecraft");
+      const cand = join6(assetsDir, child2, "client", "assets", "minecraft");
       if (isDirSync(cand)) return cand;
     }
   }
@@ -12986,7 +13174,7 @@ var Build = class {
     const presentation = options.presentation ?? true;
     const paths = [];
     for (const view of viewList) {
-      const file = join5(outDir, `${view.label}.png`);
+      const file = join6(outDir, `${view.label}.png`);
       const canvas = renderView(
         dense,
         assets,
@@ -13146,7 +13334,7 @@ function placedAt(grid, block, recipe) {
 var BUNDLED = true;
 var CliError = class extends Error {
 };
-var defaultCacheRoot = (home) => join6(home, ".cache", "mcbuilder");
+var defaultCacheRoot = (home) => join7(home, ".cache", "mcbuilder");
 var HOUSE_TEMPLATE = `// house.ts: starter build written by \`mcbuild init\`.
 //
 // Loop:  mcbuild check house.ts   ->   mcbuild run house.ts
@@ -13183,15 +13371,15 @@ BUILD.scope(() => {
 async function findConfig(startDir, home) {
   let dir = resolve3(startDir);
   for (; ; ) {
-    const candidate = join6(dir, "mcbuild.toml");
+    const candidate = join7(dir, "mcbuild.toml");
     if (await exists2(candidate)) {
       try {
-        return parseConfig(await readFile2(candidate, "utf8"), { home, source: candidate });
+        return parseConfig(await readFile3(candidate, "utf8"), { home, source: candidate });
       } catch (e) {
         throw new CliError(`invalid mcbuild.toml: ${e.message}`);
       }
     }
-    const parent = dirname2(dir);
+    const parent = dirname3(dir);
     if (parent === dir) return null;
     dir = parent;
   }
@@ -13200,18 +13388,18 @@ async function resolveConfig(scriptPath, explicit, home) {
   if (explicit) {
     if (!await exists2(explicit)) throw new CliError(`config not found: ${explicit}`);
     try {
-      return parseConfig(await readFile2(explicit, "utf8"), { home, source: explicit });
+      return parseConfig(await readFile3(explicit, "utf8"), { home, source: explicit });
     } catch (e) {
       throw new CliError(`invalid config ${explicit}: ${e.message}`);
     }
   }
-  return await findConfig(dirname2(resolve3(scriptPath)), home) ?? parseConfig("", { home });
+  return await findConfig(dirname3(resolve3(scriptPath)), home) ?? parseConfig("", { home });
 }
 function cacheRoot(cfg, home) {
   return cfg.assetsDir ?? defaultCacheRoot(home);
 }
 async function loadRegistry(cfg, home, net) {
-  const path = join6(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
+  const path = join7(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
   if (!await exists2(path) && !cfg.assetsDir && !net.offline) {
     net.out(`downloading the block registry for ${cfg.mcVersion} (once)`);
     try {
@@ -13233,7 +13421,7 @@ async function loadRegistry(cfg, home, net) {
     );
   }
   try {
-    return Registry.fromData(JSON.parse(await readFile2(path, "utf8")), cfg.mcVersion);
+    return Registry.fromData(JSON.parse(await readFile3(path, "utf8")), cfg.mcVersion);
   } catch (e) {
     throw new CliError(`could not read registry file ${path}: ${e.message}`);
   }
@@ -13273,7 +13461,7 @@ function fmtIssue(issue) {
 async function loadAndValidate(script, config, home, net) {
   const build = await loadScript(script);
   const cfg = await resolveConfig(script, config, home);
-  const detWarnings = scanDeterminism(await readFile2(script, "utf8"), basename3(script));
+  const detWarnings = scanDeterminism(await readFile3(script, "utf8"), basename3(script));
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
   const { errors, warnings } = registry.validate(dense.palette, cfg.allowlist);
@@ -13293,11 +13481,11 @@ async function loadAndValidate(script, config, home, net) {
   };
 }
 async function nextRunDir(out) {
-  await mkdir2(out, { recursive: true });
+  await mkdir3(out, { recursive: true });
   let n2 = 1;
-  while (await exists2(join6(out, `run-${String(n2).padStart(3, "0")}`))) n2++;
-  const dir = join6(out, `run-${String(n2).padStart(3, "0")}`);
-  await mkdir2(dir);
+  while (await exists2(join7(out, `run-${String(n2).padStart(3, "0")}`))) n2++;
+  const dir = join7(out, `run-${String(n2).padStart(3, "0")}`);
+  await mkdir3(dir);
   return dir;
 }
 async function cmdCheck(args, io, get) {
@@ -13365,12 +13553,12 @@ async function cmdRun(args, io, get) {
   const artifacts = [];
   if (ctx.errors.length === 0) {
     const versionDir = resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, "");
-    const candidates = [join6(versionDir, "version.json")];
-    if (ctx.cfg.assetsDir) candidates.push(join6(versionDir, ctx.cfg.mcVersion, "version.json"));
+    const candidates = [join7(versionDir, "version.json")];
+    if (ctx.cfg.assetsDir) candidates.push(join7(versionDir, ctx.cfg.mcVersion, "version.json"));
     let versionJson;
     for (const vj of candidates) {
       if (await exists2(vj)) {
-        versionJson = JSON.parse(await readFile2(vj, "utf8"));
+        versionJson = JSON.parse(await readFile3(vj, "utf8"));
         break;
       }
     }
@@ -13387,20 +13575,20 @@ async function cmdRun(args, io, get) {
     } catch (e) {
       throw new CliError(e instanceof Error ? e.message : String(e));
     }
-    await writeFile3(join6(runDir, `${stem}.nbt`), result.bytes);
+    await writeFile4(join7(runDir, `${stem}.nbt`), result.bytes);
     warnings.push(...result.warnings.map((message) => ({ message })));
     artifacts.push({ file: `${stem}.nbt`, format: "nbt", data_version: dataVersion });
   }
   const viewEntries = [];
   if (values.preview && ctx.errors.length === 0) {
-    const root = join6(
+    const root = join7(
       ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
       ctx.cfg.mcVersion,
       "client",
       "assets",
       "minecraft"
     );
-    let haveAssets = await exists2(join6(root, "blockstates"));
+    let haveAssets = await exists2(join7(root, "blockstates"));
     let why = "";
     if (!haveAssets && !ctx.cfg.assetsDir && !values.offline) {
       io.out(
@@ -13410,7 +13598,7 @@ async function cmdRun(args, io, get) {
         await fetchClientAssets(ctx.cfg.mcVersion, defaultCacheRoot(io.home), {
           ...get ? { get } : {}
         });
-        haveAssets = await exists2(join6(root, "blockstates"));
+        haveAssets = await exists2(join7(root, "blockstates"));
       } catch (e) {
         if (!(e instanceof AssetError)) throw e;
         why = ` (download failed: ${e.message})`;
@@ -13431,12 +13619,12 @@ async function cmdRun(args, io, get) {
         message: `faithful preview: ${n2} \`${name}\` rendered as magenta fallback cube — orientation not verified`
       });
     }
-    const dir = join6(runDir, "previews_faithful");
-    await mkdir2(dir, { recursive: true });
+    const dir = join7(runDir, "previews_faithful");
+    await mkdir3(dir, { recursive: true });
     for (const view of viewList) {
       const file = `${view.label}.png`;
-      await writeFile3(
-        join6(dir, file),
+      await writeFile4(
+        join7(dir, file),
         encodePng(renderView(dense, assets, view, { title: titleCase(stem.replaceAll("_", " ")) }))
       );
       viewEntries.push(
@@ -13450,25 +13638,25 @@ async function cmdRun(args, io, get) {
     }
   }
   if (values.guide && ctx.errors.length === 0) {
-    const root = join6(
+    const root = join7(
       ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
       ctx.cfg.mcVersion,
       "client",
       "assets",
       "minecraft"
     );
-    const haveAssets = await exists2(join6(root, "blockstates"));
+    const haveAssets = await exists2(join7(root, "blockstates"));
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
-    const iso = join6(runDir, "previews_faithful", "iso.png");
+    const iso = join7(runDir, "previews_faithful", "iso.png");
     const guide = buildGuide(grid.toDense(), haveAssets ? directoryAssets(root) : null, {
       title: titleCase(stem.replaceAll("_", " ")),
       cover: await exists2(iso) ? "../previews_faithful/iso.png" : null
     });
-    const dir = join6(runDir, "guide");
-    await mkdir2(dir, { recursive: true });
+    const dir = join7(runDir, "guide");
+    await mkdir3(dir, { recursive: true });
     for (const layer of guide.layers)
-      await writeFile3(join6(dir, layer.name), encodePng(layer.image));
-    await writeFile3(join6(dir, "guide.md"), guide.markdown, "utf8");
+      await writeFile4(join7(dir, layer.name), encodePng(layer.image));
+    await writeFile4(join7(dir, "guide.md"), guide.markdown, "utf8");
     artifacts.push({ file: "guide/guide.md", format: "guide" });
   }
   const placed = ctx.build.grid.volume.placedBounds();
@@ -13483,7 +13671,7 @@ async function cmdRun(args, io, get) {
     overwrittenPlacements: ctx.build.grid.overwriteCount,
     origin: placed === null ? [0, 0, 0] : [...placed[0]]
   });
-  await writeFile3(join6(runDir, "report.json"), reportToJson(report), "utf8");
+  await writeFile4(join7(runDir, "report.json"), reportToJson(report), "utf8");
   const dims = dimensions(ctx.build, ctx.dense);
   let line2 = `  ${ctx.build.grid.volume.countNonAir()} blocks, ${ctx.dense.palette.length} types, dims ${dims.join("x")} — ${ctx.errors.length} errors, ${warnings.length} warnings`;
   if (ctx.build.grid.overwriteCount)
@@ -13519,7 +13707,7 @@ async function cmdImport(args, io) {
   const out = values.output ?? `${file.slice(0, file.length - extname(file).length)}.ts`;
   if (await exists2(out) && !values.force)
     throw new CliError(`refusing to overwrite ${out} (use --force)`);
-  const bytes = new Uint8Array(await readFile2(file));
+  const bytes = new Uint8Array(await readFile3(file));
   const keepAir = values["keep-air"] ?? false;
   let read2;
   try {
@@ -13592,8 +13780,8 @@ async function cmdImport(args, io) {
       io.err(`warning: properties not cleaned (${e.message})`);
     }
   }
-  await mkdir2(dirname2(resolve3(out)), { recursive: true });
-  await writeFile3(out, toScript(structure), "utf8");
+  await mkdir3(dirname3(resolve3(out)), { recursive: true });
+  await writeFile4(out, toScript(structure), "utf8");
   io.out(`wrote ${out}`);
   for (const line2 of summary(structure, 10)) io.out(line2 ? `  ${line2}` : "");
   return 0;
@@ -13630,7 +13818,7 @@ async function cmdDiff(args, io) {
   const [aId, bId] = [basename3(aDir), basename3(bDir)];
   const diff = await diffRunDirs(aDir, bDir);
   io.out(formatDiff(diff, aId, bId, { maxEntries: max2 }));
-  const imgPath = join6(runsDir, `diff-${aId}-${bId}.png`);
+  const imgPath = join7(runsDir, `diff-${aId}-${bId}.png`);
   const made = await comparisonImage(aDir, bDir, diff, imgPath, { aId, bId });
   if (made !== null) {
     io.out(`  comparison: ${made}`);
@@ -13646,7 +13834,7 @@ async function cmdInit(args, io) {
     options: { force: { type: "boolean" } }
   });
   const raw = positionals[0] ?? "house.ts";
-  const target = raw.endsWith(sep2) || raw.endsWith("/") ? join6(raw, "house.ts") : raw;
+  const target = raw.endsWith(sep2) || raw.endsWith("/") ? join7(raw, "house.ts") : raw;
   const abs = resolve3(io.cwd, target);
   if ((await stat4(abs).catch(() => null))?.isDirectory())
     throw new CliError(`not a file: ${target}`);
@@ -13655,9 +13843,9 @@ async function cmdInit(args, io) {
       `refusing to overwrite existing file: ${target} (pass --force to overwrite)`
     );
   }
-  await mkdir2(dirname2(abs), { recursive: true });
+  await mkdir3(dirname3(abs), { recursive: true });
   const template = BUNDLED ? HOUSE_TEMPLATE.replace('"@voxwright/mcbuilder"', '"voxwright"') : HOUSE_TEMPLATE;
-  await writeFile3(abs, template, "utf8");
+  await writeFile4(abs, template, "utf8");
   io.out(`wrote ${target}`);
   io.out(`next: mcbuild check ${target}`);
   io.out(`then: mcbuild run ${target}`);
@@ -13694,7 +13882,118 @@ async function cmdAssets(args, io, get) {
   }
   return 0;
 }
-var RUN_COMMANDS = ["init", "check", "run", "import", "diff", "assets"];
+var FAMILIES = ["stairs", "slab", "full", "any"];
+var FACES2 = ["all", "top", "side", "bottom"];
+async function cmdPalette(args, io, get) {
+  const [sub, ...rest] = args;
+  if (sub !== "near" && sub !== "ramp" && sub !== "show") {
+    throw new CliError("palette: expected `near`, `ramp` or `show`");
+  }
+  const { values, positionals } = parseArgs({
+    args: rest,
+    allowPositionals: true,
+    options: {
+      family: { type: "string" },
+      face: { type: "string", default: "all" },
+      limit: { type: "string", default: "10" },
+      steps: { type: "string", default: "5" },
+      version: { type: "string" },
+      config: { type: "string" },
+      refresh: { type: "boolean" },
+      offline: { type: "boolean" }
+    }
+  });
+  const face = values.face;
+  if (!FACES2.includes(face))
+    throw new CliError(`palette: --face must be one of ${FACES2.join(", ")}`);
+  if (values.family !== void 0 && !FAMILIES.includes(values.family)) {
+    throw new CliError(`palette: --family must be one of ${FAMILIES.join(", ")}`);
+  }
+  const cfg = await resolveConfig(join7(io.cwd, "palette"), values.config, io.home);
+  const version = values.version ?? cfg.mcVersion;
+  const root = cfg.assetsDir ?? defaultCacheRoot(io.home);
+  const versionDir = join7(root, version);
+  if (!await exists2(join7(versionDir, "client", "assets", "minecraft", "textures"))) {
+    if (cfg.assetsDir || values.offline) {
+      throw new CliError(
+        `palette: no client assets for ${version} in ${versionDir}; run \`mcbuild assets fetch --version ${version}\``
+      );
+    }
+    io.out(`downloading the vanilla assets for ${version} (once)`);
+    await fetchClientAssets(version, root, { ...get ? { get } : {} });
+  }
+  if (!await exists2(join7(versionDir, "minecraft-data.json"))) {
+    await loadRegistry({ ...cfg, mcVersion: version }, io.home, {
+      offline: values.offline ?? false,
+      get,
+      out: io.out
+    });
+  }
+  const stats = await loadTextureStats(versionDir, { refresh: values.refresh ?? false });
+  const full = (name) => name.includes(":") ? name : `minecraft:${name}`;
+  const statOf = (name) => {
+    const s = stats[full(name)];
+    if (!s)
+      throw new CliError(`palette: unknown block ${name} (no texture statistics for ${version})`);
+    return s;
+  };
+  const count = (v, what, min) => {
+    const n2 = Number(v);
+    if (!Number.isInteger(n2) || n2 < min)
+      throw new CliError(`palette: ${what} must be an int >= ${min}, got ${v}`);
+    return n2;
+  };
+  const line2 = (m) => `${m.name.replace(/^minecraft:/, "").padEnd(36)} ${hex(m.face.rgb)}  L ${m.face.lab.L.toFixed(1).padStart(5)}  a ${m.face.lab.a.toFixed(1).padStart(6)}  b ${m.face.lab.b.toFixed(1).padStart(6)}  spread ${m.face.spread.toFixed(1).padStart(4)}  dE ${m.deltaE.toFixed(1).padStart(5)}`;
+  if (sub === "show") {
+    if (positionals.length === 0) throw new CliError("palette show: give one or more blocks");
+    for (const name of positionals) {
+      const s = statOf(name);
+      io.out(full(name));
+      for (const f of FACES2) {
+        const st = s[f];
+        io.out(
+          `  ${f.padEnd(6)} ${hex(st.rgb)}  L ${st.lab.L.toFixed(1)}  a ${st.lab.a.toFixed(1)}  b ${st.lab.b.toFixed(1)}  spread ${st.spread.toFixed(1)}  coverage ${st.coverage}`
+        );
+      }
+    }
+    return 0;
+  }
+  if (sub === "near") {
+    if (positionals.length !== 1) throw new CliError("palette near: give one block");
+    const target = statOf(positionals[0])[face].lab;
+    const family2 = values.family ?? "any";
+    for (const m of nearest(stats, target, {
+      family: family2,
+      face,
+      limit: count(values.limit, "--limit", 1)
+    })) {
+      io.out(line2(m));
+    }
+    return 0;
+  }
+  if (positionals.length !== 2)
+    throw new CliError("palette ramp: give two blocks, the first and last stop");
+  const [from, to] = positionals;
+  statOf(from);
+  statOf(to);
+  const family = values.family ?? "any";
+  for (const m of ramp(stats, full(from), full(to), count(values.steps, "--steps", 2), {
+    family,
+    face
+  })) {
+    io.out(line2(m));
+  }
+  return 0;
+}
+var RUN_COMMANDS = [
+  "init",
+  "check",
+  "run",
+  "import",
+  "diff",
+  "assets",
+  "palette"
+];
 var RUN_SYNTAX = `init [path] [--force]
 check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
@@ -13702,14 +14001,23 @@ run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--offline]
 import <file> [-o out] [--force] [--keep-air] [--raw]
 diff <run-a> <run-b> [--out dir] [--max N]
-assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]`;
+assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
+palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]
+palette ramp <from> <to> [--steps N] [--family F] [--face F]
+palette show <block>... [--version V] [--refresh] [--offline]`;
 var isHelpFlag = (a) => a === "--help" || a === "-h";
 function syntaxOf(command) {
-  const lines = RUN_SYNTAX.split("\n");
-  const start = lines.findIndex((l) => l.startsWith(`${command} `));
-  const out = [`Usage: mcbuild ${lines[start]}`];
-  for (let i2 = start + 1; i2 < lines.length && lines[i2].startsWith(" "); i2++) {
-    out.push(`         ${lines[i2].trimStart()}`);
+  const out = [];
+  let inside = false;
+  for (const l of RUN_SYNTAX.split("\n")) {
+    if (l.startsWith(`${command} `)) {
+      out.push(`${out.length === 0 ? "Usage:" : "      "} mcbuild ${l}`);
+      inside = true;
+    } else if (inside && l.startsWith(" ")) {
+      out.push(`         ${l.trimStart()}`);
+    } else {
+      inside = false;
+    }
   }
   return out;
 }
@@ -13747,6 +14055,8 @@ async function runCli(argv, io = {}, deps = {}) {
         return command === void 0 ? 2 : 0;
       case "diff":
         return await cmdDiff(rest, full);
+      case "palette":
+        return await cmdPalette(rest, full, deps.get);
       default:
         full.err(`mcbuild: unknown command '${command}'
 ${USAGE}`);
@@ -13766,12 +14076,12 @@ ${USAGE}`);
 }
 
 // packages/mcbuilder/src/node/skill/build.ts
-import { mkdir as mkdir3, readFile as readFile4, writeFile as writeFile4 } from "node:fs/promises";
-import { basename as basename4, dirname as dirname3, extname as extname3, join as join9, resolve as resolve5 } from "node:path";
+import { mkdir as mkdir4, readFile as readFile5, writeFile as writeFile5 } from "node:fs/promises";
+import { basename as basename4, dirname as dirname4, extname as extname3, join as join10, resolve as resolve5 } from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // packages/mcbuilder/src/node/skill/common.ts
-import { join as join7 } from "node:path";
+import { join as join8 } from "node:path";
 
 // packages/mcbuilder/src/node/skill/io.ts
 var SkillCliError = class extends Error {
@@ -13807,7 +14117,7 @@ function releaseOf(dataVersion) {
   for (const [release, dv] of Object.entries(DATA_VERSIONS)) if (dv === dataVersion) return release;
   return null;
 }
-var cacheRoot2 = (home) => join7(home, ".cache", "mcbuilder");
+var cacheRoot2 = (home) => join8(home, ".cache", "mcbuilder");
 var usageError = (message) => new SkillCliError(message, 2);
 
 // packages/mcbuilder/src/node/skill/formats.ts
@@ -13905,12 +14215,12 @@ async function decode(bytes, format) {
 }
 
 // packages/mcbuilder/src/node/skill/registry.ts
-import { readFile as readFile3 } from "node:fs/promises";
-import { join as join8, resolve as resolve4 } from "node:path";
+import { readFile as readFile4 } from "node:fs/promises";
+import { join as join9, resolve as resolve4 } from "node:path";
 async function read(path, version) {
   let raw;
   try {
-    raw = JSON.parse(await readFile3(path, "utf8"));
+    raw = JSON.parse(await readFile4(path, "utf8"));
   } catch (e) {
     throw new SkillCliError(`could not read the block registry ${path}: ${e.message}`);
   }
@@ -13932,7 +14242,7 @@ async function findRegistry(req) {
     };
   }
   const root = cacheRoot2(req.home);
-  const cached = join8(root, req.mcVersion, "minecraft-data.json");
+  const cached = join9(root, req.mcVersion, "minecraft-data.json");
   if (await exists2(cached)) {
     return {
       registry: await read(cached, req.mcVersion),
@@ -14079,10 +14389,10 @@ function parseDataVersion(value) {
 }
 async function resolveDataVersionFor(mcVersion, override, home) {
   if (override !== void 0) return override;
-  const versionJson = join9(cacheRoot2(home), mcVersion, "version.json");
+  const versionJson = join10(cacheRoot2(home), mcVersion, "version.json");
   if (await exists2(versionJson)) {
     try {
-      const wv = JSON.parse(await readFile4(versionJson, "utf8")).world_version;
+      const wv = JSON.parse(await readFile5(versionJson, "utf8")).world_version;
       if (typeof wv === "number" && Number.isInteger(wv)) return wv;
     } catch {
     }
@@ -14137,7 +14447,7 @@ async function cmdBuild(args, io, deps = {}) {
   const recipe = resolve5(io.cwd, positionals[0]);
   let config;
   try {
-    config = await findConfig(dirname3(recipe), io.home);
+    config = await findConfig(dirname4(recipe), io.home);
   } catch (e) {
     if (e instanceof CliError) throw new SkillCliError(e.message);
     throw e;
@@ -14188,7 +14498,7 @@ async function runBuild(req) {
     );
   }
   const bounds = boxOf(volume.bounds());
-  const warnings = scanDeterminism(await readFile4(req.recipe, "utf8"), basename4(req.recipe));
+  const warnings = scanDeterminism(await readFile5(req.recipe, "utf8"), basename4(req.recipe));
   const found = await findRegistry({
     mcVersion: req.mcVersion,
     offline: req.offline,
@@ -14269,8 +14579,8 @@ async function runBuild(req) {
     }
   }
   for (const { target, result } of encoded) {
-    await mkdir3(dirname3(target.path), { recursive: true });
-    await writeFile4(target.path, result.bytes);
+    await mkdir4(dirname4(target.path), { recursive: true });
+    await writeFile5(target.path, result.bytes);
     summary2.outputs.push({
       path: target.path,
       format: target.format,
@@ -14283,7 +14593,7 @@ async function runBuild(req) {
 }
 
 // packages/mcbuilder/src/node/skill/inspect.ts
-import { readFile as readFile5 } from "node:fs/promises";
+import { readFile as readFile6 } from "node:fs/promises";
 import { extname as extname4, resolve as resolve6 } from "node:path";
 import { parseArgs as parseArgs3 } from "node:util";
 var INSPECT_USAGE = `Usage: ${PROG} inspect <schematic> [--json]
@@ -14320,7 +14630,7 @@ async function cmdInspect(args, io) {
   if (!await exists2(file)) throw new SkillCliError(`no such file: ${file}`);
   let bytes;
   try {
-    bytes = new Uint8Array(await readFile5(file));
+    bytes = new Uint8Array(await readFile6(file));
   } catch (e) {
     throw new SkillCliError(`could not read ${file}: ${e.message}`);
   }
@@ -14381,10 +14691,10 @@ async function cmdInspect(args, io) {
 // packages/mcbuilder/src/node/skill/preview.ts
 import { spawn } from "node:child_process";
 import { createHash as createHash2 } from "node:crypto";
-import { existsSync as existsSync2, statSync as statSync2 } from "node:fs";
-import { mkdir as mkdir4, readFile as readFile6, rename, stat as stat5, writeFile as writeFile5 } from "node:fs/promises";
+import { existsSync as existsSync3, statSync as statSync2 } from "node:fs";
+import { mkdir as mkdir5, readFile as readFile7, rename, stat as stat5, writeFile as writeFile6 } from "node:fs/promises";
 import { createServer } from "node:http";
-import { basename as basename5, dirname as dirname4, extname as extname5, join as join10, resolve as resolve7, sep as sep3 } from "node:path";
+import { basename as basename5, dirname as dirname5, extname as extname5, join as join11, resolve as resolve7, sep as sep3 } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs as parseArgs4 } from "node:util";
 var DEFAULT_PORT = 4173;
@@ -14642,7 +14952,7 @@ function listenError(err2, port, host, explicit) {
   );
 }
 async function chooseSource(options, notes, timeoutMs) {
-  const cacheRoot3 = join10(options.home, ".cache", "voxwright", "web");
+  const cacheRoot3 = join11(options.home, ".cache", "voxwright", "web");
   if (options.web !== void 0) {
     if (/^https?:\/\//i.test(options.web)) {
       const upstream2 = await resolveUpstream(options.web, cacheRoot3, notes, timeoutMs);
@@ -14654,14 +14964,14 @@ async function chooseSource(options, notes, timeoutMs) {
         2
       );
     const dir = resolve7(options.cwd, options.web);
-    if (!existsSync2(join10(dir, "index.html")))
+    if (!existsSync3(join11(dir, "index.html")))
       throw new SkillCliError(
         `--web ${dir} has no index.html; build the web app first (pnpm --filter @voxwright/web build)`,
         2
       );
     return { kind: "dir", dir, why: "explicit" };
   }
-  const local = findLocalWebBuild(options.searchFrom ?? dirname4(fileURLToPath(import.meta.url)));
+  const local = findLocalWebBuild(options.searchFrom ?? dirname5(fileURLToPath(import.meta.url)));
   if (local !== null) return { kind: "dir", dir: local, why: "local-build" };
   const upstream = await resolveUpstream(
     options.published ?? PUBLISHED_WEB,
@@ -14674,11 +14984,11 @@ async function chooseSource(options, notes, timeoutMs) {
 function findLocalWebBuild(from) {
   let dir = resolve7(from);
   for (; ; ) {
-    if (existsSync2(join10(dir, "apps", "web"))) {
-      const build = join10(dir, "apps", "web", "build");
-      return existsSync2(join10(build, "index.html")) ? build : null;
+    if (existsSync3(join11(dir, "apps", "web"))) {
+      const build = join11(dir, "apps", "web", "build");
+      return existsSync3(join11(build, "index.html")) ? build : null;
     }
-    const up = dirname4(dir);
+    const up = dirname5(dir);
     if (up === dir) return null;
     dir = up;
   }
@@ -14700,10 +15010,10 @@ async function resolveUpstream(given, cacheRoot3, notes, timeoutMs) {
   if (!start.pathname.endsWith("/")) start.pathname = `${start.pathname}/`;
   start.search = "";
   start.hash = "";
-  const aliasesFile = join10(cacheRoot3, "aliases.json");
+  const aliasesFile = join11(cacheRoot3, "aliases.json");
   let aliases = {};
   try {
-    aliases = JSON.parse(await readFile6(aliasesFile, "utf8"));
+    aliases = JSON.parse(await readFile7(aliasesFile, "utf8"));
   } catch {
   }
   try {
@@ -14768,7 +15078,7 @@ var notFound = (req, res) => send(req, res, 404, "text/plain; charset=utf-8", "N
 async function serveSchematic(req, res, file) {
   let bytes;
   try {
-    bytes = await readFile6(file);
+    bytes = await readFile7(file);
   } catch {
     return notFound(req, res);
   }
@@ -14778,22 +15088,22 @@ async function serveStatic(req, res, root, path, rawPath) {
   if (path.includes("\0") || path.includes("\\")) return notFound(req, res);
   const segments = path.split("/").filter((s) => s !== "");
   if (segments.some((s) => s === "." || s === "..")) return notFound(req, res);
-  let file = join10(root, ...segments);
+  let file = join11(root, ...segments);
   if (file !== root && !file.startsWith(root + sep3)) return notFound(req, res);
   let st = await stat5(file).catch(() => null);
   if (st?.isDirectory()) {
     if (!path.endsWith("/"))
       return send(req, res, 301, "text/plain; charset=utf-8", "", { location: `${rawPath}/` });
-    file = join10(file, "index.html");
+    file = join11(file, "index.html");
     st = await stat5(file).catch(() => null);
   }
   if (!st?.isFile()) {
     if (extname5(path) !== "") return notFound(req, res);
-    file = join10(root, "200.html");
+    file = join11(root, "200.html");
     st = await stat5(file).catch(() => null);
     if (!st?.isFile()) return notFound(req, res);
   }
-  const bytes = await readFile6(file);
+  const bytes = await readFile7(file);
   const immutable = path.includes("/_app/immutable/");
   send(req, res, 200, contentTypeFor(file), bytes, {
     "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache"
@@ -14804,15 +15114,15 @@ function cachePaths(cacheDir, upstreamUrl) {
   const key2 = createHash2("sha256").update(`${u.origin}${u.pathname}`).digest("hex");
   const host = u.host.replace(/[^a-z0-9.-]/gi, "_");
   return {
-    body: join10(cacheDir, host, `${key2}.body`),
-    meta: join10(cacheDir, host, `${key2}.json`)
+    body: join11(cacheDir, host, `${key2}.body`),
+    meta: join11(cacheDir, host, `${key2}.json`)
   };
 }
 async function readCache(cacheDir, upstreamUrl) {
   const p = cachePaths(cacheDir, upstreamUrl);
   try {
-    const meta = JSON.parse(await readFile6(p.meta, "utf8"));
-    const body = await readFile6(p.body);
+    const meta = JSON.parse(await readFile7(p.meta, "utf8"));
+    const body = await readFile7(p.body);
     return { meta, body };
   } catch {
     return null;
@@ -14825,9 +15135,9 @@ async function writeCache(cacheDir, upstreamUrl, contentType, body) {
   await writeAtomic(p.meta, JSON.stringify(meta));
 }
 async function writeAtomic(path, data) {
-  await mkdir4(dirname4(path), { recursive: true });
+  await mkdir5(dirname5(path), { recursive: true });
   const tmp = `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
-  await writeFile5(tmp, data);
+  await writeFile6(tmp, data);
   await rename(tmp, path);
 }
 async function serveProxy(req, res, source, rawPath, timeoutMs) {
@@ -15183,6 +15493,7 @@ export {
   forEachChange,
   formatDiff,
   getCloseMatches,
+  gradient,
   gunzip,
   gzip,
   int2 as int,

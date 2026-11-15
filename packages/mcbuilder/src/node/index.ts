@@ -19,4 +19,22 @@ export {
   loadRunVoxels,
   resolveRunDir,
 } from "./diff.ts";
+export {
+  type BlockStat,
+  computeTextureStats,
+  deltaE,
+  type Face,
+  type FaceStat,
+  type Family,
+  faceStat,
+  hex,
+  inFamily,
+  type Lab,
+  loadTextureStats,
+  type Match,
+  nearest,
+  ramp,
+  srgbToLab,
+  type TextureStats,
+} from "./palette.ts";
 export { loadScript, ScriptError, scanDeterminism } from "./script.ts";
