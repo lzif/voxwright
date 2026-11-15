@@ -2308,3 +2308,76 @@ describe("roofGable profile", () => {
     expect(run(4)).not.toEqual(run(5));
   });
 });
+
+describe("bayWall postWidth", () => {
+  const S = "minecraft:stone_bricks";
+  const I = "minecraft:iron_bars";
+  type Cell = [number, number, number, string];
+  const row = (cells: Cell[], y: number) =>
+    cells
+      .filter((c) => c[1] === y)
+      .sort((a, b) => a[0] - b[0])
+      .map((c) => (c[3] === S ? "P" : "I"))
+      .join("");
+  const throws = (fn: () => unknown, re: RegExp): void => {
+    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(re);
+  };
+
+  it("widens every post and keeps posts on both ends", () => {
+    const cells = shapes
+      .bayWall([0, 0, 0], [11, 0, 0], I, { period: 5, postWidth: 2, post: S })
+      .cells() as Cell[];
+    expect(row(cells, 0)).toBe("PPIIIPPIIIPP");
+  });
+
+  it("takes uneven distances between post starts", () => {
+    const cells = shapes
+      .bayWall([0, 0, 0], [0, 0, 9], I, { period: [3, 5], postWidth: 2, post: S })
+      .cells() as Cell[];
+    const line = cells
+      .sort((a, b) => a[2] - b[2])
+      .map((c) => (c[3] === S ? "P" : "I"))
+      .join("");
+    expect(line).toBe("PPIPPIIIPP");
+  });
+
+  it("is the plain wall with postWidth 1", () => {
+    const a = shapes.bayWall([0, 0, 0], [8, 2, 0], I, { period: 4, post: S }).cells();
+    const b = shapes.bayWall([0, 0, 0], [8, 2, 0], I, { period: 4, post: S, postWidth: 1 }).cells();
+    expect(b).toEqual(a);
+  });
+
+  it("widens the proud frame in inset mode", () => {
+    const cells = shapes
+      .bayWall([0, 0, 0], [6, 0, 1], I, {
+        period: 4,
+        postWidth: 3,
+        post: S,
+        inset: true,
+        face: "south",
+      })
+      .cells() as Cell[];
+    const front = cells.filter((c) => c[2] === 1).map((c) => c[0]);
+    expect(front.sort((a, b) => a - b)).toEqual([0, 1, 2, 4, 5, 6]);
+  });
+
+  it("refuses a period that does not fit, overlapping posts and a post as wide as the run", () => {
+    throws(
+      () => shapes.bayWall([0, 0, 0], [10, 0, 0], I, { period: 5, postWidth: 2 }),
+      /\(length - 2\) divisible by period\); use length 7 or 12/,
+    );
+    throws(
+      () => shapes.bayWall([0, 0, 0], [9, 0, 0], I, { period: 1, postWidth: 2 }),
+      /shorter than postWidth 2/,
+    );
+    throws(
+      () => shapes.bayWall([0, 0, 0], [9, 0, 0], I, { period: [1, 7], postWidth: 2 }),
+      /period entry must be an int >= 2/,
+    );
+    throws(
+      () => shapes.bayWall([0, 0, 0], [2, 0, 0], I, { period: 1, postWidth: 3 }),
+      /no room for two posts/,
+    );
+  });
+});

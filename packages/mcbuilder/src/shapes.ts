@@ -1414,6 +1414,12 @@ export interface BayWallOptions extends SeedOption {
   pilaster?: boolean;
   /** Direction the outer face looks. Required with `inset` or `pilaster`, perpendicular to the run. */
   face?: "north" | "south" | "east" | "west";
+  /**
+   * Width of each post along the run, in cells. Default 1. With a wider post,
+   * `period` counts from one post's first cell to the next post's first cell,
+   * and the last post ends on the last cell of the run.
+   */
+  postWidth?: number;
 }
 
 /**
@@ -1496,8 +1502,9 @@ export interface BayWallOptions extends SeedOption {
  * `seed` salts weighted palettes.
  *
  * Design choices (frames do not settle them): the post is 1 cell wide
- * (noes-starter-house f_047, hibouk f_008 show 1-wide posts, arcade piers in
- * disruptive-builds f_044 look wider and are not covered); where a post meets a
+ * by default (noes-starter-house f_047, hibouk f_008 show 1-wide posts);
+ * `postWidth` widens every post for the 2-wide arcade piers of
+ * disruptive-builds f_044; where a post meets a
  * beam or sill row, the beam or sill wins; the back layer in `inset` mode
  * runs behind posts and beam too (a continuous wall plane); a pilaster is
  * exactly 1 proud, and its beam and sill stay flush (french-mansion f_007,
@@ -1567,16 +1574,27 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
   const n = runAxis === "x" ? sx : sz;
   if (n < 2) throw new McbuilderError(`bay_wall: the run must be at least 2 cells long, got ${n}`);
 
-  // Post positions from `period`.
+  // Post positions (each post's first cell) from `period`.
+  const w = positive("bay_wall: postWidth", options.postWidth ?? 1);
+  if (w >= n) {
+    throw new McbuilderError(
+      `bay_wall: postWidth ${w} leaves no room for two posts in a run of ${n} cells`,
+    );
+  }
   const posts = new Set<number>([0]);
   if (typeof options.period === "number") {
     const period = positive("bay_wall: period", options.period);
-    if ((n - 1) % period !== 0) {
+    if (period < w) {
       throw new McbuilderError(
-        `bay_wall: period ${period} does not fit a run of ${n} cells (posts at both ends need (length - 1) divisible by period); use length ${n - ((n - 1) % period)} or ${n - ((n - 1) % period) + period}, or give period as an array`,
+        `bay_wall: period ${period} is shorter than postWidth ${w}; posts would overlap`,
       );
     }
-    for (let i = period; i <= n - 1; i += period) posts.add(i);
+    if ((n - w) % period !== 0) {
+      throw new McbuilderError(
+        `bay_wall: period ${period} does not fit a run of ${n} cells (posts at both ends need (length - ${w}) divisible by period); use length ${n - ((n - w) % period)} or ${n - ((n - w) % period) + period}, or give period as an array`,
+      );
+    }
+    for (let i = period; i <= n - w; i += period) posts.add(i);
   } else {
     if (!Array.isArray(options.period) || options.period.length === 0) {
       throw new McbuilderError(
@@ -1585,12 +1603,12 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
     }
     let at = 0;
     for (const d of options.period) {
-      at += positive("bay_wall: period entry", d);
+      at += positive("bay_wall: period entry", d, w);
       posts.add(at);
     }
-    if (at !== n - 1) {
+    if (at !== n - w) {
       throw new McbuilderError(
-        `bay_wall: period distances sum to ${at} but the run of ${n} cells needs ${n - 1}`,
+        `bay_wall: period distances sum to ${at} but the run of ${n} cells needs ${n - w}`,
       );
     }
   }
@@ -1622,8 +1640,10 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
     }
   };
 
+  const postCells = new Set<number>();
+  for (const p of posts) for (let k = 0; k < w; k++) postCells.add(p + k);
   for (let i = 0; i < n; i++) {
-    const isPost = posts.has(i);
+    const isPost = postCells.has(i);
     for (let row = 0; row < height; row++) {
       const y = y1 + row;
       const rail = row === height - 1 && beamP ? beamP : row === 0 && sillP ? sillP : null;

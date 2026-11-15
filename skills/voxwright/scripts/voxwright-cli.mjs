@@ -12479,15 +12479,26 @@ function bayWall(c1, c2, block, options) {
   const run0 = runAxis === "x" ? x1 : z1;
   const n2 = runAxis === "x" ? sx : sz;
   if (n2 < 2) throw new McbuilderError(`bay_wall: the run must be at least 2 cells long, got ${n2}`);
+  const w = positive("bay_wall: postWidth", options.postWidth ?? 1);
+  if (w >= n2) {
+    throw new McbuilderError(
+      `bay_wall: postWidth ${w} leaves no room for two posts in a run of ${n2} cells`
+    );
+  }
   const posts = /* @__PURE__ */ new Set([0]);
   if (typeof options.period === "number") {
     const period = positive("bay_wall: period", options.period);
-    if ((n2 - 1) % period !== 0) {
+    if (period < w) {
       throw new McbuilderError(
-        `bay_wall: period ${period} does not fit a run of ${n2} cells (posts at both ends need (length - 1) divisible by period); use length ${n2 - (n2 - 1) % period} or ${n2 - (n2 - 1) % period + period}, or give period as an array`
+        `bay_wall: period ${period} is shorter than postWidth ${w}; posts would overlap`
       );
     }
-    for (let i2 = period; i2 <= n2 - 1; i2 += period) posts.add(i2);
+    if ((n2 - w) % period !== 0) {
+      throw new McbuilderError(
+        `bay_wall: period ${period} does not fit a run of ${n2} cells (posts at both ends need (length - ${w}) divisible by period); use length ${n2 - (n2 - w) % period} or ${n2 - (n2 - w) % period + period}, or give period as an array`
+      );
+    }
+    for (let i2 = period; i2 <= n2 - w; i2 += period) posts.add(i2);
   } else {
     if (!Array.isArray(options.period) || options.period.length === 0) {
       throw new McbuilderError(
@@ -12496,12 +12507,12 @@ function bayWall(c1, c2, block, options) {
     }
     let at = 0;
     for (const d of options.period) {
-      at += positive("bay_wall: period entry", d);
+      at += positive("bay_wall: period entry", d, w);
       posts.add(at);
     }
-    if (at !== n2 - 1) {
+    if (at !== n2 - w) {
       throw new McbuilderError(
-        `bay_wall: period distances sum to ${at} but the run of ${n2} cells needs ${n2 - 1}`
+        `bay_wall: period distances sum to ${at} but the run of ${n2} cells needs ${n2 - w}`
       );
     }
   }
@@ -12528,8 +12539,10 @@ function bayWall(c1, c2, block, options) {
       geo.set(x3, y, run, p.blockAt(x3, y, run));
     }
   };
+  const postCells = /* @__PURE__ */ new Set();
+  for (const p of posts) for (let k = 0; k < w; k++) postCells.add(p + k);
   for (let i2 = 0; i2 < n2; i2++) {
-    const isPost = posts.has(i2);
+    const isPost = postCells.has(i2);
     for (let row = 0; row < height; row++) {
       const y = y1 + row;
       const rail = row === height - 1 && beamP ? beamP : row === 0 && sillP ? sillP : null;
