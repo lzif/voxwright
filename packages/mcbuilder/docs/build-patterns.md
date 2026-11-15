@@ -117,6 +117,11 @@ glowstone walls" — both failures of technique, not of archetype.)
   `~/workspace/japanese-house-reel/frames-1fps/` (68 frames, 1fps). Walled
   Japanese estate compound — perimeter wall + gatehouse, two-story main
   hall, twin vermillion side halls, tile-and-sand courtyard, front garden.
+- **Schematic study** (2026-11-16): 17 real schematics (15 abfielder.com
+  downloads + raifox house and castelo from Luki), measured block by block
+  instead of read off frames. Target numbers (shape share, inverted stairs,
+  open trapdoors, roof underlay, post rhythm, lighting density) and
+  techniques S1–S16 in `schematic-study/README.md`.
 
 ## Scale-band gating — read this before applying any technique
 

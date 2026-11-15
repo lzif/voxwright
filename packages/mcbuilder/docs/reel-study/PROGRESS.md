@@ -2,6 +2,11 @@
 
 Status as of 2026-11-15. This is the entry point for picking the work up again.
 
+Related, 2026-11-16: `../schematic-study/README.md` measures 17 real schematics block by block
+(15 abfielder.com downloads and 2 of Luki's files). Its engine-mapping table lists shape gaps
+that back the "Next step" list below: a roof underlay and stair-sandwich option, trapdoor
+cladding, corbel rows and a small prop library.
+
 ## Goal
 
 AI agents that build Minecraft structures with `mcbuilder` fell back to `set()` per block whenever a
