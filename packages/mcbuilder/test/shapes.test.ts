@@ -1222,15 +1222,26 @@ describe("roofGable endFill and ridgeCap", () => {
 
   describe("ridgeCap", () => {
     const SLAB = "minecraft:oak_slab[type=top]";
+    /** Cells the cap adds or changes: posts are rooted in the ridge row, replacing roof cells there. */
+    const changed = (
+      c1: [number, number, number],
+      c2: [number, number, number],
+      options: Parameters<typeof shapes.roofGable>[3],
+    ): Cell[] => {
+      const key = (c: Cell) => c.join("|");
+      const plain = new Set(cellsOf(c1, c2, ST, { ridge: options.ridge }).map(key));
+      return cellsOf(c1, c2, ST, options).filter((c) => !plain.has(key(c)));
+    };
 
     it("stands posts at both ends and every 3rd cell with a rail between, odd span", () => {
-      // x 0..7 (n = 8), z 0..4: top stair row 2 at z2 (y2). Posts y3..y4 at x 0,3,6,7;
-      // rail at y4 (the top post row) on x 1,2,4,5. Nothing at y3 between posts, nothing past the ends.
-      const out = added([0, 0, 0], [7, 0, 4], {
+      // x 0..7 (n = 8), z 0..4: top stair row 2 at z2 (y2). Posts rooted in that row, y2..y4, at
+      // x 0,3,6,7; rail at y4 (the top post row) on x 1,2,4,5. Nothing at y3 between posts.
+      const out = changed([0, 0, 0], [7, 0, 4], {
         ridge: "x",
-        ridgeCap: { post: POST, rail: SLAB },
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
       });
       const posts = [0, 3, 6, 7].flatMap((x): Cell[] => [
+        [x, 2, 2, POST],
         [x, 3, 2, POST],
         [x, 4, 2, POST],
       ]);
@@ -1239,24 +1250,27 @@ describe("roofGable endFill and ridgeCap", () => {
     });
 
     it("honours every and height, with the last gap shorter", () => {
-      // x 0..6, z 0..2 (apex row 1 at z1, y1), every 4, height 3: posts y2..y4 at x 0,4,6;
+      // x 0..6, z 0..2 (apex row 1 at z1, y1), every 4, height 3: posts y1..y4 at x 0,4,6;
       // rail at y4 on x 1,2,3,5.
-      const out = added([0, 0, 0], [6, 0, 2], {
+      const out = changed([0, 0, 0], [6, 0, 2], {
         ridge: "x",
         ridgeCap: { post: POST, rail: LOG, every: 4, height: 3 },
       });
-      const posts = [0, 4, 6].flatMap((x): Cell[] => [2, 3, 4].map((y): Cell => [x, y, 1, POST]));
+      const posts = [0, 4, 6].flatMap((x): Cell[] =>
+        [1, 2, 3, 4].map((y): Cell => [x, y, 1, POST]),
+      );
       const rail = [1, 2, 3, 5].map((x): Cell => [x, 4, 1, LOG]);
       expect(out).toEqual(sortCells([...posts, ...rail]));
     });
 
     it("uses one column, the lower across coordinate, for an even span", () => {
-      // z 0..3: top row 1 stairs at z1 and z2 (y1); cap on z1 only: posts y2..y3 at x 0,2,4, rail y3 at x 1,3.
-      const out = added([0, 0, 0], [4, 0, 3], {
+      // z 0..3: top row 1 stairs at z1 and z2 (y1); cap on z1 only: posts y1..y3 at x 0,2,4, rail y3 at x 1,3.
+      const out = changed([0, 0, 0], [4, 0, 3], {
         ridge: "x",
-        ridgeCap: { post: POST, rail: SLAB, every: 2 },
+        ridgeCap: { post: POST, rail: SLAB, every: 2, height: 2 },
       });
       const posts = [0, 2, 4].flatMap((x): Cell[] => [
+        [x, 1, 1, POST],
         [x, 2, 1, POST],
         [x, 3, 1, POST],
       ]);
@@ -1265,16 +1279,18 @@ describe("roofGable endFill and ridgeCap", () => {
     });
 
     it("uses x, not z, as the lower column for an even span with ridge z", () => {
-      // x 2..5, z 0..2: top row 1 stairs at x3 and x4; cap on x3: posts y2..y3 at z 0,2; rail y3 at z1.
-      const out = added([2, 0, 0], [5, 0, 2], {
+      // x 2..5, z 0..2: top row 1 stairs at x3 and x4; cap on x3: posts y1..y3 at z 0,2; rail y3 at z1.
+      const out = changed([2, 0, 0], [5, 0, 2], {
         ridge: "z",
-        ridgeCap: { post: POST, rail: SLAB },
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
       });
       expect(out).toEqual(
         sortCells([
+          [3, 1, 0, POST],
           [3, 2, 0, POST],
           [3, 3, 0, POST],
           [3, 3, 1, SLAB],
+          [3, 1, 2, POST],
           [3, 2, 2, POST],
           [3, 3, 2, POST],
         ]),
@@ -1282,12 +1298,13 @@ describe("roofGable endFill and ridgeCap", () => {
     });
 
     it("runs along z, on an elevated roof", () => {
-      // x 0..2, z 0..4, ridge z, base y 5: apex x1 row 1 (y6); posts y7..y8 at z 0,3,4; rail y8 at z 1,2.
-      const out = added([0, 5, 0], [2, 5, 4], {
+      // x 0..2, z 0..4, ridge z, base y 5: apex x1 row 1 (y6); posts y6..y8 at z 0,3,4; rail y8 at z 1,2.
+      const out = changed([0, 5, 0], [2, 5, 4], {
         ridge: "z",
-        ridgeCap: { post: POST, rail: SLAB },
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
       });
       const posts = [0, 3, 4].flatMap((z): Cell[] => [
+        [1, 6, z, POST],
         [1, 7, z, POST],
         [1, 8, z, POST],
       ]);
@@ -1297,30 +1314,58 @@ describe("roofGable endFill and ridgeCap", () => {
 
     it("leaves posts alone with rail null or omitted", () => {
       const posts = [0, 3, 4].flatMap((z): Cell[] => [
+        [1, 6, z, POST],
         [1, 7, z, POST],
         [1, 8, z, POST],
       ]);
-      for (const ridgeCap of [{ post: POST, rail: null }, { post: POST }]) {
-        expect(added([0, 5, 0], [2, 5, 4], { ridge: "z", ridgeCap })).toEqual(sortCells(posts));
+      for (const ridgeCap of [
+        { post: POST, rail: null, height: 2 },
+        { post: POST, height: 2 },
+      ]) {
+        expect(changed([0, 5, 0], [2, 5, 4], { ridge: "z", ridgeCap })).toEqual(sortCells(posts));
       }
     });
 
     it("makes a low fence with height 1: posts and rail share the row above the ridge", () => {
-      // x 0..3, z 0..0: span 1, top row 0 (y0); posts and rail at y1.
-      const out = added([0, 0, 0], [3, 0, 0], {
+      // x 0..3, z 0..0: span 1, top row 0 (y0); posts y0..y1, rail at y1.
+      const out = changed([0, 0, 0], [3, 0, 0], {
         ridge: "x",
         ridgeCap: { post: POST, rail: SLAB, every: 2, height: 1 },
       });
       expect(out).toEqual([
+        [0, 0, 0, POST],
         [0, 1, 0, POST],
         [1, 1, 0, SLAB],
+        [2, 0, 0, POST],
         [2, 1, 0, POST],
+        [3, 0, 0, POST],
         [3, 1, 0, POST],
       ]);
     });
 
+    it("defaults to height 1: posts one row above the ridge, rail in that row", () => {
+      const out = changed([0, 0, 0], [3, 0, 2], {
+        ridge: "x",
+        ridgeCap: { post: POST, rail: SLAB },
+      });
+      // apex z1 row 1 (y1): posts y1..y2 at x 0 and 3, rail y2 at x 1, 2.
+      expect(out).toEqual(
+        sortCells([
+          [0, 1, 1, POST],
+          [0, 2, 1, POST],
+          [1, 2, 1, SLAB],
+          [2, 2, 1, SLAB],
+          [3, 1, 1, POST],
+          [3, 2, 1, POST],
+        ]),
+      );
+    });
+
     it("never overshoots the gable ends: nothing outside the roof's run", () => {
-      const out = added([2, 0, 2], [9, 0, 6], { ridge: "x", ridgeCap: { post: POST, rail: SLAB } });
+      const out = changed([2, 0, 2], [9, 0, 6], {
+        ridge: "x",
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
+      });
       expect(Math.min(...out.map((c) => c[0]))).toBe(2);
       expect(Math.max(...out.map((c) => c[0]))).toBe(9);
     });
@@ -1329,12 +1374,12 @@ describe("roofGable endFill and ridgeCap", () => {
       const both = cellsOf([0, 0, 0], [4, 0, 4], ST, {
         ridge: "x",
         endFill: F,
-        ridgeCap: { post: POST, rail: SLAB },
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
       });
       const fillOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x", endFill: F });
       const capOnly = cellsOf([0, 0, 0], [4, 0, 4], ST, {
         ridge: "x",
-        ridgeCap: { post: POST, rail: SLAB },
+        ridgeCap: { post: POST, rail: SLAB, height: 2 },
       });
       expect(both).toHaveLength(
         fillOnly.length + capOnly.length - cellsOf([0, 0, 0], [4, 0, 4], ST, { ridge: "x" }).length,
@@ -2248,8 +2293,11 @@ describe("roofGable profile", () => {
     const posts = cells
       .filter((c) => c[3] === "minecraft:oak_log[axis=y]")
       .map((c) => c.slice(0, 3));
+    // Rooted in the apex slab's row (4), replacing the slab under each post.
     expect(posts).toEqual([
+      [0, 4, 2],
       [0, 5, 2],
+      [1, 4, 2],
       [1, 5, 2],
     ]);
   });

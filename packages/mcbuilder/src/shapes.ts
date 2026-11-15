@@ -443,7 +443,7 @@ export interface RidgeCapOptions {
   rail?: Material | null;
   /** A post every `every` cells from the first ridge cell, and one on the last. Default 3. */
   every?: number;
-  /** Rows the posts stand, from the row above the top stair row. Default 2. */
+  /** Rows the posts rise above the ridge row they are rooted in. Default 1. */
   height?: number;
 }
 
@@ -611,22 +611,23 @@ function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
  * "minecraft:oak_slab[type=top]"` (a thin rail), or an oak fence, or
  * `stripped_oak_log[axis=x]` for `ridge: "x"` (a full-block rail).
  *
- * Cells. Let `top` be the top stair row (row index `ceil(span / 2) - 1`, y =
- * base + top). The posts stand on the row above it, y + top + 1, and are
- * `height` rows tall (default 2), so they span rows y + top + 1 ..
- * y + top + height. Along the ridge, number the cells 0 .. n-1 (the run
+ * Cells. Let `top` be the ridge column's top roof row (with the default
+ * profile, row `ceil(span / 2) - 1`). The posts are rooted in that row,
+ * replacing the roof cell under each post (so a post never stands on a half
+ * block and floats), and rise `height` rows above it (default 1): rows
+ * y + top .. y + top + height. Along the ridge, number the cells 0 .. n-1 (the run
  * `c1`..`c2`): posts on cell 0, `every`, 2 x `every` ... and always on n-1 (the
  * last gap can be shorter). The rail fills the cells BETWEEN posts in the top
  * row of the posts (y + top + height), never overshooting the end posts; below
  * it, between posts, is air. `rail: null` (or omitted) gives posts only. Side
  * view, ridge along x, n = 8, `every` 3, `height` 2 (`P` post, `=` rail, `S`
- * top stair row, `.` air, odd span):
+ * top stair row, `.` air, odd span; `height` 2 for the drawing):
  *
  *     P = = P = = P P     y + top + 2   (rail row = top of the posts)
  *     P . . P . . P P     y + top + 1   (gap, the roof shows through)
- *     S S S S S S S S     y + top
+ *     P S S P S S P P     y + top       (posts rooted in the ridge row)
  *
- * With `height` 1 the posts and rail share one row (a low fence). The cresting
+ * With `height` 1 the posts and rail share the row above the ridge (a low fence). The cresting
  * stands over the ridge cells only, so it never touches the gable-end stairs
  * or `endFill`.
  *
@@ -685,8 +686,13 @@ function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
  * horizontal rail runs between them near their top with a visible gap below it;
  * the posts end flush with or just above the rail. Design choices, not read
  * from the frames: `every` default 3 (the frames show about 3, +/-1),
- * `height` default 2, the end posts always present, the rail stopping at the
+ * `height` default 1 with a top-slab rail recommended (side by side with
+ * tav/f_009, posts one row above the ridge and a top slab between them, leaving
+ * half a block of gap, match the frame; `height` 2 read as a tall fence), the end
+ * posts always present, the rail stopping at the
  * end posts (the earlier version overshot the gable ends and hung in the air),
+ * the posts rooted in the ridge row (side by side with tav/f_009 the cresting
+ * read as floating when the posts stood on top of a half-height ridge cell),
  * the even-span single column on the lower side, and the rail being a one-cell block (which
  * block, slab or fence or log, is yours to pick; the frames show it thinner than
  * the posts).
@@ -712,7 +718,7 @@ export function roofGable(
     }
   }
   const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
-  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 2) : 0;
+  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 1) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] =
     ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = (hi as number) - (lo as number) + 1;
@@ -875,7 +881,7 @@ export function roofGable(
       const isPost = i % capEvery === 0 || i === n - 1;
       const [x, z] = xz(column, run);
       if (isPost) {
-        for (let y = y0 + top + 1; y <= railRow; y++) geo.set(x, y, z, post.blockAt(x, y, z));
+        for (let y = y0 + top; y <= railRow; y++) geo.set(x, y, z, post.blockAt(x, y, z));
       } else if (rail) {
         geo.set(x, railRow, z, rail.blockAt(x, railRow, z));
       }

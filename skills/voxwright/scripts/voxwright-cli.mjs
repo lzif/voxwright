@@ -12082,7 +12082,7 @@ function roofGable(c1, c2, block, options) {
     }
   }
   const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
-  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 2) : 0;
+  const capHeight = cap ? positive("roof_gable: ridgeCap.height", cap.height ?? 1) : 0;
   const [lo, hi, runLo, runHi, faceLo, faceHi] = ridge === "x" ? [z1, z2, x1, x2, "south", "north"] : [x1, x2, z1, z2, "east", "west"];
   const span = hi - lo + 1;
   const half = Math.floor(span / 2);
@@ -12212,7 +12212,7 @@ function roofGable(c1, c2, block, options) {
       const isPost = i2 % capEvery === 0 || i2 === n2 - 1;
       const [x3, z] = xz(column, run);
       if (isPost) {
-        for (let y = y0 + top + 1; y <= railRow; y++) geo.set(x3, y, z, post.blockAt(x3, y, z));
+        for (let y = y0 + top; y <= railRow; y++) geo.set(x3, y, z, post.blockAt(x3, y, z));
       } else if (rail) {
         geo.set(x3, railRow, z, rail.blockAt(x3, railRow, z));
       }
