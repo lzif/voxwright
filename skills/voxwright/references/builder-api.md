@@ -132,13 +132,18 @@ cone(center: Point, radius: number, height: number, block: Material,
 
 ```ts
 stairs(start: Point, direction: "north" | "south" | "east" | "west", block: Material,
-       o: { length?: number; target?: Point; width?: number }): Geometry
+       o: { length?: number; target?: Point; width?: number; half?: "bottom" | "top" }): Geometry
 ```
 
 - Step `i` sits `i` cells toward `direction` and `i` cells up. Give exactly one of `length`
   (number of steps) or `target` (the cell of the top step, on the 1:1 diagonal).
 - `width` widens the run toward +X (for north/south runs) or +Z (for east/west runs).
 - Each step gets `facing=<direction>` and `half=bottom`. `stairsRun` is an alias.
+- `half: "top"` keeps the same cells but makes every step upside down and faces it back down the
+  run (`facing=<opposite of direction>`, `half=top`), so the underside is a smooth slope: a corbel
+  stepping out toward `direction` as it rises (under a jetty, balcony or eave), or, with `start`
+  one row under an ordinary flight's start, the stair sandwich that smooths the flight's
+  underside.
 
 ### Roofs
 

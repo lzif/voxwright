@@ -189,6 +189,11 @@ export interface StairsOptions extends SeedOption {
   length?: number;
   target?: Point;
   width?: number;
+  /**
+   * `"bottom"` (default): ordinary steps. `"top"`: upside-down steps facing back down the run, a
+   * corbel or the smooth underside of a flight.
+   */
+  half?: "bottom" | "top";
 }
 
 /**
@@ -204,6 +209,31 @@ export interface StairsOptions extends SeedOption {
  * block without it: a block that already carries `facing` is refused with
  * `McbuilderError`, never overridden. Other properties and NBT on `block`
  * are kept.
+ *
+ * `half: "top"` (opt-in; the default `"bottom"` is the rule above) keeps the
+ * same cells but turns every step upside down and faces it the other way,
+ * `facing=<opposite of direction>`, `half=top`: each step's hanging half then
+ * sits on the downhill side, over the step below, so the underside of the run
+ * is a smooth 1:1 slope and its top is a flight of square steps. It is a
+ * corbel stepping out toward `direction` as it rises (under a jetty, a
+ * balcony, an eave or a buttress stage), and, one row under an ordinary
+ * flight with the same `start` shifted down one, the stair sandwich that
+ * smooths the flight's underside. Side view of two steps climbing east, one
+ * character per half cell, west half first (`=` the full top half, `/` the
+ * lower quarter on the downhill side, `.` air):
+ *
+ *         = =      y + 1, top half
+ *         / .      y + 1, bottom half
+ *     = =          y, top half
+ *     / .          y, bottom half
+ *     x   x + 1
+ *
+ * The underside rises half a block every half cell: y, y + 0.5, y + 1, y + 1.5.
+ *
+ * Evidence: AR/f_049 (observed upside-down stair corbels), trixy, heavy, DB,
+ * FM, hib, dio (inferred); schematic study S2: 2,646 upside-down stairs over
+ * air across 17 builds, the gothic tower's buttress stages stepping out on
+ * rows of them.
  */
 export function stairs(
   start: Point,
@@ -232,6 +262,11 @@ export function stairs(
   }
   const len = positive("stairs: length", length);
   const width = positive("stairs: width", options.width ?? 1);
+  const half = options.half ?? "bottom";
+  if (half !== "bottom" && half !== "top") {
+    throw new McbuilderError(`stairs: half must be 'bottom' or 'top', got ${String(half)}`);
+  }
+  const facing = half === "top" ? (OPPOSITE[key] as string) : key;
   const [px, pz] = dx ? [0, 1] : [1, 0];
   const stair = stairMaterial("stairs", block, options.seed);
   const geo = new Geometry();
@@ -240,7 +275,7 @@ export function stairs(
       const x = sx + i * dx + w * px;
       const y = sy + i;
       const z = sz + i * dz + w * pz;
-      geo.set(x, y, z, withProps(stair(x, y, z), { facing: key, half: "bottom" }));
+      geo.set(x, y, z, withProps(stair(x, y, z), { facing, half }));
     }
   }
   return geo;

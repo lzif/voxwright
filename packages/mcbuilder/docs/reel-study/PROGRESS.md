@@ -156,8 +156,9 @@ stay byte-identical, with the oracle tests and vectors green and unedited.
 2. **`roofGable` options `endFill` and `ridgeCap`.** Done (cfb0a5b, 9f23e06, bc2033f).
 3. **`polygon(vertices, y1, y2, block, {mode})`.** Done (de12bdf).
 4. **`jetty(c1, c2, block, {overhang, sides, bracket, every, beam})`.** Done (9c208d4).
-5. **`stairs` option `half: "bottom" | "top"`.** Default `"bottom"`, unchanged. Not done: it waits for
-   Luki's OK (mapping-draft: "Needs Luki's OK").
+5. **`stairs` option `half: "bottom" | "top"`.** Default `"bottom"`, unchanged. Done 2026-11-16 after
+   Luki's go-ahead: `"top"` gives upside-down steps facing back down the run (corbels, stair
+   sandwiches).
 6. **Example.** `examples/reel_house/` uses the shapes above. Done 2026-11-16 (see "Next step").
 
 Later, below the priority line:

@@ -417,3 +417,39 @@ describe("window", () => {
     );
   });
 });
+
+describe("stairs half", () => {
+  const ST = "minecraft:stone_brick_stairs";
+
+  it("keeps ordinary steps by default and with half 'bottom'", () => {
+    const plain = shapes.stairs([0, 0, 0], "north", ST, { length: 3, width: 2 }).cells();
+    const bottom = shapes
+      .stairs([0, 0, 0], "north", ST, { length: 3, width: 2, half: "bottom" })
+      .cells();
+    expect(bottom).toEqual(plain);
+    expect(plain[0]).toEqual([0, 0, 0, `${ST}[facing=north,half=bottom]`]);
+  });
+
+  it("turns the steps upside down and faces them back down the run with half 'top'", () => {
+    const cells = shapes.stairs([2, 5, 0], "east", ST, { length: 3, half: "top" }).cells();
+    expect(sortCells(cells)).toEqual([
+      [2, 5, 0, `${ST}[facing=west,half=top]`],
+      [3, 6, 0, `${ST}[facing=west,half=top]`],
+      [4, 7, 0, `${ST}[facing=west,half=top]`],
+    ]);
+    const target = shapes.stairs([0, 0, 0], "south", ST, { target: [0, 2, 2], half: "top" });
+    expect(target.cells().map((c) => c[3])).toEqual(
+      Array.from({ length: 3 }, () => `${ST}[facing=north,half=top]`),
+    );
+    expect(shapes.stairsRun([0, 0, 0], "west", ST, { length: 1, half: "top" }).cells()).toEqual([
+      [0, 0, 0, `${ST}[facing=east,half=top]`],
+    ]);
+  });
+
+  it("refuses an unknown half", () => {
+    throws(
+      () => shapes.stairs([0, 0, 0], "north", ST, { length: 2, half: "middle" as never }),
+      /half must be 'bottom' or 'top', got middle/,
+    );
+  });
+});

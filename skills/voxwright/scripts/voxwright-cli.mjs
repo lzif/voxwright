@@ -12190,6 +12190,11 @@ function stairs(start, dir, block, options = {}) {
   }
   const len = positive("stairs: length", length);
   const width = positive("stairs: width", options.width ?? 1);
+  const half = options.half ?? "bottom";
+  if (half !== "bottom" && half !== "top") {
+    throw new McbuilderError(`stairs: half must be 'bottom' or 'top', got ${String(half)}`);
+  }
+  const facing = half === "top" ? OPPOSITE[key2] : key2;
   const [px, pz] = dx ? [0, 1] : [1, 0];
   const stair = stairMaterial("stairs", block, options.seed);
   const geo = new Geometry();
@@ -12198,7 +12203,7 @@ function stairs(start, dir, block, options = {}) {
       const x2 = sx + i2 * dx + w * px;
       const y = sy + i2;
       const z = sz + i2 * dz + w * pz;
-      geo.set(x2, y, z, withProps(stair(x2, y, z), { facing: key2, half: "bottom" }));
+      geo.set(x2, y, z, withProps(stair(x2, y, z), { facing, half }));
     }
   }
   return geo;
