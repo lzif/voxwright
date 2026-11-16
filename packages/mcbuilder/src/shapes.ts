@@ -934,6 +934,727 @@ export function roofHip(c1: Point, c2: Point, block: Material, options: RoofHipO
   return geo.concat(hipP.geo).concat(capP.geo);
 }
 
+/** One rectangle of a `roofUnion`: its XZ footprint, its eave row (the lower Y) and its kind. */
+export interface RoofPart {
+  c1: Point;
+  c2: Point;
+  /** `"x"` or `"z"`: a gable with the ridge along that axis. `"hip"`: all four sides slope. */
+  ridge: "x" | "z" | "hip";
+}
+
+export interface RoofUnionOptions extends SeedOption {
+  /** Full-block material for the open triangle under each exposed gable end. */
+  endFill?: Material | null;
+}
+
+const COUNTER_CLOCKWISE: Readonly<Record<string, string>> = {
+  north: "west",
+  west: "south",
+  south: "east",
+  east: "north",
+};
+const OPPOSITE: Readonly<Record<string, string>> = {
+  north: "south",
+  south: "north",
+  east: "west",
+  west: "east",
+};
+const axisOf = (facing: string): "x" | "z" => (facing === "east" || facing === "west" ? "x" : "z");
+
+/**
+ * The `shape` vanilla Minecraft gives each stair of a set, from its neighbours on the same row
+ * (`StairBlock.getStairsShape`): a perpendicular stair behind it makes an outer corner, one in
+ * front an inner corner, unless a stair of the same facing beside it keeps it straight. Every
+ * stair in `facings` is taken to be a bottom-half stair; other blocks count as not-stairs.
+ */
+function vanillaStairShapes(facings: ReadonlyMap<string, string>): Map<string, string> {
+  const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
+  const shapes = new Map<string, string>();
+  for (const [k, f] of facings) {
+    const [x, y, z] = k.split(",").map(Number) as [number, number, number];
+    const at = (dir: string): string | undefined => {
+      const [dx, dz] = DIRECTIONS[dir] as readonly [number, number];
+      return facings.get(key(x + dx, y, z + dz));
+    };
+    const canTake = (face: string): boolean => at(face) !== f;
+    const back = at(f);
+    if (back !== undefined && axisOf(back) !== axisOf(f) && canTake(OPPOSITE[back] as string)) {
+      shapes.set(k, back === COUNTER_CLOCKWISE[f] ? "outer_left" : "outer_right");
+      continue;
+    }
+    const front = at(OPPOSITE[f] as string);
+    if (front !== undefined && axisOf(front) !== axisOf(f) && canTake(front)) {
+      shapes.set(k, front === COUNTER_CLOCKWISE[f] ? "inner_left" : "inner_right");
+      continue;
+    }
+    shapes.set(k, "straight");
+  }
+  return shapes;
+}
+
+/**
+ * A roof of stairs over several overlapping rectangles: L, T and cross plans, a wing with its
+ * own gable, a lower lean of the same pitch, dormer roofs. Each part is a gable (`ridge: "x"` or
+ * `"z"`, as in `roofGable`) or a hip (`ridge: "hip"`) over its footprint, rising one row per cell
+ * inward from its eave row (the lower Y of its corners). Where parts overlap, the higher roof
+ * wins and the two meet in a valley or a hip, with the stair corners set the way the game sets
+ * them (`shape=inner_*` in a valley, `outer_*` on a hip). A single gable part gives exactly the
+ * stairs of `roofGable` with the same footprint (and `endFill`).
+ *
+ * How the parts combine. Each part is the solid under its own slopes, from its eave row up. A
+ * part's stair is left out where it lies inside another part's solid, so a wing's ridge that runs
+ * into the main roof ends where it meets the main slope, and the main roof's eave under a wing is
+ * covered. Where two parts want a stair in the same cell (the valley line), the part listed first
+ * gives its facing; the corner shape comes out the same either way. Parts with different eave rows
+ * work the same way: a dormer roof is a small gable part whose eave row is higher than the main
+ * roof's (see `dormer`). A roof hipped at one end and gabled at the other is a hip part over the
+ * whole footprint plus a gable part over the gabled end, from the middle out. Plan view of a main gable (ridge x) with a front wing (ridge z), eave rows
+ * equal, `S`/`N`/`E`/`W` the stair facings, `i` inner-corner stairs in the valleys, `.` lower
+ * rows hidden under the wing:
+ *
+ *       S S S S S S S S S      z = 0   main, north slope
+ *       S S S S S S S S S      z = 1
+ *       N N N N N N N N N      z = 2   (span 5: apex row faces north)
+ *       N N N i W i N N N      z = 3   valley cells where the wing meets the slope
+ *       N N i E W W i N N      z = 4   main eave row; the wing hides its middle
+ *           E E W W W          z = 5   wing, its own slopes (span 5, ridge facing west)
+ *           E E W W W          z = 6
+ *
+ * Facings: a gable cell faces up its slope (`south` on the north slope of a ridge-x gable); an
+ * odd span's apex row faces north (ridge x) or west (ridge z), as in `roofGable`. A hip cell faces
+ * away from its nearest edge, ties broken in the order north, south, west, east (so the corners
+ * of a hip face along z and come out as outer corners, and an odd hip's ridge line faces north).
+ * The stairs are `half=bottom` and only corner cells get a `shape`; others leave it to the
+ * default, `straight`. The shapes are computed among this roof's own stairs: stairs you place next
+ * to it do not change them.
+ *
+ * `endFill` closes each gable end the same way as `roofGable`'s, in the part's two end columns,
+ * strictly under its stairs, but only where the face is exposed: a cell is filled when it is not
+ * inside another part's solid and the cell just outside the end column is neither inside a part
+ * nor a stair. A wing's gable end that dives into the main roof gets no fill there; one that stands
+ * above the main slope (a dormer front) does. A hip part has no gable ends.
+ *
+ * Not here: `verge`, `eave`, `ridgeCap`, `profile` (every part is the straight profile), a cap block
+ * on a hip apex (it is a stair). Design choices, not observed in the frames: the tie order and the
+ * first-listed part winning a shared cell.
+ *
+ * Evidence: tav/f_004, tav/f_005 (a front cross-gable whose ridge meets the main slope, white
+ * fill in its gable), hib/f_080, hib/f_092 (valley chevrons between perpendicular gable masses),
+ * dio/q03 (lodge gable with a cross-gable dormer). Stair corner states cannot be read from the
+ * frames; the shapes follow the game's own rule.
+ */
+export function roofUnion(
+  parts: readonly RoofPart[],
+  block: Material,
+  options: RoofUnionOptions = {},
+): Geometry {
+  if (!Array.isArray(parts) || parts.length === 0) {
+    throw new McbuilderError("roof_union: parts must be a non-empty array of { c1, c2, ridge }");
+  }
+  const seed = options.seed;
+  const body = stairMaterial("roof_union", block, seed);
+  const boxes = parts.map((p, i) => {
+    if (typeof p !== "object" || p === null) {
+      throw new McbuilderError(`roof_union: part ${i} must be an object { c1, c2, ridge }`);
+    }
+    if (p.ridge !== "x" && p.ridge !== "z" && p.ridge !== "hip") {
+      throw new McbuilderError(
+        `roof_union: part ${i} ridge must be 'x', 'z' or 'hip', got ${String(p.ridge)}`,
+      );
+    }
+    const [[x1, y0, z1], [x2, , z2]] = corners(`roof_union: part ${i}`, p.c1, p.c2);
+    return { x1, x2, z1, z2, y0, ridge: p.ridge };
+  });
+  type Box = (typeof boxes)[number];
+  const inFoot = (b: Box, x: number, z: number): boolean =>
+    x >= b.x1 && x <= b.x2 && z >= b.z1 && z <= b.z2;
+  // Rows above the eave row and facing of a part's stair at (x, z), inside its footprint.
+  const rowAt = (b: Box, x: number, z: number): number => {
+    const [n, s, w, e] = [z - b.z1, b.z2 - z, x - b.x1, b.x2 - x];
+    if (b.ridge === "x") return Math.min(n, s);
+    if (b.ridge === "z") return Math.min(w, e);
+    return Math.min(n, s, w, e);
+  };
+  const facingAt = (b: Box, x: number, z: number): string => {
+    const [n, s, w, e] = [z - b.z1, b.z2 - z, x - b.x1, b.x2 - x];
+    if (b.ridge === "x") return n < s ? "south" : "north";
+    if (b.ridge === "z") return w < e ? "east" : "west";
+    const d = Math.min(n, s, w, e);
+    if (s === d) return "north";
+    if (n === d) return "south";
+    if (e === d) return "west";
+    return "east";
+  };
+  // Inside part `b`'s solid: in its footprint, from its eave row up to under its stair.
+  const inSolid = (b: Box, x: number, y: number, z: number): boolean =>
+    inFoot(b, x, z) && y >= b.y0 && y < b.y0 + rowAt(b, x, z);
+  const inOtherSolid = (skip: number, x: number, y: number, z: number): boolean =>
+    boxes.some((b, j) => j !== skip && inSolid(b, x, y, z));
+
+  const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
+  const facings = new Map<string, string>();
+  const order: string[] = [];
+  for (const [i, b] of boxes.entries()) {
+    for (let x = b.x1; x <= b.x2; x++) {
+      for (let z = b.z1; z <= b.z2; z++) {
+        const y = b.y0 + rowAt(b, x, z);
+        const k = key(x, y, z);
+        if (facings.has(k) || inOtherSolid(i, x, y, z)) continue;
+        facings.set(k, facingAt(b, x, z));
+        order.push(k);
+      }
+    }
+  }
+  const stairShape = vanillaStairShapes(facings);
+  const geo = new Geometry();
+  for (const k of order) {
+    const [x, y, z] = k.split(",").map(Number) as [number, number, number];
+    const b = body(x, y, z);
+    const shape = stairShape.get(k) as string;
+    const props: Record<string, string> = {
+      facing: facings.get(k) as string,
+      ...halfDefault(b),
+    };
+    if (shape !== "straight") props.shape = shape;
+    geo.set(x, y, z, withProps(b, props));
+  }
+
+  if (options.endFill) {
+    const fill = new Painter(options.endFill, seed);
+    const covered = (x: number, y: number, z: number): boolean =>
+      facings.has(key(x, y, z)) || boxes.some((b) => inSolid(b, x, y, z));
+    for (const [i, b] of boxes.entries()) {
+      if (b.ridge === "hip") continue;
+      const ends: [number, number][] =
+        b.ridge === "x"
+          ? [
+              [b.x1, -1],
+              [b.x2, 1],
+            ]
+          : [
+              [b.z1, -1],
+              [b.z2, 1],
+            ];
+      for (const [run, out] of ends) {
+        const [lo, hi] = b.ridge === "x" ? [b.z1, b.z2] : [b.x1, b.x2];
+        for (let across = lo; across <= hi; across++) {
+          const [x, z] = b.ridge === "x" ? [run, across] : [across, run];
+          const [ox, oz] = b.ridge === "x" ? [run + out, across] : [across, run + out];
+          for (let y = b.y0; y < b.y0 + rowAt(b, x, z); y++) {
+            if (facings.has(key(x, y, z)) || inOtherSolid(i, x, y, z)) continue;
+            if (covered(ox, y, oz)) continue;
+            geo.set(x, y, z, fill.blockAt(x, y, z));
+          }
+        }
+      }
+    }
+  }
+  return geo;
+}
+
+// -- house parts: dormer, chimney, door, window -------------------------------
+
+/** Clockwise neighbour of a direction: what is on your right when you face it. */
+const CLOCKWISE: Readonly<Record<string, string>> = {
+  north: "east",
+  east: "south",
+  south: "west",
+  west: "north",
+};
+
+/** Per-cell resolver that refuses the properties the shape sets itself. */
+function refusingMaterial(
+  what: string,
+  block: Material,
+  seed: Seed,
+  owned: readonly string[],
+): MaterialFn {
+  const at: MaterialFn = (x, y, z) => {
+    const b = resolveMaterial(block, x, y, z, seed);
+    const props = parseBlockString(b).props;
+    const given = owned.filter((p) => props.has(p));
+    if (given.length) {
+      throw new McbuilderError(
+        `${what} sets ${owned.map((p) => `'${p}'`).join(", ")} itself; pass ${b} without ${given.join(", ")}`,
+      );
+    }
+    return b;
+  };
+  at(0, 0, 0);
+  return at;
+}
+
+/** Glass panes and bars connect along a wall: give them the two sides in the wall's plane. */
+function paneProps(block: string, planeAlongX: boolean): Record<string, string> {
+  const { name } = parseBlockString(block);
+  if (!/(?:_pane|_bars)$/.test(name)) return {};
+  return planeAlongX ? { east: "true", west: "true" } : { north: "true", south: "true" };
+}
+
+/**
+ * A wall that is one cell thick toward `facing`: the plane, the across axis and its range.
+ * Shared by `dormer` and `window`.
+ */
+function wallPlane(
+  what: string,
+  c1: Point,
+  c2: Point,
+  facing: string,
+): {
+  key: string;
+  lo: Point;
+  hi: Point;
+  alongX: boolean;
+  out: readonly [number, number];
+  width: number;
+  height: number;
+  cell: (a: number, y: number, depth: number) => [number, number, number];
+} {
+  const key = direction(what, facing);
+  const [lo, hi] = corners(what, c1, c2);
+  const out = DIRECTIONS[key] as readonly [number, number];
+  const alongX = out[1] !== 0;
+  if (alongX ? lo[2] !== hi[2] : lo[0] !== hi[0]) {
+    throw new McbuilderError(
+      `${what}: c1 and c2 must lie in one wall plane, one cell thick toward ${key} (same ${alongX ? "z" : "x"})`,
+    );
+  }
+  const width = alongX ? hi[0] - lo[0] + 1 : hi[2] - lo[2] + 1;
+  const height = hi[1] - lo[1] + 1;
+  // `a` runs along the wall from the low corner; `depth` goes out of the wall (negative = in).
+  const cell = (a: number, y: number, depth: number): [number, number, number] =>
+    alongX ? [lo[0] + a, y, lo[2] + depth * out[1]] : [lo[0] + depth * out[0], y, lo[2] + a];
+  return { key, lo, hi, alongX, out, width, height, cell };
+}
+
+export interface DormerOptions extends SeedOption {
+  /**
+   * The window inside the front wall's 1-cell border. Default `minecraft:glass_pane` (panes and
+   * bars get their two sides in the wall's plane); `null` leaves the opening as air.
+   */
+  window?: Material | null;
+}
+
+/**
+ * The body of a dormer on a straight roof slope: the front wall with a window and the two
+ * cheeks (the triangular side walls) running back to the slope. `c1`..`c2` is the front wall, one
+ * cell thick toward `facing` (the way the window looks): across it the full outer width, cheeks
+ * included; from its lower Y, the first row above the main roof's stairs at the front plane, to
+ * its upper Y, the row under the dormer's roof. `block` is the wall material.
+ *
+ * The main roof is taken to rise one row per cell going back from the front (a straight-profile
+ * `roofGable` or `roofUnion` slope), so at `k` cells behind the front its stairs are at the lower
+ * Y minus 1 plus `k`. Each cheek is the outer column of the front wall carried back: at depth `k`
+ * it holds the rows from the lower Y plus `k` to the upper Y, until no row is left. The window is
+ * the front wall less a 1-cell border, so the wall must be at least 3 x 3. Side view of a cheek,
+ * front on the right, facing east (`W` wall, `S` the main roof's stairs, `#` the front wall):
+ *
+ *          W W #       upper Y
+ *        W W W #
+ *      S W W W #       lower Y
+ *    S S S S S S       main roof
+ *
+ * The dormer's roof is a part of the main roof's `roofUnion`, so the two meet in valleys:
+ * `dormerRoof(c1, c2, facing)` gives that part, a gable over the front wall plus one cell either
+ * side, its eave row on the upper Y plus 1, flush with the front (the `endFill` of the union then
+ * closes the front gable over the wall). Place the dormer body before the roof: the roof's stairs
+ * then win where they meet a cheek, and the main roof's stairs under the dormer stay, seen through
+ * the window. The main roof is not cut open behind the front wall. The dormer's ridge must stay
+ * under the main ridge: a dormer `w` wide whose wall top is `t` rows above the slope at its front
+ * needs the main ridge at least `t + 1 + floor((w + 1) / 2)` rows above that point. Example, a
+ * main roof of span 17 (eave row y = 6 at z = 15, apex row y = 14 at z = 7) and a 3-wide dormer
+ * standing on the slope's stair at z = 13 (y = 8), its ridge level with the main ridge:
+ *
+ *     BUILD.place(shapes.dormer([5, 9, 13], [7, 11, 13], "south", "minecraft:spruce_planks"));
+ *     BUILD.place(shapes.roofUnion(
+ *       [{ c1: [-1, 6, -1], c2: [13, 6, 15], ridge: "x" }, shapes.dormerRoof([5, 9, 13], [7, 11, 13], "south")],
+ *       "minecraft:deepslate_tile_stairs", { endFill: "minecraft:white_concrete" }));
+ *
+ * Design choices, not observed in the frames: the 1-cell border, the flush front, the 1-cell side
+ * overhang of `dormerRoof`. Evidence: FM/f_074, FM/f_090 (a small projecting gable window above
+ * the eave), dio/q03 (a cross-gable dormer on the lodge roof).
+ */
+export function dormer(
+  c1: Point,
+  c2: Point,
+  facing: "north" | "south" | "east" | "west",
+  block: Material,
+  options: DormerOptions = {},
+): Geometry {
+  const { lo, hi, alongX, width, height, cell } = wallPlane("dormer", c1, c2, facing);
+  if (width < 3 || height < 3) {
+    throw new McbuilderError(
+      `dormer: the front wall must be at least 3 wide and 3 tall (a window inside a 1-cell border), got ${width} x ${height}`,
+    );
+  }
+  const wall = new Painter(block, options.seed);
+  const glass = options.window === undefined ? "minecraft:glass_pane" : options.window;
+  const pane = glass === null ? null : new Painter(glass, options.seed);
+  const geo = new Geometry();
+  for (let a = 0; a < width; a++) {
+    for (let y = lo[1]; y <= hi[1]; y++) {
+      const [x, , z] = cell(a, y, 0);
+      const inside = a > 0 && a < width - 1 && y > lo[1] && y < hi[1];
+      if (!inside) geo.set(x, y, z, wall.blockAt(x, y, z));
+      else if (pane === null) geo.set(x, y, z, "minecraft:air");
+      else {
+        const b = pane.blockAt(x, y, z);
+        geo.set(x, y, z, withProps(b, paneProps(b, alongX)));
+      }
+    }
+  }
+  for (let k = 1; lo[1] + k <= hi[1]; k++) {
+    for (const a of [0, width - 1]) {
+      for (let y = lo[1] + k; y <= hi[1]; y++) {
+        const [x, , z] = cell(a, y, -k);
+        geo.set(x, y, z, wall.blockAt(x, y, z));
+      }
+    }
+  }
+  return geo;
+}
+
+/**
+ * The `roofUnion` part that roofs a `dormer` with the same `c1`, `c2` and `facing`: a gable whose
+ * ridge runs back from the front, over the front wall's width plus one cell either side, its eave
+ * row one above the wall's upper Y, its front end flush with the wall. It reaches back to where a
+ * straight main slope (one row per cell, see `dormer`) rises over its ridge; any further would be
+ * hidden inside the main roof anyway.
+ */
+export function dormerRoof(
+  c1: Point,
+  c2: Point,
+  facing: "north" | "south" | "east" | "west",
+): RoofPart {
+  const { lo, hi, alongX, out, width } = wallPlane("dormer_roof", c1, c2, facing);
+  const span = width + 2;
+  const ridgeY = hi[1] + 1 + Math.floor((span - 1) / 2);
+  const depth = ridgeY - lo[1] + 1; // the main slope reaches the ridge row here
+  const front = alongX ? lo[2] : lo[0];
+  const back = front - depth * (alongX ? out[1] : out[0]);
+  const y = hi[1] + 1;
+  return alongX
+    ? { c1: [lo[0] - 1, y, front], c2: [hi[0] + 1, y, back], ridge: "z" }
+    : { c1: [front, y, lo[2] - 1], c2: [back, y, hi[2] + 1], ridge: "x" };
+}
+
+export interface ChimneyOptions extends SeedOption {
+  /** Side of the square shaft, in cells. Default 1. */
+  size?: number;
+  /** Rows of the shaft (0 = the bottom row) laid in another material, e.g. a log band. */
+  band?: { block: Material; rows: readonly number[] } | null;
+  /** The top: `"none"` (default), `"slab"` (a slab lid), `"posts"` (corner posts and a slab lid). */
+  cap?: "none" | "slab" | "posts";
+  /** Slab for the lid, without `type`. Required for `cap: "slab"` and `"posts"`. */
+  slab?: Material;
+  /** The cap's posts. Default: `block`. */
+  post?: Material;
+  /** A lit campfire in the shaft's top row, so smoke rises from it. Default false. */
+  smoke?: boolean;
+  /** The campfire for `smoke`. Default `minecraft:campfire[lit=true]`. */
+  fire?: Material;
+}
+
+/**
+ * A chimney: a square shaft `size` x `size` from `base` (its low x and z corner, its bottom row)
+ * up `height` rows, with an optional band, cap and smoke. Place it after the roof: the shaft then
+ * replaces the roof cells it passes through.
+ *
+ * - `band.rows` lists shaft rows (0 = the bottom row) laid in `band.block` across the whole shaft.
+ * - `cap: "slab"` puts a bottom slab on every top cell, one row above the shaft. `cap: "posts"` puts
+ *   a `post` on each corner cell of the top (one post on a 1 x 1 shaft, all four cells of a 2 x 2)
+ *   one row above the shaft, and the slab lid over the whole top one row above that: the "chimney
+ *   pot" of four stone wall posts under a slab.
+ * - `smoke: true` replaces the middle cell of the shaft's top row (on an even size, the one at the
+ *   lower x and z of the middle four) with `fire`, a lit campfire, whose smoke rises out of the top.
+ *
+ * Elevation of a 1 x 1 shaft, `height` 4, `band.rows` [1], `cap: "posts"`, `smoke` (`#` shaft,
+ * `=` band, `c` campfire, `P` post, `s` slab):
+ *
+ *     s      top + 2
+ *     P      top + 1
+ *     c      top (the shaft's top row)
+ *     #
+ *     =
+ *     #      base
+ *
+ * Design choices, not observed in the frames: the cap heights, the campfire in the top row rather
+ * than above it, the default size. Evidence: tav/f_003 (a grey stone shaft beside the ridge),
+ * tav/f_013 (a log band and a four-post stone cap with a slab, INFERRED), tav/f_015 (recoloured
+ * brick), AR/f_124 (a 3 x 3 flue), GS/f_070, NS/f_117 (a campfire on a shaft for smoke).
+ */
+export function chimney(
+  base: Point,
+  height: number,
+  block: Material,
+  options: ChimneyOptions = {},
+): Geometry {
+  const [bx, by, bz] = point("chimney: base", base);
+  const rows = positive("chimney: height", height);
+  const size = positive("chimney: size", options.size ?? 1);
+  const cap = options.cap ?? "none";
+  if (cap !== "none" && cap !== "slab" && cap !== "posts") {
+    throw new McbuilderError(
+      `chimney: invalid cap ${show(cap)}; expected one of [none, slab, posts]`,
+    );
+  }
+  if (cap !== "none" && options.slab === undefined) {
+    throw new McbuilderError(`chimney: cap '${cap}' needs a slab material (the 'slab' option)`);
+  }
+  const band = options.band ?? null;
+  if (band) {
+    for (const r of band.rows) {
+      if (!isInt(r) || r < 0 || r >= rows) {
+        throw new McbuilderError(
+          `chimney: band row ${show(r)} is outside the shaft (rows 0..${rows - 1})`,
+        );
+      }
+    }
+  }
+  const shaft = new Painter(block, options.seed);
+  const bandP = band ? new Painter(band.block, options.seed) : null;
+  const bandRows = new Set(band?.rows ?? []);
+  const geo = new Geometry();
+  const top = by + rows - 1;
+  const mid = Math.floor((size - 1) / 2);
+  for (let r = 0; r < rows; r++) {
+    const y = by + r;
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        const [x, z] = [bx + i, bz + j];
+        if (options.smoke && y === top && i === mid && j === mid) {
+          const fire = new Painter(options.fire ?? "minecraft:campfire[lit=true]", options.seed);
+          geo.set(x, y, z, fire.blockAt(x, y, z));
+        } else if (bandP && bandRows.has(r)) {
+          geo.set(x, y, z, bandP.blockAt(x, y, z));
+        } else {
+          geo.set(x, y, z, shaft.blockAt(x, y, z));
+        }
+      }
+    }
+  }
+  if (cap !== "none") {
+    const slab = slabMaterial("chimney", options.slab as Material, options.seed);
+    const lid = cap === "slab" ? top + 1 : top + 2;
+    if (cap === "posts") {
+      const post = new Painter(options.post ?? block, options.seed);
+      for (const i of new Set([0, size - 1])) {
+        for (const j of new Set([0, size - 1])) {
+          const [x, z] = [bx + i, bz + j];
+          geo.set(x, top + 1, z, post.blockAt(x, top + 1, z));
+        }
+      }
+    }
+    for (let i = 0; i < size; i++) {
+      for (let j = 0; j < size; j++) {
+        const [x, z] = [bx + i, bz + j];
+        geo.set(x, lid, z, withProps(slab(x, lid, z), { type: "bottom" }));
+      }
+    }
+  }
+  return geo;
+}
+
+export interface DoorOptions extends SeedOption {
+  /** The hinge side, seen facing `facing`. Default `"left"`. */
+  hinge?: "left" | "right";
+  /** Default false. */
+  open?: boolean;
+  /** Two leaves: the second one cell to the right (seen facing `facing`), hinged on the right. */
+  double?: boolean;
+  /** Posts either side of the doorway, two rows tall, in the wall's plane. */
+  frame?: Material | null;
+  /** The row over the doorway and its posts. Default: `frame`. */
+  lintel?: Material | null;
+}
+
+/**
+ * A door, both halves: the lower half at `base`, the upper half above it. `facing` is the door's
+ * own `facing`, the way you look when you walk in: a closed door stands on the edge of its cell
+ * opposite `facing`, so a door in a south wall with `facing: "north"` is flush with the outside
+ * face. `block` is the door without `facing`, `half`, `hinge` and `open`, which the shape sets.
+ *
+ * `double` adds a second leaf one cell to the right (right of someone looking toward `facing`)
+ * with the opposite hinge, so the two meet in the middle. `frame` puts posts in the cells either
+ * side of the doorway, two rows tall, and `lintel` (default `frame`) the row above the leaves and
+ * the posts. The frame does not set block properties: write the log axis yourself. Elevation of a
+ * single door with a frame, looking at it from the side it opens away from (`L` lintel, `P` post,
+ * `u`/`l` upper and lower half):
+ *
+ *     L L L     base y + 2
+ *     P u P
+ *     P l P     base y
+ *
+ * Carve nothing yourself: the door and frame replace the wall cells they stand in.
+ */
+export function door(
+  base: Point,
+  facing: "north" | "south" | "east" | "west",
+  block: Material,
+  options: DoorOptions = {},
+): Geometry {
+  const [x, y, z] = point("door: base", base);
+  const key = direction("door", facing);
+  const hinge = options.hinge ?? "left";
+  if (hinge !== "left" && hinge !== "right") {
+    throw new McbuilderError(`door: hinge must be 'left' or 'right', got ${String(hinge)}`);
+  }
+  const leaf = refusingMaterial("door", block, options.seed, ["facing", "half", "hinge", "open"]);
+  const [rx, rz] = DIRECTIONS[CLOCKWISE[key] as string] as readonly [number, number];
+  const leaves = options.double ? 2 : 1;
+  const geo = new Geometry();
+  for (let i = 0; i < leaves; i++) {
+    const [lx, lz] = [x + i * rx, z + i * rz];
+    const side = i === 0 ? hinge : hinge === "left" ? "right" : "left";
+    for (const [dy, half] of [
+      [0, "lower"],
+      [1, "upper"],
+    ] as const) {
+      const b = leaf(lx, y + dy, lz);
+      geo.set(
+        lx,
+        y + dy,
+        lz,
+        withProps(b, { facing: key, half, hinge: side, open: options.open ? "true" : "false" }),
+      );
+    }
+  }
+  const frame = options.frame ?? null;
+  const lintel = options.lintel === undefined ? frame : options.lintel;
+  if (frame) {
+    const p = new Painter(frame, options.seed);
+    for (const i of [-1, leaves]) {
+      for (const dy of [0, 1]) {
+        const [px, py, pz] = [x + i * rx, y + dy, z + i * rz];
+        geo.set(px, py, pz, p.blockAt(px, py, pz));
+      }
+    }
+  }
+  if (lintel) {
+    const p = new Painter(lintel, options.seed);
+    const [from, to] = frame ? [-1, leaves] : [0, leaves - 1];
+    for (let i = from; i <= to; i++) {
+      const [px, pz] = [x + i * rx, z + i * rz];
+      geo.set(px, y + 2, pz, p.blockAt(px, y + 2, pz));
+    }
+  }
+  return geo;
+}
+
+export interface WindowOptions extends SeedOption {
+  /** Fills the opening. Default `minecraft:glass_pane`; `null` leaves it as air. */
+  glass?: Material | null;
+  /** A ring around the opening in the wall's plane: both sides and the row under it. */
+  frame?: Material | null;
+  /** The row over the opening (and over the frame's sides). Default: `frame`. */
+  lintel?: Material | null;
+  /** One cell out of the wall, under the opening. */
+  sill?: Material | null;
+  /** Open trapdoors one cell out of the wall, either side of the opening, flat on the wall. */
+  shutters?: Material | null;
+}
+
+/**
+ * A window in a wall: `c1`..`c2` is the opening, one cell thick, in the plane of a wall whose
+ * outside faces `facing`. The opening is filled with `glass` (panes and bars get their two sides
+ * in the wall's plane, so a pane row reads as glass and not as posts).
+ *
+ * - `frame` takes the cells around the opening in the wall's plane: the column either side and
+ *   the row under it. `lintel` (default `frame`) takes the row over the opening and the frame's
+ *   sides. Neither sets block properties: write the log axis yourself.
+ * - `sill` goes one cell out, under the opening, across its width. A stair without `facing` and
+ *   `half` becomes upside down, its back to the wall (a corbelled sill); a trapdoor without
+ *   `half` a closed top-half plate, flush with the bottom of the opening; a slab without `type` a
+ *   top slab. Properties you give are kept.
+ * - `shutters` are trapdoors, one cell out, in the column either side of the opening, as tall as
+ *   it, open and flat against the wall (`open=true`, `facing` the outside, `half=bottom`).
+ *
+ * Elevation from outside, a 2 x 2 opening with frame, lintel and shutters, and the sill in front
+ * of the frame's bottom row (`L` lintel, `F` frame, `G` glass, `T` shutter, `s` sill):
+ *
+ *       L L L L
+ *     T F G G F T
+ *     T F G G F T
+ *       F s s F
+ */
+export function window(
+  c1: Point,
+  c2: Point,
+  facing: "north" | "south" | "east" | "west",
+  options: WindowOptions = {},
+): Geometry {
+  const { key, lo, hi, alongX, width, cell } = wallPlane("window", c1, c2, facing);
+  const seed = options.seed;
+  const geo = new Geometry();
+  const glass = options.glass === undefined ? "minecraft:glass_pane" : options.glass;
+  const pane = glass === null ? null : new Painter(glass, seed);
+  for (let a = 0; a < width; a++) {
+    for (let y = lo[1]; y <= hi[1]; y++) {
+      const [x, , z] = cell(a, y, 0);
+      if (pane === null) geo.set(x, y, z, "minecraft:air");
+      else {
+        const b = pane.blockAt(x, y, z);
+        geo.set(x, y, z, withProps(b, paneProps(b, alongX)));
+      }
+    }
+  }
+  const frame = options.frame ?? null;
+  const lintel = options.lintel === undefined ? frame : options.lintel;
+  const paint = (p: Painter, a: number, y: number): void => {
+    const [x, , z] = cell(a, y, 0);
+    geo.set(x, y, z, p.blockAt(x, y, z));
+  };
+  if (frame) {
+    const p = new Painter(frame, seed);
+    for (const a of [-1, width]) for (let y = lo[1] - 1; y <= hi[1]; y++) paint(p, a, y);
+    for (let a = 0; a < width; a++) paint(p, a, lo[1] - 1);
+  }
+  if (lintel) {
+    const p = new Painter(lintel, seed);
+    const [from, to] = frame ? [-1, width] : [0, width - 1];
+    for (let a = from; a <= to; a++) paint(p, a, hi[1] + 1);
+  }
+  const inward = OPPOSITE[key] as string;
+  if (options.sill) {
+    const p = new Painter(options.sill, seed);
+    for (let a = 0; a < width; a++) {
+      const [x, y, z] = cell(a, lo[1] - 1, 1);
+      const b = p.blockAt(x, y, z);
+      const { name, props } = parseBlockString(b);
+      const extra: Record<string, string> = {};
+      if (name.endsWith("_stairs")) {
+        if (!props.has("facing")) extra.facing = inward;
+        if (!props.has("half")) extra.half = "top";
+      } else if (name.endsWith("_trapdoor")) {
+        if (!props.has("facing")) extra.facing = key;
+        if (!props.has("half")) extra.half = "top";
+      } else if (name.endsWith("_slab")) {
+        if (!props.has("type")) extra.type = "top";
+      }
+      geo.set(x, y, z, Object.keys(extra).length ? withProps(b, extra) : b);
+    }
+  }
+  if (options.shutters) {
+    const shutter = refusingMaterial("window: shutters", options.shutters, seed, [
+      "facing",
+      "open",
+      "half",
+    ]);
+    for (const a of [-1, width]) {
+      for (let y = lo[1]; y <= hi[1]; y++) {
+        const [x, , z] = cell(a, y, 1);
+        geo.set(
+          x,
+          y,
+          z,
+          withProps(shutter(x, y, z), { facing: key, open: "true", half: "bottom" }),
+        );
+      }
+    }
+  }
+  return geo;
+}
+
 // -- arches ------------------------------------------------------------------
 
 /** Per-cell slab block resolver that refuses a caller-given `type`. */

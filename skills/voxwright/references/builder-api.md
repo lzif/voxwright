@@ -212,7 +212,7 @@ run.
 `shapes.cone`, `shapes.roofGable`, `shapes.roofHip`). A `shapes` call does not know the build's
 seed: pass `{ seed }` in the options when the material is a palette.
 
-Six shapes exist only in `shapes`; place them with `BUILD.place(...)`:
+These shapes exist only in `shapes`; place them with `BUILD.place(...)`:
 
 ```ts
 shapes.arch(start: Point, width: number, block: Material, o: {
@@ -260,6 +260,43 @@ shapes.jetty(c1: Point, c2: Point, block: Material, o?: {
   every?: number;                               // a bracket every `every` cells, default 3
   beam?: Material;                              // continuous row under the deck's outer edge
 }): Geometry
+
+type Facing = "north" | "south" | "east" | "west";
+
+shapes.roofUnion(parts: { c1: Point; c2: Point; ridge: "x" | "z" | "hip" }[], block: Material, o?: {
+  endFill?: Material | null;                    // full block for each exposed gable end
+}): Geometry
+
+shapes.dormer(c1: Point, c2: Point, facing: Facing, block: Material, o?: {
+  window?: Material | null;                     // default glass_pane; null leaves the opening as air
+}): Geometry
+shapes.dormerRoof(c1: Point, c2: Point, facing: Facing): { c1: Point; c2: Point; ridge: "x" | "z" }
+
+shapes.chimney(base: Point, height: number, block: Material, o?: {
+  size?: number;                                // square shaft side, default 1
+  band?: { block: Material; rows: number[] } | null;  // shaft rows (0 = bottom) in another block
+  cap?: "none" | "slab" | "posts";              // default "none"
+  slab?: Material;                              // slab without `type`, required for a cap
+  post?: Material;                              // the cap's corner posts, default `block`
+  smoke?: boolean;                              // lit campfire in the top row, default false
+  fire?: Material;                              // default "minecraft:campfire[lit=true]"
+}): Geometry
+
+shapes.door(base: Point, facing: Facing, block: Material, o?: {
+  hinge?: "left" | "right";                     // default "left"
+  open?: boolean;                               // default false
+  double?: boolean;                             // a second leaf to the right, opposite hinge
+  frame?: Material | null;                      // posts either side, 2 rows tall
+  lintel?: Material | null;                     // row over leaves and posts, default `frame`
+}): Geometry
+
+shapes.window(c1: Point, c2: Point, facing: Facing, o?: {
+  glass?: Material | null;                      // default glass_pane; null leaves the opening as air
+  frame?: Material | null;                      // both sides and the row under the opening
+  lintel?: Material | null;                     // row over the opening, default `frame`
+  sill?: Material | null;                       // one cell out, under the opening
+  shutters?: Material | null;                   // trapdoors one cell out either side, open, flat on the wall
+}): Geometry
 ```
 
 - `arch` is the head only, from upside-down stairs. `start` is the left end of the span on the
@@ -291,6 +328,66 @@ shapes.jetty(c1: Point, c2: Point, block: Material, o?: {
   the footprint. Your lower wall's top row is at `y - 1` and the upper floor and walls are yours: stand
   them on the outer outline of the deck. `bracket` puts upside-down stairs under the deck next to
   the wall, every `every` cells counted from both ends of a side.
+- `roofUnion` roofs several overlapping rectangles at once: L, T and cross plans, a front
+  cross-gable, a hipped end, dormer roofs. Each part is a gable (`ridge: "x"` or `"z"`) or a hip
+  over its footprint, rising one row per cell from its eave row (its lower Y). Where parts
+  overlap the higher roof wins and they meet in valleys and hips, with the stair corners
+  (`shape=inner_*`, `outer_*`) set the way the game sets them. A single gable part is exactly
+  `roofGable`. `endFill` closes only the gable ends that are exposed, not a wing end that runs
+  into the main roof. A roof hipped at one end and gabled at the other is a hip part over the
+  whole footprint plus a gable part over the gabled half. Parts with a higher eave row sit on the
+  main slope (dormer roofs). Every part uses the straight profile; there is no `verge`, `eave`,
+  `ridgeCap` or `profile` here.
+- `dormer` is the body of a dormer on a straight slope: `c1`..`c2` is its front wall, one cell
+  thick toward `facing`, from the first row above the main roof's stairs to the row under the
+  dormer's roof, at least 3 x 3. The window is the wall less a 1-cell border; the cheeks run back
+  one row shorter per cell, down the slope. Roof it with a part from `dormerRoof(c1, c2, facing)`
+  in the main roof's `roofUnion`, placed after the dormer. Its ridge must stay under the main
+  ridge: a dormer `w` wide whose wall top is `t` rows above the slope needs the main ridge
+  `t + 1 + floor((w + 1) / 2)` rows above that point.
+- `chimney` is a square shaft from `base` (its low corner and bottom row) up `height` rows. Place
+  it after the roof so the shaft replaces the roof cells. `cap: "slab"` is a slab lid on the top;
+  `"posts"` is a post on each top corner and the slab lid above them. `smoke` puts a lit campfire
+  in the middle of the top row.
+- `door` places both halves. `facing` is the door's own: the way you look walking in. The second
+  leaf of `double` goes one cell to the right of someone facing `facing`. The frame and lintel
+  replace the wall cells they stand in; write the log axis yourself.
+- `window` fills an opening one cell thick in a wall whose outside faces `facing`. Panes and bars
+  get their two sides in the wall's plane. A `sill` stair becomes upside down with its back to the
+  wall, a trapdoor a closed top-half plate, a slab a top slab, unless you set those properties.
+
+```ts
+// A main roof with a front cross-gable, a dormer, a chimney, a door and a window.
+BUILD.walls([0, 1, 0], [12, 5, 14], "minecraft:spruce_planks");
+BUILD.walls([8, 1, 14], [12, 5, 19], "minecraft:spruce_planks");
+BUILD.place(shapes.dormer([3, 9, 13], [5, 11, 13], "south", "minecraft:spruce_planks"));
+BUILD.place(
+  shapes.roofUnion(
+    [
+      { c1: [-1, 6, -1], c2: [13, 6, 15], ridge: "x" },
+      { c1: [7, 6, 10], c2: [13, 6, 20], ridge: "z" },
+      shapes.dormerRoof([3, 9, 13], [5, 11, 13], "south"),
+    ],
+    "minecraft:deepslate_tile_stairs",
+    { endFill: "minecraft:white_concrete" },
+  ),
+);
+BUILD.place(
+  shapes.chimney([1, 1, 3], 15, "minecraft:bricks", {
+    cap: "posts",
+    slab: "minecraft:stone_brick_slab",
+    post: "minecraft:stone_brick_wall",
+    smoke: true,
+  }),
+);
+BUILD.place(shapes.door([10, 1, 19], "north", "minecraft:spruce_door"));
+BUILD.place(
+  shapes.window([3, 2, 14], [4, 3, 14], "south", {
+    sill: "minecraft:spruce_stairs",
+    shutters: "minecraft:spruce_trapdoor",
+  }),
+);
+```
 
 ```ts
 BUILD.place(
@@ -412,4 +509,5 @@ The CLI reports a thrown error as one line with the recipe's `file:line:column`.
 - Chest contents, sign text and other block-entity data, and entities.
 - Ellipsoids, tori, boolean operations other than `carve`, terrain generators. Compose them from
   `set` in loops, material functions and `rng`.
-- Reading an existing schematic into a recipe.
+- Reading a schematic from inside a recipe. The CLI's `import` command turns a schematic into a
+  recipe instead (see SKILL.md).
