@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { describe, expect, it } from "vitest";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { readSchem, readStructureNbt } from "@voxwright/core";
+import { afterAll, describe, expect, it } from "vitest";
 import {
   Build,
   cleanProperties,
@@ -11,6 +17,7 @@ import {
   RENAMED_BLOCKS,
   Registry,
   type Structure,
+  structureFromVolume,
   summary,
   toScript,
 } from "../src/index.ts";
@@ -214,5 +221,67 @@ describe("import: specifier and renamed blocks", () => {
     expect(out.blocks[0]?.[3]).toBe("minecraft:chain[axis=x,waterlogged=false]");
     expect(out.renamedBlocks).toBeUndefined();
     expect(Object.keys(RENAMED_BLOCKS)).toContain("minecraft:chain");
+  });
+});
+
+describe("convert.ts -> mcbuilder importer on real .schem fixtures", () => {
+  const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
+  const convertScript = join(repoRoot, "scripts/convert.ts");
+  const workDir = mkdtempSync(join(tmpdir(), "voxwright-convert-import-"));
+  afterAll(() => rmSync(workDir, { recursive: true, force: true }));
+
+  it.each([
+    "fixtures/real/worldedit/fantasyhouse2.schem",
+    "fixtures/real/shulkr/raifox-medivial-house.schem",
+    "fixtures/real/flat-v3/smp_lobby_big.schem",
+  ])("converts %s to .nbt and imports back with identical blocks", async (relPath) => {
+    const src = join(repoRoot, relPath);
+    const outNbt = join(workDir, `${basename(relPath, ".schem")}.nbt`);
+    execFileSync(process.execPath, [convertScript, src, outNbt], { stdio: "pipe" });
+
+    const original = await readSchem(new Uint8Array(readFileSync(src)));
+    const converted = await readStructureNbt(new Uint8Array(readFileSync(outNbt)));
+    const structure = structureFromVolume(converted.volume, basename(outNbt), {
+      dataVersion: converted.meta.dataVersion,
+      droppedBlockEntities: converted.meta.droppedBlockEntities + converted.volume.blockEntityCount,
+      droppedEntities: converted.meta.droppedEntities + converted.volume.entities.length,
+    });
+    const code = toScript(structure)
+      .replace('import { Build } from "@voxwright/mcbuilder";', "")
+      .replace("export const BUILD", "const BUILD");
+    const rebuilt = (new Function("Build", `${code}\nreturn BUILD;`)(Build) as Build).grid.volume;
+
+    expect(rebuilt.size).toBe(original.volume.size);
+    let mismatches = 0;
+    rebuilt.eachCell((x, y, z, idx) => {
+      if (original.volume.get(x, y, z) !== rebuilt.palette[idx]) mismatches++;
+    });
+    expect(mismatches).toBe(0);
+  });
+
+  it("renames legacy 1.20 block ids when cleaning an imported flat-v3 build for 26.2", async () => {
+    const src = join(repoRoot, "fixtures/real/flat-v3/smp_lobby_big.schem");
+    const outNbt = join(workDir, "smp_lobby_big_rename.nbt");
+    execFileSync(process.execPath, [convertScript, src, outNbt], { stdio: "pipe" });
+    const converted = await readStructureNbt(new Uint8Array(readFileSync(outNbt)));
+    const st = structureFromVolume(converted.volume, basename(outNbt), {
+      dataVersion: converted.meta.dataVersion,
+    });
+    const reg = new Registry(
+      normalizeBlockData([
+        {
+          name: "iron_chain",
+          states: [
+            { name: "axis", type: "enum", values: ["x", "y", "z"] },
+            { name: "waterlogged", type: "bool", values: ["true", "false"] },
+          ],
+        },
+      ]),
+      "26.2",
+    );
+    const cleaned = cleanProperties(st, reg);
+    expect(cleaned.renamedBlocks?.get("chain -> iron_chain")).toBeGreaterThan(0);
+    expect(cleaned.blocks.some(([, , , b]) => b.startsWith("minecraft:iron_chain["))).toBe(true);
+    expect(cleaned.blocks.some(([, , , b]) => b.startsWith("minecraft:chain["))).toBe(false);
   });
 });

@@ -228,9 +228,18 @@ export async function readSchem(
   if (version !== 2 && version !== 3) {
     throw new CodecError(`unsupported Sponge schematic version ${version} (expected 2 or 3)`);
   }
-  if ((version === 3) !== isV3) {
+  // Some real-world exporters write Sponge v2's flat layout (top-level `Palette` and `BlockData`,
+  // no nested `Schematic`/`Blocks`) while stamping `Version: 3`. Accept that layout with a warning.
+  const flatV2WithV3Tag =
+    version === 3 &&
+    !isV3 &&
+    child(schem, "Blocks") === undefined &&
+    child(schem, "Palette")?.type === "compound" &&
+    child(schem, "BlockData")?.type === "byteArray";
+  if ((version === 3) !== isV3 && !flatV2WithV3Tag) {
     throw new CodecError(`Sponge schematic version ${version} has the wrong layout`);
   }
+  const layoutVersion: SchemVersion = flatV2WithV3Tag ? 2 : version;
 
   const width = dimension(schem, "Width");
   const height = dimension(schem, "Height");
@@ -240,7 +249,7 @@ export async function readSchem(
   let paletteTag: NbtTag | undefined;
   let dataTag: NbtTag | undefined;
   let blockEntities: NbtTag | undefined;
-  if (version === 3) {
+  if (layoutVersion === 3) {
     const blocks = asCompound(child(schem, "Blocks"), "Blocks");
     paletteTag = child(blocks, "Palette");
     dataTag = child(blocks, "Data");
@@ -301,17 +310,23 @@ export async function readSchem(
   }
 
   const lost = new Tally();
-  readBlockEntities(volume, compoundList(blockEntities), version, lost);
-  readEntities(volume, compoundList(child(schem, "Entities")), version, lost);
+  readBlockEntities(volume, compoundList(blockEntities), layoutVersion, lost);
+  readEntities(volume, compoundList(child(schem, "Entities")), layoutVersion, lost);
 
   const warnings = [...lost.lines("their position holds no block, or is missing or malformed")];
   warnings.push(...dropped.lines());
+  if (flatV2WithV3Tag) {
+    warnings.push("Version is 3, but layout is Sponge v2 (read using v2 layout)");
+  }
   const metadata = child(schem, "Metadata");
   if (metadata?.type === "compound" && metadata.value.size > 0) {
     warnings.push(`Metadata not carried over (${[...metadata.value.keys()].join(", ")})`);
   }
   // v3 keeps biomes in a "Biomes" compound; v2 in "BiomeData" with a "BiomePalette".
-  if (child(schem, version === 3 ? "Biomes" : "BiomeData") !== undefined) {
+  if (
+    child(schem, layoutVersion === 3 ? "Biomes" : "BiomeData") !== undefined ||
+    (flatV2WithV3Tag && child(schem, "Biomes") !== undefined)
+  ) {
     warnings.push("biomes not carried over (a volume holds no biomes)");
   }
 

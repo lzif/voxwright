@@ -86,6 +86,41 @@ describe("scripts/convert.ts", () => {
     expect(final.volume.size).toBe(762);
   });
 
+  it("turns a real WorldEdit .schem into a .nbt with identical blocks and entities", async () => {
+    const src = join(root, "fixtures/real/worldedit/fantasyhouse2.schem");
+    const out = join(dir, "fantasyhouse2.nbt");
+    const log = run(src, out);
+    expect(log).toContain("22953 blocks, 342 palette entries, DataVersion 5023");
+    const original = await readSchem(new Uint8Array(readFileSync(src)));
+    const converted = await readStructureNbt(new Uint8Array(readFileSync(out)));
+    expect(converted.volume.size).toBe(original.volume.size);
+    expect(converted.volume.blockEntityCount).toBe(93);
+    expect(converted.volume.entities).toHaveLength(41);
+    expect(converted.meta.dataVersion).toBe(5023);
+    let mismatches = 0;
+    original.volume.eachCell((x, y, z, idx) => {
+      if (converted.volume.get(x, y, z) !== original.volume.palette[idx]) mismatches++;
+    });
+    expect(mismatches).toBe(0);
+  });
+
+  it("converts a flat-v3 .schem into .nbt and prints the layout warning on stderr", async () => {
+    const src = join(root, "fixtures/real/flat-v3/smp_lobby_big.schem");
+    const out = join(dir, "smp_lobby_big.nbt");
+    const res = spawnSync(process.execPath, [script, src, out], { encoding: "utf8" });
+    expect(res.status).toBe(0);
+    expect(res.stdout).toContain("18295 blocks, 41 palette entries, DataVersion 3465");
+    expect(res.stderr).toContain("Version is 3, but layout is Sponge v2");
+    const original = await readSchem(new Uint8Array(readFileSync(src)));
+    const converted = await readStructureNbt(new Uint8Array(readFileSync(out)));
+    expect(converted.volume.size).toBe(original.volume.size);
+    let mismatches = 0;
+    original.volume.eachCell((x, y, z, idx) => {
+      if (converted.volume.get(x, y, z) !== original.volume.palette[idx]) mismatches++;
+    });
+    expect(mismatches).toBe(0);
+  });
+
   it("keeps the .schem Offset from .schem to .schem", async () => {
     const v = new Volume();
     v.set(0, 0, 0, "minecraft:stone");
@@ -135,12 +170,14 @@ describe("scripts/convert.ts", () => {
   it("tells the user to re-save a legacy .schematic as .schem", () => {
     const legacy = join(dir, "old.schematic");
     writeFileSync(legacy, new Uint8Array(0));
-    const bad = spawnSync(process.execPath, [script, legacy, join(dir, "x.nbt")], {
-      encoding: "utf8",
-    });
-    expect(bad.status).toBe(1);
-    expect(bad.stderr).toContain("legacy .schematic");
-    expect(bad.stderr).toContain("re-save it as .schem");
+    for (const src of [legacy, join(root, "fixtures/real/legacy/storageroom-medieval.schematic")]) {
+      const bad = spawnSync(process.execPath, [script, src, join(dir, "x.nbt")], {
+        encoding: "utf8",
+      });
+      expect(bad.status).toBe(1);
+      expect(bad.stderr).toContain("legacy .schematic");
+      expect(bad.stderr).toContain("re-save it as .schem");
+    }
   });
 
   it("fails clearly on bad input", () => {

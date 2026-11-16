@@ -4725,9 +4725,11 @@ async function readSchem(bytes, options = {}) {
   if (version !== 2 && version !== 3) {
     throw new CodecError(`unsupported Sponge schematic version ${version} (expected 2 or 3)`);
   }
-  if (version === 3 !== isV3) {
+  const flatV2WithV3Tag = version === 3 && !isV3 && child(schem, "Blocks") === void 0 && child(schem, "Palette")?.type === "compound" && child(schem, "BlockData")?.type === "byteArray";
+  if (version === 3 !== isV3 && !flatV2WithV3Tag) {
     throw new CodecError(`Sponge schematic version ${version} has the wrong layout`);
   }
+  const layoutVersion = flatV2WithV3Tag ? 2 : version;
   const width = dimension(schem, "Width");
   const height = dimension(schem, "Height");
   const length = dimension(schem, "Length");
@@ -4735,7 +4737,7 @@ async function readSchem(bytes, options = {}) {
   let paletteTag;
   let dataTag;
   let blockEntities;
-  if (version === 3) {
+  if (layoutVersion === 3) {
     const blocks = asCompound(child(schem, "Blocks"), "Blocks");
     paletteTag = child(blocks, "Palette");
     dataTag = child(blocks, "Data");
@@ -4791,15 +4793,18 @@ async function readSchem(bytes, options = {}) {
     volume.set(x2, y, z, kind === "air" ? AIR : state);
   }
   const lost = new Tally();
-  readBlockEntities(volume, compoundList(blockEntities), version, lost);
-  readEntities(volume, compoundList(child(schem, "Entities")), version, lost);
+  readBlockEntities(volume, compoundList(blockEntities), layoutVersion, lost);
+  readEntities(volume, compoundList(child(schem, "Entities")), layoutVersion, lost);
   const warnings = [...lost.lines("their position holds no block, or is missing or malformed")];
   warnings.push(...dropped.lines());
+  if (flatV2WithV3Tag) {
+    warnings.push("Version is 3, but layout is Sponge v2 (read using v2 layout)");
+  }
   const metadata = child(schem, "Metadata");
   if (metadata?.type === "compound" && metadata.value.size > 0) {
     warnings.push(`Metadata not carried over (${[...metadata.value.keys()].join(", ")})`);
   }
-  if (child(schem, version === 3 ? "Biomes" : "BiomeData") !== void 0) {
+  if (child(schem, layoutVersion === 3 ? "Biomes" : "BiomeData") !== void 0 || flatV2WithV3Tag && child(schem, "Biomes") !== void 0) {
     warnings.push("biomes not carried over (a volume holds no biomes)");
   }
   const dv = child(schem, "DataVersion");

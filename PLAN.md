@@ -65,7 +65,7 @@ Each task becomes one GitHub issue under milestone M0, in this order.
 
 **Exit criteria:** the vectors pass, the round-trip suite is green, CI is green, and `convert` turns a real `.schem` into a `.nbt` that mcbuilder's importer reads back.
 
-**Where that stands (2026-11-08):** the vectors pass, the round-trip suite is green, and CI is green on GitHub. No `.schem` saved by a real tool exists yet (see Open items), and no automated test feeds `convert`'s output to mcbuilder's importer.
+**Where that stands (2026-11-16):** the vectors pass, the round-trip suite is green, CI is green on GitHub, `fixtures/real/` now holds real-tool `.schem` files (`worldedit/fantasyhouse2.schem`, three `shulkr/*.schem`, and three `flat-v3/smp_lobby_*.schem`), and `packages/mcbuilder/test/importer.test.ts` runs `scripts/convert.ts` on them and feeds the converted `.nbt` files into mcbuilder's importer, rebuilding identical blocks.
 
 ## Golden vectors
 
@@ -273,7 +273,7 @@ The code differs from the v1 spec in the ways below. Luki decided all fourteen o
 
 - [x] Create the repository `lzif/voxwright` so the scaffold can start (created **private**; it is **public** now, checked 2026-11-11)
 - [x] Choose `AGPL-3.0-only` or `AGPL-3.0-or-later` for the SPDX headers, before M0 (`AGPL-3.0-only`)
-- [ ] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit (`.nbt`, `.litematic` and `.mcstructure` of one build are in `fixtures/real/`, saved by bloxelizer.com, not Litematica or Bedrock). M2 was built without them, so this is late
+- [x] Before M2, send fixtures saved by real tools: two or three `.schem` from WorldEdit (`.nbt`, `.litematic` and `.mcstructure` of `Rafeals_house` in `fixtures/real/rafeals-house/`, saved by bloxelizer.com, plus `worldedit/fantasyhouse2.schem`, three `shulkr/*.schem`, three `flat-v3/smp_lobby_*.schem`, and `legacy/storageroom-medieval.schematic` added 2026-11-16)
 - [ ] Check the domain and trademark (npm is settled, decided 2026-11-14: only the command line is published, unscoped as `voxmc`; the `@voxwright` npm scope holds only the old `@voxwright/mcbuild` and is not used otherwise)
 - [ ] Pick the open source Bedrock to Java block-mapping table and confirm its license is AGPL-compatible (needed by M2; the code uses hand-written rules meanwhile)
 - [x] Decide each entry under "Differences from the v1 spec" (all 14 decided 2026-11-07; see that section)

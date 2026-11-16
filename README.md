@@ -320,9 +320,11 @@ Built:
   the renderer (see [vectors/README.md](vectors/README.md)).
 - `core`: NBT reader and writer (big and little endian, gzip), block strings,
   rotation, sectioned volume, and codecs for `.nbt`, `.schem`, `.litematic` and
-  `.mcstructure`, all tested. A real build saved in three of those formats
-  decodes to the same blocks in each, once the Java default properties that
-  Bedrock leaves out (such as `waterlogged=false`) are set aside.
+  `.mcstructure`, all tested (including real-tool `.schem` builds from WorldEdit
+  and Shulkr, plus flat-v2-layout files tagged `Version: 3`). A real build
+  saved in three of those formats decodes to the same blocks in each, once the
+  Java default properties that Bedrock leaves out (such as `waterlogged=false`)
+  are set aside.
 - `convert` script between all four formats.
 - The Agent Skill in `skills/voxwright/`: `SKILL.md`, the references, and the skill CLI (`build`, `inspect`,
   `preview` / `view`) as a committed zero-dependency bundle, with the web app opening a build from a
@@ -341,10 +343,10 @@ Not done yet:
   trapdoors, beds, pillars, fences, panes, walls, torches, lanterns, leaves and blocks with
   `facing`), not every block in the game. The summary lists each dropped property.
 - Block-entity data (chest contents, sign text) and entities cannot be written from a recipe.
-- `.schem` files saved by a real tool, and a run on a real phone (the touch editor
-  has only been driven by emulated touch so far; `docs/phone-test-checklist.md`
-  lists what to try). Luki checked an edited export in Litematica and smooth
-  navigation on a real GPU by hand on 2026-11-11; no GPU numbers were recorded.
+- A run on a real phone (the touch editor has only been driven by emulated touch so
+  far; `docs/phone-test-checklist.md` lists what to try). Luki checked an edited
+  export in Litematica and smooth navigation on a real GPU by hand on 2026-11-11;
+  no GPU numbers were recorded.
 - The 0.1.0 release: the 0.1.0 version bump and tag (`voxmc` is on npm at 0.0.3).
 - Deferred, not in 0.1.0: the parts catalog (the spec names it, nothing defines it, so it needs a
   definition first) and the fast and trusted preview tiers.

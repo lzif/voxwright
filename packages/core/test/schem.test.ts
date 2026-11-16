@@ -15,7 +15,7 @@ import {
   writeSchem,
   writeStructureNbt,
 } from "../src/index.ts";
-import { loadFixture, tagToJson } from "./helpers.ts";
+import { CHEST, chestEntity, cow, loadFixture, tagToJson } from "./helpers.ts";
 
 interface Expected {
   files: Record<
@@ -127,6 +127,23 @@ describe(".schem round trips", () => {
     expect((await readSchem(bytes)).volume.get(0, 0, 0)).toBe("minecraft:chest[facing=north]");
   });
 
+  it("reads a flat Sponge v2 layout stamped Version 3 with a warning", async () => {
+    const v = new Volume();
+    v.set(0, 0, 0, "minecraft:stone");
+    v.set(1, 0, 0, CHEST);
+    v.setBlockEntity(1, 0, 0, chestEntity());
+    v.addEntity(cow(0.5, 1, 0.5));
+    const { root } = buildSchem(v, { dataVersion: 3465, version: 2 });
+    root.value.set("Version", int(3));
+    const bytes = writeNbt({ name: "", tag: root });
+    const read = await readSchem(bytes);
+    expect(read.meta.version).toBe(3);
+    expect(read.warnings).toContain("Version is 3, but layout is Sponge v2 (read using v2 layout)");
+    expect(cellsOf(read.volume)).toEqual(cellsOf(v));
+    expect(read.volume.blockEntityCount).toBe(1);
+    expect(read.volume.entities).toHaveLength(1);
+  });
+
   it("refuses an empty volume", () => {
     expect(() => buildSchem(new Volume(), { dataVersion: 1 })).toThrow(CodecError);
   });
@@ -154,6 +171,8 @@ describe(".schem error handling", () => {
       tag: compound([["Schematic", compound([["Version", int(2)]])]]),
     });
     await expect(readSchem(lying)).rejects.toThrow(/wrong layout/);
+    const flatWithoutBody = writeNbt({ name: "", tag: compound([["Version", int(3)]]) });
+    await expect(readSchem(flatWithoutBody)).rejects.toThrow(/wrong layout/);
   });
 
   it("rejects block data shorter than the volume, and undefined palette ids", async () => {
