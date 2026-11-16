@@ -887,6 +887,38 @@ BUILD.scope(() => {
     expect(n).toBe(5);
   });
 
+  it("inspects real-tool WorldEdit and flat-v3 .schem files", async () => {
+    const we = await cli([
+      "inspect",
+      join(repo, "fixtures/real/worldedit/fantasyhouse2.schem"),
+      "--json",
+    ]);
+    expect(we.code).toBe(0);
+    expect(JSON.parse(we.stdout)).toMatchObject({
+      format: "schem",
+      formatVersion: 3,
+      dataVersion: 5023,
+      blocks: 22953,
+      blockStates: 342,
+      blockEntities: 93,
+      entities: 41,
+    });
+
+    const flat = await cli([
+      "inspect",
+      join(repo, "fixtures/real/flat-v3/smp_lobby_big.schem"),
+      "--json",
+    ]);
+    expect(flat.code).toBe(0);
+    expect(JSON.parse(flat.stdout)).toMatchObject({
+      format: "schem",
+      formatVersion: 3,
+      dataVersion: 3465,
+      blocks: 18295,
+      warnings: ["Version is 3, but layout is Sponge v2 (read using v2 layout)"],
+    });
+  });
+
   it("is what scripts/build-skill.ts produces from the current sources", async () => {
     const r = await run(process.execPath, [join(repo, "scripts/build-skill.ts"), "--check"]).then(
       (ok) => ({ code: 0, ...ok }),
