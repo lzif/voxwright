@@ -28,7 +28,8 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
    https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
 2. **Prototype composite shapes first.** Before composing a full build, prototype non-trivial
    composite shapes (a boat, roof, bridge, hull or similar) standalone in a small recipe or
-   `Geometry`: arrange the blocks, render close-up views with
+   `Geometry`: arrange the blocks, frame the object with a `pos1:pos2` box
+   (`<view>@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>`) around it so the whole shape is in frame with
    [run --preview](#run---preview-png-views), open the PNGs and judge whether the shape truly
    reads as that object. Iterate the block arrangement until it holds up on its own, and only then
    use it in the full composition.
@@ -58,8 +59,9 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
 5. **Read the summary and review close-ups.** If `build` says `build: FAILED`, fix the recipe and
    run again; check that the size, the block count and the palette are what you intended. Whole-build
    previews flatter a build and hide player-distance defects, so before calling the build done,
-   render both whole-build views and close-up views (`<view>@<x>,<y>,<z>r<radius>`) of key
-   details with `run --preview` and run functional checks:
+   render both whole-build views and close-up views (`<view>@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>`
+   around each object, or `<view>@<x>,<y>,<z>r<radius>`) of key details with `run --preview` and
+   run functional checks:
    - An implied entrance needs a real opening (at least 2 blocks tall, 1 wide).
    - A hull or enclosure must be sealed (no gaps to water or sky).
    - Props must survive a close-up (no checklist clutter).
@@ -211,11 +213,14 @@ Writes `<dir>/run-NNN/previews_faithful/<view>.png` (default `dist/`), drawn wit
 textures, next to a `report.json` and an `.nbt`. Open the PNGs to check the look of a build
 yourself before reporting, when you can read images. Views, separated by semicolons: `iso`,
 `top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. Append
-`@<x>,<y>,<z>r<radius>` to any view (for example `iso@15,6,22r5`, `az225_el025@28,7,18r4` or
-`orbit4_el25@18,5,23r4`) to crop and frame a close-up cube of radius `r` (`>= 1`) around world
-coordinate `(x, y, z)`, written as `previews_faithful/<view>@<x>,<y>,<z>r<r>.png`. The first
-preview downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`);
-without network access blocks are drawn as plain cubes.
+`@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>` to any view (for example `iso@10,4,18:22,10,28` or
+`az135_el025@7,5,6:15,13,13`) to frame the full inclusive `pos1`/`pos2` box (corners in any
+order, normalized to min/max and clamped to the build bounds), written as
+`previews_faithful/<view>@<minX>,<minY>,<minZ>:<maxX>,<maxY>,<maxZ>.png`. The shorthand
+`@<x>,<y>,<z>r<radius>` (for example `iso@15,6,22r5` or `orbit4_el25@18,5,23r4`) frames a cube of
+radius `r` (`>= 1`) around `(x, y, z)`. The first preview downloads the game's block models and
+textures (about 25 MB, into `~/.cache/mcbuilder/`); without network access blocks are drawn as
+plain cubes.
 
 ### palette
 
