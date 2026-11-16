@@ -466,7 +466,7 @@ BUILD.scope(() => {
           "--offline",
           "--guide",
           "--views",
-          "iso;iso@9,1,9r1;az225_el025@9,1,9r1;iso@50,50,50r2",
+          "iso;iso@9,1,9r1;az225_el025@10,1,10:8,0,8;iso@50,50,50r2;iso@50,50,50:60,60,60",
         ],
         c.io,
       ),
@@ -476,14 +476,21 @@ BUILD.scope(() => {
     expect(report.views.map((v: { file: string }) => v.file)).toEqual([
       "previews_faithful/iso.png",
       "previews_faithful/iso@9,1,9r1.png",
-      "previews_faithful/az225_el025@9,1,9r1.png",
+      "previews_faithful/az225_el025@8,0,8:10,1,10.png",
       "previews_faithful/iso@50,50,50r2.png",
+      "previews_faithful/iso@50,50,50:60,60,60.png",
     ]);
     expect("focus" in report.views[0]).toBe(false);
     expect(report.views[1].focus).toEqual({ center: [9, 1, 9], radius: 1 });
+    expect(report.views[2].focus).toEqual({ min: [8, 0, 8], max: [10, 1, 10] });
     expect(
       report.warnings.some((w: { message: string }) =>
         w.message.includes("`iso@50,50,50r2` focus region contains no blocks"),
+      ),
+    ).toBe(true);
+    expect(
+      report.warnings.some((w: { message: string }) =>
+        w.message.includes("`iso@50,50,50:60,60,60` focus region contains no blocks"),
       ),
     ).toBe(true);
 

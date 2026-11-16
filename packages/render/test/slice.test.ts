@@ -42,5 +42,10 @@ describe("cropDense", () => {
     const empty = cropDense(dense, [50, 50, 50], [55, 55, 55]);
     expect(empty.size).toEqual([0, 0, 0]);
     expect(empty.data.length).toBe(0);
+
+    // Partially out-of-bounds box clamps cleanly to the volume bounds.
+    const clamped = cropDense(dense, [0, 0, 12], [10, 10, 20]);
+    expect(clamped.size).toEqual([3, 1, 3]);
+    expect(clamped.origin).toEqual([0, 4, 12]);
   });
 });

@@ -943,7 +943,7 @@ BUILD.scope(() => {
         "--preview",
         "--offline",
         "--views",
-        "iso;iso@8,1,8r1",
+        "iso;iso@8,1,8r1;az135_el025@10,1,10:7,0,7",
       ],
       proj,
     );
@@ -952,9 +952,15 @@ BUILD.scope(() => {
     const runDir = join(proj, "prev-out", "run-001");
     expect(existsSync(join(runDir, "previews_faithful/iso.png"))).toBe(true);
     expect(existsSync(join(runDir, "previews_faithful/iso@8,1,8r1.png"))).toBe(true);
+    expect(existsSync(join(runDir, "previews_faithful/az135_el025@7,0,7:10,1,10.png"))).toBe(true);
     const report = JSON.parse(await readFile(join(runDir, "report.json"), "utf8"));
-    expect(report.views.map((v: { label: string }) => v.label)).toEqual(["iso", "iso@8,1,8r1"]);
+    expect(report.views.map((v: { label: string }) => v.label)).toEqual([
+      "iso",
+      "iso@8,1,8r1",
+      "az135_el025@7,0,7:10,1,10",
+    ]);
     expect(report.views[1].focus).toEqual({ center: [8, 1, 8], radius: 1 });
+    expect(report.views[2].focus).toEqual({ min: [7, 0, 7], max: [10, 1, 10] });
   });
 
   it("is what scripts/build-skill.ts produces from the current sources", async () => {

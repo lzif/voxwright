@@ -448,15 +448,22 @@ describe("Build.validate and Build.render", () => {
       expect(basename(pColon[0] as string)).toBe("az000_el025.png");
       expect(basename(pColon.at(-1) as string)).toBe("top.png");
 
-      // Focused close-up view via Build.render and BuildOptions.views.
-      const bFocus = new Build({ seed: 1, views: ["iso", "iso@10,1,10r1"] });
+      // Focused close-up views (radius and box) via Build.render and BuildOptions.views.
+      const bFocus = new Build({ seed: 1, views: ["iso", "iso@10,1,10r1", "iso@12,1,12:9,0,9"] });
       bFocus.scope(() => {
         bFocus.box([0, 0, 0], [12, 0, 12], "minecraft:stone");
         bFocus.set(10, 1, 10, "minecraft:cobblestone");
       });
       const pFocus = bFocus.render(join(dir, "focus"), { assetsDir: null });
-      expect(pFocus.map((p) => basename(p))).toEqual(["iso.png", "iso@10,1,10r1.png"]);
+      expect(pFocus.map((p) => basename(p))).toEqual([
+        "iso.png",
+        "iso@10,1,10r1.png",
+        "iso@9,0,9:12,1,12.png",
+      ]);
       expect(readFileSync(pFocus[0] as string).equals(readFileSync(pFocus[1] as string))).toBe(
+        false,
+      );
+      expect(readFileSync(pFocus[0] as string).equals(readFileSync(pFocus[2] as string))).toBe(
         false,
       );
 

@@ -17,10 +17,15 @@
 // Every fast-tier preview is flagged `directions_untrusted: true`: the fast
 // renderer cannot show facing or connection state.
 
-export interface ViewFocusLike {
-  center: readonly [number, number, number];
-  radius: number;
-}
+export type ViewFocusLike =
+  | {
+      center: readonly [number, number, number];
+      radius: number;
+    }
+  | {
+      min: readonly [number, number, number];
+      max: readonly [number, number, number];
+    };
 
 export interface ViewLike {
   azimuth: number;
@@ -34,9 +39,20 @@ export interface ViewEntry {
   azimuth: number;
   elevation: number;
   label: string;
-  focus?: { center: [number, number, number]; radius: number };
+  focus?:
+    | { center: [number, number, number]; radius: number }
+    | { min: [number, number, number]; max: [number, number, number] };
   directions_untrusted: boolean;
   directions_trusted: boolean;
+}
+
+function copyFocus(focus: ViewFocusLike): NonNullable<ViewEntry["focus"]> {
+  return "center" in focus
+    ? { center: [...focus.center] as [number, number, number], radius: focus.radius }
+    : {
+        min: [...focus.min] as [number, number, number],
+        max: [...focus.max] as [number, number, number],
+      };
 }
 
 export function viewEntry(options: {
@@ -50,14 +66,7 @@ export function viewEntry(options: {
     azimuth: options.view.azimuth,
     elevation: options.view.elevation,
     label: options.view.label,
-    ...(options.view.focus
-      ? {
-          focus: {
-            center: [...options.view.focus.center] as [number, number, number],
-            radius: options.view.focus.radius,
-          },
-        }
-      : {}),
+    ...(options.view.focus ? { focus: copyFocus(options.view.focus) } : {}),
     directions_untrusted: options.directionsUntrusted ?? true,
     directions_trusted: options.directionsTrusted ?? false,
   };
@@ -97,7 +106,10 @@ export function buildReport(input: ReportInput): Report {
       ? { x: input.dimensions[0], y: input.dimensions[1], z: input.dimensions[2] }
       : null,
     origin: input.origin ? input.origin.map((v) => Math.trunc(v)) : null,
-    views: input.views.map((v) => ({ ...v })),
+    views: input.views.map((v) => ({
+      ...v,
+      ...(v.focus ? { focus: copyFocus(v.focus) } : {}),
+    })),
     artifacts: input.artifacts ? input.artifacts.map((a) => ({ ...a })) : [],
     overwritten_placements: input.overwrittenPlacements ?? 0,
     run_dir: input.runDir,

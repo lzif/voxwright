@@ -919,7 +919,7 @@ export const RUN_SYNTAX = `init [path] [--force]
 check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-    [--offline] (views accept optional @x,y,zr<radius> close-up focus)
+    [--offline] (views accept optional @x1,y1,z1:x2,y2,z2 or @x,y,zr<radius> close-up focus)
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]

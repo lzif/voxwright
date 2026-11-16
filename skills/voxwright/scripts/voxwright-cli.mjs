@@ -8176,10 +8176,11 @@ var ViewError = class extends Error {
     this.name = "ViewError";
   }
 };
-var GRAMMAR_HELP = "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso' with optional '@<x>,<y>,<z>r<radius>' focus (e.g. 'iso@15,6,22r5'); multiple views are separated by semicolons";
+var GRAMMAR_HELP = "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso' with optional '@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>' or '@<x>,<y>,<z>r<radius>' focus (e.g. 'iso@10,4,18:22,10,28' or 'iso@15,6,22r5'); multiple views are separated by semicolons";
 var AZ_EL_RE = /^az:?(\d+)_el:?(\d+)$/;
 var ORBIT_RE = /^orbit:?(\d+)_el:?(\d+)$/;
-var FOCUS_RE = /^(-?\d+),(-?\d+),(-?\d+)r(-?\d+)$/;
+var FOCUS_BOX_RE = /^(-?\d+),(-?\d+),(-?\d+):(-?\d+),(-?\d+),(-?\d+)$/;
+var FOCUS_RADIUS_RE = /^(-?\d+),(-?\d+),(-?\d+)r(-?\d+)$/;
 var q = (s) => s.includes("'") && !s.includes('"') ? `"${s}"` : `'${s.replaceAll("\\", "\\\\").replaceAll("'", "\\'")}'`;
 var pyFloat = (v) => Number.isInteger(v) ? v.toFixed(1) : String(v);
 function fmtNum(value) {
@@ -8205,28 +8206,54 @@ function checkCap(views) {
   }
   return views;
 }
-function parseFocusSuffix(focusSpec, fullToken) {
-  const m = FOCUS_RE.exec(focusSpec);
-  if (!m) {
-    throw new ViewError(
-      `malformed view token ${q(fullToken)}: focus must be '@<x>,<y>,<z>r<radius>' (e.g. '@15,6,22r5'); ${GRAMMAR_HELP}`
-    );
-  }
-  const cx = Number(m[1]) || 0;
-  const cy = Number(m[2]) || 0;
-  const cz = Number(m[3]) || 0;
-  const radius = Number(m[4]);
-  if (!Number.isSafeInteger(cx) || !Number.isSafeInteger(cy) || !Number.isSafeInteger(cz)) {
+function parseIntCoord(raw, fullToken) {
+  const n2 = Number(raw) || 0;
+  if (!Number.isSafeInteger(n2)) {
     throw new ViewError(
       `malformed view token ${q(fullToken)}: focus coordinates out of range; ${GRAMMAR_HELP}`
     );
   }
+  return n2;
+}
+function parseFocusSuffix(focusSpec, fullToken) {
+  const box2 = FOCUS_BOX_RE.exec(focusSpec);
+  if (box2) {
+    const x1 = parseIntCoord(box2[1], fullToken);
+    const y1 = parseIntCoord(box2[2], fullToken);
+    const z1 = parseIntCoord(box2[3], fullToken);
+    const x2 = parseIntCoord(box2[4], fullToken);
+    const y2 = parseIntCoord(box2[5], fullToken);
+    const z2 = parseIntCoord(box2[6], fullToken);
+    return {
+      min: [Math.min(x1, x2), Math.min(y1, y2), Math.min(z1, z2)],
+      max: [Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2)]
+    };
+  }
+  const m = FOCUS_RADIUS_RE.exec(focusSpec);
+  if (!m) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus must be '@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>' or '@<x>,<y>,<z>r<radius>' (e.g. '@10,4,18:22,10,28' or '@15,6,22r5'); ${GRAMMAR_HELP}`
+    );
+  }
+  const cx = parseIntCoord(m[1], fullToken);
+  const cy = parseIntCoord(m[2], fullToken);
+  const cz = parseIntCoord(m[3], fullToken);
+  const radius = Number(m[4]);
   if (!Number.isSafeInteger(radius) || radius < 1) {
     throw new ViewError(
       `malformed view token ${q(fullToken)}: focus radius must be >= 1; ${GRAMMAR_HELP}`
     );
   }
   return { center: [cx, cy, cz], radius };
+}
+function cloneFocus(focus) {
+  return "center" in focus ? { center: [...focus.center], radius: focus.radius } : {
+    min: [...focus.min],
+    max: [...focus.max]
+  };
+}
+function formatFocusSuffix(focus) {
+  return "center" in focus ? `@${focus.center[0]},${focus.center[1]},${focus.center[2]}r${focus.radius}` : `@${focus.min[0]},${focus.min[1]},${focus.min[2]}:${focus.max[0]},${focus.max[1]},${focus.max[2]}`;
 }
 function parseBaseToken(baseSpec, fullToken) {
   if (baseSpec === "top") return [{ azimuth: 0, elevation: 90, label: "top" }];
@@ -8274,19 +8301,33 @@ function parseToken(token) {
     );
   }
   const focus = parseFocusSuffix(token.slice(at + 1), token);
-  const suffix = `@${focus.center[0]},${focus.center[1]},${focus.center[2]}r${focus.radius}`;
+  const suffix = formatFocusSuffix(focus);
   return parseBaseToken(baseSpec, token).map((v) => ({
     ...v,
     label: `${v.label}${suffix}`,
-    focus: { center: [...focus.center], radius: focus.radius }
+    focus: cloneFocus(focus)
   }));
 }
 function focusBounds(focus) {
-  const [cx, cy, cz] = focus.center;
-  const r = focus.radius;
+  if ("center" in focus) {
+    const [cx, cy, cz] = focus.center;
+    const r = focus.radius;
+    return [
+      [cx - r, cy - r, cz - r],
+      [cx + r, cy + r, cz + r]
+    ];
+  }
   return [
-    [cx - r, cy - r, cz - r],
-    [cx + r, cy + r, cz + r]
+    [
+      Math.min(focus.min[0], focus.max[0]),
+      Math.min(focus.min[1], focus.max[1]),
+      Math.min(focus.min[2], focus.max[2])
+    ],
+    [
+      Math.max(focus.min[0], focus.max[0]),
+      Math.max(focus.min[1], focus.max[1]),
+      Math.max(focus.min[2], focus.max[2])
+    ]
   ];
 }
 function parseViews(spec) {
@@ -10466,18 +10507,19 @@ var Registry = class _Registry {
 };
 
 // packages/mcbuilder/src/report.ts
+function copyFocus(focus) {
+  return "center" in focus ? { center: [...focus.center], radius: focus.radius } : {
+    min: [...focus.min],
+    max: [...focus.max]
+  };
+}
 function viewEntry(options) {
   return {
     file: options.file,
     azimuth: options.view.azimuth,
     elevation: options.view.elevation,
     label: options.view.label,
-    ...options.view.focus ? {
-      focus: {
-        center: [...options.view.focus.center],
-        radius: options.view.focus.radius
-      }
-    } : {},
+    ...options.view.focus ? { focus: copyFocus(options.view.focus) } : {},
     directions_untrusted: options.directionsUntrusted ?? true,
     directions_trusted: options.directionsTrusted ?? false
   };
@@ -10489,7 +10531,10 @@ function buildReport(input) {
     block_counts: { ...input.blockCounts },
     dimensions: input.dimensions ? { x: input.dimensions[0], y: input.dimensions[1], z: input.dimensions[2] } : null,
     origin: input.origin ? input.origin.map((v) => Math.trunc(v)) : null,
-    views: input.views.map((v) => ({ ...v })),
+    views: input.views.map((v) => ({
+      ...v,
+      ...v.focus ? { focus: copyFocus(v.focus) } : {}
+    })),
     artifacts: input.artifacts ? input.artifacts.map((a) => ({ ...a })) : [],
     overwritten_placements: input.overwrittenPlacements ?? 0,
     run_dir: input.runDir
@@ -14898,7 +14943,7 @@ var RUN_SYNTAX = `init [path] [--force]
 check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-    [--offline] (views accept optional @x,y,zr<radius> close-up focus)
+    [--offline] (views accept optional @x1,y1,z1:x2,y2,z2 or @x,y,zr<radius> close-up focus)
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]

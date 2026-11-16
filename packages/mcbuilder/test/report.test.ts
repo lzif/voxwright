@@ -12,6 +12,19 @@ describe("report against the Python oracle", () => {
     expect(
       viewEntry({ file: "a.png", view, directionsUntrusted: false, directionsTrusted: true }),
     ).toEqual(v.view_entry_trusted);
+    const boxView = {
+      azimuth: 45,
+      elevation: 35,
+      label: "iso@10,4,18:22,10,28",
+      focus: { min: [10, 4, 18] as const, max: [22, 10, 28] as const },
+    };
+    const entry = viewEntry({
+      file: "previews_faithful/iso@10,4,18:22,10,28.png",
+      view: boxView,
+      directionsUntrusted: false,
+      directionsTrusted: true,
+    });
+    expect(entry.focus).toEqual({ min: [10, 4, 18], max: [22, 10, 28] });
   });
 
   it("builds full and minimal reports", () => {
