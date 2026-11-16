@@ -117,7 +117,15 @@ this order:
 3. chimney;
 4. door and window helpers.
 
-The gradient material is done. Item 6 below (the example) is this work.
+Done 2026-11-16 (a92a620): `roofUnion` (gable and hip parts over overlapping rectangles, valleys and
+hips with the game's stair-corner rule; one gable part equals `roofGable`), `dormer` with
+`dormerRoof`, `chimney`, `door` and `window`, tests in `test/shapes-house.test.ts`, documented in
+the skill's `builder-api.md`. `examples/reel_house/reel-house.ts` is the tavern built with them
+(1,961 blocks, `mcbuild check` clean). It was built from the frame notes in
+`evidence/D-hibouk-tavern-diorods.md` section 5.2 only: the frames were not on the machine that
+did this work (only the private Drive zip, too large to fetch through the Drive connector), so
+there is no side-by-side PNG yet. Compare it with tav/f_004, f_013 and f_020 when the frames are
+at hand.
 
 Working rule (Luki, 2026-11-15): image-derived shape and build work is done by the orchestrating
 model itself, not delegated, and every result ships with a side-by-side PNG (reference left, render
@@ -150,8 +158,7 @@ stay byte-identical, with the oracle tests and vectors green and unedited.
 4. **`jetty(c1, c2, block, {overhang, sides, bracket, every, beam})`.** Done (9c208d4).
 5. **`stairs` option `half: "bottom" | "top"`.** Default `"bottom"`, unchanged. Not done: it waits for
    Luki's OK (mapping-draft: "Needs Luki's OK").
-6. **Example.** `examples/reel_house/` uses the shapes above. Not started. `SHAPE-MAPPING.md` is
-   already updated for items 1 to 4; add a `Shape:` line to each technique the example serves.
+6. **Example.** `examples/reel_house/` uses the shapes above. Done 2026-11-16 (see "Next step").
 
 Later, below the priority line:
 
