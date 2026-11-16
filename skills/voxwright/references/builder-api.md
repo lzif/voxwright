@@ -152,9 +152,11 @@ roofGable(c1: Point, c2: Point, block: Material,
           o: { ridge: "x" | "z"; verge?: Material | null; eave?: Material | null;
                endFill?: Material | null; ridgeCap?: { post: Material; rail?: Material | null; every?: number; height?: number } | null;
                profile?: "straight" | "steep" | "concave" | "gambrel" | "low" | ("slab" | "stair" | "steep")[];
-               slab?: Material; full?: Material }): Geometry
+               slab?: Material; full?: Material;
+               underlay?: Material | true | null; sandwich?: Material | true | null }): Geometry
 roofHip(c1: Point, c2: Point, block: Material,
-        o: { hip: Material; cap?: Material | null }): Geometry
+        o: { hip: Material; cap?: Material | null;
+             underlay?: Material | true | null; sandwich?: Material | true | null }): Geometry
 ```
 
 - `c1`..`c2` is the XZ footprint; the lowest row sits at the lower Y of the two corners. The roof
@@ -183,6 +185,13 @@ roofHip(c1: Point, c2: Point, block: Material,
   - `slab` and `full` override the slab and full block that profiles use. By default they follow
     the stair block's name (`oak_stairs` gives `oak_slab` and `oak_planks`,
     `stone_brick_stairs` gives `stone_bricks`).
+  - `underlay` puts a full block under every roof cell above the eave row, so the roof is a
+    stepped solid one block thick and only the eave keeps the thin stair edge (most real roofs
+    are built this way). `true` takes each cell's own full block (`deepslate_tile_stairs` →
+    `deepslate_tiles`; a spruce `verge` sits on spruce planks). `sandwich` instead puts an
+    upside-down stair facing down the slope under every stair (`true`: the same stair), for a
+    smooth underside under open eaves. One or the other; both also work on `roofHip` and
+    `shapes.roofUnion`, and both win over `endFill` in the gable plane.
 - `roofHip`: all four sides slope. `block` is the stair for the slopes, `hip` a full block for
   the diagonal hip lines, `cap` (default `hip`) the top line or cell.
 - For an overhang, make the footprint one cell larger than the walls on every side.
@@ -270,6 +279,8 @@ type Facing = "north" | "south" | "east" | "west";
 
 shapes.roofUnion(parts: { c1: Point; c2: Point; ridge: "x" | "z" | "hip" }[], block: Material, o?: {
   endFill?: Material | null;                    // full block for each exposed gable end
+  underlay?: Material | true | null;            // as roofGable's
+  sandwich?: Material | true | null;            // as roofGable's
 }): Geometry
 
 shapes.dormer(c1: Point, c2: Point, facing: Facing, block: Material, o?: {
@@ -302,6 +313,21 @@ shapes.window(c1: Point, c2: Point, facing: Facing, o?: {
   sill?: Material | null;                       // one cell out, under the opening
   shutters?: Material | null;                   // trapdoors one cell out either side, open, flat on the wall
 }): Geometry
+
+shapes.cladding(c1: Point, c2: Point, block: Material, o?: {
+  faces?: ("north" | "south" | "east" | "west" | "up" | "down")[];  // default the four sides
+}): Geometry
+shapes.corbels(c1: Point, c2: Point, facing: Facing, block: Material, o?: {
+  depth?: number;                               // cells each corbel steps out, default 1
+  every?: number;                               // a corbel every n cells (and on the last), default 1
+}): Geometry
+
+shapes.paperLantern(top: Point, o?: {
+  core?: "lantern" | "glow" | "none";           // default "lantern"
+  banner?: Material; chain?: Material; post?: Material; base?: Material;
+}): Geometry
+shapes.lampPost(base: Point, o?: { height?: number; post?: Material; light?: Material }): Geometry
+shapes.windowBox(c1: Point, c2: Point, facing: Facing, o?: { plant?: Material; box?: Material }): Geometry
 ```
 
 - `arch` is the head only, from upside-down stairs. `start` is the left end of the span on the
@@ -360,6 +386,20 @@ shapes.window(c1: Point, c2: Point, facing: Facing, o?: {
 - `window` fills an opening one cell thick in a wall whose outside faces `facing`. Panes and bars
   get their two sides in the wall's plane. A `sill` stair becomes upside down with its back to the
   wall, a trapdoor a closed top-half plate, a slab a top slab, unless you set those properties.
+- `cladding` puts trapdoors on the faces of the box `c1`..`c2`: open and flat against each side
+  face (a planked or ribbed post or beam), closed top-half under it for `down` (eave and ceiling
+  trim), closed bottom-half on it for `up`. `block` is the trapdoor without `facing`, `open` and
+  `half`.
+- `corbels` is a row of upside-down stairs growing out of a wall under a ledge: `c1`..`c2` is a
+  run of the wall's face cells one row high, just under the overhang, and `facing` the side the
+  wall faces. Each corbel steps `depth` cells out, the top stair on the run's row, each lower one
+  a cell nearer the wall and a row down.
+- `paperLantern` hangs from `top` down: a chain, a fence, a hopper with a wall banner on each side
+  as the paper, and a hanging lantern under it (`core: "glow"`: red wool, a shroomlight and a
+  trapdoor base instead). Use `chain: "minecraft:chain[axis=y]"` before 1.21.9.
+- `lampPost` is `height` rows of fence from `base` with a lantern on top.
+- `windowBox` is a row of plants (`c1`..`c2`, one row high, just out from a wall facing `facing`)
+  boxed in by open trapdoors on its front and both ends.
 
 ```ts
 // A main roof with a front cross-gable, a dormer, a chimney, a door and a window.

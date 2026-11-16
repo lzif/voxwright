@@ -157,9 +157,9 @@ Across the set 4,731 stairs are upside down: 2,646 with nothing under them and 2
 - **On a support** they are ledges, window heads, sills and the second half of a "stair sandwich"
   (S3). The survival mansion has 207 of them.
 
-In a recipe: `shapes.arch` already uses inverted stairs for arch heads. For corbels under a
-jetty, an eave or a balcony, place the stair with `half=top` and `facing` toward the wall it
-grows out of.
+In a recipe: `shapes.arch` uses inverted stairs for arch heads, `shapes.corbels` puts a row of
+corbels under a jetty, an eave or a balcony, and `stairs` with `half: "top"` builds any
+upside-down run (a buttress stage, the underside of a flight).
 
 ### S3. Roofs are two layers thick
 
@@ -190,16 +190,17 @@ Three constructions:
   three dark materials (`deepslate_brick_slab`, `deepslate_tile_slab`, `dark_oak_slab` in the
   large farmhouse).
 
-`roofGable` places the stairs only, one row up per column; `profile: "low"` and the profile
-arrays give the slab steps. The underlay is one line of full blocks under each stair row
-(checked: 427 blocks, every column topped by a stair):
+In a recipe, `underlay: true` on `roofGable`, `roofHip` or `shapes.roofUnion` builds the
+underlay (each cell's own full block, so a spruce verge sits on spruce planks) and
+`sandwich: true` the stair sandwich; `profile: "low"` and the profile arrays give the slab
+steps. The underlay is the same as one line of full blocks under each stair row above the eave,
+plus one under the apex row:
 
 ```ts
-BUILD.roofGable([-1, 6, -1], [11, 6, 9], "minecraft:deepslate_tile_stairs", { ridge: "x" });
-for (let k = 1; k < 5; k++) {
-  BUILD.line([-1, 5 + k, -1 + k], [11, 5 + k, -1 + k], "minecraft:deepslate_tiles");
-  BUILD.line([-1, 5 + k, 9 - k], [11, 5 + k, 9 - k], "minecraft:deepslate_tiles");
-}
+BUILD.roofGable([-1, 6, -1], [11, 6, 9], "minecraft:deepslate_tile_stairs", {
+  ridge: "x",
+  underlay: true,
+});
 ```
 
 `profile: "steep"` also puts a full block under each stair, but rises two rows per column; it is
@@ -429,20 +430,20 @@ dock is the extreme: one material (dark oak) in eight shapes.
 
 ## Engine mapping
 
-| technique                 | in the engine today                                                         | gap                                                              |
-| ------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| S1 shape share            | the build summary's palette                                                 | a shape-share line in the summary would make the check automatic |
-| S2 inverted-stair trim    | `shapes.arch`; hand-placed `half=top` stairs                                | a corbel row under a jetty, balcony or eave                      |
-| S3 roof underlay          | `roofGable` plus a `line` per row (snippet above); `profile` for slab steps | an `underlay` option on `roofGable` and `roofHip`                |
-| S3 stair sandwich         | none                                                                        | a `sandwich` option: an inverted stair under each roof stair     |
-| S4 contrasting edges      | `roofGable` `verge` and `eave`                                              | verge horns past the apex and eave                               |
-| S6 trapdoor cladding      | hand-placed                                                                 | open trapdoors on every face of a post or beam run               |
-| S7 timber frame           | `shapes.bayWall` (`period`, `post`, `beam`, `infill`, `postWidth`)          |                                                                  |
-| S8 speckle                | weighted palettes, `patches`, `palette near`                                |                                                                  |
-| S9 wall and fence columns | `pillar` with a wall or fence block                                         | the engine does not connect walls and fences; set their sides    |
-| S10 lighting              | hand-placed                                                                 | a light-density line in the summary                              |
-| S11 sign trim             | wall sign block states                                                      |                                                                  |
-| S13 composite props       | hand-placed; a recipe can wrap one in a function                            | a small prop library (paper lantern, lamp post, planter)         |
+| technique                 | in the engine today                                                 | gap                                                              |
+| ------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| S1 shape share            | the build summary's palette                                         | a shape-share line in the summary would make the check automatic |
+| S2 inverted-stair trim    | `shapes.arch`, `shapes.corbels`, `stairs` with `half: "top"`        |                                                                  |
+| S3 roof underlay          | `underlay` on `roofGable`, `roofHip`, `shapes.roofUnion`; `profile` |                                                                  |
+| S3 stair sandwich         | `sandwich` on the same three roofs                                  |                                                                  |
+| S4 contrasting edges      | `roofGable` `verge` and `eave`                                      | verge horns past the apex and eave                               |
+| S6 trapdoor cladding      | `shapes.cladding` (sides open and flat, `down` and `up` closed)     |                                                                  |
+| S7 timber frame           | `shapes.bayWall` (`period`, `post`, `beam`, `infill`, `postWidth`)  |                                                                  |
+| S8 speckle                | weighted palettes, `patches`, `palette near`                        |                                                                  |
+| S9 wall and fence columns | `pillar` with a wall or fence block                                 | the engine does not connect walls and fences; set their sides    |
+| S10 lighting              | `shapes.lampPost`, `shapes.paperLantern`; other lights hand-placed  | a light-density line in the summary                              |
+| S11 sign trim             | wall sign block states                                              |                                                                  |
+| S13 composite props       | `shapes.paperLantern`, `shapes.lampPost`, `shapes.windowBox`        | more props (campfire table, barrel planter, note-block stand)    |
 
 ## What the study changed in the engine
 
@@ -452,3 +453,12 @@ overgrown castle carries `chain` and `grass` (1.19), and the re-import failed va
 `dirt_path` when the registry knows only the new id, writes `import { Build } from "voxwright"`
 from the published command line, and writes `.ts` or `.mjs` by the `-o` extension (the code is
 the same). All 18 files now import and rebuild with 0 validation errors.
+
+The gaps in the table above then became options and shapes (2026-11-16):
+
+- `underlay` and `sandwich` on `roofGable`, `roofHip` and `shapes.roofUnion` (S3);
+- `stairs` `half: "top"` and `shapes.corbels` (S2);
+- `shapes.cladding` (S6);
+- `shapes.paperLantern` (the japanese tower's 63 lanterns, read cell by cell: 44 with a hanging
+  lantern, 19 with a red wool, shroomlight and trapdoor core), `shapes.lampPost` and
+  `shapes.windowBox` (S10, S12, S13).

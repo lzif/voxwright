@@ -12019,13 +12019,17 @@ __export(shapes_exports, {
   bayWall: () => bayWall,
   box: () => box,
   chimney: () => chimney,
+  cladding: () => cladding,
   cone: () => cone,
+  corbels: () => corbels,
   cylinder: () => cylinder,
   door: () => door,
   dormer: () => dormer,
   dormerRoof: () => dormerRoof,
   jetty: () => jetty,
+  lampPost: () => lampPost,
   line: () => line,
+  paperLantern: () => paperLantern,
   parapet: () => parapet,
   pillar: () => pillar,
   polygon: () => polygon,
@@ -12038,7 +12042,8 @@ __export(shapes_exports, {
   stairs: () => stairs,
   stairsRun: () => stairsRun,
   walls: () => walls,
-  window: () => window
+  window: () => window,
+  windowBox: () => windowBox
 });
 var DIRECTIONS = {
   north: [0, -1],
@@ -12331,6 +12336,55 @@ function stairSibling(what, block, kind) {
   }
   return canonicalize(`${ns}:${out}`);
 }
+function roofUnderside(what, cells, above, options) {
+  const { underlay, sandwich, seed } = options;
+  const out = new Geometry();
+  if (underlay && sandwich) {
+    throw new McbuilderError(`${what}: underlay and sandwich exclude each other; pick one`);
+  }
+  if (!underlay && !sandwich) return out;
+  const key2 = (x2, y, z) => `${x2},${y},${z}`;
+  const occupied = new Set(cells.map(([x2, y, z]) => key2(x2, y, z)));
+  if (underlay) {
+    const own3 = underlay === true ? null : new Painter(underlay, seed);
+    for (const [x2, y, z, b] of cells) {
+      if (!above(x2, y, z) || occupied.has(key2(x2, y - 1, z))) continue;
+      let block;
+      if (own3) block = own3.blockAt(x2, y - 1, z);
+      else {
+        const { name } = parse(b);
+        if (name.endsWith("_stairs")) block = stairSibling(what, name, "full");
+        else if (name.endsWith("_slab"))
+          block = stairSibling(what, name.replace(/_slab$/, "_stairs"), "full");
+        else block = b;
+      }
+      occupied.add(key2(x2, y - 1, z));
+      out.set(x2, y - 1, z, block);
+    }
+    return out;
+  }
+  const own2 = sandwich === true ? null : stairMaterial(what, sandwich, seed);
+  const facings = /* @__PURE__ */ new Map();
+  const blocks = /* @__PURE__ */ new Map();
+  for (const [x2, y, z, b] of cells) {
+    if (!above(x2, y, z) || occupied.has(key2(x2, y - 1, z))) continue;
+    const { name, props } = parse(b);
+    const facing = props.get("facing");
+    if (!name.endsWith("_stairs") || facing === void 0) continue;
+    const k = key2(x2, y - 1, z);
+    facings.set(k, OPPOSITE[facing]);
+    blocks.set(k, own2 ? own2(x2, y - 1, z) : canonicalize(name));
+  }
+  const shapes = vanillaStairShapes(facings);
+  for (const [k, facing] of facings) {
+    const [x2, y, z] = k.split(",").map(Number);
+    const props = { facing, half: "top" };
+    const shape = shapes.get(k);
+    if (shape !== "straight") props.shape = shape;
+    out.set(x2, y, z, withProps(blocks.get(k), props));
+  }
+  return out;
+}
 function roofPitches(profile, half) {
   if (Array.isArray(profile)) {
     if (profile.length !== half) {
@@ -12493,6 +12547,7 @@ function roofGable(c1, c2, block, options) {
         place(half, lo + half, run, cell, faceHi);
     }
   }
+  const under = roofUnderside("roof_gable", geo.cells(), (_x, y) => y > y0, options);
   if (options.endFill) {
     const fill = new Painter(options.endFill, seed);
     for (let across = lo; across <= hi; across++) {
@@ -12505,6 +12560,7 @@ function roofGable(c1, c2, block, options) {
       }
     }
   }
+  for (const [x3, y, z, b] of under.cells()) geo.set(x3, y, z, b);
   if (cap) {
     const post = new Painter(cap.post, seed);
     const rail = cap.rail ? new Painter(cap.rail, seed) : null;
@@ -12555,7 +12611,8 @@ function roofHip(c1, c2, block, options) {
       hipP.put(x3, y, z);
     k++;
   }
-  return geo.concat(hipP.geo).concat(capP.geo);
+  const roof = geo.concat(hipP.geo).concat(capP.geo);
+  return roof.concat(roofUnderside("roof_hip", roof.cells(), (_x, y) => y > y0, options));
 }
 var COUNTER_CLOCKWISE = {
   north: "west",
@@ -12633,6 +12690,7 @@ function roofUnion(parts, block, options = {}) {
   const inOtherSolid = (skip, x2, y, z) => boxes.some((b, j) => j !== skip && inSolid(b, x2, y, z));
   const key2 = (x2, y, z) => `${x2},${y},${z}`;
   const facings = /* @__PURE__ */ new Map();
+  const eaveRow = /* @__PURE__ */ new Map();
   const order = [];
   for (const [i2, b] of boxes.entries()) {
     for (let x2 = b.x1; x2 <= b.x2; x2++) {
@@ -12641,6 +12699,7 @@ function roofUnion(parts, block, options = {}) {
         const k = key2(x2, y, z);
         if (facings.has(k) || inOtherSolid(i2, x2, y, z)) continue;
         facings.set(k, facingAt(b, x2, z));
+        eaveRow.set(k, b.y0);
         order.push(k);
       }
     }
@@ -12658,6 +12717,12 @@ function roofUnion(parts, block, options = {}) {
     if (shape !== "straight") props.shape = shape;
     geo.set(x2, y, z, withProps(b, props));
   }
+  const under = roofUnderside(
+    "roof_union",
+    geo.cells(),
+    (x2, y, z) => y > (eaveRow.get(`${x2},${y},${z}`) ?? y),
+    options
+  );
   if (options.endFill) {
     const fill = new Painter(options.endFill, seed);
     const covered = (x2, y, z) => facings.has(key2(x2, y, z)) || boxes.some((b) => inSolid(b, x2, y, z));
@@ -12684,6 +12749,7 @@ function roofUnion(parts, block, options = {}) {
       }
     }
   }
+  for (const [x2, y, z, b] of under.cells()) geo.set(x2, y, z, b);
   return geo;
 }
 var CLOCKWISE = {
@@ -12954,6 +13020,147 @@ function window(c1, c2, facing, options = {}) {
       }
     }
   }
+  return geo;
+}
+var CLAD_FACES = ["north", "south", "east", "west", "up", "down"];
+function cladding(c1, c2, block, options = {}) {
+  const [[x1, y1, z1], [x2, y2, z2]] = corners("cladding", c1, c2);
+  const faces = options.faces ?? ["north", "south", "east", "west"];
+  if (!Array.isArray(faces) || faces.length === 0) {
+    throw new McbuilderError("cladding: faces must be a non-empty list");
+  }
+  for (const f of faces) {
+    if (!CLAD_FACES.includes(f)) {
+      throw new McbuilderError(
+        `cladding: invalid face ${show(f)}; expected one of [${CLAD_FACES.join(", ")}]`
+      );
+    }
+  }
+  const trap = refusingMaterial("cladding", block, options.seed, ["facing", "open", "half"]);
+  const geo = new Geometry();
+  const put = (x3, y, z, props) => geo.set(x3, y, z, withProps(trap(x3, y, z), props));
+  for (const f of new Set(faces)) {
+    if (f === "up" || f === "down") {
+      const y = f === "up" ? y2 + 1 : y1 - 1;
+      const half = f === "up" ? "bottom" : "top";
+      for (let x3 = x1; x3 <= x2; x3++)
+        for (let z = z1; z <= z2; z++) put(x3, y, z, { facing: "north", half, open: "false" });
+      continue;
+    }
+    const [dx, dz] = DIRECTIONS[f];
+    const open = { facing: f, half: "bottom", open: "true" };
+    for (let y = y1; y <= y2; y++) {
+      if (dx) {
+        const x3 = dx > 0 ? x2 + 1 : x1 - 1;
+        for (let z = z1; z <= z2; z++) put(x3, y, z, open);
+      } else {
+        const z = dz > 0 ? z2 + 1 : z1 - 1;
+        for (let x3 = x1; x3 <= x2; x3++) put(x3, y, z, open);
+      }
+    }
+  }
+  return geo;
+}
+function corbels(c1, c2, facing, block, options = {}) {
+  const { key: key2, lo, width, height, cell } = wallPlane("corbels", c1, c2, facing);
+  if (height !== 1) {
+    throw new McbuilderError(`corbels: c1 and c2 must be one row (same y), got ${height} rows`);
+  }
+  const depth = positive("corbels: depth", options.depth ?? 1);
+  const every = positive("corbels: every", options.every ?? 1);
+  const stair = stairMaterial("corbels", block, options.seed);
+  const inward = OPPOSITE[key2];
+  const geo = new Geometry();
+  for (let a = 0; a < width; a++) {
+    if (a % every !== 0 && a !== width - 1) continue;
+    for (let k = 1; k <= depth; k++) {
+      const y = lo[1] - (depth - k);
+      const [x2, , z] = cell(a, y, k);
+      geo.set(x2, y, z, withProps(stair(x2, y, z), { facing: inward, half: "top" }));
+    }
+  }
+  return geo;
+}
+function paperLantern(top, options = {}) {
+  const [x2, y, z] = point("paper_lantern: top", top);
+  const core = options.core ?? "lantern";
+  if (core !== "lantern" && core !== "glow" && core !== "none") {
+    throw new McbuilderError(
+      `paper_lantern: invalid core ${show(core)}; expected one of [lantern, glow, none]`
+    );
+  }
+  const seed = options.seed;
+  const geo = new Geometry();
+  const paint = (m, px, py, pz) => {
+    geo.set(px, py, pz, new Painter(m, seed).blockAt(px, py, pz));
+  };
+  paint(options.chain ?? "minecraft:iron_chain[axis=y]", x2, y, z);
+  paint(options.post ?? "minecraft:spruce_fence", x2, y - 1, z);
+  geo.set(x2, y - 2, z, "minecraft:hopper[facing=down]");
+  const banner = refusingMaterial(
+    "paper_lantern: banner",
+    options.banner ?? "minecraft:white_wall_banner",
+    seed,
+    ["facing"]
+  );
+  for (const f of ["north", "south", "east", "west"]) {
+    const [dx, dz] = DIRECTIONS[f];
+    geo.set(x2 + dx, y - 2, z + dz, withProps(banner(x2 + dx, y - 2, z + dz), { facing: f }));
+  }
+  if (core === "lantern") geo.set(x2, y - 3, z, "minecraft:lantern[hanging=true]");
+  if (core === "glow") {
+    geo.set(x2, y - 3, z, "minecraft:red_wool");
+    geo.set(x2, y - 4, z, "minecraft:shroomlight");
+    const base = refusingMaterial(
+      "paper_lantern: base",
+      options.base ?? "minecraft:acacia_trapdoor",
+      seed,
+      ["facing", "half", "open"]
+    );
+    geo.set(
+      x2,
+      y - 5,
+      z,
+      withProps(base(x2, y - 5, z), { facing: "south", half: "top", open: "false" })
+    );
+  }
+  return geo;
+}
+function lampPost(base, options = {}) {
+  const [x2, y, z] = point("lamp_post: base", base);
+  const height = positive("lamp_post: height", options.height ?? 2);
+  const post = new Painter(options.post ?? "minecraft:spruce_fence", options.seed);
+  const light = new Painter(options.light ?? "minecraft:lantern[hanging=false]", options.seed);
+  const geo = new Geometry();
+  for (let k = 0; k < height; k++) geo.set(x2, y + k, z, post.blockAt(x2, y + k, z));
+  geo.set(x2, y + height, z, light.blockAt(x2, y + height, z));
+  return geo;
+}
+function windowBox(c1, c2, facing, options = {}) {
+  const { key: key2, lo, width, height, cell, alongX } = wallPlane("window_box", c1, c2, facing);
+  if (height !== 1) {
+    throw new McbuilderError(`window_box: c1 and c2 must be one row (same y), got ${height} rows`);
+  }
+  const seed = options.seed;
+  const plant = new Painter(options.plant ?? "minecraft:azalea_leaves[persistent=true]", seed);
+  const box2 = refusingMaterial("window_box", options.box ?? "minecraft:spruce_trapdoor", seed, [
+    "facing",
+    "open",
+    "half"
+  ]);
+  const geo = new Geometry();
+  const y = lo[1];
+  const trap = (a, depth, f) => {
+    const [x2, , z] = cell(a, y, depth);
+    geo.set(x2, y, z, withProps(box2(x2, y, z), { facing: f, open: "true", half: "bottom" }));
+  };
+  for (let a = 0; a < width; a++) {
+    const [x2, , z] = cell(a, y, 0);
+    geo.set(x2, y, z, plant.blockAt(x2, y, z));
+    trap(a, 1, key2);
+  }
+  trap(-1, 0, alongX ? "west" : "north");
+  trap(width, 0, alongX ? "east" : "south");
   return geo;
 }
 function slabMaterial(what, block, seed) {

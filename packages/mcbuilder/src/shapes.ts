@@ -510,6 +510,10 @@ export interface RoofGableOptions extends SeedOption {
   slab?: Material;
   /** Full block under the stair of `steep` columns. Default: the stair block's full block. */
   full?: Material;
+  /** A full block under every roof cell above the eave row; `true` takes the roof's own. */
+  underlay?: Material | true | null;
+  /** An upside-down stair under every roof stair above the eave row; `true` takes the roof's own. */
+  sandwich?: Material | true | null;
 }
 
 const halfDefault = (block: string): Record<string, string> =>
@@ -555,6 +559,74 @@ function stairSibling(what: string, block: string, kind: "slab" | "full"): strin
     else out = base;
   }
   return canonicalize(`${ns}:${out}`);
+}
+
+/**
+ * The second layer under a roof (`underlay` or `sandwich` of `roofGable`, `roofHip` and
+ * `roofUnion`). `cells` are the roof's own cells; `above` says which of them stand above their
+ * eave row (only those get a layer under them, so the eave keeps its thin edge). A cell gets
+ * nothing where the cell under it already belongs to the roof.
+ *
+ * - `underlay`: a full block under every such cell. `true` takes each cell's own full block: a
+ *   stair's or slab's by vanilla naming (`deepslate_tile_stairs` → `deepslate_tiles`), a full
+ *   block itself.
+ * - `sandwich`: an upside-down stair under every such stair, facing the other way (down the slope),
+ *   so the underside is a smooth slope too. `true` takes the stair block above it. Corner shapes
+ *   follow the game's rule among the sandwich stairs.
+ */
+function roofUnderside(
+  what: string,
+  cells: readonly (readonly [number, number, number, string])[],
+  above: (x: number, y: number, z: number) => boolean,
+  options: { underlay?: Material | true | null; sandwich?: Material | true | null; seed?: Seed },
+): Geometry {
+  const { underlay, sandwich, seed } = options;
+  const out = new Geometry();
+  if (underlay && sandwich) {
+    throw new McbuilderError(`${what}: underlay and sandwich exclude each other; pick one`);
+  }
+  if (!underlay && !sandwich) return out;
+  const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
+  const occupied = new Set(cells.map(([x, y, z]) => key(x, y, z)));
+  if (underlay) {
+    const own = underlay === true ? null : new Painter(underlay, seed);
+    for (const [x, y, z, b] of cells) {
+      if (!above(x, y, z) || occupied.has(key(x, y - 1, z))) continue;
+      let block: string;
+      if (own) block = own.blockAt(x, y - 1, z);
+      else {
+        const { name } = parseBlockString(b);
+        if (name.endsWith("_stairs")) block = stairSibling(what, name, "full");
+        else if (name.endsWith("_slab"))
+          block = stairSibling(what, name.replace(/_slab$/, "_stairs"), "full");
+        else block = b;
+      }
+      occupied.add(key(x, y - 1, z));
+      out.set(x, y - 1, z, block);
+    }
+    return out;
+  }
+  const own = sandwich === true ? null : stairMaterial(what, sandwich as Material, seed);
+  const facings = new Map<string, string>();
+  const blocks = new Map<string, string>();
+  for (const [x, y, z, b] of cells) {
+    if (!above(x, y, z) || occupied.has(key(x, y - 1, z))) continue;
+    const { name, props } = parseBlockString(b);
+    const facing = props.get("facing");
+    if (!name.endsWith("_stairs") || facing === undefined) continue;
+    const k = key(x, y - 1, z);
+    facings.set(k, OPPOSITE[facing] as string);
+    blocks.set(k, own ? own(x, y - 1, z) : canonicalize(name));
+  }
+  const shapes = vanillaStairShapes(facings);
+  for (const [k, facing] of facings) {
+    const [x, y, z] = k.split(",").map(Number) as [number, number, number];
+    const props: Record<string, string> = { facing, half: "top" };
+    const shape = shapes.get(k) as string;
+    if (shape !== "straight") props.shape = shape;
+    out.set(x, y, z, withProps(blocks.get(k) as string, props));
+  }
+  return out;
 }
 
 /** One pitch per column for a named profile over `half` columns (eave first). */
@@ -712,6 +784,27 @@ function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
  * builders", a Japanese castle roof breakdown of stairs over slabs, seefro's
  * "four roof designs"), not from the reel frames: the preset ratios and the
  * slab apex.
+ *
+ * `underlay` and `sandwich` (opt-in, one or the other) give the roof a second
+ * layer under every roof cell above the eave row, so only the eave row keeps a
+ * thin edge. `underlay` is a full block (`true`: each cell's own full block by
+ * vanilla naming, so trim gets its own: a spruce verge sits on spruce planks);
+ * the roof becomes a stepped solid one block thick. `sandwich` is an upside-down
+ * stair facing down the slope under every stair (`true`: the stair above it),
+ * so the underside is a smooth slope for roofs seen from below. Both go in the
+ * gable-end columns too and win over `endFill` there, so a filled gable shows
+ * the roof's thickness along its edge. End view, span 7, `underlay` (`S`
+ * stair, `U` underlay, `F` fill):
+ *
+ *             S             row 3
+ *           S U S           row 2
+ *         S U F U S         row 1
+ *       S U F F F U S       row 0 (the eave row; nothing goes under it)
+ *
+ * Evidence (schematic study S3): the top stair of a roof column stands on a
+ * full block of the roof's material in 54% to 81% of the roof stairs of six of
+ * eight measured builds; the raifox house puts an upside-down stair there
+ * (57%) under its open eaves.
  *
  * Evidence: endFill hib/f_018 (full planks under dark verge stairs, in the verge
  * plane, flush with the steps), tav/f_004, tav/f_005 (white infill under a slate
@@ -891,6 +984,8 @@ export function roofGable(
     }
   }
 
+  const under = roofUnderside("roof_gable", geo.cells(), (_x, y) => y > y0, options);
+
   if (options.endFill) {
     const fill = new Painter(options.endFill, seed);
     for (let across = lo as number; across <= (hi as number); across++) {
@@ -903,6 +998,7 @@ export function roofGable(
       }
     }
   }
+  for (const [x, y, z, b] of under.cells()) geo.set(x, y, z, b);
 
   if (cap) {
     const post = new Painter(cap.post, seed);
@@ -928,13 +1024,19 @@ export function roofGable(
 export interface RoofHipOptions extends SeedOption {
   hip: Material;
   cap?: Material | null;
+  /** As `roofGable`'s: a full block under every roof cell above the eave row. */
+  underlay?: Material | true | null;
+  /** As `roofGable`'s: an upside-down stair under every roof stair above the eave row. */
+  sandwich?: Material | true | null;
 }
 
 /**
  * Hip roof: all four sides slope up, one row per block inward. `block` is the
  * stair material (no `facing`) for the slopes; `hip` is the full block used
  * on the diagonal hip lines. The top ring that collapses to a line or a
- * single cell is filled with `cap` (default: `hip`).
+ * single cell is filled with `cap` (default: `hip`). `underlay` and
+ * `sandwich` (opt-in) work as in `roofGable`: a second layer under every
+ * roof cell above the eave row (the sandwich only under stairs).
  */
 export function roofHip(c1: Point, c2: Point, block: Material, options: RoofHipOptions): Geometry {
   const [[x1, y0, z1], [x2, , z2]] = corners("roof_hip", c1, c2);
@@ -966,7 +1068,8 @@ export function roofHip(c1: Point, c2: Point, block: Material, options: RoofHipO
       hipP.put(x, y, z);
     k++;
   }
-  return geo.concat(hipP.geo).concat(capP.geo);
+  const roof = geo.concat(hipP.geo).concat(capP.geo);
+  return roof.concat(roofUnderside("roof_hip", roof.cells(), (_x, y) => y > y0, options));
 }
 
 /** One rectangle of a `roofUnion`: its XZ footprint, its eave row (the lower Y) and its kind. */
@@ -980,6 +1083,10 @@ export interface RoofPart {
 export interface RoofUnionOptions extends SeedOption {
   /** Full-block material for the open triangle under each exposed gable end. */
   endFill?: Material | null;
+  /** As `roofGable`'s: a full block under every roof cell above its part's eave row. */
+  underlay?: Material | true | null;
+  /** As `roofGable`'s: an upside-down stair under every roof stair above its part's eave row. */
+  sandwich?: Material | true | null;
 }
 
 const COUNTER_CLOCKWISE: Readonly<Record<string, string>> = {
@@ -1069,6 +1176,8 @@ function vanillaStairShapes(facings: ReadonlyMap<string, string>): Map<string, s
  * nor a stair. A wing's gable end that dives into the main roof gets no fill there; one that stands
  * above the main slope (a dormer front) does. A hip part has no gable ends.
  *
+ * `underlay` and `sandwich` work as in `roofGable`, under every stair above its own part's eave row.
+ *
  * Not here: `verge`, `eave`, `ridgeCap`, `profile` (every part is the straight profile), a cap block
  * on a hip apex (it is a stair). Design choices, not observed in the frames: the tie order and the
  * first-listed part winning a shared cell.
@@ -1128,6 +1237,7 @@ export function roofUnion(
 
   const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
   const facings = new Map<string, string>();
+  const eaveRow = new Map<string, number>();
   const order: string[] = [];
   for (const [i, b] of boxes.entries()) {
     for (let x = b.x1; x <= b.x2; x++) {
@@ -1136,6 +1246,7 @@ export function roofUnion(
         const k = key(x, y, z);
         if (facings.has(k) || inOtherSolid(i, x, y, z)) continue;
         facings.set(k, facingAt(b, x, z));
+        eaveRow.set(k, b.y0);
         order.push(k);
       }
     }
@@ -1153,6 +1264,12 @@ export function roofUnion(
     if (shape !== "straight") props.shape = shape;
     geo.set(x, y, z, withProps(b, props));
   }
+  const under = roofUnderside(
+    "roof_union",
+    geo.cells(),
+    (x, y, z) => y > (eaveRow.get(`${x},${y},${z}`) ?? y),
+    options,
+  );
 
   if (options.endFill) {
     const fill = new Painter(options.endFill, seed);
@@ -1184,6 +1301,7 @@ export function roofUnion(
       }
     }
   }
+  for (const [x, y, z, b] of under.cells()) geo.set(x, y, z, b);
   return geo;
 }
 
@@ -1687,6 +1805,293 @@ export function window(
       }
     }
   }
+  return geo;
+}
+
+// -- trim and props: cladding, corbels, paper lantern, lamp post, window box ---
+
+const CLAD_FACES = ["north", "south", "east", "west", "up", "down"] as const;
+export type CladFace = (typeof CLAD_FACES)[number];
+
+export interface CladdingOptions extends SeedOption {
+  /** The faces of the box to clad. Default the four sides. */
+  faces?: readonly CladFace[];
+}
+
+/**
+ * Trapdoors on the faces of a box, the most repurposed block of the schematic study (S6): open
+ * trapdoors flat on the side faces of a post or a beam give it a planked or ribbed face; a closed
+ * top-half trapdoor under it is ceiling and eave trim; a closed bottom-half one on top is a table
+ * top or a floor edge. `c1`..`c2` is the box (a post, a beam, a wall panel, a block); `block` is
+ * the trapdoor without `facing`, `open` and `half`, which the shape sets.
+ *
+ * - A side face (`north`, `south`, `east`, `west`) gets an open trapdoor in every cell just
+ *   outside it, `facing` that side, so it lies flat against the box (`half=bottom`).
+ * - `down` gets a closed `half=top` trapdoor under every bottom cell; `up` a closed `half=bottom`
+ *   one on every top cell (`facing=north` for both).
+ *
+ * Plan view of a 1 x 1 post clad on its four sides (`#` the post, `-`/`|` the trapdoors against
+ * it): the corners stay empty.
+ *
+ *       -
+ *     | # |
+ *       -
+ *
+ * Evidence: schematic study S6, 2,231 open trapdoors flat on a block face across 17 builds, most
+ * of them on stripped logs (the elven house's 213 on `stripped_spruce_wood`, the japanese tower's
+ * 282 on `stripped_spruce_log`); 1,770 closed top-half trapdoors over air as eave and ceiling trim.
+ */
+export function cladding(
+  c1: Point,
+  c2: Point,
+  block: Material,
+  options: CladdingOptions = {},
+): Geometry {
+  const [[x1, y1, z1], [x2, y2, z2]] = corners("cladding", c1, c2);
+  const faces = options.faces ?? ["north", "south", "east", "west"];
+  if (!Array.isArray(faces) || faces.length === 0) {
+    throw new McbuilderError("cladding: faces must be a non-empty list");
+  }
+  for (const f of faces) {
+    if (!(CLAD_FACES as readonly string[]).includes(f)) {
+      throw new McbuilderError(
+        `cladding: invalid face ${show(f)}; expected one of [${CLAD_FACES.join(", ")}]`,
+      );
+    }
+  }
+  const trap = refusingMaterial("cladding", block, options.seed, ["facing", "open", "half"]);
+  const geo = new Geometry();
+  const put = (x: number, y: number, z: number, props: Record<string, string>): void =>
+    geo.set(x, y, z, withProps(trap(x, y, z), props));
+  for (const f of new Set(faces)) {
+    if (f === "up" || f === "down") {
+      const y = f === "up" ? y2 + 1 : y1 - 1;
+      const half = f === "up" ? "bottom" : "top";
+      for (let x = x1; x <= x2; x++)
+        for (let z = z1; z <= z2; z++) put(x, y, z, { facing: "north", half, open: "false" });
+      continue;
+    }
+    const [dx, dz] = DIRECTIONS[f] as readonly [number, number];
+    const open = { facing: f, half: "bottom", open: "true" };
+    for (let y = y1; y <= y2; y++) {
+      if (dx) {
+        const x = dx > 0 ? x2 + 1 : x1 - 1;
+        for (let z = z1; z <= z2; z++) put(x, y, z, open);
+      } else {
+        const z = dz > 0 ? z2 + 1 : z1 - 1;
+        for (let x = x1; x <= x2; x++) put(x, y, z, open);
+      }
+    }
+  }
+  return geo;
+}
+
+export interface CorbelsOptions extends SeedOption {
+  /** How many cells each corbel steps out (and down) from under the ledge. Default 1. */
+  depth?: number;
+  /** A corbel every `every` cells along the run, and always on the last. Default 1 (a row). */
+  every?: number;
+}
+
+/**
+ * A row of corbels under a ledge, jetty, balcony or eave: upside-down stairs stepping out from a
+ * wall. `c1`..`c2` is a straight run of the wall's face cells, one row high, at the row just
+ * under the overhang; `facing` is the side the wall faces (the way the corbels grow out). Each
+ * corbel is a `stairs` run with `half: "top"` climbing out of the wall: its top stair sits
+ * `depth` cells out on the run's row, each lower one a cell nearer the wall and a row down, all
+ * facing the wall. `block` is the stair without `facing` (and without `half`, which is set).
+ *
+ * Side view of one corbel, `depth` 2, the wall on the left, the overhang above (`#` wall, `=`
+ * overhang, `S` upside-down stairs):
+ *
+ *     # = = =     overhang
+ *     # S S       the run's row
+ *     # S         one row down
+ *     #
+ *
+ * Evidence: schematic study S2: 2,646 upside-down stairs over air in 17 builds, the gothic
+ * tower's buttress stages stepping out on 226 of them; AR/f_049 (jetty corbels), hib/f_026.
+ */
+export function corbels(
+  c1: Point,
+  c2: Point,
+  facing: "north" | "south" | "east" | "west",
+  block: Material,
+  options: CorbelsOptions = {},
+): Geometry {
+  const { key, lo, width, height, cell } = wallPlane("corbels", c1, c2, facing);
+  if (height !== 1) {
+    throw new McbuilderError(`corbels: c1 and c2 must be one row (same y), got ${height} rows`);
+  }
+  const depth = positive("corbels: depth", options.depth ?? 1);
+  const every = positive("corbels: every", options.every ?? 1);
+  const stair = stairMaterial("corbels", block, options.seed);
+  const inward = OPPOSITE[key] as string;
+  const geo = new Geometry();
+  for (let a = 0; a < width; a++) {
+    if (a % every !== 0 && a !== width - 1) continue;
+    for (let k = 1; k <= depth; k++) {
+      const y = lo[1] - (depth - k);
+      const [x, , z] = cell(a, y, k);
+      geo.set(x, y, z, withProps(stair(x, y, z), { facing: inward, half: "top" }));
+    }
+  }
+  return geo;
+}
+
+export interface PaperLanternOptions extends SeedOption {
+  /** Under the paper: `"lantern"` (default, a hanging lantern), `"glow"` (red wool, a shroomlight and a trapdoor base) or `"none"`. */
+  core?: "lantern" | "glow" | "none";
+  /** The paper: a wall banner without `facing`. Default `minecraft:white_wall_banner`. */
+  banner?: Material;
+  /** The hanger at the top. Default `minecraft:iron_chain[axis=y]` (`minecraft:chain[axis=y]` before 1.21.9). */
+  chain?: Material;
+  /** Under the chain. Default `minecraft:spruce_fence`. */
+  post?: Material;
+  /** The base of the `"glow"` core, a trapdoor without `facing`, `half` and `open`. Default `minecraft:acacia_trapdoor`. */
+  base?: Material;
+}
+
+/**
+ * The japanese tower's paper lantern (schematic study S13, 63 of them): from `top` down, a chain,
+ * a fence, a hopper pointing down with a wall banner hung on each of its four sides as the paper,
+ * then the core: a hanging lantern dropping out of the bottom (44 of the 63), or a glow core of
+ * red wool, a shroomlight and a closed top-half trapdoor (19). Hang it under a beam or an eave so
+ * the chain has something above it.
+ *
+ * Elevation, `core: "lantern"` (`c` chain, `f` fence, `H` hopper, `B` banners on its sides, `L`
+ * lantern), and the glow core (`r` red wool, `s` shroomlight, `t` trapdoor):
+ *
+ *       c          top            c
+ *       f                         f
+ *     B H B        top - 2      B H B
+ *       L                         r
+ *                                 s
+ *                                 t
+ */
+export function paperLantern(top: Point, options: PaperLanternOptions = {}): Geometry {
+  const [x, y, z] = point("paper_lantern: top", top);
+  const core = options.core ?? "lantern";
+  if (core !== "lantern" && core !== "glow" && core !== "none") {
+    throw new McbuilderError(
+      `paper_lantern: invalid core ${show(core)}; expected one of [lantern, glow, none]`,
+    );
+  }
+  const seed = options.seed;
+  const geo = new Geometry();
+  const paint = (m: Material, px: number, py: number, pz: number): void => {
+    geo.set(px, py, pz, new Painter(m, seed).blockAt(px, py, pz));
+  };
+  paint(options.chain ?? "minecraft:iron_chain[axis=y]", x, y, z);
+  paint(options.post ?? "minecraft:spruce_fence", x, y - 1, z);
+  geo.set(x, y - 2, z, "minecraft:hopper[facing=down]");
+  const banner = refusingMaterial(
+    "paper_lantern: banner",
+    options.banner ?? "minecraft:white_wall_banner",
+    seed,
+    ["facing"],
+  );
+  for (const f of ["north", "south", "east", "west"]) {
+    const [dx, dz] = DIRECTIONS[f] as readonly [number, number];
+    geo.set(x + dx, y - 2, z + dz, withProps(banner(x + dx, y - 2, z + dz), { facing: f }));
+  }
+  if (core === "lantern") geo.set(x, y - 3, z, "minecraft:lantern[hanging=true]");
+  if (core === "glow") {
+    geo.set(x, y - 3, z, "minecraft:red_wool");
+    geo.set(x, y - 4, z, "minecraft:shroomlight");
+    const base = refusingMaterial(
+      "paper_lantern: base",
+      options.base ?? "minecraft:acacia_trapdoor",
+      seed,
+      ["facing", "half", "open"],
+    );
+    geo.set(
+      x,
+      y - 5,
+      z,
+      withProps(base(x, y - 5, z), { facing: "south", half: "top", open: "false" }),
+    );
+  }
+  return geo;
+}
+
+export interface LampPostOptions extends SeedOption {
+  /** Rows of post under the light. Default 2. */
+  height?: number;
+  /** The post. Default `minecraft:spruce_fence`. */
+  post?: Material;
+  /** The light on top. Default `minecraft:lantern[hanging=false]`. */
+  light?: Material;
+}
+
+/**
+ * A lamp post: `height` rows of `post` from `base` up, and `light` on top. The survival mansion
+ * has 16 of them (a lantern on a fence), the fishing dock 4. Put a wall or log under it for a
+ * thicker foot. Evidence: schematic study S10.
+ */
+export function lampPost(base: Point, options: LampPostOptions = {}): Geometry {
+  const [x, y, z] = point("lamp_post: base", base);
+  const height = positive("lamp_post: height", options.height ?? 2);
+  const post = new Painter(options.post ?? "minecraft:spruce_fence", options.seed);
+  const light = new Painter(options.light ?? "minecraft:lantern[hanging=false]", options.seed);
+  const geo = new Geometry();
+  for (let k = 0; k < height; k++) geo.set(x, y + k, z, post.blockAt(x, y + k, z));
+  geo.set(x, y + height, z, light.blockAt(x, y + height, z));
+  return geo;
+}
+
+export interface WindowBoxOptions extends SeedOption {
+  /** What grows in the box. Default `minecraft:azalea_leaves[persistent=true]`. */
+  plant?: Material;
+  /** The box: a trapdoor without `facing`, `open` and `half`. Default `minecraft:spruce_trapdoor`. */
+  box?: Material;
+}
+
+/**
+ * A window box or planter on a wall: `c1`..`c2` is the row of plant cells, one row high, just out
+ * from a wall whose outside faces `facing` (under a window, usually on its sill row). Open
+ * trapdoors close its front (one cell further out) and both ends, flat against the plants. Plan
+ * view, a 3-wide box on a south wall (`#` wall, `p` plant, `-`/`|` trapdoors):
+ *
+ *     # # # # #
+ *     | p p p |
+ *       - - -
+ *
+ * Evidence: schematic study S6 and S12 (open trapdoors around leaves, grass and dirt as the edge
+ * of a bed; leaves as part of the building, `persistent=true`), tav/f_013, tav/f_019 (a leafy box
+ * under the upper windows).
+ */
+export function windowBox(
+  c1: Point,
+  c2: Point,
+  facing: "north" | "south" | "east" | "west",
+  options: WindowBoxOptions = {},
+): Geometry {
+  const { key, lo, width, height, cell, alongX } = wallPlane("window_box", c1, c2, facing);
+  if (height !== 1) {
+    throw new McbuilderError(`window_box: c1 and c2 must be one row (same y), got ${height} rows`);
+  }
+  const seed = options.seed;
+  const plant = new Painter(options.plant ?? "minecraft:azalea_leaves[persistent=true]", seed);
+  const box = refusingMaterial("window_box", options.box ?? "minecraft:spruce_trapdoor", seed, [
+    "facing",
+    "open",
+    "half",
+  ]);
+  const geo = new Geometry();
+  const y = lo[1];
+  const trap = (a: number, depth: number, f: string): void => {
+    const [x, , z] = cell(a, y, depth);
+    geo.set(x, y, z, withProps(box(x, y, z), { facing: f, open: "true", half: "bottom" }));
+  };
+  for (let a = 0; a < width; a++) {
+    const [x, , z] = cell(a, y, 0);
+    geo.set(x, y, z, plant.blockAt(x, y, z));
+    trap(a, 1, key);
+  }
+  // The ends: the low end faces down the run (west or north), the high end up it.
+  trap(-1, 0, alongX ? "west" : "north");
+  trap(width, 0, alongX ? "east" : "south");
   return geo;
 }
 

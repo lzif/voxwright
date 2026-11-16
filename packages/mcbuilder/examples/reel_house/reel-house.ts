@@ -51,7 +51,6 @@ const ROOF = gradient(
   ],
   { axis: "y", from: 12, to: 18, salt: "roof" },
 );
-const TRAP = "minecraft:spruce_trapdoor";
 
 // -- the plan ---------------------------------------------------------------------
 // Ground floor x 0..14, z 0..10, walls y 1..4, ring beam y 5. Upper floor x 0..14, z 0..11 (the
@@ -60,16 +59,6 @@ const [X0, X1, Z0, Z1] = [0, 14, 0, 10];
 const UZ1 = Z1 + 1;
 const [WX0, WX1, WZ1] = [9, 13, 14];
 const EAVE = 12;
-
-/** A window box under an opening: leaves, open trapdoors on its three outer faces. */
-function windowBox(x0: number, x1: number, y: number, z: number): void {
-  for (let x = x0; x <= x1; x++) {
-    BUILD.set(x, y, z, "minecraft:azalea_leaves[persistent=true]");
-    BUILD.set(x, y, z + 1, `${TRAP}[facing=south,half=bottom,open=true]`);
-  }
-  BUILD.set(x0 - 1, y, z, `${TRAP}[facing=west,half=bottom,open=true]`);
-  BUILD.set(x1 + 1, y, z, `${TRAP}[facing=east,half=bottom,open=true]`);
-}
 
 BUILD.scope(() => {
   // -- ground and plinth -----------------------------------------------------------
@@ -124,7 +113,7 @@ BUILD.scope(() => {
   const upper = { lintel: LOG_X };
   for (const x0 of [1, 4]) {
     BUILD.place(shapes.window([x0, 7, UZ1], [x0 + 1, 8, UZ1], "south", upper));
-    windowBox(x0, x0 + 1, 6, UZ1 + 1);
+    BUILD.place(shapes.windowBox([x0, 6, UZ1 + 1], [x0 + 1, 6, UZ1 + 1], "south"));
   }
   for (const x0 of [4, 9]) BUILD.place(shapes.window([x0, 7, Z0], [x0 + 1, 8, Z0], "north", upper));
   BUILD.place(shapes.window([X0, 7, 4], [X0, 8, 5], "west", { lintel: LOG_Z }));
@@ -137,7 +126,7 @@ BUILD.scope(() => {
   BUILD.place(shapes.bayWall([WX0, 6, UZ1], [WX0, 11, WZ1], WHITE, wingSide));
   BUILD.place(shapes.bayWall([WX1, 6, UZ1], [WX1, 11, WZ1], WHITE, wingSide));
   BUILD.place(shapes.window([10, 7, WZ1], [12, 8, WZ1], "south", { lintel: LOG_X }));
-  windowBox(10, 12, 6, WZ1 + 1);
+  BUILD.place(shapes.windowBox([10, 6, WZ1 + 1], [12, 6, WZ1 + 1], "south"));
   // A small hood over the wing window: stairs rising to the wall (T5).
   for (let x = WX0; x <= WX1; x++)
     BUILD.set(x, 10, WZ1 + 1, "minecraft:spruce_stairs[facing=north,half=bottom]");

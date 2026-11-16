@@ -3,9 +3,11 @@
 Status as of 2026-11-15. This is the entry point for picking the work up again.
 
 Related, 2026-11-16: `../schematic-study/README.md` measures 17 real schematics block by block
-(15 abfielder.com downloads and 2 of Luki's files). Its engine-mapping table lists shape gaps
-that back the "Next step" list below: a roof underlay and stair-sandwich option, trapdoor
-cladding, corbel rows and a small prop library.
+(15 abfielder.com downloads and 2 of Luki's files). The shape gaps its engine-mapping table
+listed are now implemented: `underlay` and `sandwich` on `roofGable`, `roofHip` and `roofUnion`,
+`cladding`, `corbels`, and the props `paperLantern`, `lampPost` and `windowBox` (tests in
+`test/shapes-house.test.ts`). Still open from that table: a shape-share and a light-density line
+in the build summary, wall and fence connections, more props.
 
 ## Goal
 
@@ -117,7 +119,7 @@ this order:
 3. chimney;
 4. door and window helpers.
 
-Done 2026-11-16 (a92a620): `roofUnion` (gable and hip parts over overlapping rectangles, valleys and
+Done 2026-11-16 (3a07876): `roofUnion` (gable and hip parts over overlapping rectangles, valleys and
 hips with the game's stair-corner rule; one gable part equals `roofGable`), `dormer` with
 `dormerRoof`, `chimney`, `door` and `window`, tests in `test/shapes-house.test.ts`, documented in
 the skill's `builder-api.md`. `examples/reel_house/reel-house.ts` is the tavern built with them
