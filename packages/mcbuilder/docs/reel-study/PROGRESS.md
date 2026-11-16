@@ -58,7 +58,7 @@ Shapes in `src/shapes.ts`, with tests:
 Example: `examples/reel_keep/` uses all three of these and passes `mcbuild check` and `run`.
 
 Second shape wave (2026-11-15), items 1 to 4 of "Next step" below, one commit each, all on main and
-not pushed:
+pushed:
 
 - `bayWall` (c2be3bf): post, bay, beam and sill rhythm with `inset`, `pilaster` and an array
   `period`. It covers M11, M12, M13 and M15; M14 (the pillar module) is not covered. `postWidth`
