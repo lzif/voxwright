@@ -22,18 +22,14 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
 
 ## Workflow
 
-1. **Plan the build.** Settle the footprint, the height and a palette of 4 to 8 blocks before
-   writing code. For anything beyond a simple box, read the build-patterns guide for techniques
-   (depth, palettes, roof shapes, detailing). It is online, not part of the installed skill:
-   https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
-2. **Prototype composite shapes first.** Before composing a full build, prototype non-trivial
-   composite shapes (a boat, roof, bridge, hull or similar) standalone in a small recipe or
-   `Geometry`: arrange the blocks, frame the object with a `pos1:pos2` box
-   (`<view>@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>`) around it so the whole shape is in frame with
-   [run --preview](#run---preview-png-views), open the PNGs and judge whether the shape truly
-   reads as that object. Iterate the block arrangement until it holds up on its own, and only then
-   use it in the full composition.
-3. **Write the recipe**, an ES module that exports a `Build`:
+Before writing code, settle the footprint, the height, a palette of 4 to 8 blocks and the list of
+components. For anything beyond a simple box, read the build-patterns guide for techniques (depth,
+palettes, roof shapes, detailing). It is online, not part of the installed skill:
+https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
+
+1. **Build each component standalone first.** A component is a functional unit (a boat, a shack, a
+   dock section, a lantern post, a roof). Build each one on its own in a small recipe or `Geometry`,
+   never directly inside the big composition. A recipe is an ES module that exports a `Build`:
 
    ```ts
    import { Build } from "voxwright";
@@ -50,25 +46,38 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
    Start from the closest example in [references/recipe-examples.md](references/recipe-examples.md).
    Look up every call you are not sure of in [references/builder-api.md](references/builder-api.md)
    instead of guessing: the API is small and a call that is not listed there does not exist.
-4. **Build it:**
+
+2. **Iterate each component until it is genuinely good AND fits.** Whole-build previews flatter a
+   build and hide player-distance defects. Render each component standalone with
+   [run --preview](#run---preview-png-views), framing it with `pos1:pos2` around the component
+   (`<view>@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>`, or `<view>@<x>,<y>,<z>r<radius>` for small details),
+   open the PNGs and iterate until both hold:
+   - **Good:** the shape reads cleanly under close-up renders and passes functional checks (an
+     implied entrance has a real opening at least 2 blocks tall and 1 wide; hulls and enclosures
+     are sealed with no gaps to water or sky; props hold up with no stray blocks or checklist
+     clutter).
+   - **Fits:** its scale, palette and style match the other finished components and the build's
+     theme. Good on its own but clashing is not done.
+
+3. **Only then assemble, one component at a time.** Place one finished component into the
+   composition (with `BUILD.place` or an imported component function), render and check the
+   composition (whole views plus `pos1:pos2` close-ups at the joints), fix clashes, then add the
+   next. Never dump all components in at once and review only at the end.
+
+   Example (fishing dock): build and iterate boat → shack → deck section → lantern post
+   standalone first; then assemble one component at a time, checking the joints (boat mooring,
+   shack doorway onto the deck, post footing) after each addition.
+
+4. **Build and check the summary:**
 
    ```sh
    node <skill-dir>/scripts/voxwright-cli.mjs build house.ts --out out/house.schem
    ```
 
-5. **Read the summary and review close-ups.** If `build` says `build: FAILED`, fix the recipe and
-   run again; check that the size, the block count and the palette are what you intended. Whole-build
-   previews flatter a build and hide player-distance defects, so before calling the build done,
-   render both whole-build views and close-up views (`<view>@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>`
-   around each object, or `<view>@<x>,<y>,<z>r<radius>`) of key details with `run --preview` and
-   run functional checks:
-   - An implied entrance needs a real opening (at least 2 blocks tall, 1 wide).
-   - A hull or enclosure must be sealed (no gaps to water or sky).
-   - Props must survive a close-up (no checklist clutter).
-   Iterate the recipe and re-check close-up renders until every detail reads cleanly, then re-run
-   `build`.
-6. **Report** to the user: the file path, the size, the block count, and any warnings.
-7. **Preview** when the user wants to see or edit the build (see [Preview](#preview)).
+   If `build` says `build: FAILED`, fix the recipe and run again; check that the size, the block
+   count and the palette are what you intended.
+5. **Report** to the user: the file path, the size, the block count, and any warnings.
+6. **Preview** when the user wants to see or edit the build (see [Preview](#preview)).
 
 Change the recipe and run `build` again to iterate; it overwrites its outputs.
 
