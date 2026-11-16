@@ -73,6 +73,7 @@ export {
   type ReportInput,
   reportToJson,
   type ViewEntry,
+  type ViewFocusLike,
   type ViewLike,
   viewEntry,
 } from "./report.ts";

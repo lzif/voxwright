@@ -919,6 +919,44 @@ BUILD.scope(() => {
     });
   });
 
+  it("renders close-up focus views through run --preview", async () => {
+    const proj = join(outside, "prev-proj");
+    await mkdir(join(proj, "assets"), { recursive: true });
+    await writeFile(join(proj, "assets/minecraft-data.json"), JSON.stringify(REGISTRY));
+    await writeFile(join(proj, "mcbuild.toml"), 'assets_dir = "assets"\n');
+    await writeFile(
+      join(proj, "dock-mini.ts"),
+      `import { Build } from "voxwright";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  BUILD.box([0, 0, 0], [10, 0, 10], "minecraft:stone");
+  BUILD.set(8, 1, 8, "minecraft:oak_planks");
+});
+`,
+    );
+    const r = await cli(
+      [
+        "run",
+        "dock-mini.ts",
+        "--out",
+        "prev-out",
+        "--preview",
+        "--offline",
+        "--views",
+        "iso;iso@8,1,8r1",
+      ],
+      proj,
+    );
+    expect(r.code).toBe(0);
+    expect(r.stderr).toBe("");
+    const runDir = join(proj, "prev-out", "run-001");
+    expect(existsSync(join(runDir, "previews_faithful/iso.png"))).toBe(true);
+    expect(existsSync(join(runDir, "previews_faithful/iso@8,1,8r1.png"))).toBe(true);
+    const report = JSON.parse(await readFile(join(runDir, "report.json"), "utf8"));
+    expect(report.views.map((v: { label: string }) => v.label)).toEqual(["iso", "iso@8,1,8r1"]);
+    expect(report.views[1].focus).toEqual({ center: [8, 1, 8], radius: 1 });
+  });
+
   it("is what scripts/build-skill.ts produces from the current sources", async () => {
     const r = await run(process.execPath, [join(repo, "scripts/build-skill.ts"), "--check"]).then(
       (ok) => ({ code: 0, ...ok }),

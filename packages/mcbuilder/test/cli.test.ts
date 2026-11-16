@@ -427,6 +427,7 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
 
     for (const [args, message] of [
       [["--preview", "--offline", "--views", "bogus"], "invalid views"],
+      [["--preview", "--offline", "--views", "iso@bad"], "invalid views"],
       [["--preview", "--offline", "--focus", "1,2:3"], "--focus must look like"],
       [["--preview", "--offline", "--focus", "50,50,50:60,60,60"], "no blocks inside that box"],
       [["--tier", "fast"], "not ported yet"],
@@ -439,6 +440,78 @@ BUILD.scope(() => BUILD.box([0, 0, 0], [1, 1, 1], "minecraft:stone"));
       ).toBe(1);
       expect(e.err.join("\n"), args.join(" ")).toContain(message);
     }
+  });
+
+  it("supports close-up focus views via --views and in report.json", async () => {
+    const wide = join(root, "wide-focus.ts");
+    await writeFile(
+      wide,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  BUILD.box([0, 0, 0], [10, 0, 10], "minecraft:stone");
+  BUILD.set(9, 1, 9, "minecraft:cobblestone");
+});
+`,
+    );
+    const c = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          wide,
+          "--out",
+          join(root, "dist-closeup"),
+          "--preview",
+          "--offline",
+          "--guide",
+          "--views",
+          "iso;iso@9,1,9r1;az225_el025@9,1,9r1;iso@50,50,50r2",
+        ],
+        c.io,
+      ),
+    ).toBe(0);
+    const dir = join(root, "dist-closeup/run-001");
+    const report = JSON.parse(await readFile(join(dir, "report.json"), "utf8"));
+    expect(report.views.map((v: { file: string }) => v.file)).toEqual([
+      "previews_faithful/iso.png",
+      "previews_faithful/iso@9,1,9r1.png",
+      "previews_faithful/az225_el025@9,1,9r1.png",
+      "previews_faithful/iso@50,50,50r2.png",
+    ]);
+    expect("focus" in report.views[0]).toBe(false);
+    expect(report.views[1].focus).toEqual({ center: [9, 1, 9], radius: 1 });
+    expect(
+      report.warnings.some((w: { message: string }) =>
+        w.message.includes("`iso@50,50,50r2` focus region contains no blocks"),
+      ),
+    ).toBe(true);
+
+    const wholePng = await readFile(join(dir, "previews_faithful/iso.png"));
+    const closePng = await readFile(join(dir, "previews_faithful/iso@9,1,9r1.png"));
+    expect(closePng.equals(wholePng)).toBe(false);
+
+    // Build guide prefers an unfocused view over a close-up when `iso` is absent.
+    const guideRun = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          wide,
+          "--out",
+          join(root, "dist-closeup-guide"),
+          "--preview",
+          "--offline",
+          "--guide",
+          "--views",
+          "iso@9,1,9r1;az135_el025",
+        ],
+        guideRun.io,
+      ),
+    ).toBe(0);
+    expect(
+      await readFile(join(root, "dist-closeup-guide/run-001/guide/guide.md"), "utf8"),
+    ).toContain("![Wide-Focus](../previews_faithful/az135_el025.png)");
   });
 
   it("writes a build guide with --guide, and covers it with the iso preview when there is one", async () => {

@@ -14,6 +14,10 @@
 //   "top"              -> elevation 90 (azimuth degenerate, stored as 0)
 //   "iso"              -> az045_el035 (pinned)
 //
+// Any view token may carry a focus suffix `@<x>,<y>,<z>r<radius>` (e.g.
+// "iso@15,6,22r5" or "az225_el025@28,7,18r4") to frame a world-space cube
+// centered at (x, y, z) with inclusive half-extent `radius` (>= 1).
+//
 // A colon may follow "az", "orbit" or "el" ("orbit:8_el:25"); both styles
 // normalize to the same labels. Malformed tokens throw {@link ViewError}
 // naming the offending token.
@@ -30,20 +34,30 @@ export class ViewError extends Error {
   }
 }
 
+export interface ViewFocus {
+  /** World-space focus centre `[x, y, z]` (integer coordinates). */
+  center: readonly [number, number, number];
+  /** Inclusive half-extent in blocks (`>= 1`, framing a `2r + 1` cube). */
+  radius: number;
+}
+
 export interface View {
   /** Clockwise from north (-Z), degrees. */
   azimuth: number;
   /** Above horizontal, degrees. */
   elevation: number;
-  /** `az045_el025`, `top` or `iso`. */
+  /** `az045_el025`, `top` or `iso`, with optional `@x,y,zr<radius>` focus suffix. */
   label: string;
+  /** Optional world-space focus region for close-up framing. */
+  focus?: ViewFocus;
 }
 
 const GRAMMAR_HELP =
-  "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso'; multiple views are separated by semicolons";
+  "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso' with optional '@<x>,<y>,<z>r<radius>' focus (e.g. 'iso@15,6,22r5'); multiple views are separated by semicolons";
 
 const AZ_EL_RE = /^az:?(\d+)_el:?(\d+)$/;
 const ORBIT_RE = /^orbit:?(\d+)_el:?(\d+)$/;
+const FOCUS_RE = /^(-?\d+),(-?\d+),(-?\d+)r(-?\d+)$/;
 
 /** Python's `repr` of a string token, for messages. */
 const q = (s: string): string =>
@@ -85,43 +99,97 @@ export function checkCap(views: View[]): View[] {
   return views;
 }
 
-function parseToken(token: string): View[] {
-  if (token === "top") return [{ azimuth: 0, elevation: 90, label: "top" }];
-  if (token === "iso") return [{ azimuth: 45, elevation: 35, label: "iso" }];
+function parseFocusSuffix(focusSpec: string, fullToken: string): ViewFocus {
+  const m = FOCUS_RE.exec(focusSpec);
+  if (!m) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus must be '@<x>,<y>,<z>r<radius>' (e.g. '@15,6,22r5'); ${GRAMMAR_HELP}`,
+    );
+  }
+  const cx = Number(m[1]) || 0;
+  const cy = Number(m[2]) || 0;
+  const cz = Number(m[3]) || 0;
+  const radius = Number(m[4]);
+  if (!Number.isSafeInteger(cx) || !Number.isSafeInteger(cy) || !Number.isSafeInteger(cz)) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus coordinates out of range; ${GRAMMAR_HELP}`,
+    );
+  }
+  if (!Number.isSafeInteger(radius) || radius < 1) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus radius must be >= 1; ${GRAMMAR_HELP}`,
+    );
+  }
+  return { center: [cx, cy, cz], radius };
+}
 
-  let m = AZ_EL_RE.exec(token);
+function parseBaseToken(baseSpec: string, fullToken: string): View[] {
+  if (baseSpec === "top") return [{ azimuth: 0, elevation: 90, label: "top" }];
+  if (baseSpec === "iso") return [{ azimuth: 45, elevation: 35, label: "iso" }];
+
+  let m = AZ_EL_RE.exec(baseSpec);
   if (m) {
     const az = Number(m[1]);
     const el = Number(m[2]);
     if (!(az >= 0 && az < 360)) {
       throw new ViewError(
-        `malformed view token ${q(token)}: azimuth ${pyFloat(az)} out of range [0, 360); ${GRAMMAR_HELP}`,
+        `malformed view token ${q(fullToken)}: azimuth ${pyFloat(az)} out of range [0, 360); ${GRAMMAR_HELP}`,
       );
     }
     if (!(el >= 0 && el <= 90)) {
       throw new ViewError(
-        `malformed view token ${q(token)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`,
+        `malformed view token ${q(fullToken)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`,
       );
     }
     return [{ azimuth: az, elevation: el, label: azElLabel(az, el) }];
   }
 
-  m = ORBIT_RE.exec(token);
+  m = ORBIT_RE.exec(baseSpec);
   if (m) {
     const n = Number(m[1]);
     const el = Number(m[2]);
     if (n < 1)
       throw new ViewError(
-        `malformed view token ${q(token)}: orbit count must be >= 1; ${GRAMMAR_HELP}`,
+        `malformed view token ${q(fullToken)}: orbit count must be >= 1; ${GRAMMAR_HELP}`,
       );
     if (!(el >= 0 && el <= 90)) {
       throw new ViewError(
-        `malformed view token ${q(token)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`,
+        `malformed view token ${q(fullToken)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`,
       );
     }
     return orbitViews(n, el);
   }
-  throw new ViewError(`malformed view token ${q(token)}: ${GRAMMAR_HELP}`);
+  throw new ViewError(`malformed view token ${q(fullToken)}: ${GRAMMAR_HELP}`);
+}
+
+function parseToken(token: string): View[] {
+  const at = token.indexOf("@");
+  if (at === -1) return parseBaseToken(token, token);
+  const baseSpec = token.slice(0, at);
+  if (baseSpec === "") {
+    throw new ViewError(
+      `malformed view token ${q(token)}: missing view before '@'; ${GRAMMAR_HELP}`,
+    );
+  }
+  const focus = parseFocusSuffix(token.slice(at + 1), token);
+  const suffix = `@${focus.center[0]},${focus.center[1]},${focus.center[2]}r${focus.radius}`;
+  return parseBaseToken(baseSpec, token).map((v) => ({
+    ...v,
+    label: `${v.label}${suffix}`,
+    focus: { center: [...focus.center] as [number, number, number], radius: focus.radius },
+  }));
+}
+
+/** Inclusive world-space `[min, max]` box for a {@link ViewFocus}. */
+export function focusBounds(
+  focus: ViewFocus,
+): readonly [readonly [number, number, number], readonly [number, number, number]] {
+  const [cx, cy, cz] = focus.center;
+  const r = focus.radius;
+  return [
+    [cx - r, cy - r, cz - r],
+    [cx + r, cy + r, cz + r],
+  ];
 }
 
 /** Parse a semicolon-separated view spec. `parseViews("az045_el025;top")` gives two views. */
@@ -152,8 +220,10 @@ export function withCount(views: readonly View[], n: number): View[] {
 export function resolveViews(spec: string | readonly (string | View)[] | null | undefined): View[] {
   if (spec === null || spec === undefined) return defaultViews();
   if (typeof spec === "string") return parseViews(spec);
-  const items = [...spec];
-  if (items.length > 0 && items.every((v): v is string => typeof v === "string"))
-    return parseViews(items.join(";"));
-  return checkCap(items as View[]);
+  const out: View[] = [];
+  for (const item of spec) {
+    if (typeof item === "string") out.push(...parseViews(item));
+    else out.push(item);
+  }
+  return checkCap(out);
 }

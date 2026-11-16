@@ -21,7 +21,8 @@ import {
   quadCulledByNeighbour,
   type Scene,
 } from "./scene.ts";
-import type { View } from "./views.ts";
+import { cropDense } from "./slice.ts";
+import { focusBounds, type View } from "./views.ts";
 
 const BG_PRESENTATION: readonly [number, number, number] = [244, 241, 235];
 
@@ -555,14 +556,16 @@ export function renderView(
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const bg = options.background === undefined ? BG_PRESENTATION : rgbOf(options.background);
-  const crop = renderableBounds(dense);
+  const target = view.focus ? cropDense(dense, ...focusBounds(view.focus)) : dense;
+  const { d, r, u } = camera(view);
+  const crop = renderableBounds(target);
   if (crop === null) {
     const empty = newCanvas(512, 512, bg);
     if (options.title) drawTitle(empty, options.title);
+    if (options.overlay ?? true) drawOverlay(empty, view, r, u);
     return empty;
   }
-  const scene = prepareScene(dense, assets);
-  const { d, r, u } = camera(view);
+  const scene = prepareScene(target, assets);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop;
 
   const corners: Vec3[] = [];
@@ -601,17 +604,17 @@ export function renderView(
 
   const cache = new Map<string, { quads: Quad[]; isFallback: boolean }>();
   const drawn: Drawn[] = [];
-  const [, sy, sz] = dense.size;
+  const [, sy, sz] = target.size;
   let seq = 0;
   for (let x = x0; x < x1; x++) {
     for (let y = y0; y < y1; y++) {
       for (let z = z0; z < z1; z++) {
-        const idx = dense.data[(x * sy + y) * sz + z] as number;
-        if (idx < 0 || idx >= dense.palette.length || dense.palette[idx] === "minecraft:air")
+        const idx = target.data[(x * sy + y) * sz + z] as number;
+        if (idx < 0 || idx >= target.palette.length || target.palette[idx] === "minecraft:air")
           continue;
         const cell = cellQuads(scene, x, y, z, cache);
         if (cell === null) continue;
-        const name = splitBlockstate(dense.palette[idx] as string)[0];
+        const name = splitBlockstate(target.palette[idx] as string)[0];
         for (const q of cell.quads) {
           // Back-face culling uses the true float normal.
           if (dot(q.normal, d) >= -1e-9) continue;

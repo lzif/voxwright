@@ -31,14 +31,14 @@ import { type Dims, VoxelGrid } from "./voxels.ts";
 
 export interface BuildOptions {
   seed?: Seed;
-  /** Default preview views, e.g. `["iso", "az135_el025", "top"]`. */
+  /** Default preview views, e.g. `["iso", "az135_el025", "top", "iso@15,6,22r5"]`. */
   views?: string | readonly string[] | null;
   /** Size limit per axis; exceeding it throws `GridBoundsError`. Default 256 each. */
   maxDimensions?: Dims;
 }
 
 export interface BuildRenderOptions {
-  /** Preview views (defaults to this build's `views`, then the standard 9-view orbit). */
+  /** Preview views, including optional `@x,y,zr<radius>` close-up focus (defaults to this build's `views`, then the standard 9-view orbit). */
   views?: string | readonly (string | View)[] | null;
   /** Preview tier; only `"faithful"` is ported. */
   tier?: "faithful" | "fast" | "trusted";

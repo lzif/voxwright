@@ -8131,6 +8131,190 @@ function untrustedBlocks(dense, assets) {
   return new Map([...out].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
 }
 
+// packages/render/src/slice.ts
+function cropDense(dense, c1, c2) {
+  const [sx, sy, sz] = dense.size;
+  const [ox, oy, oz] = dense.origin;
+  const lx0 = Math.max(0, Math.min(c1[0], c2[0]) - ox);
+  const lx1 = Math.min(sx - 1, Math.max(c1[0], c2[0]) - ox);
+  const ly0 = Math.max(0, Math.min(c1[1], c2[1]) - oy);
+  const ly1 = Math.min(sy - 1, Math.max(c1[1], c2[1]) - oy);
+  const lz0 = Math.max(0, Math.min(c1[2], c2[2]) - oz);
+  const lz1 = Math.min(sz - 1, Math.max(c1[2], c2[2]) - oz);
+  if (lx0 > lx1 || ly0 > ly1 || lz0 > lz1) {
+    return {
+      size: [0, 0, 0],
+      origin: [ox, oy, oz],
+      data: new Int32Array(0),
+      palette: dense.palette
+    };
+  }
+  const nx = lx1 - lx0 + 1;
+  const ny = ly1 - ly0 + 1;
+  const nz = lz1 - lz0 + 1;
+  const data = new Int32Array(nx * ny * nz);
+  for (let x2 = 0; x2 < nx; x2++) {
+    for (let y = 0; y < ny; y++) {
+      const src = ((lx0 + x2) * sy + (ly0 + y)) * sz + lz0;
+      const dst = (x2 * ny + y) * nz;
+      for (let z = 0; z < nz; z++) data[dst + z] = dense.data[src + z];
+    }
+  }
+  return {
+    size: [nx, ny, nz],
+    origin: [ox + lx0, oy + ly0, oz + lz0],
+    data,
+    palette: dense.palette
+  };
+}
+
+// packages/render/src/views.ts
+var MAX_VIEWS = 36;
+var ViewError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ViewError";
+  }
+};
+var GRAMMAR_HELP = "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso' with optional '@<x>,<y>,<z>r<radius>' focus (e.g. 'iso@15,6,22r5'); multiple views are separated by semicolons";
+var AZ_EL_RE = /^az:?(\d+)_el:?(\d+)$/;
+var ORBIT_RE = /^orbit:?(\d+)_el:?(\d+)$/;
+var FOCUS_RE = /^(-?\d+),(-?\d+),(-?\d+)r(-?\d+)$/;
+var q = (s) => s.includes("'") && !s.includes('"') ? `"${s}"` : `'${s.replaceAll("\\", "\\\\").replaceAll("'", "\\'")}'`;
+var pyFloat = (v) => Number.isInteger(v) ? v.toFixed(1) : String(v);
+function fmtNum(value) {
+  const rounded = Number(value.toFixed(3));
+  if (Number.isInteger(rounded)) return String(rounded).padStart(3, "0");
+  const [intPart, fracPart] = rounded.toFixed(3).replace(/0+$/, "").split(".");
+  return `${intPart.padStart(3, "0")}.${fracPart}`;
+}
+var azElLabel = (azimuth, elevation) => `az${fmtNum(azimuth)}_el${fmtNum(elevation)}`;
+function orbitViews(n2, elevation) {
+  const views = [];
+  for (let i2 = 0; i2 < n2; i2++) {
+    const az = Number((i2 * 360 / n2).toFixed(9)) % 360;
+    views.push({ azimuth: az, elevation, label: azElLabel(az, elevation) });
+  }
+  return views;
+}
+function checkCap(views) {
+  if (views.length > MAX_VIEWS) {
+    throw new ViewError(
+      `too many views (${views.length} > ${MAX_VIEWS}): an agent will request 360 someday; keep it at ${MAX_VIEWS} or fewer`
+    );
+  }
+  return views;
+}
+function parseFocusSuffix(focusSpec, fullToken) {
+  const m = FOCUS_RE.exec(focusSpec);
+  if (!m) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus must be '@<x>,<y>,<z>r<radius>' (e.g. '@15,6,22r5'); ${GRAMMAR_HELP}`
+    );
+  }
+  const cx = Number(m[1]) || 0;
+  const cy = Number(m[2]) || 0;
+  const cz = Number(m[3]) || 0;
+  const radius = Number(m[4]);
+  if (!Number.isSafeInteger(cx) || !Number.isSafeInteger(cy) || !Number.isSafeInteger(cz)) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus coordinates out of range; ${GRAMMAR_HELP}`
+    );
+  }
+  if (!Number.isSafeInteger(radius) || radius < 1) {
+    throw new ViewError(
+      `malformed view token ${q(fullToken)}: focus radius must be >= 1; ${GRAMMAR_HELP}`
+    );
+  }
+  return { center: [cx, cy, cz], radius };
+}
+function parseBaseToken(baseSpec, fullToken) {
+  if (baseSpec === "top") return [{ azimuth: 0, elevation: 90, label: "top" }];
+  if (baseSpec === "iso") return [{ azimuth: 45, elevation: 35, label: "iso" }];
+  let m = AZ_EL_RE.exec(baseSpec);
+  if (m) {
+    const az = Number(m[1]);
+    const el = Number(m[2]);
+    if (!(az >= 0 && az < 360)) {
+      throw new ViewError(
+        `malformed view token ${q(fullToken)}: azimuth ${pyFloat(az)} out of range [0, 360); ${GRAMMAR_HELP}`
+      );
+    }
+    if (!(el >= 0 && el <= 90)) {
+      throw new ViewError(
+        `malformed view token ${q(fullToken)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`
+      );
+    }
+    return [{ azimuth: az, elevation: el, label: azElLabel(az, el) }];
+  }
+  m = ORBIT_RE.exec(baseSpec);
+  if (m) {
+    const n2 = Number(m[1]);
+    const el = Number(m[2]);
+    if (n2 < 1)
+      throw new ViewError(
+        `malformed view token ${q(fullToken)}: orbit count must be >= 1; ${GRAMMAR_HELP}`
+      );
+    if (!(el >= 0 && el <= 90)) {
+      throw new ViewError(
+        `malformed view token ${q(fullToken)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`
+      );
+    }
+    return orbitViews(n2, el);
+  }
+  throw new ViewError(`malformed view token ${q(fullToken)}: ${GRAMMAR_HELP}`);
+}
+function parseToken(token) {
+  const at = token.indexOf("@");
+  if (at === -1) return parseBaseToken(token, token);
+  const baseSpec = token.slice(0, at);
+  if (baseSpec === "") {
+    throw new ViewError(
+      `malformed view token ${q(token)}: missing view before '@'; ${GRAMMAR_HELP}`
+    );
+  }
+  const focus = parseFocusSuffix(token.slice(at + 1), token);
+  const suffix = `@${focus.center[0]},${focus.center[1]},${focus.center[2]}r${focus.radius}`;
+  return parseBaseToken(baseSpec, token).map((v) => ({
+    ...v,
+    label: `${v.label}${suffix}`,
+    focus: { center: [...focus.center], radius: focus.radius }
+  }));
+}
+function focusBounds(focus) {
+  const [cx, cy, cz] = focus.center;
+  const r = focus.radius;
+  return [
+    [cx - r, cy - r, cz - r],
+    [cx + r, cy + r, cz + r]
+  ];
+}
+function parseViews(spec) {
+  const views = [];
+  for (const raw of spec.split(";")) {
+    const token = pyStrip(raw);
+    if (token === "")
+      throw new ViewError(`malformed view token ${q(token)} (empty): ${GRAMMAR_HELP}`);
+    views.push(...parseToken(token));
+  }
+  return checkCap(views);
+}
+var defaultViews = () => parseViews("orbit8_el25;top");
+function withCount(views, n2) {
+  if (n2 <= 0) throw new RangeError(`count must be positive, got ${n2}`);
+  return checkCap([...views, ...orbitViews(n2, 25)]);
+}
+function resolveViews(spec) {
+  if (spec === null || spec === void 0) return defaultViews();
+  if (typeof spec === "string") return parseViews(spec);
+  const out = [];
+  for (const item of spec) {
+    if (typeof item === "string") out.push(...parseViews(item));
+    else out.push(item);
+  }
+  return checkCap(out);
+}
+
 // packages/render/src/rasterize.ts
 var BG_PRESENTATION = [244, 241, 235];
 var rgbOf = (hex2) => [
@@ -8508,14 +8692,16 @@ function renderView(dense, assets, view, options = {}) {
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const bg = options.background === void 0 ? BG_PRESENTATION : rgbOf(options.background);
-  const crop2 = renderableBounds(dense);
+  const target = view.focus ? cropDense(dense, ...focusBounds(view.focus)) : dense;
+  const { d, r, u } = camera(view);
+  const crop2 = renderableBounds(target);
   if (crop2 === null) {
     const empty = newCanvas(512, 512, bg);
     if (options.title) drawTitle(empty, options.title);
+    if (options.overlay ?? true) drawOverlay(empty, view, r, u);
     return empty;
   }
-  const scene = prepareScene(dense, assets);
-  const { d, r, u } = camera(view);
+  const scene = prepareScene(target, assets);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop2;
   const corners2 = [];
   for (const x2 of [x0, x1])
@@ -8550,17 +8736,17 @@ function renderView(dense, assets, view, options = {}) {
   }
   const cache = /* @__PURE__ */ new Map();
   const drawn = [];
-  const [, sy, sz] = dense.size;
+  const [, sy, sz] = target.size;
   let seq = 0;
   for (let x2 = x0; x2 < x1; x2++) {
     for (let y = y0; y < y1; y++) {
       for (let z = z0; z < z1; z++) {
-        const idx = dense.data[(x2 * sy + y) * sz + z];
-        if (idx < 0 || idx >= dense.palette.length || dense.palette[idx] === "minecraft:air")
+        const idx = target.data[(x2 * sy + y) * sz + z];
+        if (idx < 0 || idx >= target.palette.length || target.palette[idx] === "minecraft:air")
           continue;
         const cell = cellQuads(scene, x2, y, z, cache);
         if (cell === null) continue;
-        const name = splitBlockstate(dense.palette[idx])[0];
+        const name = splitBlockstate(target.palette[idx])[0];
         for (const q2 of cell.quads) {
           if (dot(q2.normal, d) >= -1e-9) continue;
           if (quadCulledByNeighbour(scene, q2.cull, x2, y, z, name)) continue;
@@ -8609,102 +8795,6 @@ function renderView(dense, assets, view, options = {}) {
   if (options.title) drawTitle(finished, options.title);
   if (options.overlay ?? true) drawOverlay(finished, view, r, u);
   return finished;
-}
-
-// packages/render/src/views.ts
-var MAX_VIEWS = 36;
-var ViewError = class extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "ViewError";
-  }
-};
-var GRAMMAR_HELP = "expected one of 'az<ddd>_el<dd>' (e.g. 'az045_el025'), 'orbit<n>_el<dd>' (e.g. 'orbit8_el25'), 'top', or 'iso'; multiple views are separated by semicolons";
-var AZ_EL_RE = /^az:?(\d+)_el:?(\d+)$/;
-var ORBIT_RE = /^orbit:?(\d+)_el:?(\d+)$/;
-var q = (s) => s.includes("'") && !s.includes('"') ? `"${s}"` : `'${s.replaceAll("\\", "\\\\").replaceAll("'", "\\'")}'`;
-var pyFloat = (v) => Number.isInteger(v) ? v.toFixed(1) : String(v);
-function fmtNum(value) {
-  const rounded = Number(value.toFixed(3));
-  if (Number.isInteger(rounded)) return String(rounded).padStart(3, "0");
-  const [intPart, fracPart] = rounded.toFixed(3).replace(/0+$/, "").split(".");
-  return `${intPart.padStart(3, "0")}.${fracPart}`;
-}
-var azElLabel = (azimuth, elevation) => `az${fmtNum(azimuth)}_el${fmtNum(elevation)}`;
-function orbitViews(n2, elevation) {
-  const views = [];
-  for (let i2 = 0; i2 < n2; i2++) {
-    const az = Number((i2 * 360 / n2).toFixed(9)) % 360;
-    views.push({ azimuth: az, elevation, label: azElLabel(az, elevation) });
-  }
-  return views;
-}
-function checkCap(views) {
-  if (views.length > MAX_VIEWS) {
-    throw new ViewError(
-      `too many views (${views.length} > ${MAX_VIEWS}): an agent will request 360 someday; keep it at ${MAX_VIEWS} or fewer`
-    );
-  }
-  return views;
-}
-function parseToken(token) {
-  if (token === "top") return [{ azimuth: 0, elevation: 90, label: "top" }];
-  if (token === "iso") return [{ azimuth: 45, elevation: 35, label: "iso" }];
-  let m = AZ_EL_RE.exec(token);
-  if (m) {
-    const az = Number(m[1]);
-    const el = Number(m[2]);
-    if (!(az >= 0 && az < 360)) {
-      throw new ViewError(
-        `malformed view token ${q(token)}: azimuth ${pyFloat(az)} out of range [0, 360); ${GRAMMAR_HELP}`
-      );
-    }
-    if (!(el >= 0 && el <= 90)) {
-      throw new ViewError(
-        `malformed view token ${q(token)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`
-      );
-    }
-    return [{ azimuth: az, elevation: el, label: azElLabel(az, el) }];
-  }
-  m = ORBIT_RE.exec(token);
-  if (m) {
-    const n2 = Number(m[1]);
-    const el = Number(m[2]);
-    if (n2 < 1)
-      throw new ViewError(
-        `malformed view token ${q(token)}: orbit count must be >= 1; ${GRAMMAR_HELP}`
-      );
-    if (!(el >= 0 && el <= 90)) {
-      throw new ViewError(
-        `malformed view token ${q(token)}: elevation ${pyFloat(el)} out of range [0, 90]; ${GRAMMAR_HELP}`
-      );
-    }
-    return orbitViews(n2, el);
-  }
-  throw new ViewError(`malformed view token ${q(token)}: ${GRAMMAR_HELP}`);
-}
-function parseViews(spec) {
-  const views = [];
-  for (const raw of spec.split(";")) {
-    const token = pyStrip(raw);
-    if (token === "")
-      throw new ViewError(`malformed view token ${q(token)} (empty): ${GRAMMAR_HELP}`);
-    views.push(...parseToken(token));
-  }
-  return checkCap(views);
-}
-var defaultViews = () => parseViews("orbit8_el25;top");
-function withCount(views, n2) {
-  if (n2 <= 0) throw new RangeError(`count must be positive, got ${n2}`);
-  return checkCap([...views, ...orbitViews(n2, 25)]);
-}
-function resolveViews(spec) {
-  if (spec === null || spec === void 0) return defaultViews();
-  if (typeof spec === "string") return parseViews(spec);
-  const items = [...spec];
-  if (items.length > 0 && items.every((v) => typeof v === "string"))
-    return parseViews(items.join(";"));
-  return checkCap(items);
 }
 
 // packages/render/src/node/assets.ts
@@ -10382,6 +10472,12 @@ function viewEntry(options) {
     azimuth: options.view.azimuth,
     elevation: options.view.elevation,
     label: options.view.label,
+    ...options.view.focus ? {
+      focus: {
+        center: [...options.view.focus.center],
+        radius: options.view.focus.radius
+      }
+    } : {},
     directions_untrusted: options.directionsUntrusted ?? true,
     directions_trusted: options.directionsTrusted ?? false
   };
@@ -14377,6 +14473,15 @@ async function cmdRun(args, io, get) {
     const dir = join7(runDir, "previews_faithful");
     await mkdir3(dir, { recursive: true });
     for (const view of viewList) {
+      if (view.focus) {
+        const sub = cropDense(dense, ...focusBounds(view.focus));
+        const air2 = sub.palette.indexOf("minecraft:air");
+        if (!sub.data.some((v) => v >= 0 && v !== air2)) {
+          warnings.push({
+            message: `faithful preview: view \`${view.label}\` focus region contains no blocks`
+          });
+        }
+      }
       const file = `${view.label}.png`;
       await writeFile4(
         join7(dir, file),
@@ -14403,7 +14508,7 @@ async function cmdRun(args, io, get) {
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
     let cover = null;
     if (values.preview && viewEntries.length > 0) {
-      const picked = viewEntries.find((v) => v.label === "iso") ?? viewEntries.find((v) => v.label !== "top") ?? viewEntries[0];
+      const picked = viewEntries.find((v) => v.label === "iso") ?? viewEntries.find((v) => !v.focus && v.label !== "top") ?? viewEntries.find((v) => v.label !== "top") ?? viewEntries[0];
       if (picked && await exists2(join7(runDir, picked.file))) {
         cover = `../${picked.file}`;
       }
@@ -14793,7 +14898,7 @@ var RUN_SYNTAX = `init [path] [--force]
 check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-    [--offline]
+    [--offline] (views accept optional @x,y,zr<radius> close-up focus)
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]

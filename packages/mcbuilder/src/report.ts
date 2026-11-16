@@ -17,10 +17,16 @@
 // Every fast-tier preview is flagged `directions_untrusted: true`: the fast
 // renderer cannot show facing or connection state.
 
+export interface ViewFocusLike {
+  center: readonly [number, number, number];
+  radius: number;
+}
+
 export interface ViewLike {
   azimuth: number;
   elevation: number;
   label: string;
+  focus?: ViewFocusLike;
 }
 
 export interface ViewEntry {
@@ -28,6 +34,7 @@ export interface ViewEntry {
   azimuth: number;
   elevation: number;
   label: string;
+  focus?: { center: [number, number, number]; radius: number };
   directions_untrusted: boolean;
   directions_trusted: boolean;
 }
@@ -43,6 +50,14 @@ export function viewEntry(options: {
     azimuth: options.view.azimuth,
     elevation: options.view.elevation,
     label: options.view.label,
+    ...(options.view.focus
+      ? {
+          focus: {
+            center: [...options.view.focus.center] as [number, number, number],
+            radius: options.view.focus.radius,
+          },
+        }
+      : {}),
     directions_untrusted: options.directionsUntrusted ?? true,
     directions_trusted: options.directionsTrusted ?? false,
   };

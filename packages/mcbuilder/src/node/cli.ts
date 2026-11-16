@@ -26,6 +26,8 @@ import {
   writeStructureNbt,
 } from "@voxwright/core";
 import {
+  cropDense,
+  focusBounds,
   renderView,
   resolveViews,
   untrustedBlocks,
@@ -441,6 +443,15 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
     const dir = join(runDir, "previews_faithful");
     await mkdir(dir, { recursive: true });
     for (const view of viewList) {
+      if (view.focus) {
+        const sub = cropDense(dense, ...focusBounds(view.focus));
+        const air = sub.palette.indexOf("minecraft:air");
+        if (!sub.data.some((v) => v >= 0 && v !== air)) {
+          warnings.push({
+            message: `faithful preview: view \`${view.label}\` focus region contains no blocks`,
+          });
+        }
+      }
       const file = `${view.label}.png`;
       await writeFile(
         join(dir, file),
@@ -474,6 +485,7 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
     if (values.preview && viewEntries.length > 0) {
       const picked =
         viewEntries.find((v) => v.label === "iso") ??
+        viewEntries.find((v) => !v.focus && v.label !== "top") ??
         viewEntries.find((v) => v.label !== "top") ??
         viewEntries[0];
       if (picked && (await exists(join(runDir, picked.file)))) {
@@ -907,7 +919,7 @@ export const RUN_SYNTAX = `init [path] [--force]
 check <script> [--config file] [--offline]
 run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-    [--offline]
+    [--offline] (views accept optional @x,y,zr<radius> close-up focus)
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
 diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]

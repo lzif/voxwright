@@ -68,14 +68,16 @@ export {
   type Scene,
   untrustedBlocks,
 } from "./scene.ts";
-export { sliceDense } from "./slice.ts";
+export { cropDense, sliceDense } from "./slice.ts";
 export {
   checkCap,
   defaultViews,
+  focusBounds,
   MAX_VIEWS,
   parseViews,
   resolveViews,
   type View,
   ViewError,
+  type ViewFocus,
   withCount,
 } from "./views.ts";
