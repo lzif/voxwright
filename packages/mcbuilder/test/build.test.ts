@@ -448,7 +448,7 @@ describe("Build.validate and Build.render", () => {
       expect(basename(pColon[0] as string)).toBe("az000_el025.png");
       expect(basename(pColon.at(-1) as string)).toBe("top.png");
 
-      // Focused close-up views (radius and box) via Build.render and BuildOptions.views.
+      // Focused close-up views (radius and box) frame via camera without cropping surrounding blocks.
       const bFocus = new Build({ seed: 1, views: ["iso", "iso@10,1,10r1", "iso@12,1,12:9,0,9"] });
       bFocus.scope(() => {
         bFocus.box([0, 0, 0], [12, 0, 12], "minecraft:stone");
@@ -464,6 +464,20 @@ describe("Build.validate and Build.render", () => {
         false,
       );
       expect(readFileSync(pFocus[0] as string).equals(readFileSync(pFocus[2] as string))).toBe(
+        false,
+      );
+      // Adding a block outside the [9..12, 0..1, 9..12] focus box changes the focused renders (not cropped).
+      const bFocusCtx = new Build({ seed: 1, views: ["iso@10,1,10r1", "iso@12,1,12:9,0,9"] });
+      bFocusCtx.scope(() => {
+        bFocusCtx.box([0, 0, 0], [12, 0, 12], "minecraft:stone");
+        bFocusCtx.set(10, 1, 10, "minecraft:cobblestone");
+        bFocusCtx.set(8, 1, 10, "minecraft:oak_planks");
+      });
+      const pFocusCtx = bFocusCtx.render(join(dir, "focus-ctx"), { assetsDir: null });
+      expect(readFileSync(pFocus[1] as string).equals(readFileSync(pFocusCtx[0] as string))).toBe(
+        false,
+      );
+      expect(readFileSync(pFocus[2] as string).equals(readFileSync(pFocusCtx[1] as string))).toBe(
         false,
       );
 

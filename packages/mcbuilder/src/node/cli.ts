@@ -19,6 +19,7 @@ import { basename, dirname, extname, join, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import {
   type AirMode,
+  type DenseVolume,
   readLitematic,
   readMcstructure,
   readSchem,
@@ -26,7 +27,6 @@ import {
   writeStructureNbt,
 } from "@voxwright/core";
 import {
-  cropDense,
   focusBounds,
   renderView,
   resolveViews,
@@ -221,6 +221,44 @@ function parseFocus(spec: string): [[number, number, number], [number, number, n
     return v as [number, number, number];
   };
   return [corner(parts[0] as string), corner(parts[1] as string)];
+}
+
+/** Non-air world-space inclusive `[min, max]` bounds of `dense`, or `null` when empty. */
+function nonAirBounds(
+  dense: DenseVolume,
+): readonly [readonly [number, number, number], readonly [number, number, number]] | null {
+  const air = dense.palette.indexOf("minecraft:air");
+  const [sx, sy, sz] = dense.size;
+  const [ox, oy, oz] = dense.origin;
+  let minX = Infinity;
+  let minY = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let maxZ = -Infinity;
+  for (let x = 0; x < sx; x++) {
+    for (let y = 0; y < sy; y++) {
+      for (let z = 0; z < sz; z++) {
+        const v = dense.data[(x * sy + y) * sz + z] as number;
+        if (v < 0 || v >= dense.palette.length || v === air) continue;
+        const wx = ox + x;
+        const wy = oy + y;
+        const wz = oz + z;
+        if (wx < minX) minX = wx;
+        if (wy < minY) minY = wy;
+        if (wz < minZ) minZ = wz;
+        if (wx > maxX) maxX = wx;
+        if (wy > maxY) maxY = wy;
+        if (wz > maxZ) maxZ = wz;
+      }
+    }
+  }
+  return minX === Infinity
+    ? null
+    : [
+        [minX, minY, minZ],
+        [maxX, maxY, maxZ],
+      ];
 }
 
 /** `--views` and `--count` beat the script's views, which beat the default set. Max 36. */
@@ -442,13 +480,21 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
     }
     const dir = join(runDir, "previews_faithful");
     await mkdir(dir, { recursive: true });
+    const buildBounds = viewList.some((v) => v.focus) ? nonAirBounds(dense) : null;
     for (const view of viewList) {
       if (view.focus) {
-        const sub = cropDense(dense, ...focusBounds(view.focus));
-        const air = sub.palette.indexOf("minecraft:air");
-        if (!sub.data.some((v) => v >= 0 && v !== air)) {
+        const [[fx0, fy0, fz0], [fx1, fy1, fz1]] = focusBounds(view.focus);
+        if (
+          buildBounds === null ||
+          fx1 < buildBounds[0][0] ||
+          fx0 > buildBounds[1][0] ||
+          fy1 < buildBounds[0][1] ||
+          fy0 > buildBounds[1][1] ||
+          fz1 < buildBounds[0][2] ||
+          fz0 > buildBounds[1][2]
+        ) {
           warnings.push({
-            message: `faithful preview: view \`${view.label}\` focus region contains no blocks`,
+            message: `faithful preview: view \`${view.label}\` focus region lies outside the build`,
           });
         }
       }

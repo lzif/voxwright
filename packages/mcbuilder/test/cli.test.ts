@@ -485,18 +485,55 @@ BUILD.scope(() => {
     expect(report.views[2].focus).toEqual({ min: [8, 0, 8], max: [10, 1, 10] });
     expect(
       report.warnings.some((w: { message: string }) =>
-        w.message.includes("`iso@50,50,50r2` focus region contains no blocks"),
+        w.message.includes("`iso@50,50,50r2` focus region lies outside the build"),
       ),
     ).toBe(true);
     expect(
       report.warnings.some((w: { message: string }) =>
-        w.message.includes("`iso@50,50,50:60,60,60` focus region contains no blocks"),
+        w.message.includes("`iso@50,50,50:60,60,60` focus region lies outside the build"),
       ),
     ).toBe(true);
 
     const wholePng = await readFile(join(dir, "previews_faithful/iso.png"));
     const closePng = await readFile(join(dir, "previews_faithful/iso@9,1,9r1.png"));
+    const outsidePng = await readFile(join(dir, "previews_faithful/iso@50,50,50r2.png"));
     expect(closePng.equals(wholePng)).toBe(false);
+    const decodedOutside = decodePng(new Uint8Array(outsidePng));
+    expect(Math.max(decodedOutside.width, decodedOutside.height)).toBe(2048);
+
+    // Blocks outside the focus box ([8..10, 0..1, 8..10]) remain visible in the focused render.
+    const wideWithNeighbor = join(root, "wide-focus-neighbor.ts");
+    await writeFile(
+      wideWithNeighbor,
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ seed: 1 });
+BUILD.scope(() => {
+  BUILD.box([0, 0, 0], [10, 0, 10], "minecraft:stone");
+  BUILD.set(9, 1, 9, "minecraft:cobblestone");
+  BUILD.set(7, 1, 9, "minecraft:oak_planks");
+});
+`,
+    );
+    const nRun = capture();
+    expect(
+      await runCli(
+        [
+          "run",
+          wideWithNeighbor,
+          "--out",
+          join(root, "dist-closeup-neighbor"),
+          "--preview",
+          "--offline",
+          "--views",
+          "iso@9,1,9r1;az225_el025@10,1,10:8,0,8",
+        ],
+        nRun.io,
+      ),
+    ).toBe(0);
+    const closeWithNeighbor = await readFile(
+      join(root, "dist-closeup-neighbor/run-001/previews_faithful/iso@9,1,9r1.png"),
+    );
+    expect(closeWithNeighbor.equals(closePng)).toBe(false);
 
     // Build guide prefers an unfocused view over a close-up when `iso` is absent.
     const guideRun = capture();

@@ -8131,43 +8131,6 @@ function untrustedBlocks(dense, assets) {
   return new Map([...out].sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
 }
 
-// packages/render/src/slice.ts
-function cropDense(dense, c1, c2) {
-  const [sx, sy, sz] = dense.size;
-  const [ox, oy, oz] = dense.origin;
-  const lx0 = Math.max(0, Math.min(c1[0], c2[0]) - ox);
-  const lx1 = Math.min(sx - 1, Math.max(c1[0], c2[0]) - ox);
-  const ly0 = Math.max(0, Math.min(c1[1], c2[1]) - oy);
-  const ly1 = Math.min(sy - 1, Math.max(c1[1], c2[1]) - oy);
-  const lz0 = Math.max(0, Math.min(c1[2], c2[2]) - oz);
-  const lz1 = Math.min(sz - 1, Math.max(c1[2], c2[2]) - oz);
-  if (lx0 > lx1 || ly0 > ly1 || lz0 > lz1) {
-    return {
-      size: [0, 0, 0],
-      origin: [ox, oy, oz],
-      data: new Int32Array(0),
-      palette: dense.palette
-    };
-  }
-  const nx = lx1 - lx0 + 1;
-  const ny = ly1 - ly0 + 1;
-  const nz = lz1 - lz0 + 1;
-  const data = new Int32Array(nx * ny * nz);
-  for (let x2 = 0; x2 < nx; x2++) {
-    for (let y = 0; y < ny; y++) {
-      const src = ((lx0 + x2) * sy + (ly0 + y)) * sz + lz0;
-      const dst = (x2 * ny + y) * nz;
-      for (let z = 0; z < nz; z++) data[dst + z] = dense.data[src + z];
-    }
-  }
-  return {
-    size: [nx, ny, nz],
-    origin: [ox + lx0, oy + ly0, oz + lz0],
-    data,
-    palette: dense.palette
-  };
-}
-
 // packages/render/src/views.ts
 var MAX_VIEWS = 36;
 var ViewError = class extends Error {
@@ -8482,19 +8445,27 @@ function drawTexturedQuad(canvas, pts, tex, ao) {
   const x1 = Math.ceil(Math.max(...xs));
   const y0 = Math.floor(Math.min(...ys));
   const y1 = Math.ceil(Math.max(...ys));
+  if (x1 <= 0 || x0 >= canvas.width || y1 <= 0 || y0 >= canvas.height) return;
   const bw = x1 - x0;
   const bh = y1 - y0;
   if (bw < 1 || bh < 1) return;
+  const cx0 = Math.max(0, x0);
+  const cx1 = Math.min(canvas.width, x1);
+  const cy0 = Math.max(0, y0);
+  const cy1 = Math.min(canvas.height, y1);
+  const cw = cx1 - cx0;
+  const chBox = cy1 - cy0;
+  if (cw < 1 || chBox < 1) return;
   const a = inv[0];
   const b = inv[1];
-  const c = a * (x0 - t1) + b * (y0 - t2);
+  const c = a * (cx0 - t1) + b * (cy0 - t2);
   const d = inv[2];
   const e = inv[3];
-  const f = d * (x0 - t1) + e * (y0 - t2);
+  const f = d * (cx0 - t1) + e * (cy0 - t2);
   const mask = polygonMask(
-    pts.map((p) => [p.sx - x0, p.sy - y0]),
-    bw,
-    bh
+    pts.map((p) => [p.sx - cx0, p.sy - cy0]),
+    cw,
+    chBox
   );
   let brightFit = null;
   if (aoFactors !== null) {
@@ -8503,14 +8474,14 @@ function drawTexturedQuad(canvas, pts, tex, ao) {
       aoFactors
     );
   }
+  const dx0 = cx0 - x0;
+  const dy0 = cy0 - y0;
   const ch = tex.channels;
-  for (let oy = 0; oy < bh; oy++) {
-    const cy = y0 + oy;
-    if (cy < 0 || cy >= canvas.height) continue;
-    for (let ox = 0; ox < bw; ox++) {
-      const cx = x0 + ox;
-      if (cx < 0 || cx >= canvas.width) continue;
-      let cover = mask[oy * bw + ox];
+  for (let oy = 0; oy < chBox; oy++) {
+    const cy = cy0 + oy;
+    for (let ox = 0; ox < cw; ox++) {
+      const cx = cx0 + ox;
+      let cover = mask[oy * cw + ox];
       if (cover === 0) continue;
       const tx = Math.min(tex.width - 1, Math.max(0, Math.trunc(a * ox + b * oy + c)));
       const ty = Math.min(tex.height - 1, Math.max(0, Math.trunc(d * ox + e * oy + f)));
@@ -8519,7 +8490,10 @@ function drawTexturedQuad(canvas, pts, tex, ao) {
       let g = tex.data[ti + 1];
       let bl = tex.data[ti + 2];
       if (brightFit !== null) {
-        const k = Math.min(1, Math.max(0, brightFit[0] * ox + brightFit[1] * oy + brightFit[2]));
+        const k = Math.min(
+          1,
+          Math.max(0, brightFit[0] * (ox + dx0) + brightFit[1] * (oy + dy0) + brightFit[2])
+        );
         r = Math.trunc(Math.fround(r) * Math.fround(k));
         g = Math.trunc(Math.fround(g) * Math.fround(k));
         bl = Math.trunc(Math.fround(bl) * Math.fround(k));
@@ -8733,20 +8707,30 @@ function renderView(dense, assets, view, options = {}) {
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const bg = options.background === void 0 ? BG_PRESENTATION : rgbOf(options.background);
-  const target = view.focus ? cropDense(dense, ...focusBounds(view.focus)) : dense;
   const { d, r, u } = camera(view);
-  const crop2 = renderableBounds(target);
+  const crop2 = renderableBounds(dense);
   if (crop2 === null) {
     const empty = newCanvas(512, 512, bg);
     if (options.title) drawTitle(empty, options.title);
     if (options.overlay ?? true) drawOverlay(empty, view, r, u);
     return empty;
   }
-  const scene = prepareScene(target, assets);
+  const scene = prepareScene(dense, assets);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop2;
+  let frameBounds = crop2;
+  if (view.focus) {
+    const [[fxMin, fyMin, fzMin], [fxMax, fyMax, fzMax]] = focusBounds(view.focus);
+    const [ox, oy, oz] = dense.origin;
+    frameBounds = [
+      [fxMin - ox, fxMax + 1 - ox],
+      [fyMin - oy, fyMax + 1 - oy],
+      [fzMin - oz, fzMax + 1 - oz]
+    ];
+  }
+  const [[fx0, fx1], [fy0, fy1], [fz0, fz1]] = frameBounds;
   const corners2 = [];
-  for (const x2 of [x0, x1])
-    for (const y of [y0, y1]) for (const z of [z0, z1]) corners2.push([x2, y, z]);
+  for (const x2 of [fx0, fx1])
+    for (const y of [fy0, fy1]) for (const z of [fz0, fz1]) corners2.push([x2, y, z]);
   const proj = corners2.map((p) => project(p, r, u));
   let minx = Math.min(...proj.map((p) => p[0]));
   let maxx = Math.max(...proj.map((p) => p[0]));
@@ -8777,17 +8761,17 @@ function renderView(dense, assets, view, options = {}) {
   }
   const cache = /* @__PURE__ */ new Map();
   const drawn = [];
-  const [, sy, sz] = target.size;
+  const [, sy, sz] = dense.size;
   let seq = 0;
   for (let x2 = x0; x2 < x1; x2++) {
     for (let y = y0; y < y1; y++) {
       for (let z = z0; z < z1; z++) {
-        const idx = target.data[(x2 * sy + y) * sz + z];
-        if (idx < 0 || idx >= target.palette.length || target.palette[idx] === "minecraft:air")
+        const idx = dense.data[(x2 * sy + y) * sz + z];
+        if (idx < 0 || idx >= dense.palette.length || dense.palette[idx] === "minecraft:air")
           continue;
         const cell = cellQuads(scene, x2, y, z, cache);
         if (cell === null) continue;
-        const name = splitBlockstate(target.palette[idx])[0];
+        const name = splitBlockstate(dense.palette[idx])[0];
         for (const q2 of cell.quads) {
           if (dot(q2.normal, d) >= -1e-9) continue;
           if (quadCulledByNeighbour(scene, q2.cull, x2, y, z, name)) continue;
@@ -14331,6 +14315,38 @@ function parseFocus(spec) {
   };
   return [corner(parts[0]), corner(parts[1])];
 }
+function nonAirBounds(dense) {
+  const air = dense.palette.indexOf("minecraft:air");
+  const [sx, sy, sz] = dense.size;
+  const [ox, oy, oz] = dense.origin;
+  let minX = Infinity;
+  let minY = Infinity;
+  let minZ = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  let maxZ = -Infinity;
+  for (let x2 = 0; x2 < sx; x2++) {
+    for (let y = 0; y < sy; y++) {
+      for (let z = 0; z < sz; z++) {
+        const v = dense.data[(x2 * sy + y) * sz + z];
+        if (v < 0 || v >= dense.palette.length || v === air) continue;
+        const wx = ox + x2;
+        const wy = oy + y;
+        const wz = oz + z;
+        if (wx < minX) minX = wx;
+        if (wy < minY) minY = wy;
+        if (wz < minZ) minZ = wz;
+        if (wx > maxX) maxX = wx;
+        if (wy > maxY) maxY = wy;
+        if (wz > maxZ) maxZ = wz;
+      }
+    }
+  }
+  return minX === Infinity ? null : [
+    [minX, minY, minZ],
+    [maxX, maxY, maxZ]
+  ];
+}
 function resolveCliViews(spec, count, scripted) {
   try {
     let views = spec ? resolveViews(spec) : scripted && scripted.length > 0 ? resolveViews(scripted) : resolveViews(null);
@@ -14517,13 +14533,13 @@ async function cmdRun(args, io, get) {
     }
     const dir = join7(runDir, "previews_faithful");
     await mkdir3(dir, { recursive: true });
+    const buildBounds = viewList.some((v) => v.focus) ? nonAirBounds(dense) : null;
     for (const view of viewList) {
       if (view.focus) {
-        const sub = cropDense(dense, ...focusBounds(view.focus));
-        const air2 = sub.palette.indexOf("minecraft:air");
-        if (!sub.data.some((v) => v >= 0 && v !== air2)) {
+        const [[fx0, fy0, fz0], [fx1, fy1, fz1]] = focusBounds(view.focus);
+        if (buildBounds === null || fx1 < buildBounds[0][0] || fx0 > buildBounds[1][0] || fy1 < buildBounds[0][1] || fy0 > buildBounds[1][1] || fz1 < buildBounds[0][2] || fz0 > buildBounds[1][2]) {
           warnings.push({
-            message: `faithful preview: view \`${view.label}\` focus region contains no blocks`
+            message: `faithful preview: view \`${view.label}\` focus region lies outside the build`
           });
         }
       }

@@ -21,7 +21,6 @@ import {
   quadCulledByNeighbour,
   type Scene,
 } from "./scene.ts";
-import { cropDense } from "./slice.ts";
 import { focusBounds, type View } from "./views.ts";
 
 const BG_PRESENTATION: readonly [number, number, number] = [244, 241, 235];
@@ -213,21 +212,29 @@ export function drawTexturedQuad(
   const x1 = Math.ceil(Math.max(...xs));
   const y0 = Math.floor(Math.min(...ys));
   const y1 = Math.ceil(Math.max(...ys));
+  if (x1 <= 0 || x0 >= canvas.width || y1 <= 0 || y0 >= canvas.height) return;
   const bw = x1 - x0;
   const bh = y1 - y0;
   if (bw < 1 || bh < 1) return;
+  const cx0 = Math.max(0, x0);
+  const cx1 = Math.min(canvas.width, x1);
+  const cy0 = Math.max(0, y0);
+  const cy1 = Math.min(canvas.height, y1);
+  const cw = cx1 - cx0;
+  const chBox = cy1 - cy0;
+  if (cw < 1 || chBox < 1) return;
 
   const a = inv[0] as number;
   const b = inv[1] as number;
-  const c = a * (x0 - t1) + b * (y0 - t2);
+  const c = a * (cx0 - t1) + b * (cy0 - t2);
   const d = inv[2] as number;
   const e = inv[3] as number;
-  const f = d * (x0 - t1) + e * (y0 - t2);
+  const f = d * (cx0 - t1) + e * (cy0 - t2);
 
   const mask = polygonMask(
-    pts.map((p) => [p.sx - x0, p.sy - y0] as const),
-    bw,
-    bh,
+    pts.map((p) => [p.sx - cx0, p.sy - cy0] as const),
+    cw,
+    chBox,
   );
   let brightFit: [number, number, number] | null = null;
   if (aoFactors !== null) {
@@ -236,14 +243,14 @@ export function drawTexturedQuad(
       aoFactors,
     );
   }
+  const dx0 = cx0 - x0;
+  const dy0 = cy0 - y0;
   const ch = tex.channels;
-  for (let oy = 0; oy < bh; oy++) {
-    const cy = y0 + oy;
-    if (cy < 0 || cy >= canvas.height) continue;
-    for (let ox = 0; ox < bw; ox++) {
-      const cx = x0 + ox;
-      if (cx < 0 || cx >= canvas.width) continue;
-      let cover = mask[oy * bw + ox] as number;
+  for (let oy = 0; oy < chBox; oy++) {
+    const cy = cy0 + oy;
+    for (let ox = 0; ox < cw; ox++) {
+      const cx = cx0 + ox;
+      let cover = mask[oy * cw + ox] as number;
       if (cover === 0) continue;
       const tx = Math.min(tex.width - 1, Math.max(0, Math.trunc(a * ox + b * oy + c)));
       const ty = Math.min(tex.height - 1, Math.max(0, Math.trunc(d * ox + e * oy + f)));
@@ -252,7 +259,10 @@ export function drawTexturedQuad(
       let g = tex.data[ti + 1] as number;
       let bl = tex.data[ti + 2] as number;
       if (brightFit !== null) {
-        const k = Math.min(1, Math.max(0, brightFit[0] * ox + brightFit[1] * oy + brightFit[2]));
+        const k = Math.min(
+          1,
+          Math.max(0, brightFit[0] * (ox + dx0) + brightFit[1] * (oy + dy0) + brightFit[2]),
+        );
         r = Math.trunc(Math.fround(r) * Math.fround(k));
         g = Math.trunc(Math.fround(g) * Math.fround(k));
         bl = Math.trunc(Math.fround(bl) * Math.fround(k));
@@ -556,21 +566,32 @@ export function renderView(
   const longest = options.longestPx ?? PRESENTATION_LONGEST_PX;
   const margin = options.margin ?? PRESENTATION_MARGIN;
   const bg = options.background === undefined ? BG_PRESENTATION : rgbOf(options.background);
-  const target = view.focus ? cropDense(dense, ...focusBounds(view.focus)) : dense;
   const { d, r, u } = camera(view);
-  const crop = renderableBounds(target);
+  const crop = renderableBounds(dense);
   if (crop === null) {
     const empty = newCanvas(512, 512, bg);
     if (options.title) drawTitle(empty, options.title);
     if (options.overlay ?? true) drawOverlay(empty, view, r, u);
     return empty;
   }
-  const scene = prepareScene(target, assets);
+  const scene = prepareScene(dense, assets);
   const [[x0, x1], [y0, y1], [z0, z1]] = crop;
 
+  let frameBounds = crop;
+  if (view.focus) {
+    const [[fxMin, fyMin, fzMin], [fxMax, fyMax, fzMax]] = focusBounds(view.focus);
+    const [ox, oy, oz] = dense.origin;
+    frameBounds = [
+      [fxMin - ox, fxMax + 1 - ox],
+      [fyMin - oy, fyMax + 1 - oy],
+      [fzMin - oz, fzMax + 1 - oz],
+    ];
+  }
+  const [[fx0, fx1], [fy0, fy1], [fz0, fz1]] = frameBounds;
+
   const corners: Vec3[] = [];
-  for (const x of [x0, x1])
-    for (const y of [y0, y1]) for (const z of [z0, z1]) corners.push([x, y, z]);
+  for (const x of [fx0, fx1])
+    for (const y of [fy0, fy1]) for (const z of [fz0, fz1]) corners.push([x, y, z]);
   const proj = corners.map((p) => project(p, r, u));
   let minx = Math.min(...proj.map((p) => p[0]));
   let maxx = Math.max(...proj.map((p) => p[0]));
@@ -604,17 +625,17 @@ export function renderView(
 
   const cache = new Map<string, { quads: Quad[]; isFallback: boolean }>();
   const drawn: Drawn[] = [];
-  const [, sy, sz] = target.size;
+  const [, sy, sz] = dense.size;
   let seq = 0;
   for (let x = x0; x < x1; x++) {
     for (let y = y0; y < y1; y++) {
       for (let z = z0; z < z1; z++) {
-        const idx = target.data[(x * sy + y) * sz + z] as number;
-        if (idx < 0 || idx >= target.palette.length || target.palette[idx] === "minecraft:air")
+        const idx = dense.data[(x * sy + y) * sz + z] as number;
+        if (idx < 0 || idx >= dense.palette.length || dense.palette[idx] === "minecraft:air")
           continue;
         const cell = cellQuads(scene, x, y, z, cache);
         if (cell === null) continue;
-        const name = splitBlockstate(target.palette[idx] as string)[0];
+        const name = splitBlockstate(dense.palette[idx] as string)[0];
         for (const q of cell.quads) {
           // Back-face culling uses the true float normal.
           if (dot(q.normal, d) >= -1e-9) continue;

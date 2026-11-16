@@ -223,13 +223,19 @@ textures, next to a `report.json` and an `.nbt`. Open the PNGs to check the look
 yourself before reporting, when you can read images. Views, separated by semicolons: `iso`,
 `top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. Append
 `@<x1>,<y1>,<z1>:<x2>,<y2>,<z2>` to any view (for example `iso@10,4,18:22,10,28` or
-`az135_el025@7,5,6:15,13,13`) to frame the full inclusive `pos1`/`pos2` box (corners in any
-order, normalized to min/max and clamped to the build bounds), written as
+`az135_el025@7,5,6:15,13,13`) to point and zoom the camera so the inclusive `pos1`/`pos2` box
+(corners in any order, normalized to min/max) fills the frame, written as
 `previews_faithful/<view>@<minX>,<minY>,<minZ>:<maxX>,<maxY>,<maxZ>.png`. The shorthand
 `@<x>,<y>,<z>r<radius>` (for example `iso@15,6,22r5` or `orbit4_el25@18,5,23r4`) frames a cube of
-radius `r` (`>= 1`) around `(x, y, z)`. The first preview downloads the game's block models and
-textures (about 25 MB, into `~/.cache/mcbuilder/`); without network access blocks are drawn as
-plain cubes.
+radius `r` (`>= 1`) around `(x, y, z)`. Focus is camera framing only: the full build is always
+rendered with surrounding blocks intact and nothing cut or hidden (a focus outside the build warns
+and renders the build from that framing). To inspect an interior, frame the interior target at a
+low elevation looking through an opening (for example `az173_el005@10,7,8:13,8,11`); because the
+PNG rasterizer is orthographic with no in-room eye position or near-plane clipping, any roof, wall
+or railing in front of the target along the view ray still blocks the line of sight — use
+[`preview`](#preview-or-view) when you need to fly inside an enclosed room. The first preview
+downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`); without
+network access blocks are drawn as plain cubes.
 
 ### palette
 
