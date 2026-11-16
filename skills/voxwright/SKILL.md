@@ -26,7 +26,13 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
    writing code. For anything beyond a simple box, read the build-patterns guide for techniques
    (depth, palettes, roof shapes, detailing). It is online, not part of the installed skill:
    https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
-2. **Write the recipe**, an ES module that exports a `Build`:
+2. **Prototype composite shapes first.** Before composing a full build, prototype non-trivial
+   composite shapes (a boat, roof, bridge, hull or similar) standalone in a small recipe or
+   `Geometry`: arrange the blocks, render close-up views with
+   [run --preview](#run---preview-png-views), open the PNGs and judge whether the shape truly
+   reads as that object. Iterate the block arrangement until it holds up on its own, and only then
+   use it in the full composition.
+3. **Write the recipe**, an ES module that exports a `Build`:
 
    ```ts
    import { Build } from "voxwright";
@@ -43,16 +49,24 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
    Start from the closest example in [references/recipe-examples.md](references/recipe-examples.md).
    Look up every call you are not sure of in [references/builder-api.md](references/builder-api.md)
    instead of guessing: the API is small and a call that is not listed there does not exist.
-3. **Build it:**
+4. **Build it:**
 
    ```sh
    node <skill-dir>/scripts/voxwright-cli.mjs build house.ts --out out/house.schem
    ```
 
-4. **Read the summary** (see below). If it says `build: FAILED`, fix the recipe and run again.
-   Check that the size, the block count and the palette are what you intended.
-5. **Report** to the user: the file path, the size, the block count, and any warnings.
-6. **Preview** when the user wants to see or edit the build (see [Preview](#preview)).
+5. **Read the summary and review close-ups.** If `build` says `build: FAILED`, fix the recipe and
+   run again; check that the size, the block count and the palette are what you intended. Whole-build
+   previews flatter a build and hide player-distance defects, so before calling the build done,
+   render both whole-build views and close-up views (`<view>@<x>,<y>,<z>r<radius>`) of key
+   details with `run --preview` and run functional checks:
+   - An implied entrance needs a real opening (at least 2 blocks tall, 1 wide).
+   - A hull or enclosure must be sealed (no gaps to water or sky).
+   - Props must survive a close-up (no checklist clutter).
+   Iterate the recipe and re-check close-up renders until every detail reads cleanly, then re-run
+   `build`.
+6. **Report** to the user: the file path, the size, the block count, and any warnings.
+7. **Preview** when the user wants to see or edit the build (see [Preview](#preview)).
 
 Change the recipe and run `build` again to iterate; it overwrites its outputs.
 
@@ -196,9 +210,12 @@ node <skill-dir>/scripts/voxwright-cli.mjs run <recipe> --preview [--views 'iso;
 Writes `<dir>/run-NNN/previews_faithful/<view>.png` (default `dist/`), drawn with the game's
 textures, next to a `report.json` and an `.nbt`. Open the PNGs to check the look of a build
 yourself before reporting, when you can read images. Views, separated by semicolons: `iso`,
-`top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. The first preview
-downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`); without
-network access blocks are drawn as plain cubes.
+`top`, `az<ddd>_el<dd>` (for example `az225_el025`), `orbit<n>_el<dd>`. Append
+`@<x>,<y>,<z>r<radius>` to any view (for example `iso@15,6,22r5`, `az225_el025@28,7,18r4` or
+`orbit4_el25@18,5,23r4`) to crop and frame a close-up cube of radius `r` (`>= 1`) around world
+coordinate `(x, y, z)`, written as `previews_faithful/<view>@<x>,<y>,<z>r<r>.png`. The first
+preview downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`);
+without network access blocks are drawn as plain cubes.
 
 ### palette
 
