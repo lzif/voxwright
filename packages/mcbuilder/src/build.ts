@@ -84,6 +84,15 @@ function ints(what: string, p: unknown): Point {
   return p as unknown as Point;
 }
 
+let defaultMaxDimensions: Dims = [256, 256, 256];
+
+/** @internal Override default `maxDimensions` for `new Build()` calls during script loading. */
+export function setDefaultMaxDimensions(dims: Dims): Dims {
+  const prev = defaultMaxDimensions;
+  defaultMaxDimensions = [...dims] as unknown as Dims;
+  return prev;
+}
+
 export class Build {
   private readonly seedValue: Seed;
   private sharedRng: Rng | null = null;
@@ -93,7 +102,7 @@ export class Build {
 
   constructor(options: BuildOptions = {}) {
     this.seedValue = options.seed ?? null;
-    this.voxelGrid = new VoxelGrid(options.maxDimensions ?? [256, 256, 256]);
+    this.voxelGrid = new VoxelGrid(options.maxDimensions ?? defaultMaxDimensions);
     if (options.views !== undefined) this.setViews(options.views);
   }
 

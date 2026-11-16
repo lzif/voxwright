@@ -502,6 +502,195 @@ BUILD.scope(() => BUILD.set(0, 0, 0, "mymod:gizmo"));
     expect(await runSkillCli(["--version"], v.io)).toBe(0);
     expect(v.out[0]).toMatch(/^voxwright-cli \S+$/);
   });
+
+  it("enforces tightened and relaxed max_dimensions from mcbuild.toml", async () => {
+    const tightDir = join(root, "bounds-tight");
+    await mkdir(tightDir, { recursive: true });
+    await writeFile(join(tightDir, "mcbuild.toml"), "max_dimensions = [10, 10, 10]\n");
+    await writeFile(
+      join(tightDir, "default-build.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(10, 0, 0, "minecraft:stone"));
+`,
+    );
+    await writeFile(
+      join(tightDir, "explicit-large.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build({ maxDimensions: [64, 64, 64] });
+BUILD.scope(() => BUILD.set(20, 0, 0, "minecraft:stone"));
+`,
+    );
+
+    for (const file of ["default-build.ts", "explicit-large.ts"]) {
+      const textRun = capture();
+      expect(
+        await runSkillCli(
+          [
+            "build",
+            join(tightDir, file),
+            "--registry",
+            registryFile,
+            "--out",
+            join(tightDir, `${file}.nbt`),
+          ],
+          textRun.io,
+        ),
+      ).toBe(1);
+      expect(textRun.err.join("\n")).toContain("out of bounds");
+      expect(existsSync(join(tightDir, `${file}.nbt`))).toBe(false);
+
+      const jsonRun = capture();
+      expect(
+        await runSkillCli(
+          [
+            "build",
+            join(tightDir, file),
+            "--registry",
+            registryFile,
+            "--out",
+            join(tightDir, `${file}.nbt`),
+            "--json",
+          ],
+          jsonRun.io,
+        ),
+      ).toBe(1);
+      expect(JSON.parse(jsonRun.out.join("\n"))).toMatchObject({
+        ok: false,
+        error: /out of bounds/,
+      });
+    }
+
+    const relaxedDir = join(root, "bounds-relaxed");
+    await mkdir(relaxedDir, { recursive: true });
+    await writeFile(join(relaxedDir, "mcbuild.toml"), "max_dimensions = [512, 512, 512]\n");
+    await writeFile(
+      join(relaxedDir, "wide.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
+`,
+    );
+    const relaxedOut = join(relaxedDir, "wide.nbt");
+    const relaxedRun = capture();
+    expect(
+      await runSkillCli(
+        ["build", join(relaxedDir, "wide.ts"), "--registry", registryFile, "--out", relaxedOut],
+        relaxedRun.io,
+      ),
+    ).toBe(0);
+    expect(relaxedRun.out.join("\n")).toContain("build: OK");
+    expect((await readStructureNbt(new Uint8Array(await readFile(relaxedOut)))).volume.size).toBe(
+      1,
+    );
+
+    // Default 256 limit is restored after relaxed build completes.
+    const defaultDir = join(root, "bounds-default");
+    await mkdir(defaultDir, { recursive: true });
+    await writeFile(
+      join(defaultDir, "too-wide.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
+`,
+    );
+    const restored = capture();
+    expect(
+      await runSkillCli(
+        [
+          "build",
+          join(defaultDir, "too-wide.ts"),
+          "--registry",
+          registryFile,
+          "--out",
+          join(defaultDir, "too-wide.nbt"),
+        ],
+        restored.io,
+      ),
+    ).toBe(1);
+    expect(restored.err.join("\n")).toContain("out of bounds");
+  });
+
+  it("honours assets_dir in direct and nested layouts without auto-downloading into home cache", async () => {
+    const DISTINCT = 7654321;
+    for (const layout of ["direct", "nested"] as const) {
+      const assets = join(root, `skill-assets-${layout}`);
+      const versionDir = layout === "direct" ? assets : join(assets, "26.2");
+      await mkdir(versionDir, { recursive: true });
+      await writeFile(join(versionDir, "minecraft-data.json"), JSON.stringify(REGISTRY));
+      await writeFile(
+        join(versionDir, "version.json"),
+        JSON.stringify({ id: "26.2", world_version: DISTINCT }),
+      );
+
+      const proj = join(root, `skill-proj-${layout}`);
+      await mkdir(proj, { recursive: true });
+      await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(assets)}\n`);
+      await writeFile(
+        join(proj, "stone.ts"),
+        `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
+`,
+      );
+      const emptyHome = join(root, `skill-empty-home-${layout}`);
+      await mkdir(emptyHome, { recursive: true });
+      const calls: string[] = [];
+      const c = capture();
+      c.io.home = emptyHome;
+      const code = await runSkillCli(
+        ["build", join(proj, "stone.ts"), "--out", join(proj, "stone.nbt"), "--json"],
+        c.io,
+        {
+          get: async (u) => {
+            calls.push(u);
+            return { status: 404, body: new Uint8Array() };
+          },
+        },
+      );
+      expect(code).toBe(0);
+      expect(calls).toEqual([]);
+      const summary = JSON.parse(c.out.join("\n"));
+      expect(summary.ok).toBe(true);
+      expect(summary.dataVersion).toBe(DISTINCT);
+      expect(summary.validation.source).toBe(join(versionDir, "minecraft-data.json"));
+    }
+
+    // Missing registry under explicit assets_dir skips validation without auto-downloading.
+    const emptyAssets = join(root, "skill-assets-missing");
+    await mkdir(emptyAssets, { recursive: true });
+    const proj = join(root, "skill-proj-missing");
+    await mkdir(proj, { recursive: true });
+    await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(emptyAssets)}\n`);
+    await writeFile(
+      join(proj, "stone.ts"),
+      `import { Build } from "@voxwright/mcbuilder";
+export const BUILD = new Build();
+BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
+`,
+    );
+    const isolatedHome = join(root, "skill-isolated-home");
+    await mkdir(isolatedHome, { recursive: true });
+    const calls: string[] = [];
+    const c = capture();
+    c.io.home = isolatedHome;
+    const code = await runSkillCli(
+      ["build", join(proj, "stone.ts"), "--out", join(proj, "stone.nbt"), "--json"],
+      c.io,
+      {
+        get: async (u) => {
+          calls.push(u);
+          return { status: 500, body: new Uint8Array() };
+        },
+      },
+    );
+    expect(code).toBe(0);
+    expect(calls).toEqual([]);
+    expect(existsSync(join(isolatedHome, ".cache"))).toBe(false);
+    const summary = JSON.parse(c.out.join("\n"));
+    expect(summary.validation.registry).toBeNull();
+    expect(summary.validation.skipped).toContain("assets_dir is configured");
+  });
 });
 
 describe("inspect", () => {

@@ -76,6 +76,42 @@ const exists = (p: string): Promise<boolean> =>
     () => false,
   );
 
+export const defaultCacheRoot = (home: string): string => join(home, ".cache", "mcbuilder");
+
+/**
+ * Candidate version directories holding `minecraft-data.json`, `version.json`, and `client/`.
+ * When `assetsDir` is set: `[resolve(assetsDir), join(resolve(assetsDir), mcVersion)]`
+ * (direct version directory first, then `<assetsDir>/<mcVersion>`).
+ * When `assetsDir` is `null`: `[join(defaultCacheRoot(home), mcVersion)]`.
+ */
+export function assetVersionCandidates(
+  assetsDir: string | null,
+  mcVersion: string,
+  home: string,
+): string[] {
+  if (assetsDir !== null) {
+    const base = resolve(assetsDir);
+    return [base, join(base, mcVersion)];
+  }
+  return [join(defaultCacheRoot(home), mcVersion)];
+}
+
+/**
+ * Return the first candidate version directory where `join(dir, marker)` exists,
+ * or `null` if none match.
+ */
+export async function findAssetVersionDir(
+  assetsDir: string | null,
+  mcVersion: string,
+  home: string,
+  marker: string,
+): Promise<string | null> {
+  for (const dir of assetVersionCandidates(assetsDir, mcVersion, home)) {
+    if (await exists(join(dir, marker))) return dir;
+  }
+  return null;
+}
+
 /** True iff every extracted subtree is present and non-empty. */
 async function clientCacheComplete(clientDir: string): Promise<boolean> {
   for (const prefix of CLIENT_PREFIXES) {

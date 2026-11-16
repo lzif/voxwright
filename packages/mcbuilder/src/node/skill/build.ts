@@ -8,8 +8,10 @@ import { basename, dirname, extname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { AirMode, SchemVersion, WriteResult } from "@voxwright/core";
 import { DATA_VERSIONS } from "../../dataversion.ts";
+import { GridBoundsError } from "../../errors.ts";
 import type { ValidationError, ValidationWarning } from "../../registry.ts";
-import type { HttpGet } from "../assets.ts";
+import type { Dims } from "../../voxels.ts";
+import { assetVersionCandidates, type HttpGet } from "../assets.ts";
 import { CliError, findConfig } from "../cli.ts";
 import {
   exists,
@@ -25,7 +27,6 @@ export { locateInRecipe };
 import {
   type Box,
   boxOf,
-  cacheRoot,
   DEFAULT_MC_VERSION,
   fmtBox,
   fmtPalette,
@@ -208,16 +209,19 @@ async function resolveDataVersionFor(
   mcVersion: string,
   override: number | undefined,
   home: string,
+  assetsDir: string | null,
 ): Promise<number> {
   if (override !== undefined) return override;
   // The client jar's version.json, when `mcbuild assets fetch` left one, is authoritative.
-  const versionJson = join(cacheRoot(home), mcVersion, "version.json");
-  if (await exists(versionJson)) {
-    try {
-      const wv = (JSON.parse(await readFile(versionJson, "utf8")) as { world_version?: unknown })
-        .world_version;
-      if (typeof wv === "number" && Number.isInteger(wv)) return wv;
-    } catch {}
+  for (const dir of assetVersionCandidates(assetsDir, mcVersion, home)) {
+    const versionJson = join(dir, "version.json");
+    if (await exists(versionJson)) {
+      try {
+        const wv = (JSON.parse(await readFile(versionJson, "utf8")) as { world_version?: unknown })
+          .world_version;
+        if (typeof wv === "number" && Number.isInteger(wv)) return wv;
+      } catch {}
+    }
   }
   const known = Object.hasOwn(DATA_VERSIONS, mcVersion) ? DATA_VERSIONS[mcVersion] : undefined;
   if (known === undefined) {
@@ -292,6 +296,8 @@ export async function cmdBuild(
       mcVersion,
       dataVersionOverride,
       registryFile: values.registry,
+      assetsDir: config?.assetsDir ?? null,
+      maxDimensions: config?.maxDimensions,
       offline: values.offline === true,
       allow: [...(config?.allowlist ?? []), ...(values.allow ?? [])],
       schemVersion,
@@ -320,6 +326,8 @@ interface BuildRequest {
   mcVersion: string;
   dataVersionOverride: number | undefined;
   registryFile: string | undefined;
+  assetsDir: string | null;
+  maxDimensions: Dims | undefined;
   offline: boolean;
   allow: string[];
   schemVersion: SchemVersion;
@@ -333,10 +341,15 @@ interface BuildRequest {
 async function runBuild(req: BuildRequest): Promise<BuildSummary> {
   let build: Awaited<ReturnType<typeof loadScript>>;
   try {
-    build = await loadScript(req.recipe);
+    build = await loadScript(
+      req.recipe,
+      req.maxDimensions === undefined ? {} : { maxDimensions: req.maxDimensions },
+    );
   } catch (e) {
-    if (!(e instanceof ScriptError)) throw e;
-    throw new SkillCliError(e.message);
+    if (e instanceof ScriptError || e instanceof GridBoundsError) {
+      throw new SkillCliError(e.message);
+    }
+    throw e;
   }
   const volume = build.grid.volume;
   const palette = paletteOf(volume);
@@ -351,6 +364,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
 
   const found = await findRegistry({
     mcVersion: req.mcVersion,
+    assetsDir: req.assetsDir,
     offline: req.offline,
     cwd: req.io.cwd,
     home: req.io.home,
@@ -412,6 +426,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
     req.mcVersion,
     req.dataVersionOverride,
     req.io.home,
+    req.assetsDir,
   );
   summary.dataVersion = dataVersion;
 

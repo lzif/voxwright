@@ -7,7 +7,7 @@
 //   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
 //                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
 //   mcbuild import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw] [--config file]
-//   mcbuild diff <run-a> <run-b> [--out dir] [--max N]
+//   mcbuild diff [<run-a> <run-b>] [--out dir] [--max N]
 //   mcbuild assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
@@ -34,7 +34,7 @@ import {
   withCount,
 } from "@voxwright/render";
 import { directoryAssets, encodePng } from "@voxwright/render/node";
-import { type McbuildConfig, parseConfig, resolveAssetsDir } from "../config.ts";
+import { type McbuildConfig, parseConfig } from "../config.ts";
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
 import { DiffError, formatDiff } from "../diff.ts";
 import { McbuilderError } from "../errors.ts";
@@ -46,12 +46,15 @@ import {
   ASSET_SOURCES,
   AssetError,
   type AssetSource,
+  assetVersionCandidates,
+  defaultCacheRoot,
   fetchAssets,
   fetchClientAssets,
   fetchRegistry,
+  findAssetVersionDir,
   type HttpGet,
 } from "./assets.ts";
-import { comparisonImage, diffRunDirs, resolveRunDir } from "./diff.ts";
+import { comparisonImage, diffRunDirs, listCleanRuns, resolveRunDir } from "./diff.ts";
 import {
   type BlockStat,
   type Face,
@@ -83,8 +86,6 @@ export interface Io {
   cwd?: string;
   home?: string;
 }
-
-const defaultCacheRoot = (home: string): string => join(home, ".cache", "mcbuilder");
 
 export const HOUSE_TEMPLATE = `// house.ts: starter build written by \`mcbuild init\`.
 //
@@ -154,10 +155,6 @@ async function resolveConfig(
   return (await findConfig(dirname(resolve(scriptPath)), home)) ?? parseConfig("", { home });
 }
 
-function cacheRoot(cfg: McbuildConfig, home: string): string {
-  return cfg.assetsDir ?? defaultCacheRoot(home);
-}
-
 /** How a command may reach the network for what its cache lacks. */
 interface Net {
   offline: boolean;
@@ -166,14 +163,26 @@ interface Net {
 }
 
 async function loadRegistry(cfg: McbuildConfig, home: string, net: Net): Promise<Registry> {
-  const path = join(cacheRoot(cfg, home), cfg.mcVersion, "minecraft-data.json");
+  const candidates = assetVersionCandidates(cfg.assetsDir, cfg.mcVersion, home);
+  let versionDir = await findAssetVersionDir(
+    cfg.assetsDir,
+    cfg.mcVersion,
+    home,
+    "minecraft-data.json",
+  );
   // The default cache fills itself; a directory the configuration names is the user's to fill.
-  if (!(await exists(path)) && !cfg.assetsDir && !net.offline) {
+  if (versionDir === null && cfg.assetsDir === null && !net.offline) {
     net.out(`downloading the block registry for ${cfg.mcVersion} (once)`);
     try {
-      await fetchRegistry(cfg.mcVersion, cacheRoot(cfg, home), {
+      await fetchRegistry(cfg.mcVersion, defaultCacheRoot(home), {
         ...(net.get ? { get: net.get } : {}),
       });
+      versionDir = await findAssetVersionDir(
+        cfg.assetsDir,
+        cfg.mcVersion,
+        home,
+        "minecraft-data.json",
+      );
     } catch (e) {
       if (!(e instanceof AssetError)) throw e;
       throw new CliError(
@@ -181,13 +190,15 @@ async function loadRegistry(cfg: McbuildConfig, home: string, net: Net): Promise
       );
     }
   }
-  if (!(await exists(path))) {
+  if (versionDir === null) {
+    const tried = candidates.map((d) => join(d, "minecraft-data.json")).join(" or ");
     throw new CliError(
       new RegistryError(
-        `block registry for version '${cfg.mcVersion}' not found at ${path} — run \`mcbuild assets fetch --version ${cfg.mcVersion}\` first.`,
+        `block registry for version '${cfg.mcVersion}' not found at ${tried} — run \`mcbuild assets fetch --version ${cfg.mcVersion}\` first.`,
       ).message,
     );
   }
+  const path = join(versionDir, "minecraft-data.json");
   try {
     return Registry.fromData(JSON.parse(await readFile(path, "utf8")), cfg.mcVersion);
   } catch (e) {
@@ -248,8 +259,8 @@ function fmtIssue(issue: Issue): string {
 }
 
 async function loadAndValidate(script: string, config: string | undefined, home: string, net: Net) {
-  const build = await loadScript(script);
   const cfg = await resolveConfig(script, config, home);
+  const build = await loadScript(script, { maxDimensions: cfg.maxDimensions });
   const detWarnings = scanDeterminism(await readFile(script, "utf8"), basename(script));
   const registry = await loadRegistry(cfg, home, net);
   const dense = build.grid.toDense();
@@ -349,13 +360,9 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
 
   const artifacts: Record<string, unknown>[] = [];
   if (ctx.errors.length === 0) {
-    // `resolveAssetsDir` is already the version directory (`<cache>/<ver>/` by
-    // default, as `assets fetch` lays it out; as given for an explicit
-    // `assets_dir`, like the Python CLI). An explicit `assets_dir` that is the
-    // unversioned cache root also works: `<assets_dir>/<ver>/version.json`.
-    const versionDir = resolveAssetsDir(ctx.cfg, io.home).replace(/[\\/]+$/, "");
-    const candidates = [join(versionDir, "version.json")];
-    if (ctx.cfg.assetsDir) candidates.push(join(versionDir, ctx.cfg.mcVersion, "version.json"));
+    const candidates = assetVersionCandidates(ctx.cfg.assetsDir, ctx.cfg.mcVersion, io.home).map(
+      (dir) => join(dir, "version.json"),
+    );
     let versionJson: unknown;
     for (const vj of candidates) {
       if (await exists(vj)) {
@@ -382,20 +389,19 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
   }
 
   // Previews: the faithful tier, drawn from the whole build or the --focus box.
+  const blockstatesMarker = join("client", "assets", "minecraft", "blockstates");
   const viewEntries: ReturnType<typeof viewEntry>[] = [];
   if (values.preview && ctx.errors.length === 0) {
-    const root = join(
-      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+    let versionDir = await findAssetVersionDir(
+      ctx.cfg.assetsDir,
       ctx.cfg.mcVersion,
-      "client",
-      "assets",
-      "minecraft",
+      io.home,
+      blockstatesMarker,
     );
-    let haveAssets = await exists(join(root, "blockstates"));
     let why = "";
     // The default cache fills itself on the first preview. A directory the configuration names
     // is the user's to fill.
-    if (!haveAssets && !ctx.cfg.assetsDir && !values.offline) {
+    if (versionDir === null && ctx.cfg.assetsDir === null && !values.offline) {
       io.out(
         `downloading the vanilla assets for ${ctx.cfg.mcVersion} (once, for the previews; --offline skips this)`,
       );
@@ -403,13 +409,18 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
         await fetchClientAssets(ctx.cfg.mcVersion, defaultCacheRoot(io.home), {
           ...(get ? { get } : {}),
         });
-        haveAssets = await exists(join(root, "blockstates"));
+        versionDir = await findAssetVersionDir(
+          ctx.cfg.assetsDir,
+          ctx.cfg.mcVersion,
+          io.home,
+          blockstatesMarker,
+        );
       } catch (e) {
         if (!(e instanceof AssetError)) throw e;
         why = ` (download failed: ${e.message})`;
       }
     }
-    if (!haveAssets) {
+    if (versionDir === null) {
       warnings.push({
         message: `faithful preview: vanilla client assets not found — all blocks rendered as fallback cubes${why}`,
       });
@@ -418,7 +429,10 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
     if (focus !== null && grid.volume.countNonAir() === 0)
       throw new CliError(`--focus ${values.focus}: no blocks inside that box`);
     const dense = grid.toDense();
-    const assets = haveAssets ? directoryAssets(root) : null;
+    const assets =
+      versionDir === null
+        ? null
+        : directoryAssets(join(versionDir, "client", "assets", "minecraft"));
     for (const [name, n] of untrustedBlocks(dense, assets)) {
       warnings.push({
         message: `faithful preview: ${n} \`${name}\` rendered as magenta fallback cube — orientation not verified`,
@@ -445,19 +459,30 @@ async function cmdRun(args: string[], io: Required<Io>, get?: HttpGet): Promise<
 
   // Build guide: one plan per layer plus a material list, only for a clean build.
   if (values.guide && ctx.errors.length === 0) {
-    const root = join(
-      ctx.cfg.assetsDir ?? defaultCacheRoot(io.home),
+    const versionDir = await findAssetVersionDir(
+      ctx.cfg.assetsDir,
       ctx.cfg.mcVersion,
-      "client",
-      "assets",
-      "minecraft",
+      io.home,
+      blockstatesMarker,
     );
-    const haveAssets = await exists(join(root, "blockstates"));
+    const assets =
+      versionDir === null
+        ? null
+        : directoryAssets(join(versionDir, "client", "assets", "minecraft"));
     const grid = focus === null ? ctx.build.grid : ctx.build.grid.crop(focus[0], focus[1]);
-    const iso = join(runDir, "previews_faithful", "iso.png");
-    const guide = buildGuide(grid.toDense(), haveAssets ? directoryAssets(root) : null, {
+    let cover: string | null = null;
+    if (values.preview && viewEntries.length > 0) {
+      const picked =
+        viewEntries.find((v) => v.label === "iso") ??
+        viewEntries.find((v) => v.label !== "top") ??
+        viewEntries[0];
+      if (picked && (await exists(join(runDir, picked.file)))) {
+        cover = `../${picked.file}`;
+      }
+    }
+    const guide = buildGuide(grid.toDense(), assets, {
       title: titleCase(stem.replaceAll("_", " ")),
-      cover: (await exists(iso)) ? "../previews_faithful/iso.png" : null,
+      cover,
     });
     const dir = join(runDir, "guide");
     await mkdir(dir, { recursive: true });
@@ -639,8 +664,7 @@ async function cmdDiff(args: string[], io: Required<Io>): Promise<number> {
     allowPositionals: true,
     options: { out: { type: "string", default: "dist/" }, max: { type: "string", default: "30" } },
   });
-  const [runA, runB] = positionals;
-  if (runA === undefined || runB === undefined || positionals.length !== 2)
+  if (positionals.length !== 0 && positionals.length !== 2)
     throw new CliError("diff: give two run ids");
   const runsDir = resolve(io.cwd, values.out as string);
   if (!(await stat(runsDir).catch(() => null))?.isDirectory())
@@ -648,8 +672,22 @@ async function cmdDiff(args: string[], io: Required<Io>): Promise<number> {
   const max = Number(values.max);
   if (!Number.isInteger(max) || max < 0)
     throw new CliError(`invalid --max: ${values.max} (must be >= 0)`);
-  const aDir = await resolveRunDir(runsDir, runA);
-  const bDir = await resolveRunDir(runsDir, runB);
+  let aDir: string;
+  let bDir: string;
+  if (positionals.length === 0) {
+    const clean = await listCleanRuns(runsDir);
+    if (clean.length < 2) {
+      throw new CliError(
+        `diff: found ${clean.length} clean run${clean.length === 1 ? "" : "s"} in ${runsDir} (need at least 2, or pass two run ids)`,
+      );
+    }
+    const lastTwo = clean.slice(-2) as [string, string];
+    [aDir, bDir] = lastTwo;
+  } else {
+    const [runA, runB] = positionals as [string, string];
+    aDir = await resolveRunDir(runsDir, runA);
+    bDir = await resolveRunDir(runsDir, runB);
+  }
   const [aId, bId] = [basename(aDir), basename(bDir)];
   const diff = await diffRunDirs(aDir, bDir);
   io.out(formatDiff(diff, aId, bId, { maxEntries: max }));
@@ -764,25 +802,37 @@ async function cmdPalette(args: string[], io: Required<Io>, get?: HttpGet): Prom
   }
   const cfg = await resolveConfig(join(io.cwd, "palette"), values.config, io.home);
   const version = values.version ?? cfg.mcVersion;
-  const root = cfg.assetsDir ?? defaultCacheRoot(io.home);
-  const versionDir = join(root, version);
-  if (!(await exists(join(versionDir, "client", "assets", "minecraft", "textures")))) {
-    if (cfg.assetsDir || values.offline) {
+  const texturesMarker = join("client", "assets", "minecraft", "textures");
+  let versionDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, texturesMarker);
+  if (versionDir === null) {
+    if (cfg.assetsDir !== null || values.offline) {
+      const tried = assetVersionCandidates(cfg.assetsDir, version, io.home).join(" or ");
       throw new CliError(
-        `palette: no client assets for ${version} in ${versionDir}; run \`mcbuild assets fetch --version ${version}\``,
+        `palette: no client assets for ${version} in ${tried}; run \`mcbuild assets fetch --version ${version}\``,
       );
     }
     io.out(`downloading the vanilla assets for ${version} (once)`);
-    await fetchClientAssets(version, root, { ...(get ? { get } : {}) });
+    await fetchClientAssets(version, defaultCacheRoot(io.home), { ...(get ? { get } : {}) });
+    versionDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, texturesMarker);
+    if (versionDir === null) {
+      throw new CliError(
+        `palette: no client assets for ${version} in ${join(defaultCacheRoot(io.home), version)}; run \`mcbuild assets fetch --version ${version}\``,
+      );
+    }
   }
-  if (!(await exists(join(versionDir, "minecraft-data.json")))) {
+  let regDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, "minecraft-data.json");
+  if (regDir === null) {
     await loadRegistry({ ...cfg, mcVersion: version }, io.home, {
       offline: values.offline ?? false,
       get,
       out: io.out,
     });
+    regDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, "minecraft-data.json");
   }
-  const stats = await loadTextureStats(versionDir, { refresh: values.refresh ?? false });
+  const stats = await loadTextureStats(versionDir, {
+    refresh: values.refresh ?? false,
+    ...(regDir ? { registryFile: join(regDir, "minecraft-data.json") } : {}),
+  });
   const full = (name: string): string => (name.includes(":") ? name : `minecraft:${name}`);
   const statOf = (name: string): BlockStat => {
     const s = stats[full(name)];
@@ -859,7 +909,7 @@ run <script> [--out dir] [--air none|explicit|all] [--config file]
     [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
     [--offline]
 import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw]
-diff <run-a> <run-b> [--out dir] [--max N]
+diff [<run-a> <run-b>] [--out dir] [--max N]
 assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 palette near <block> [--family stairs|slab|full|any] [--face all|top|side|bottom] [--limit N]
 palette ramp <from> <to> [--steps N] [--family F] [--face F]
