@@ -68,7 +68,7 @@ export {
   type Scene,
   untrustedBlocks,
 } from "./scene.ts";
-export { cropDense, sliceDense } from "./slice.ts";
+export { sliceDense } from "./slice.ts";
 export {
   checkCap,
   defaultViews,
