@@ -23,9 +23,7 @@ viewer and editor lets the user look at the result in 3D and fix details by hand
 ## Workflow
 
 Before writing code, settle the footprint, the height, a palette of 4 to 8 blocks and the list of
-components. For anything beyond a simple box, read the build-patterns guide for techniques (depth,
-palettes, roof shapes, detailing). It is online, not part of the installed skill:
-https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md
+components.
 
 1. **Build each component standalone first.** A component is a functional unit (a boat, a shack, a
    dock section, a lantern post, a roof). Build each one on its own in a small recipe or `Geometry`,
@@ -260,7 +258,5 @@ first use downloads the game's textures (about 25 MB, into `~/.cache/mcbuilder/`
   properties that matter for builds, rotation and mirroring, versions, per-format caveats.
 - [references/recipe-examples.md](references/recipe-examples.md): three complete recipes (a
   tower, terrain with a pond, a symmetric pavilion) and a pre-run checklist.
-- [build-patterns.md](https://github.com/lzif/voxwright/blob/main/packages/mcbuilder/docs/build-patterns.md):
-  design techniques for builds that look good. Online, not part of the installed skill.
 - [examples](https://github.com/lzif/voxwright/tree/main/packages/mcbuilder/examples): larger
   recipes. Online; inside a clone of the repository they run with the same `build` command.

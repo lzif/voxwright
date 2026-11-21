@@ -27,7 +27,7 @@ The app is a static site. It has no server code, and files that visitors open ar
 | git     | Optional. Used at build time to read the commit for the footer link.                                                                                                | `apps/web/vite.config.ts`                                                                                           |
 | Network | Needed once, to download the game assets (section 3) and the packages.                                                                                              |                                                                                                                     |
 
-The project develops on Node 25 and its CI runs the current LTS and Node 25 (`PLAN.md`, `.github/workflows/ci.yml`).
+The project develops on Node 25 and its CI runs the current LTS and Node 25 (`.github/workflows/ci.yml`).
 
 The root `package.json` and `apps/web/package.json` have no `engines` field of their own.
 
@@ -196,7 +196,7 @@ How the project helps you do that:
 
 `pnpm run licenses` (or `node scripts/licenses.ts`; plain `pnpm licenses` is pnpm's own command and fails) lists the production dependencies of `apps/web` with the license each declares and fails if one is not on the project's AGPL-compatible allowlist. It reads `node_modules` only. It covers `apps/web` only, and the project's CI does not run it.
 
-The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and others); the project does not add them yet (see `PLAN.md`). The MIT license asks for its notice to travel with copies, so if you serve a build, add them yourself. The MIT notice for the parts of voxwright derived from the Python mcbuilder is a separate matter: it is in `NOTICE` in the repository root, and stays with any copy of the source.
+The built site does not carry the notices of its MIT-licensed dependencies (three.js, Svelte, fflate and others); the project does not add them yet. The MIT license asks for its notice to travel with copies, so if you serve a build, add them yourself. The MIT notice for the parts of voxwright derived from the Python mcbuilder is a separate matter: it is in `NOTICE` in the repository root, and stays with any copy of the source.
 
 ## 8. Mojang's assets on a public site: an open question
 
@@ -219,13 +219,13 @@ What the code does today:
 
 ## 9. All the commands
 
-| Step                 | Command                                                                     | Taken from                                                      |
-| -------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| Install              | `pnpm install --frozen-lockfile`                                            | `.github/workflows/ci.yml`                                      |
-| Download assets      | `node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2`        | `README.md`, `.github/workflows/ci.yml`                         |
-| Bundle the pack      | `pnpm --filter @voxwright/web assets`                                       | `apps/web/package.json` (`assets` script), `README.md`          |
-| Build                | `pnpm --filter @voxwright/web build`                                        | `apps/web/package.json` (`build` script), `PLAN.md` (M3 status) |
-| Build with a link    | `VOXWRIGHT_SOURCE_URL=<your repository> pnpm --filter @voxwright/web build` | `apps/web/vite.config.ts`, `apps/web/build-info-config.ts`      |
-| Build for a sub-path | `VOXWRIGHT_BASE_PATH=/sub/path pnpm --filter @voxwright/web build`          | `apps/web/vite.config.ts`                                       |
-| Look at it locally   | `pnpm --filter @voxwright/web preview`                                      | `apps/web/package.json` (`preview` script)                      |
-| Deploy               | Copy `apps/web/build/` to a static host                                     | `README.md` ("serve `apps/web/build` from any file host")       |
+| Step                 | Command                                                                     | Taken from                                                 |
+| -------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Install              | `pnpm install --frozen-lockfile`                                            | `.github/workflows/ci.yml`                                 |
+| Download assets      | `node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2`        | `README.md`, `.github/workflows/ci.yml`                    |
+| Bundle the pack      | `pnpm --filter @voxwright/web assets`                                       | `apps/web/package.json` (`assets` script), `README.md`     |
+| Build                | `pnpm --filter @voxwright/web build`                                        | `apps/web/package.json` (`build` script)                   |
+| Build with a link    | `VOXWRIGHT_SOURCE_URL=<your repository> pnpm --filter @voxwright/web build` | `apps/web/vite.config.ts`, `apps/web/build-info-config.ts` |
+| Build for a sub-path | `VOXWRIGHT_BASE_PATH=/sub/path pnpm --filter @voxwright/web build`          | `apps/web/vite.config.ts`                                  |
+| Look at it locally   | `pnpm --filter @voxwright/web preview`                                      | `apps/web/package.json` (`preview` script)                 |
+| Deploy               | Copy `apps/web/build/` to a static host                                     | `README.md` ("serve `apps/web/build` from any file host")  |

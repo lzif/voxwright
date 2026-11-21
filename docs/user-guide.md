@@ -436,7 +436,7 @@ Editing:
 
 - No editing in Fly mode. Switch to Orbit.
 - No editing with the software renderer (no WebGL2). On a touch screen every tool except View works through the offset cursor (section 5); the palette has recent blocks and favourites, text only, with no block pictures yet.
-- The touch editor has been tried only in an emulated phone so far, not on a real one. How large a build it handles smoothly on a phone is not known yet and is the one open question of the touch plan (`docs/mobile-editor-plan.md`). The page reads a file on its main thread, so a large file freezes it for a moment, longer on a phone than the 0.4 s of the development machine.
+- The touch editor has been tried only in an emulated phone so far, not on a real one. How large a build it handles smoothly on a phone is not known yet and is the one open question of the touch plan. The page reads a file on its main thread, so a large file freezes it for a moment, longer on a phone than the 0.4 s of the development machine.
 - Undo history is not kept when you close the tab (the autosave restores the edits, not the undo steps).
 - Selections are boxes. A drag chooses a box between two blocks, so you cannot select cells in empty air by dragging. Type the corners instead.
 - Mirror works east-west and north-south only. There is no vertical mirror.

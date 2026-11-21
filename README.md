@@ -109,8 +109,6 @@ The same seed always gives the same build. What the agent reads to write one:
 - [references/block-states.md](skills/voxwright/references/block-states.md): block ids, properties, rotation and
   per-format caveats.
 - [references/recipe-examples.md](skills/voxwright/references/recipe-examples.md): three complete recipes.
-- [packages/mcbuilder/docs/build-patterns.md](packages/mcbuilder/docs/build-patterns.md): building
-  techniques, for results that look designed.
 
 All of this works without an agent too. The same command line is on npm:
 
@@ -155,8 +153,7 @@ open another file with unexported edits. A browser
 without WebGL2 keeps the page a viewer. On a phone or a narrow window the page
 switches to a touch layout with the same editor (the offset cursor, the nudge pad,
 sheets for blocks, block state and selection, an Undo toast, a quick-start card;
-see the [user guide](docs/user-guide.md), section 5, and
-[docs/mobile-editor-plan.md](docs/mobile-editor-plan.md)). Drawing uses WebGL2
+see the [user guide](docs/user-guide.md), section 5). Drawing uses WebGL2
 (`@voxwright/render/webgl`: our own section mesher in a pool of workers, drawn
 with three.js); without WebGL2 the page falls back to a software rasterizer in a
 worker.
@@ -191,17 +188,17 @@ This is a pnpm monorepo. Workspace members live under `packages/*` and `apps/*` 
 (see Tooling below). The GitHub repository itself is public, and the skill is installed straight
 from it.
 
-| Path                 | Role                                                                                                                                                                                                                                                                                                                                             | State               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| `skills/voxwright/`  | The Agent Skill, and all that `npx skills install` copies: `SKILL.md` (when to use the skill, the workflow, the command line), `references/` (the recipe API, block-state rules, complete examples) and `scripts/voxwright-cli.mjs`, the skill CLI as one committed bundle (`pnpm build:skill` regenerates it and CI checks that it is current). | in place            |
-| `scripts/`           | Development tools: `build-skill.ts` (the bundler of the skill CLI), `convert` and others.                                                                                                                                                                                                                                                        | in place            |
-| `packages/mcbuilder` | The build engine: the TypeScript port of mcbuilder (`Build`, shapes, materials, registry validation), and the source of the `mcbuild` command line (`src/node/`). May depend on `render` and `core`.                                                                                                                                             | in place (see PLAN) |
-| `packages/core`      | NBT, block-state strings, rotation, volume, the `.nbt`, `.schem`, `.litematic` and `.mcstructure` codecs, and the editor core (commands, undo, tools, picking). Imports nothing from other workspace members and has no DOM dependency.                                                                                                          | in place            |
-| `packages/render`    | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `@voxwright/render/webgl`. May depend on `core`.                                                                                                                                                                                                                        | in place            |
-| `apps/web`           | The browser 3D viewer, editor and converter (SvelteKit, static): the companion for previewing and refining builds. May depend on `render` and `core`.                                                                                                                                                                                            | M4 built            |
-| `vectors/`           | Golden JSON exported from the Python mcbuilder, plus the exporter.                                                                                                                                                                                                                                                                               | in place            |
-| `fixtures/`          | Schematic files shared by all tests.                                                                                                                                                                                                                                                                                                             | synthetic and real  |
-| `reference/`         | Local, git-ignored clone of upstream mcbuilder, used read-only as an oracle. Never modified or imported.                                                                                                                                                                                                                                         |                     |
+| Path                 | Role                                                                                                                                                                                                                                                                                                                                             | State              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| `skills/voxwright/`  | The Agent Skill, and all that `npx skills install` copies: `SKILL.md` (when to use the skill, the workflow, the command line), `references/` (the recipe API, block-state rules, complete examples) and `scripts/voxwright-cli.mjs`, the skill CLI as one committed bundle (`pnpm build:skill` regenerates it and CI checks that it is current). | in place           |
+| `scripts/`           | Development tools: `build-skill.ts` (the bundler of the skill CLI), `convert` and others.                                                                                                                                                                                                                                                        | in place           |
+| `packages/mcbuilder` | The build engine: the TypeScript port of mcbuilder (`Build`, shapes, materials, registry validation), and the source of the `mcbuild` command line (`src/node/`). May depend on `render` and `core`.                                                                                                                                             | in place           |
+| `packages/core`      | NBT, block-state strings, rotation, volume, the `.nbt`, `.schem`, `.litematic` and `.mcstructure` codecs, and the editor core (commands, undo, tools, picking). Imports nothing from other workspace members and has no DOM dependency.                                                                                                          | in place           |
+| `packages/render`    | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `@voxwright/render/webgl`. May depend on `core`.                                                                                                                                                                                                                        | in place           |
+| `apps/web`           | The browser 3D viewer, editor and converter (SvelteKit, static): the companion for previewing and refining builds. May depend on `render` and `core`.                                                                                                                                                                                            | M4 built           |
+| `vectors/`           | Golden JSON exported from the Python mcbuilder, plus the exporter.                                                                                                                                                                                                                                                                               | in place           |
+| `fixtures/`          | Schematic files shared by all tests.                                                                                                                                                                                                                                                                                                             | synthetic and real |
+| `reference/`         | Local, git-ignored clone of upstream mcbuilder, used read-only as an oracle. Never modified or imported.                                                                                                                                                                                                                                         |                    |
 
 Dependencies point one way only; `.dependency-cruiser.cjs` enforces this.
 
@@ -334,9 +331,6 @@ Built:
   an accessibility pass, a dependency licence check, and the user and
   self-hosting guides), and the mcbuilder port (M5).
 
-See [PLAN.md](PLAN.md) for what was checked and what was not, and for the places
-where the code differs from the v1 spec and what was decided about each.
-
 Not done yet:
 
 - For Bedrock export, the translation rules cover the common build blocks (stairs, slabs, doors,
@@ -344,7 +338,7 @@ Not done yet:
   `facing`), not every block in the game. The summary lists each dropped property.
 - Block-entity data (chest contents, sign text) and entities cannot be written from a recipe.
 - A run on a real phone (the touch editor has only been driven by emulated touch so
-  far; `docs/phone-test-checklist.md` lists what to try). Luki checked an edited
+  far). Luki checked an edited
   export in Litematica and smooth navigation on a real GPU by hand on 2026-11-11;
   no GPU numbers were recorded.
 - The 0.1.0 release: the 0.1.0 version bump and tag (`voxmc` is on npm at 0.0.3).

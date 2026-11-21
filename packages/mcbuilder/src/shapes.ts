@@ -2160,9 +2160,8 @@ export interface ArchOptions extends SeedOption {
  * - `stepped`: a staircase of `rise` stairs per corner, then a flat soffit:
  *   the row above the head (your lintel) closes the span. `rise` defaults to
  *   `min(2, floor(w / 2))` and is limited to `floor(w / 2)`; any `w >= 2`.
- *   Evidence: T15 (build-patterns.md, "Stair-block masonry arches": 3-wide is
- *   one stair at each spring point, 2-wide is two stairs meeting at the
- *   centre, which is `rise: 1`), french-mansion/f_044 and f_068 (two steps per
+ *   Evidence: 3-wide is one stair at each spring point, 2-wide is two stairs
+ *   meeting at the centre, which is `rise: 1`; french-mansion/f_044 and f_068 (two steps per
  *   corner, rise 2), disruptive-builds/f_105 (3-wide niche: one stair per
  *   upper corner, rise 1), disruptive-builds/f_533 (stepped timber arch),
  *   dio-rods q04 (three-step chamfer; use `rise: 3`). The default 2 is a
@@ -2178,7 +2177,7 @@ export interface ArchOptions extends SeedOption {
  *   last two stairs meet in the middle. An odd width leaves one open apex cell
  *   (column `floor(w / 2)`, top row); `slab` fills it with a `type=top` slab,
  *   which closes the head with a flat soffit half a block below the top of
- *   the head (w=3 is T15's 3-wide recipe: a stair at each spring point, then
+ *   the head (w=3 is the 3-wide recipe: a stair at each spring point, then
  *   the span bridged across the top). `slab` is required for `pointed` (the
  *   spec asks for it) but an even width has no cell for it: it is accepted
  *   and unused there. Whether `slab` should do more on `pointed` is an open
@@ -2194,7 +2193,7 @@ export interface ArchOptions extends SeedOption {
  *   span throws, use `stepped` or `pointed`. Without `slab` the crown cells
  *   are left empty. Same head reused on windows in trixyblox/f_008-f_010,
  *   where it stands one block proud of the wall face: put the arch on the
- *   layer in front of the wall, as T15 says, not in the wall itself. The
+ *   layer in front of the wall, not in the wall itself. The
  *   slab is `type=bottom`: the top half of each crown cell stays open.
  *
  * Options. `axis` and `profile` are required. `rise`: see above. `slab`: a
@@ -2207,7 +2206,7 @@ export interface ArchOptions extends SeedOption {
  *
  * Facing and defaults: the jamb-side hanging half is read from the frames
  * (trixyblox/f_001: upper half of the cell full, lower half only on the jamb
- * side). T15 says the stairs face "inward / down-slope toward the center",
+ * side). The stairs are said to face "inward / down-slope toward the center",
  * which in Minecraft's own `facing` terms would hang the half on the centre
  * side; the frames and this shape do the opposite. `rise` defaults are design
  * choices, as is `depth`.
@@ -2221,12 +2220,12 @@ export interface ArchOptions extends SeedOption {
  *     ## Sw Se ##   y+1               ## == == ##   y+1
  *     Sw .. .. Se   y                 Sw .. .. Se   y
  *
- *   stepped, width 6 (rise 2)       stepped, width 3 (rise 1, T15)
+ *   stepped, width 6 (rise 2)       stepped, width 3 (rise 1)
  *     x=0  1  2  3  4  5              x=0  1  2
  *     ## Sw .. .. Se ##   y+1         Sw .. Se   y
  *     Sw .. .. .. .. Se   y
  *
- *   pointed, width 5 (rise 2)       pointed, width 3 (rise 1, T15)
+ *   pointed, width 5 (rise 2)       pointed, width 3 (rise 1)
  *     x=0  1  2  3  4                 x=0  1  2
  *     ## Sw St Se ##   y+1            Sw St Se   y
  *     Sw .. .. .. Se   y

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // Reel house: the medieval tavern of the reel study (omggamer, tav/f_001-f_021), rebuilt from
-// the frame readings in docs/reel-study/evidence/D-hibouk-tavern-diorods.md section 5.2.
+// the frame readings.
 //
 // A stone ground floor with timber corner posts and a ring beam, a jettied half-timber upper
 // floor with white infill, one roof over the main block and a front cross-gable on the right
@@ -67,14 +67,14 @@ BUILD.scope(() => {
   BUILD.place(shapes.box([X0 - 1, 0, Z0 - 1], [X1 + 1, 0, Z1 + 1], PLINTH, { seed: SEED }));
   BUILD.place(shapes.box([WX0, 0, Z1 + 1], [WX1, 0, WZ1], PLINTH, { seed: SEED })); // porch floor
 
-  // -- ground floor: stone box, timber corner posts, ring beam (T1) -------------------
+  // -- ground floor: stone box, timber corner posts, ring beam -------------------
   BUILD.place(shapes.walls([X0, 1, Z0], [X1, 4, Z1], STONE, { seed: SEED }));
   for (const x of [X0, X1]) for (const z of [Z0, Z1]) BUILD.pillar([x, 1, z], 4, POST);
   BUILD.line([X0, 5, Z0], [X1, 5, Z0], LOG_X);
   BUILD.line([X0, 5, Z1], [X1, 5, Z1], LOG_X);
   BUILD.line([X0, 5, Z0 + 1], [X0, 5, Z1 - 1], LOG_Z);
   BUILD.line([X1, 5, Z0 + 1], [X1, 5, Z1 - 1], LOG_Z);
-  // Stone pilasters under the jetty, each with an upside-down stair as its capital (T9).
+  // Stone pilasters under the jetty, each with an upside-down stair as its capital.
   for (const x of [X0, 5, X1]) {
     BUILD.pillar([x, 1, UZ1], 3, "minecraft:stone_bricks");
     BUILD.set(x, 4, UZ1, "minecraft:stone_brick_stairs[facing=north,half=top]");
@@ -92,7 +92,7 @@ BUILD.scope(() => {
     shapes.door([11, 1, Z1], "north", "minecraft:spruce_door", { frame: POST, lintel: LOG_X }),
   );
 
-  // -- jetty and upper floor (T2, half-timber with white infill) -----------------------
+  // -- jetty and upper floor (half-timber with white infill) -----------------------
   BUILD.place(
     shapes.jetty([X0, 5, Z0], [X1, 5, Z1], "minecraft:spruce_planks", {
       sides: ["south"],
@@ -109,7 +109,7 @@ BUILD.scope(() => {
   BUILD.place(shapes.bayWall([X0, 6, Z0], [X0, 11, UZ1], WHITE, side));
   BUILD.place(shapes.bayWall([X1, 6, Z0], [X1, 11, UZ1], WHITE, side));
 
-  // Upper windows: two narrow lit panes in a bay, a log lintel, a window box under them (T8).
+  // Upper windows: two narrow lit panes in a bay, a log lintel, a window box under them.
   const upper = { lintel: LOG_X };
   for (const x0 of [1, 4]) {
     BUILD.place(shapes.window([x0, 7, UZ1], [x0 + 1, 8, UZ1], "south", upper));
@@ -127,10 +127,10 @@ BUILD.scope(() => {
   BUILD.place(shapes.bayWall([WX1, 6, UZ1], [WX1, 11, WZ1], WHITE, wingSide));
   BUILD.place(shapes.window([10, 7, WZ1], [12, 8, WZ1], "south", { lintel: LOG_X }));
   BUILD.place(shapes.windowBox([10, 6, WZ1 + 1], [12, 6, WZ1 + 1], "south"));
-  // A small hood over the wing window: stairs rising to the wall (T5).
+  // A small hood over the wing window: stairs rising to the wall.
   for (let x = WX0; x <= WX1; x++)
     BUILD.set(x, 10, WZ1 + 1, "minecraft:spruce_stairs[facing=north,half=bottom]");
-  // Porch posts on barrel feet, with knee braces under the wing's front beam (T11, T12).
+  // Porch posts on barrel feet, with knee braces under the wing's front beam.
   for (const x of [WX0, WX1]) {
     BUILD.set(x, 1, WZ1, "minecraft:barrel[facing=up]");
     BUILD.pillar([x, 2, WZ1], 3, POST);
@@ -140,7 +140,7 @@ BUILD.scope(() => {
   BUILD.line([WX0, 4, UZ1 + 1], [WX0, 4, WZ1 - 1], LOG_Z);
   BUILD.line([WX1, 4, UZ1 + 1], [WX1, 4, WZ1 - 1], LOG_Z);
 
-  // -- one roof: main gable along x, flush gable ends, and the cross-gable (T3, T4) -----------
+  // -- one roof: main gable along x, flush gable ends, and the cross-gable -----------
   BUILD.place(
     shapes.roofUnion(
       [
@@ -156,7 +156,7 @@ BUILD.scope(() => {
   BUILD.place(shapes.window([X1, 14, 5], [X1, 15, 6], "east", { lintel: LOG_Z }));
   BUILD.place(shapes.window([11, 13, WZ1], [11, 13, WZ1], "south"));
 
-  // Ridge cresting (T6, T46): posts rooted in the ridge row, a top-slab rail between them. The
+  // Ridge cresting: posts rooted in the ridge row, a top-slab rail between them. The
   // main span is even, so the cresting stands on the north one of the two ridge rows (as the
   // `ridgeCap` of roofGable does); the wing ridge runs from the main slope to its gable.
   const RAIL = "minecraft:spruce_slab[type=top]";
@@ -173,7 +173,7 @@ BUILD.scope(() => {
     else BUILD.set(11, wingRidgeY + 1, z, RAIL);
   }
 
-  // -- chimney off the ridge on the right: brick, a log band, a four-post cap, smoke (T10) ---
+  // -- chimney off the ridge on the right: brick, a log band, a four-post cap, smoke ---
   BUILD.place(
     shapes.chimney([11, 6, 2], 16, "minecraft:bricks", {
       size: 2,
@@ -185,7 +185,7 @@ BUILD.scope(() => {
     }),
   );
 
-  // -- lights and garden (T13) ------------------------------------------------------------
+  // -- lights and garden ------------------------------------------------------------
   for (const x of [3, 8]) BUILD.set(x, 4, UZ1, "minecraft:lantern[hanging=true]");
   BUILD.set(11, 4, 12, "minecraft:lantern[hanging=true]");
   BUILD.pillar([WX0 - 1, 0, WZ1 + 2], 2, "minecraft:spruce_fence"); // lamp post by the path

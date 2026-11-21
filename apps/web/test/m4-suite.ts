@@ -50,7 +50,7 @@ interface AxeSummary {
 
 /**
  * Violations axe-core reports that we accept, each with the reason. Everything else fails the run.
- * Empty on purpose: add an entry only with a real justification, and say so in PLAN.md.
+ * Empty on purpose: add an entry only with a real justification.
  */
 const ACCEPTED: Record<string, string> = {};
 
