@@ -15,8 +15,7 @@ The derived parts are:
                                 packages/render/src/webgl is new)
   packages/core/src/blocks      block string parsing, ported from mcbuilder
   packages/core/src/rotation    structure rotation, ported from mcbuilder
-  vectors/export_*.py           scripts that call mcbuilder to export vectors
-  vectors/*.json                the golden vectors those scripts write
+  vectors/*.json                the golden vectors exported from mcbuilder
 
 The repository as a whole is licensed AGPL-3.0-only (see LICENSE). That does
 not change here. The MIT notice below is kept with the derived parts, as the

@@ -213,7 +213,7 @@ describe("arch", () => {
     sortCells(shapes.arch(...args).cells() as Cell[]);
 
   describe("stepped", () => {
-    it("is one upside-down stair per corner for a 3-wide span (T15)", () => {
+    it("is one upside-down stair per corner for a 3-wide span", () => {
       expect(cellsOf([0, 10, 0], 3, OAK, { axis: "x", profile: "stepped" })).toEqual([
         [0, 10, 0, stair("west")],
         [2, 10, 0, stair("east")],
@@ -378,7 +378,7 @@ describe("arch", () => {
       ]);
     });
 
-    it("bridges a 3-wide span with a top slab (T15)", () => {
+    it("bridges a 3-wide span with a top slab", () => {
       expect(cellsOf([0, 0, 0], 3, OAK, { axis: "x", profile: "pointed", slab: SLAB })).toEqual([
         [0, 0, 0, stair("west")],
         [1, 0, 0, slab("top")],
