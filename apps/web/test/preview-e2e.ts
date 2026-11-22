@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// End-to-end test of `voxwright-cli preview`: start the committed skill CLI on a real schematic,
-// open the address it prints in Chrome, and check that the page opened the file from the
+// End-to-end test of `voxmc preview`: pack the command line from the sources (`scripts/pack-npm.ts`),
+// start it on a real schematic, open the address it prints in Chrome, and check that the page opened the file from the
 // `?open=` link, with WebGL2 and with the software renderer.
 //
 //   node test/preview-e2e.ts [--chromium <path>]
 //
 // Build the site first (`pnpm --filter voxmc-web build`): the CLI serves that build.
 
-import { type ChildProcess, spawn } from "node:child_process";
+import { type ChildProcess, execFileSync, spawn } from "node:child_process";
 import { copyFile, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -20,7 +20,11 @@ import { chromiumArgs, findChromium } from "./site.ts";
 const { values } = parseArgs({ options: { chromium: { type: "string" } } });
 const chromium = findChromium(values.chromium);
 const repo = fileURLToPath(new URL("../../../", import.meta.url));
-const CLI = join(repo, "skills/voxwright/scripts/voxwright-cli.mjs");
+// Packed into the checkout, so `preview` finds this checkout's `apps/web/build` from the file's place.
+const CLI = join(repo, "dist/npm/voxmc/voxmc.mjs");
+execFileSync(process.execPath, [join(repo, "scripts/pack-npm.ts"), "--dry-run"], {
+  stdio: "inherit",
+});
 const FIXTURE = join(repo, "fixtures/real/rafeals-house/Rafeals_house.litematic");
 
 const checks: string[] = [];

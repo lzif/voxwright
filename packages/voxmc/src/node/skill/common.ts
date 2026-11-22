@@ -10,7 +10,7 @@ import { SkillCliError } from "./io.ts";
 
 /** The name in usage and error text: the one command, whatever file it was started from. */
 export const PROG = "voxmc";
-/** Replaced by the repository version when the bundle is built (scripts/build-skill.ts). */
+/** Replaced by the repository version when the npm file is built (scripts/pack-npm.ts). */
 declare const __VOXMC_VERSION__: string | undefined;
 export const VERSION = typeof __VOXMC_VERSION__ === "string" ? __VOXMC_VERSION__ : "dev";
 export const DEFAULT_MC_VERSION = "26.2";

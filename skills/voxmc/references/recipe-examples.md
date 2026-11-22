@@ -12,10 +12,10 @@ block states in [block-states.md](block-states.md).
 | [Hill with a pond](#hill-with-a-pond) | Terrain: a height function, layered columns, water, `rng` scatter, a tree                    |
 | [Pavilion](#pavilion)                 | Symmetry: one `Geometry` per side, placed four times with `rotation`                         |
 
-Run one from the directory that holds the file (`<skill-dir>` is the directory of `SKILL.md`):
+Run one from the directory that holds the file:
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs build watchtower.ts --out out/watchtower.schem
+voxmc build watchtower.ts --out out/watchtower.schem
 ```
 
 More recipes, larger and less commented (`storehouse/`, `homestead/`, `crystal_observatory/`,

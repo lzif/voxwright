@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The command line: `voxmc` on npm, `skills/voxwright/scripts/voxwright-cli.mjs` in the skill.
+// The command line: `voxmc` on npm, built by `scripts/pack-npm.ts`.
 // `build`, `inspect` and `preview` live here; `init`, `check`, `run`, `import`, `diff` and
 // `assets` are the commands of `../cli.ts`, reached through the same program.
 //
@@ -32,7 +32,7 @@ import { oldImportMessage } from "./tombstones.ts";
 export * from "voxmc-core";
 export * from "../../index.ts";
 
-/** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
+/** Replaced by `true` when the npm file is built (scripts/pack-npm.ts). */
 declare const __VOXMC_BUNDLED__: boolean | undefined;
 const BUNDLED = typeof __VOXMC_BUNDLED__ !== "undefined" && __VOXMC_BUNDLED__ === true;
 

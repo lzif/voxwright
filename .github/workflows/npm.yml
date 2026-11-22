@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Publishes the npm package `voxmc` (the skill CLI bundle, see scripts/pack-npm.ts).
+# Publishes the npm package `voxmc` (the command line, bundled from the package sources by scripts/pack-npm.ts).
 #
 # Runs when a tag v<version> is pushed, and by hand. The tag must equal the version in the root
 # package.json. Needs the repository secret NPM_TOKEN: an npm token that may publish `voxmc`.
@@ -31,8 +31,6 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - name: The committed bundle is current
-        run: node scripts/build-skill.ts --check
       - name: The tag names the version
         if: github.event_name == 'push'
         run: test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"

@@ -77,7 +77,7 @@ import {
 } from "./script.ts";
 import { OLD_CONFIG_NAMES, oldConfigMessage } from "./skill/tombstones.ts";
 
-/** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
+/** Replaced by `true` when the npm file is built (scripts/pack-npm.ts). */
 declare const __VOXMC_BUNDLED__: boolean | undefined;
 const BUNDLED = typeof __VOXMC_BUNDLED__ !== "undefined" && __VOXMC_BUNDLED__ === true;
 

@@ -7,18 +7,19 @@ description: Design and generate Minecraft builds programmatically and export th
 
 # Voxmc
 
-Build Minecraft structures by writing a short TypeScript recipe and running it with the bundled
+Build Minecraft structures by writing a short TypeScript recipe and running it with the `voxmc`
 command line. The CLI runs the recipe headlessly, checks every block against the block registry
 of the Minecraft version, and writes `.schem`, `.litematic`, `.nbt` or `.mcstructure`. A browser
 viewer and editor lets the user look at the result in 3D and fix details by hand.
 
 ## Setup
 
-- `<skill-dir>` below is the directory that holds this file. Use its absolute path.
-- The CLI is one file, `<skill-dir>/scripts/voxwright-cli.mjs`. It needs Node 22.18 or later and
-  nothing else: do not run `npm install`, do not build anything, do not reinstall the skill.
+- The CLI is the npm package `voxmc`. It needs Node 22.18 or later. Use `voxmc` if it is
+  installed (`voxmc --version` answers); otherwise run every command below with `npx voxmc` in
+  place of `voxmc`. Do not pin a version.
+- This text was written against voxmc 0.0.4.
 - Write recipes and outputs in the user's project (for example `minecraft-builds/<name>/`), never
-  inside `<skill-dir>`.
+  inside the skill directory.
 
 ## Workflow
 
@@ -69,7 +70,7 @@ components.
 4. **Build and check the summary:**
 
    ```sh
-   node <skill-dir>/scripts/voxwright-cli.mjs build house.ts --out out/house.schem
+   voxmc build house.ts --out out/house.schem
    ```
 
    If `build` says `build: FAILED`, fix the recipe and run again; check that the size, the block
@@ -97,7 +98,7 @@ Change the recipe and run `build` again to iterate; it overwrites its outputs.
 ### build
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs build <recipe> --out <path> [options]
+voxmc build <recipe> --out <path> [options]
 ```
 
 | Option                 | Meaning                                                                                                                 |
@@ -118,7 +119,7 @@ FastAsyncWorldEdit, `.litematic` for Litematica, `.nbt` for vanilla structure bl
 `.litematic` together:
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs build house.ts --out out/house.schem --out out/house.litematic
+voxmc build house.ts --out out/house.schem --out out/house.litematic
 ```
 
 The summary:
@@ -158,7 +159,7 @@ wrote:
 ### inspect
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs inspect <schematic> [--json]
+voxmc inspect <schematic> [--json]
 ```
 
 Prints what a `.schem`, `.litematic`, `.nbt` or `.mcstructure` file holds: format and version,
@@ -168,7 +169,7 @@ Use it to check a file you wrote, or to understand a schematic the user gives yo
 ### import (schematic back to a recipe)
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs import <schematic> [-o <recipe>.ts|.mjs] [--force]
+voxmc import <schematic> [-o <recipe>.ts|.mjs] [--force]
 ```
 
 Turns a `.schem`, `.litematic`, `.nbt` or `.mcstructure` into a recipe that imports `Build` from
@@ -190,7 +191,7 @@ of it into your own recipe), then `build` it again.
 ### preview (or view)
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs preview <schematic-or-run> [--port <n>] [--no-open]
+voxmc preview <schematic-or-run> [--port <n>] [--no-open]
 ```
 
 Starts a local server with the 3D viewer and editor and the schematic open in it (`view` is an
@@ -213,7 +214,7 @@ alias, and the target may also be a `run` directory or run id such as `preview 1
 ### run --preview (PNG views)
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs run <recipe> --preview [--views 'iso;top'] [--out <dir>]
+voxmc run <recipe> --preview [--views 'iso;top'] [--out <dir>]
 ```
 
 Writes `<dir>/run-NNN/previews_faithful/<view>.png` (default `dist/`), drawn with the game's
@@ -238,9 +239,9 @@ network access blocks are drawn as plain cubes.
 ### palette
 
 ```sh
-node <skill-dir>/scripts/voxwright-cli.mjs palette near <block> [--family stairs|slab|full|any] [--limit N]
-node <skill-dir>/scripts/voxwright-cli.mjs palette ramp <from> <to> [--steps N] [--family stairs|slab|full|any]
-node <skill-dir>/scripts/voxwright-cli.mjs palette show <block>...
+voxmc palette near <block> [--family stairs|slab|full|any] [--limit N]
+voxmc palette ramp <from> <to> [--steps N] [--family stairs|slab|full|any]
+voxmc palette show <block>...
 ```
 
 Compares blocks by the mean colour of their vanilla textures. `near` lists the blocks closest in

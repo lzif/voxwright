@@ -17,9 +17,8 @@ import { runSkillCli } from "../src/node/skill/main.ts";
 
 const run = promisify(execFile);
 const repo = fileURLToPath(new URL("../../../", import.meta.url));
-const BUNDLE = join(repo, "skills/voxwright/scripts/voxwright-cli.mjs");
 // Recipes run in this process are imported by Vitest, which resolves the workspace package from
-// inside the repository; the bundle tests further down use a directory outside it.
+// inside the repository; the packed-file tests further down use a directory outside it.
 const base = fileURLToPath(new URL("./.tmp/", import.meta.url));
 let root: string;
 let home: string;
@@ -737,12 +736,14 @@ describe("inspect", () => {
   });
 });
 
-// The committed bundle, run the way an installed skill runs it: from a directory outside the
-// repository, with no node_modules to resolve anything from.
-describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
+// The npm file, freshly packed from the sources by scripts/pack-npm.ts and run the way an installed
+// `voxmc` runs: from a directory outside the repository, with no node_modules to resolve anything
+// from.
+describe("the packed voxmc.mjs", () => {
   let outside: string;
+  let packed: string;
   const cli = (args: string[], cwd = outside) =>
-    run(process.execPath, [BUNDLE, ...args], { cwd, env: { ...process.env, HOME: outside } }).then(
+    run(process.execPath, [packed, ...args], { cwd, env: { ...process.env, HOME: outside } }).then(
       (r) => ({ code: 0, ...r }),
       (e: { code: number; stdout: string; stderr: string }) => e,
     );
@@ -750,11 +751,14 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
   beforeAll(async () => {
     outside = await mkdtemp(join(tmpdir(), "voxmc-skill-"));
     await writeFile(join(outside, "registry.json"), JSON.stringify(REGISTRY));
-  });
+    const pkgDir = join(outside, "pkg");
+    await run(process.execPath, [join(repo, "scripts/pack-npm.ts"), "--dry-run", "--out", pkgDir]);
+    packed = join(pkgDir, "voxmc.mjs");
+  }, 120_000);
   afterAll(() => rm(outside, { recursive: true, force: true }));
 
   it("builds a recipe that imports from 'voxmc', and inspects the result", async () => {
-    await writeFile(join(outside, "hut.ts"), hut("voxwright"));
+    await writeFile(join(outside, "hut.ts"), hut("voxmc"));
     const built = await cli([
       "build",
       "hut.ts",
@@ -772,7 +776,7 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
   });
 
   it("imports a schematic back into a 'voxmc' recipe that rebuilds it", async () => {
-    await writeFile(join(outside, "hut2.ts"), hut("voxwright"));
+    await writeFile(join(outside, "hut2.ts"), hut("voxmc"));
     const first = await cli([
       "build",
       "hut2.ts",
@@ -785,7 +789,7 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
     const imported = await cli(["import", "hut2.schem", "-o", "hut2-back.mjs", "--force"]);
     expect(imported.code).toBe(0);
     const script = await readFile(join(outside, "hut2-back.mjs"), "utf8");
-    expect(script).toContain('import { Build } from "voxwright";');
+    expect(script).toContain('import { Build } from "voxmc";');
     const again = await cli([
       "build",
       "hut2-back.mjs",
@@ -808,8 +812,8 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
   it("resolves the workspace package names and plain JavaScript recipes too", async () => {
     await writeFile(
       join(outside, "parts.mjs"),
-      `import { rotateBlockstate } from "@voxwright/core";
-import { Build, shapes } from "@voxwright/mcbuilder";
+      `import { rotateBlockstate } from "voxmc-core";
+import { Build, shapes } from "voxmc-engine";
 export default new Build();
 const stair = rotateBlockstate("minecraft:spruce_stairs[facing=north]", "CLOCKWISE_90");
 export const BUILD = new Build();
@@ -835,9 +839,7 @@ BUILD.scope(() => {
     });
   });
 
-  // Skipped while the committed bundle is stale: it still matches the engine source under its old
-  // path. The bundle and these two tests go in the skill-to-markdown commit (rename P2, item 6).
-  it.skip("runs an example of this repository, which imports the engine by path", async () => {
+  it("runs an example of this repository, which imports the engine by path", async () => {
     const built = await cli([
       "build",
       join(repo, "packages/voxmc/examples/homestead/well.ts"),
@@ -854,7 +856,7 @@ BUILD.scope(() => {
   it("points at the line of a recipe that throws", async () => {
     await writeFile(
       join(outside, "throws.ts"),
-      `import { Build } from "voxwright";
+      `import { Build } from "voxmc";
 export const BUILD = new Build();
 BUILD.scope(() => {
   BUILD.set(0.5, 0, 0, "minecraft:stone");
@@ -878,9 +880,7 @@ BUILD.scope(() => {
         /```ts\n((?:\/\/ recipe: \S+\n)?import [\s\S]*?)```/g,
       )) {
         const file = `doc-${n++}.ts`;
-        // The stale bundle still answers to its old specifier (bundle-coupled, rename P2 item 6).
-        const forBundle = (source as string).replaceAll('from "voxmc"', 'from "voxwright"');
-        await writeFile(join(outside, file), forBundle);
+        await writeFile(join(outside, file), source as string);
         const built = await cli(["build", file, ...registry, "--out", `${file}.schem`, "--json"]);
         expect(built.stderr, `${doc}: ${file}`).toBe("");
         const summary = JSON.parse(built.stdout);
@@ -927,10 +927,10 @@ BUILD.scope(() => {
     const proj = join(outside, "prev-proj");
     await mkdir(join(proj, "assets"), { recursive: true });
     await writeFile(join(proj, "assets/minecraft-data.json"), JSON.stringify(REGISTRY));
-    await writeFile(join(proj, "mcbuild.toml"), 'assets_dir = "assets"\n');
+    await writeFile(join(proj, "voxmc.toml"), 'assets_dir = "assets"\n');
     await writeFile(
       join(proj, "dock-mini.ts"),
-      `import { Build } from "voxwright";
+      `import { Build } from "voxmc";
 export const BUILD = new Build({ seed: 1 });
 BUILD.scope(() => {
   BUILD.box([0, 0, 0], [10, 0, 10], "minecraft:stone");
@@ -965,14 +965,5 @@ BUILD.scope(() => {
     ]);
     expect(report.views[1].focus).toEqual({ center: [8, 1, 8], radius: 1 });
     expect(report.views[2].focus).toEqual({ min: [7, 0, 7], max: [10, 1, 10] });
-  });
-
-  it.skip("is what scripts/build-skill.ts produces from the current sources", async () => {
-    const r = await run(process.execPath, [join(repo, "scripts/build-skill.ts"), "--check"]).then(
-      (ok) => ({ code: 0, ...ok }),
-      (e: { code: number; stdout: string; stderr: string }) => e,
-    );
-    expect(r.stderr).toBe("");
-    expect(r.code).toBe(0);
   });
 });
