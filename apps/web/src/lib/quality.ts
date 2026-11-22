@@ -6,7 +6,7 @@
 // the limits that a touch-only device runs with (two mesher workers, a smaller undo history).
 
 /** Where the Quality setting is kept in the browser. */
-export const QUALITY_KEY = "voxwright.quality";
+export const QUALITY_KEY = "voxmc.quality";
 
 export type QualityMode = "auto" | "high" | "low";
 

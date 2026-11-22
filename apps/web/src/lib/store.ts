@@ -4,7 +4,7 @@
 // edited) and `pack` (the resource pack the user brought). Values are stored with the structured
 // clone algorithm, so typed arrays, Maps and bigints go in as they are.
 
-const DB_NAME = "voxwright";
+const DB_NAME = "voxmc";
 const DB_VERSION = 1;
 export type StoreName = "autosave" | "pack";
 const STORES: readonly StoreName[] = ["autosave", "pack"];

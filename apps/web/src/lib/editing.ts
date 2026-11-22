@@ -146,14 +146,14 @@ export function parseCursorOffset(stored: string | null | undefined): number {
 }
 
 /** Where the "Confirm each placement" setting is kept in the browser. */
-export const CONFIRM_PLACE_KEY = "voxwright.confirmplace";
+export const CONFIRM_PLACE_KEY = "voxmc.confirmplace";
 
 /** The setting a browser kept from an earlier visit: only the exact text "true" turns it on. */
 export const parseConfirmPlacement = (stored: string | null | undefined): boolean =>
   stored === "true";
 
 /** Where the "Twist with two fingers to turn" setting is kept in the browser. */
-export const TWIST_KEY = "voxwright.twist";
+export const TWIST_KEY = "voxmc.twist";
 
 /** The setting a browser kept from an earlier visit: on unless the stored text is exactly "false". */
 export const parseTwist = (stored: string | null | undefined): boolean => stored !== "false";

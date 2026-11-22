@@ -9,9 +9,9 @@ import { AIR } from "voxmc-core";
 import { withoutNbt } from "./editing.ts";
 
 /** Where the recent blocks are kept in the browser. */
-export const RECENT_KEY = "voxwright.recentblocks";
+export const RECENT_KEY = "voxmc.recentblocks";
 /** Where the favourite blocks are kept in the browser. */
-export const FAVORITE_KEY = "voxwright.favoriteblocks";
+export const FAVORITE_KEY = "voxmc.favoriteblocks";
 
 /** The hotbar remembers the last 8 distinct blocks that were chosen. */
 export const RECENT_LIMIT = 8;

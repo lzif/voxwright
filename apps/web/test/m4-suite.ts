@@ -222,7 +222,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
           blockEntities: number;
           entities: number;
         }>((resolve, reject) => {
-          const req = indexedDB.open("voxwright");
+          const req = indexedDB.open("voxmc");
           req.onerror = () => reject(req.error);
           req.onsuccess = () => {
             const get = req.result.transaction(storeName).objectStore(storeName).get(k);

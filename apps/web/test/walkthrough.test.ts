@@ -63,6 +63,6 @@ describe("shouldShowIntro", () => {
   });
 
   it("is kept under its own key", () => {
-    expect(TOUCH_INTRO_KEY).toBe("voxwright.touchintro");
+    expect(TOUCH_INTRO_KEY).toBe("voxmc.touchintro");
   });
 });

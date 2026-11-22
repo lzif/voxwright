@@ -83,8 +83,8 @@ async function newPage(browser: Browser): Promise<Page> {
   const page = await browser.newPage();
   await page.evaluateOnNewDocument(() => {
     try {
-      if (localStorage.getItem("voxwright.touchintro") === null) {
-        localStorage.setItem("voxwright.touchintro", "done");
+      if (localStorage.getItem("voxmc.touchintro") === null) {
+        localStorage.setItem("voxmc.touchintro", "done");
       }
     } catch {
       // storage blocked: nothing to mark
@@ -1655,7 +1655,7 @@ export async function touchPlacementSuite(): Promise<void> {
     // =========================================================================
     page.on("dialog", (d) => void d.accept()); // the unsaved-edits prompts of the reloads below
     const sliderSel = '[data-testid="cursor-offset-input"]';
-    const OFFSET_KEY = "voxwright.cursoroffset";
+    const OFFSET_KEY = "voxmc.cursoroffset";
     const openMenu = async (): Promise<void> => {
       await tapButton('[data-testid="mobile-menu-btn"]');
       await page.waitForSelector(sliderSel, { timeout: 5000 });
@@ -3005,7 +3005,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     // =========================================================================
     // Confirm each placement (Menu > Settings): off by default, kept per browser
     // =========================================================================
-    const CONFIRM_KEY = "voxwright.confirmplace";
+    const CONFIRM_KEY = "voxmc.confirmplace";
     const confirmBox = '[data-testid="confirm-place-toggle"] input';
     const stored = (): Promise<string | null> =>
       page.evaluate((k) => localStorage.getItem(k), CONFIRM_KEY);
@@ -3235,8 +3235,8 @@ export async function touchSelectionStateSuite(): Promise<void> {
   });
   const DOOR = "minecraft:oak_door[facing=north,half=lower,hinge=left,open=false,powered=false]";
   const SIGN = "minecraft:oak_sign[rotation=3,waterlogged=false]";
-  const RECENT_KEY = "voxwright.recentblocks";
-  const FAVORITE_KEY = "voxwright.favoriteblocks";
+  const RECENT_KEY = "voxmc.recentblocks";
+  const FAVORITE_KEY = "voxmc.favoriteblocks";
   /** The edits of the exit criterion, as cells; both paths use the same ones. */
   const BOX_A: Vec3 = [6, 7, 3];
   const BOX_B: Vec3 = [6, 7, 5];
@@ -4403,7 +4403,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     await closeSheet();
     // Left-handed: the quick row goes to the other side of the screen with the thumb cluster
-    await page.evaluate(() => localStorage.setItem("voxwright.lefthanded", "true"));
+    await page.evaluate(() => localStorage.setItem("voxmc.lefthanded", "true"));
     await page.reload();
     await startUp();
     await openFixture();
@@ -4419,7 +4419,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       t("and the page still does not scroll sideways"),
     );
-    await page.evaluate(() => localStorage.removeItem("voxwright.lefthanded"));
+    await page.evaluate(() => localStorage.removeItem("voxmc.lefthanded"));
     // A corrupt stored value is ignored
     await page.evaluate(
       (r, f) => {
@@ -4744,7 +4744,7 @@ export async function touchCameraSuite(): Promise<void> {
     headless: true,
     args: chromiumArgs(true),
   });
-  const TWIST_KEY = "voxwright.twist";
+  const TWIST_KEY = "voxmc.twist";
   try {
     const page = await newPage(browser);
     await page.setViewport(MOBILE_VIEWPORT);
@@ -5521,7 +5521,7 @@ export async function touchQualitySuite(): Promise<void> {
     headless: true,
     args: chromiumArgs(true),
   });
-  const KEY = "voxwright.quality";
+  const KEY = "voxmc.quality";
   const MB = 1024 * 1024;
   try {
     const page = await newPage(browser);
@@ -6039,11 +6039,11 @@ export async function touchPolishSuite(): Promise<void> {
     headless: true,
     args: chromiumArgs(true),
   });
-  const INTRO_KEY = "voxwright.touchintro";
-  const HAPTICS_KEY = "voxwright.haptics";
-  const TWO_KEY = "voxwright.twofingerundo";
-  const THREE_KEY = "voxwright.threefingerredo";
-  const LEFT_KEY = "voxwright.lefthanded";
+  const INTRO_KEY = "voxmc.touchintro";
+  const HAPTICS_KEY = "voxmc.haptics";
+  const TWO_KEY = "voxmc.twofingerundo";
+  const THREE_KEY = "voxmc.threefingerredo";
+  const LEFT_KEY = "voxmc.lefthanded";
   const VIEW_W = MOBILE_VIEWPORT.width;
   type Rect = { x: number; y: number; w: number; h: number; right: number; bottom: number };
   try {

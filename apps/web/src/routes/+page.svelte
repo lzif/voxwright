@@ -185,14 +185,14 @@ const isMobileLayout = $derived.by(() => {
 function setLayoutMode(mode: LayoutMode): void {
   layoutOverride = mode;
   try {
-    localStorage.setItem("voxwright.layout", mode);
+    localStorage.setItem("voxmc.layout", mode);
   } catch {}
 }
 
 function setLeftHanded(lh: boolean): void {
   leftHanded = lh;
   try {
-    localStorage.setItem("voxwright.lefthanded", String(lh));
+    localStorage.setItem("voxmc.lefthanded", String(lh));
   } catch {}
 }
 
@@ -200,7 +200,7 @@ function setCursorOffset(px: number): void {
   cursorOffset = normalizeCursorOffset(px);
   if (session) session.cursorOffsetPx = cursorOffset;
   try {
-    localStorage.setItem("voxwright.cursoroffset", String(cursorOffset));
+    localStorage.setItem("voxmc.cursoroffset", String(cursorOffset));
   } catch {}
 }
 
@@ -1087,15 +1087,15 @@ function installTestHook(): void {
 
 onMount(() => {
   try {
-    const savedLayout = localStorage.getItem("voxwright.layout");
+    const savedLayout = localStorage.getItem("voxmc.layout");
     if (savedLayout === "auto" || savedLayout === "desktop" || savedLayout === "mobile") {
       layoutOverride = savedLayout;
     }
-    const savedLh = localStorage.getItem("voxwright.lefthanded");
+    const savedLh = localStorage.getItem("voxmc.lefthanded");
     if (savedLh !== null) {
       leftHanded = savedLh === "true";
     }
-    cursorOffset = parseCursorOffset(localStorage.getItem("voxwright.cursoroffset"));
+    cursorOffset = parseCursorOffset(localStorage.getItem("voxmc.cursoroffset"));
     confirmPlacement = parseConfirmPlacement(localStorage.getItem(CONFIRM_PLACE_KEY));
     twistEnabled = parseTwist(localStorage.getItem(TWIST_KEY));
     quality = parseQuality(localStorage.getItem(QUALITY_KEY));

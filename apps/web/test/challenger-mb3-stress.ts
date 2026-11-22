@@ -47,7 +47,7 @@ const { url, plainUrl, server } = await serveSite();
  */
 function markIntroSeen(): void {
   try {
-    localStorage.setItem("voxwright.touchintro", "done");
+    localStorage.setItem("voxmc.touchintro", "done");
   } catch {
     // storage blocked: nothing to mark
   }
@@ -485,8 +485,8 @@ try {
     for (let i = 0; i < modeSequence.length; i++) {
       const mode = modeSequence[i]!;
       await page.evaluate((m) => {
-        localStorage.setItem("voxwright.layout", m);
-        window.dispatchEvent(new StorageEvent("storage", { key: "voxwright.layout", newValue: m }));
+        localStorage.setItem("voxmc.layout", m);
+        window.dispatchEvent(new StorageEvent("storage", { key: "voxmc.layout", newValue: m }));
         const overrideBtns = Array.from(
           document.querySelectorAll('[data-testid="layout-override"] button'),
         );
@@ -527,7 +527,7 @@ try {
 
     // Return to mobile mode
     await page.evaluate(() => {
-      localStorage.setItem("voxwright.layout", "mobile");
+      localStorage.setItem("voxmc.layout", "mobile");
     });
     await new Promise((r) => setTimeout(r, 100));
     await page.evaluate(() =>

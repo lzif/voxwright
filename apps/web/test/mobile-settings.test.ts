@@ -15,9 +15,9 @@ import {
 
 describe("the stored settings", () => {
   it("name their keys", () => {
-    expect(HAPTICS_KEY).toBe("voxwright.haptics");
-    expect(TWO_FINGER_UNDO_KEY).toBe("voxwright.twofingerundo");
-    expect(THREE_FINGER_REDO_KEY).toBe("voxwright.threefingerredo");
+    expect(HAPTICS_KEY).toBe("voxmc.haptics");
+    expect(TWO_FINGER_UNDO_KEY).toBe("voxmc.twofingerundo");
+    expect(THREE_FINGER_REDO_KEY).toBe("voxmc.threefingerredo");
   });
 
   it("vibration is on unless the text is exactly false", () => {

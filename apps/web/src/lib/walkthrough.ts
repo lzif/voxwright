@@ -5,7 +5,7 @@
 // here, as plain values, so it runs under Vitest; the card itself is `TouchIntro.svelte`.
 
 /** Where the walkthrough's "seen" mark is kept in the browser. Not set: the user has not seen it. */
-export const TOUCH_INTRO_KEY = "voxwright.touchintro";
+export const TOUCH_INTRO_KEY = "voxmc.touchintro";
 /** What is stored once the card was closed or finished. */
 export const TOUCH_INTRO_SEEN = "done";
 

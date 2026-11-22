@@ -8,11 +8,11 @@
 import type { SessionEvent } from "./changes.ts";
 
 /** Where "Vibrate on edits" is kept. */
-export const HAPTICS_KEY = "voxwright.haptics";
+export const HAPTICS_KEY = "voxmc.haptics";
 /** Where "Two-finger tap undoes" is kept. */
-export const TWO_FINGER_UNDO_KEY = "voxwright.twofingerundo";
+export const TWO_FINGER_UNDO_KEY = "voxmc.twofingerundo";
 /** Where "Three-finger tap redoes" is kept. */
-export const THREE_FINGER_REDO_KEY = "voxwright.threefingerredo";
+export const THREE_FINGER_REDO_KEY = "voxmc.threefingerredo";
 
 /** Vibration on edits is on unless the stored text is exactly "false". */
 export const parseHaptics = (stored: string | null | undefined): boolean => stored !== "false";

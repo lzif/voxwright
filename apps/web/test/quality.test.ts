@@ -26,8 +26,8 @@ import {
 } from "../src/lib/quality.ts";
 
 describe("parseQuality (the setting kept from an earlier visit)", () => {
-  it("is kept under voxwright.quality and starts as Auto", () => {
-    expect(QUALITY_KEY).toBe("voxwright.quality");
+  it("is kept under voxmc.quality and starts as Auto", () => {
+    expect(QUALITY_KEY).toBe("voxmc.quality");
     expect(DEFAULT_QUALITY).toBe("auto");
     expect(QUALITY_MODES).toEqual(["auto", "high", "low"]);
   });

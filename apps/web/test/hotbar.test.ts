@@ -39,8 +39,8 @@ const memory = (
 
 describe("storage keys", () => {
   it("are the ones the browser keeps", () => {
-    expect(RECENT_KEY).toBe("voxwright.recentblocks");
-    expect(FAVORITE_KEY).toBe("voxwright.favoriteblocks");
+    expect(RECENT_KEY).toBe("voxmc.recentblocks");
+    expect(FAVORITE_KEY).toBe("voxmc.favoriteblocks");
     expect(RECENT_LIMIT).toBe(8);
     expect(FAVORITE_LIMIT).toBe(32);
   });

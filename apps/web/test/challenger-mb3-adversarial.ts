@@ -35,7 +35,7 @@ const { url, plainUrl, server } = await serveSite();
  */
 function markIntroSeen(): void {
   try {
-    localStorage.setItem("voxwright.touchintro", "done");
+    localStorage.setItem("voxmc.touchintro", "done");
   } catch {
     // storage blocked: nothing to mark
   }

@@ -353,7 +353,7 @@ describe("cursor distance setting", () => {
 
   describe("parseConfirmPlacement (the setting kept from an earlier visit)", () => {
     it("is on only for the exact text true", () => {
-      expect(CONFIRM_PLACE_KEY).toBe("voxwright.confirmplace");
+      expect(CONFIRM_PLACE_KEY).toBe("voxmc.confirmplace");
       expect(parseConfirmPlacement("true")).toBe(true);
       for (const stored of [null, undefined, "", "false", "TRUE", "1", "yes", " true", "on"]) {
         expect(parseConfirmPlacement(stored), String(stored)).toBe(false);
@@ -363,8 +363,8 @@ describe("cursor distance setting", () => {
 });
 
 describe("twist setting (Twist with two fingers to turn)", () => {
-  it("is kept under voxwright.twist", () => {
-    expect(TWIST_KEY).toBe("voxwright.twist");
+  it("is kept under voxmc.twist", () => {
+    expect(TWIST_KEY).toBe("voxmc.twist");
   });
 
   it("is on by default and off only for the exact text false", () => {
