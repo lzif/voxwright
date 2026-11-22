@@ -75,6 +75,7 @@ import {
   placedAt,
   scanDeterminism,
 } from "./script.ts";
+import { OLD_CONFIG_NAMES, oldConfigMessage } from "./skill/tombstones.ts";
 
 /** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
 declare const __VOXMC_BUNDLED__: boolean | undefined;
@@ -134,6 +135,10 @@ export async function findConfig(startDir: string, home: string): Promise<VoxmcC
       } catch (e) {
         throw new CliError(`invalid voxmc.toml: ${(e as Error).message}`);
       }
+    }
+    // A tombstone: an old config file is an error, not something to skip over.
+    for (const old of OLD_CONFIG_NAMES) {
+      if (await exists(join(dir, old))) throw new CliError(oldConfigMessage(join(dir, old)));
     }
     const parent = dirname(dir);
     if (parent === dir) return null;

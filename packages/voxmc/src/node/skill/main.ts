@@ -26,6 +26,7 @@ import { PROG, VERSION } from "./common.ts";
 import { cmdInspect, INSPECT_USAGE } from "./inspect.ts";
 import { SkillCliError, type SkillIo } from "./io.ts";
 import { cmdPreview, PREVIEW_USAGE } from "./preview.ts";
+import { oldImportMessage } from "./tombstones.ts";
 
 // The library facade: everything a recipe may import from "voxmc".
 export * from "voxmc-core";
@@ -102,6 +103,9 @@ function installAlias(): void {
   const self = import.meta.url;
   nodeModule.registerHooks({
     resolve(specifier, context, nextResolve) {
+      // A tombstone, not an alias: an old name resolves to nothing, but the error says why.
+      const gone = oldImportMessage(specifier);
+      if (gone !== null) throw new Error(gone);
       if (names.has(specifier)) return { url: self, shortCircuit: true };
       const resolved = nextResolve(specifier, context);
       // The repository's own examples import the engine by path (`../../src/index.ts`). In the
