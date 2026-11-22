@@ -1,21 +1,22 @@
-voxwright
+voxmc
 
-Parts of this repository are derived from mcbuilder, the Python tool at
-https://github.com/lzif/mcbuilder, which is licensed under the MIT License.
-The derived parts are:
+Parts of this repository are derived from an earlier Python implementation by
+the same author, which is licensed under the MIT License. The derived parts
+are:
 
-  packages/mcbuilder/src        the TypeScript port of mcbuilder's modules
-  packages/mcbuilder/bin        the mcbuild command
-  packages/mcbuilder/examples   the example build scripts, ported from Python
-  packages/mcbuilder/test       tests ported from mcbuilder's test suite
+  packages/voxmc/src            the TypeScript port of that implementation's
+                                modules
+  packages/voxmc/bin            the voxmc command
+  packages/voxmc/examples       the example build scripts, ported from Python
+  packages/voxmc/test           tests ported from its test suite
   packages/render/src           the renderer, previews and guide ported from
-                                mcbuilder's render, guide and views modules
+                                its render, guide and views modules
                                 (the WebGL and section-mesher code under
                                 packages/render/src/mesh and
                                 packages/render/src/webgl is new)
-  packages/core/src/blocks      block string parsing, ported from mcbuilder
-  packages/core/src/rotation    structure rotation, ported from mcbuilder
-  vectors/*.json                the golden vectors exported from mcbuilder
+  packages/core/src/blocks      block string parsing, ported from it
+  packages/core/src/rotation    structure rotation, ported from it
+  vectors/*.json                the golden vectors exported from it
 
 The repository as a whole is licensed AGPL-3.0-only (see LICENSE). That does
 not change here. The MIT notice below is kept with the derived parts, as the
