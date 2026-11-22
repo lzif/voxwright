@@ -70,6 +70,17 @@ describe(".litematic", () => {
     expect((await readLitematic(bytes)).volume.get(1, 0, 0)).toBeUndefined();
   });
 
+  it("names the file voxmc unless a name is given", async () => {
+    const v = new Volume();
+    v.set(0, 0, 0, "minecraft:stone");
+    const plain = await readLitematic((await writeLitematic(v, { dataVersion: 4903 })).bytes);
+    expect(plain.meta.name).toBe("voxmc");
+    const named = await readLitematic(
+      (await writeLitematic(v, { dataVersion: 4903, name: "Tower" })).bytes,
+    );
+    expect(named.meta.name).toBe("Tower");
+  });
+
   it("writes reproducible bytes", async () => {
     const v = new Volume();
     v.set(0, 0, 0, "minecraft:stone");

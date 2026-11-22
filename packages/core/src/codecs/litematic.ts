@@ -357,7 +357,7 @@ export async function readLitematic(
 
 export interface WriteLitematicOptions {
   dataVersion: number;
-  /** Shown in Litematica. Default `"voxwright"`. */
+  /** Shown in Litematica. Default `"voxmc"`. */
   name?: string;
   author?: string;
   description?: string;
@@ -465,7 +465,7 @@ export function buildLitematic(
     [
       "Metadata",
       compound([
-        ["Name", string(options.name ?? "voxwright")],
+        ["Name", string(options.name ?? "voxmc")],
         ["Author", string(options.author ?? "")],
         ["Description", string(options.description ?? "")],
         ["RegionCount", int(1)],
