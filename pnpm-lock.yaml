@@ -224,21 +224,6 @@ importers:
 
   packages/core: {}
 
-  packages/mcbuilder:
-    dependencies:
-      '@voxwright/core':
-        specifier: workspace:*
-        version: link:../core
-      '@voxwright/render':
-        specifier: workspace:*
-        version: link:../render
-      fflate:
-        specifier: ^0.8.3
-        version: 0.8.3
-      smol-toml:
-        specifier: ^1.9.1
-        version: 1.9.1
-
   packages/render:
     dependencies:
       '@voxwright/core':
@@ -257,6 +242,21 @@ importers:
       '@types/three':
         specifier: ^0.187.0
         version: 0.187.0
+
+  packages/voxmc:
+    dependencies:
+      '@voxwright/core':
+        specifier: workspace:*
+        version: link:../core
+      '@voxwright/render':
+        specifier: workspace:*
+        version: link:../render
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
+      smol-toml:
+        specifier: ^1.9.1
+        version: 1.9.1
 
 packages:
 

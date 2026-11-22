@@ -88,7 +88,7 @@ export function nodeProblem(recipe?: string): string | null {
 }
 
 /** The source entry points of the engine, as a recipe inside the repository may import them. */
-const ENGINE_SOURCE = /\/packages\/(?:mcbuilder|core)\/src\/index\.ts(?:\?.*)?$/;
+const ENGINE_SOURCE = /\/packages\/(?:voxmc|core)\/src\/index\.ts(?:\?.*)?$/;
 
 let aliased = false;
 

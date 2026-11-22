@@ -47,8 +47,8 @@ module.exports = {
       name: "mcbuilder-only-uses-render-and-core",
       comment: "packages/mcbuilder may depend on packages/render and packages/core only.",
       severity: "error",
-      from: { path: "^packages/mcbuilder/" },
-      to: { path: "^(packages/(?!mcbuilder/|render/|core/)|apps/)" },
+      from: { path: "^packages/voxmc/" },
+      to: { path: "^(packages/(?!voxmc/|render/|core/)|apps/)" },
     },
     {
       name: "three-only-in-render-webgl",
@@ -70,7 +70,7 @@ module.exports = {
       name: "mcbuilder-no-webgl",
       comment: "The Node CLI never imports the browser renderer.",
       severity: "error",
-      from: { path: "^packages/mcbuilder/" },
+      from: { path: "^packages/voxmc/" },
       to: { path: "^packages/render/src/webgl/" },
     },
     {

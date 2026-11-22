@@ -21,6 +21,6 @@
     "@voxwright/render": "workspace:*"
   },
   "bin": {
-    "mcbuild": "./bin/mcbuild.ts"
+    "mcbuild": "./bin/voxmc.ts"
   }
 }

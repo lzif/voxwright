@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const ENTRY = "packages/mcbuilder/src/node/skill/main.ts";
+const ENTRY = "packages/voxmc/src/node/skill/main.ts";
 const OUT = "skills/voxwright/scripts/voxwright-cli.mjs";
 /** Browser-only code that the CLI must never carry. */
 const FORBIDDEN = [/(^|\/)node_modules\/three\//, /^packages\/render\/src\/webgl\//];
