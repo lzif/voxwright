@@ -17,9 +17,9 @@ describe("Rng", () => {
   });
 
   it("is pinned, so seeded builds stay reproducible across releases", () => {
-    const r = new Rng("voxwright");
+    const r = new Rng("pinned-seed");
     expect(Array.from({ length: 4 }, () => r.nextUint32())).toEqual([
-      596595681, 1403567059, 1137806145, 1487484221,
+      1320737333, 2267948389, 1211668380, 295493414,
     ]);
   });
 
