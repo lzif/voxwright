@@ -21,7 +21,7 @@ import {
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const script = join(root, "scripts/convert.ts");
-const dir = mkdtempSync(join(tmpdir(), "voxwright-convert-"));
+const dir = mkdtempSync(join(tmpdir(), "voxmc-convert-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
 /** A bare `.schem` that only claims a size. */

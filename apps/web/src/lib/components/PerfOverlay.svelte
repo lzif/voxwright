@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import type { WebglRenderer } from "@voxwright/render/webgl";
 import { onDestroy, onMount } from "svelte";
+import type { WebglRenderer } from "voxmc-render/webgl";
 
 interface Props {
   renderer: WebglRenderer | null;

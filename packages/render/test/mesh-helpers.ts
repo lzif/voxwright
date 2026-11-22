@@ -7,7 +7,7 @@
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Volume } from "@voxwright/core";
+import type { Volume } from "voxmc-core";
 import {
   type AssetSource,
   type Atlas,
@@ -24,7 +24,7 @@ import {
 import { directoryAssets } from "../src/node/index.ts";
 
 export const vanillaRoot =
-  process.env.VOXWRIGHT_ASSETS ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ?? join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 export const haveVanilla = existsSync(join(vanillaRoot, "blockstates"));
 
 /** A 16x16 texture in which every texel is distinct, so any UV mix-up shows. */

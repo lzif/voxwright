@@ -39,10 +39,10 @@ const vectors = JSON.parse(
 };
 
 // The vanilla client assets are Mojang's, so they are fetched, never committed:
-//   node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2
-// Point VOXWRIGHT_ASSETS at the `assets/minecraft` folder to use another copy.
+//   node packages/voxmc/bin/voxmc.ts assets fetch --version 26.2
+// Point VOXMC_ASSETS at the `assets/minecraft` folder to use another copy.
 const root =
-  process.env.VOXWRIGHT_ASSETS ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ?? join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 const have = existsSync(join(root, "blockstates"));
 
 const near = (a: readonly number[], b: readonly number[]): void => {

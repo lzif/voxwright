@@ -5,7 +5,7 @@
 // These are plain values, replaced (never changed) on every step, so the session can hold the
 // current one in reactive state. Nothing here knows about the DOM, the renderer or the volume.
 
-import type { Box, Vec3 } from "@voxwright/core";
+import type { Box, Vec3 } from "voxmc-core";
 import { boxBetween } from "./editing.ts";
 
 export type PendingCorner = "a" | "b";

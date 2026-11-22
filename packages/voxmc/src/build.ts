@@ -17,9 +17,9 @@
 import { mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { AIR, canonicalize, type Rotation, rotateBlockstate, rotatePoint } from "@voxwright/core";
-import { type AssetSource, renderView, resolveViews, type View } from "@voxwright/render";
-import { directoryAssets, encodePng } from "@voxwright/render/node";
+import { AIR, canonicalize, type Rotation, rotateBlockstate, rotatePoint } from "voxmc-core";
+import { type AssetSource, renderView, resolveViews, type View } from "voxmc-render";
+import { directoryAssets, encodePng } from "voxmc-render/node";
 import { parseConfig, resolveAssetsDir } from "./config.ts";
 import { BuildError } from "./errors.ts";
 import { Geometry, type Point } from "./geometry.ts";

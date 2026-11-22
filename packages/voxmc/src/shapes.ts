@@ -13,8 +13,8 @@
 //   themselves; pass the stair block without `facing`.
 // - `seed` salts weighted-palette picks. `Build` passes its own seed.
 
-import { canonicalize, joinBlockString, parseBlockString } from "@voxwright/core";
-import { McbuilderError } from "./errors.ts";
+import { canonicalize, joinBlockString, parseBlockString } from "voxmc-core";
+import { VoxmcError } from "./errors.ts";
 import { Geometry, type Point } from "./geometry.ts";
 import { type Material, type MaterialFn, resolveMaterial, type Seed } from "./materials.ts";
 
@@ -35,8 +35,8 @@ const show = (v: unknown): string => (Array.isArray(v) ? `[${v.join(", ")}]` : S
 
 function point(what: string, p: unknown): Point {
   if (!Array.isArray(p) || p.length !== 3)
-    throw new McbuilderError(`${what} must be 3 ints, got ${show(p)}`);
-  if (!p.every(isInt)) throw new McbuilderError(`${what} coordinates must be ints, got ${show(p)}`);
+    throw new VoxmcError(`${what} must be 3 ints, got ${show(p)}`);
+  if (!p.every(isInt)) throw new VoxmcError(`${what} coordinates must be ints, got ${show(p)}`);
   return p as unknown as Point;
 }
 
@@ -51,14 +51,14 @@ function corners(what: string, c1: Point, c2: Point): [Point, Point] {
 
 function positive(what: string, v: unknown, minimum = 1): number {
   if (!isInt(v) || v < minimum)
-    throw new McbuilderError(`${what} must be an int >= ${minimum}, got ${show(v)}`);
+    throw new VoxmcError(`${what} must be an int >= ${minimum}, got ${show(v)}`);
   return v;
 }
 
 function direction(what: string, d: string): string {
   const key = String(d).toLowerCase();
   if (!Object.hasOwn(DIRECTIONS, key)) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `${what}: invalid direction ${d}; expected one of [${Object.keys(DIRECTIONS).sort().join(", ")}]`,
     );
   }
@@ -100,7 +100,7 @@ function stairMaterial(what: string, block: Material, seed: Seed): MaterialFn {
   const at: MaterialFn = (x, y, z) => {
     const b = resolveMaterial(block, x, y, z, seed);
     if (parseBlockString(b).props.has("facing")) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `${what} computes 'facing' from the geometry; pass the stair block without a facing property`,
       );
     }
@@ -207,7 +207,7 @@ export interface StairsOptions extends SeedOption {
  * gets `facing=<direction>`, the ascent direction, and `half=bottom`, so the
  * tall back sits uphill. The shape computes `facing`, so pass the stair
  * block without it: a block that already carries `facing` is refused with
- * `McbuilderError`, never overridden. Other properties and NBT on `block`
+ * `VoxmcError`, never overridden. Other properties and NBT on `block`
  * are kept.
  *
  * `half: "top"` (opt-in; the default `"bottom"` is the rule above) keeps the
@@ -246,7 +246,7 @@ export function stairs(
   const [dx, dz] = DIRECTIONS[key] as readonly [number, number];
   let length = options.length;
   if ((length === undefined) === (options.target === undefined)) {
-    throw new McbuilderError("stairs: give exactly one of length or target");
+    throw new VoxmcError("stairs: give exactly one of length or target");
   }
   if (options.target !== undefined) {
     const [tx, ty, tz] = point("stairs: target", options.target);
@@ -254,7 +254,7 @@ export function stairs(
     const along = dx * (tx - sx) + dz * (tz - sz);
     const across = dz * (tx - sx) - dx * (tz - sz);
     if (rise < 0 || along !== rise || across !== 0) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `stairs: target [${options.target.join(", ")}] is not on the 1:1 diagonal from [${start.join(", ")}] climbing ${key}`,
       );
     }
@@ -264,7 +264,7 @@ export function stairs(
   const width = positive("stairs: width", options.width ?? 1);
   const half = options.half ?? "bottom";
   if (half !== "bottom" && half !== "top") {
-    throw new McbuilderError(`stairs: half must be 'bottom' or 'top', got ${String(half)}`);
+    throw new VoxmcError(`stairs: half must be 'bottom' or 'top', got ${String(half)}`);
   }
   const facing = half === "top" ? (OPPOSITE[key] as string) : key;
   const [px, pz] = dx ? [0, 1] : [1, 0];
@@ -290,7 +290,7 @@ export function stairs(
  *
  * Divergence from Python: given a block that already has `facing`, Python
  * overrides it with the ascent direction, while this port refuses it with
- * `McbuilderError`. The refusal is intentional, as in `stairs` and
+ * `VoxmcError`. The refusal is intentional, as in `stairs` and
  * `roofGable`.
  */
 export function stairsRun(
@@ -306,7 +306,7 @@ export function stairsRun(
  * Straight horizontal run from `start` to `end` (inclusive), in either
  * direction. Port of Python `part.railing` and `parts.railing`. The run must
  * be axis-aligned: `start` and `end` share the same y, and share x or z.
- * Anything else throws `McbuilderError` naming the problem. The cells are
+ * Anything else throws `VoxmcError` naming the problem. The cells are
  * those of `line` on the same endpoints.
  *
  * Meant for fences and walls. The structure stores the bare block (for
@@ -324,12 +324,12 @@ export function railing(
   const [x1, y1, z1] = point("railing: start", start);
   const [x2, y2, z2] = point("railing: end", end);
   if (y1 !== y2) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `railing: start and end must share the same y level (got y=${y1} and y=${y2})`,
     );
   }
   if (x1 !== x2 && z1 !== z2) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `railing: run must be axis-aligned (x or z constant); got start=${show(start)} end=${show(end)}`,
     );
   }
@@ -361,7 +361,7 @@ export function cylinder(
   const hgt = positive("cylinder: height", height);
   const axis = options.axis ?? "y";
   if (axis !== "x" && axis !== "y" && axis !== "z") {
-    throw new McbuilderError(`cylinder: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
+    throw new VoxmcError(`cylinder: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
   }
   const shell = new Painter(block, options.seed);
   const inner = options.fill ? new Painter(options.fill, options.seed) : null;
@@ -545,7 +545,7 @@ function stairSibling(what: string, block: string, kind: "slab" | "full"): strin
   const { name } = parseBlockString(block);
   const m = /^(?:([a-z0-9_.-]+):)?([a-z0-9_]+)_stairs$/.exec(name);
   if (!m) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `${what}: cannot derive a ${kind} block from ${block}; pass '${kind}' explicitly`,
     );
   }
@@ -583,7 +583,7 @@ function roofUnderside(
   const { underlay, sandwich, seed } = options;
   const out = new Geometry();
   if (underlay && sandwich) {
-    throw new McbuilderError(`${what}: underlay and sandwich exclude each other; pick one`);
+    throw new VoxmcError(`${what}: underlay and sandwich exclude each other; pick one`);
   }
   if (!underlay && !sandwich) return out;
   const key = (x: number, y: number, z: number): string => `${x},${y},${z}`;
@@ -633,13 +633,13 @@ function roofUnderside(
 function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
   if (Array.isArray(profile)) {
     if (profile.length !== half) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `roof_gable: profile lists ${profile.length} pitches but the span needs ${half} (one per column from the eave to the ridge)`,
       );
     }
     for (const p of profile) {
       if (p !== "slab" && p !== "stair" && p !== "steep") {
-        throw new McbuilderError(
+        throw new VoxmcError(
           `roof_gable: invalid pitch ${show(p)}; expected one of [slab, stair, steep]`,
         );
       }
@@ -667,7 +667,7 @@ function roofPitches(profile: RoofProfile, half: number): RoofPitch[] {
       return [...fill("slab", slabs), ...fill("stair", stairs), ...fill("steep", rest - stairs)];
     }
     default:
-      throw new McbuilderError(
+      throw new VoxmcError(
         `roof_gable: invalid profile ${show(profile)}; expected straight, steep, concave, gambrel, low or an array of pitches`,
       );
   }
@@ -833,7 +833,7 @@ export function roofGable(
 ): Geometry {
   const { ridge, seed } = options;
   if (ridge !== "x" && ridge !== "z") {
-    throw new McbuilderError(`roof_gable: ridge must be 'x' or 'z', got ${String(ridge)}`);
+    throw new VoxmcError(`roof_gable: ridge must be 'x' or 'z', got ${String(ridge)}`);
   }
   const [[x1, y0, z1], [x2, , z2]] = corners("roof_gable", c1, c2);
   const body = stairMaterial("roof_gable", block, seed);
@@ -842,7 +842,7 @@ export function roofGable(
   const cap = options.ridgeCap ?? null;
   if (cap) {
     if (typeof cap !== "object" || Array.isArray(cap) || cap.post === undefined) {
-      throw new McbuilderError("roof_gable: ridgeCap must be an object with a post material");
+      throw new VoxmcError("roof_gable: ridgeCap must be an object with a post material");
     }
   }
   const capEvery = cap ? positive("roof_gable: ridgeCap.every", cap.every ?? 3) : 0;
@@ -920,7 +920,7 @@ export function roofGable(
       [];
     for (const [k, p] of pitches.entries()) {
       if (p !== "slab" && t % 2) {
-        throw new McbuilderError(
+        throw new VoxmcError(
           `roof_gable: profile column ${k} (${p}) would start half a block up; put an even number of slab columns before a stair or steep column`,
         );
       }
@@ -1193,16 +1193,16 @@ export function roofUnion(
   options: RoofUnionOptions = {},
 ): Geometry {
   if (!Array.isArray(parts) || parts.length === 0) {
-    throw new McbuilderError("roof_union: parts must be a non-empty array of { c1, c2, ridge }");
+    throw new VoxmcError("roof_union: parts must be a non-empty array of { c1, c2, ridge }");
   }
   const seed = options.seed;
   const body = stairMaterial("roof_union", block, seed);
   const boxes = parts.map((p, i) => {
     if (typeof p !== "object" || p === null) {
-      throw new McbuilderError(`roof_union: part ${i} must be an object { c1, c2, ridge }`);
+      throw new VoxmcError(`roof_union: part ${i} must be an object { c1, c2, ridge }`);
     }
     if (p.ridge !== "x" && p.ridge !== "z" && p.ridge !== "hip") {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `roof_union: part ${i} ridge must be 'x', 'z' or 'hip', got ${String(p.ridge)}`,
       );
     }
@@ -1327,7 +1327,7 @@ function refusingMaterial(
     const props = parseBlockString(b).props;
     const given = owned.filter((p) => props.has(p));
     if (given.length) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `${what} sets ${owned.map((p) => `'${p}'`).join(", ")} itself; pass ${b} without ${given.join(", ")}`,
       );
     }
@@ -1368,7 +1368,7 @@ function wallPlane(
   const out = DIRECTIONS[key] as readonly [number, number];
   const alongX = out[1] !== 0;
   if (alongX ? lo[2] !== hi[2] : lo[0] !== hi[0]) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `${what}: c1 and c2 must lie in one wall plane, one cell thick toward ${key} (same ${alongX ? "z" : "x"})`,
     );
   }
@@ -1436,7 +1436,7 @@ export function dormer(
 ): Geometry {
   const { lo, hi, alongX, width, height, cell } = wallPlane("dormer", c1, c2, facing);
   if (width < 3 || height < 3) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `dormer: the front wall must be at least 3 wide and 3 tall (a window inside a 1-cell border), got ${width} x ${height}`,
     );
   }
@@ -1547,18 +1547,16 @@ export function chimney(
   const size = positive("chimney: size", options.size ?? 1);
   const cap = options.cap ?? "none";
   if (cap !== "none" && cap !== "slab" && cap !== "posts") {
-    throw new McbuilderError(
-      `chimney: invalid cap ${show(cap)}; expected one of [none, slab, posts]`,
-    );
+    throw new VoxmcError(`chimney: invalid cap ${show(cap)}; expected one of [none, slab, posts]`);
   }
   if (cap !== "none" && options.slab === undefined) {
-    throw new McbuilderError(`chimney: cap '${cap}' needs a slab material (the 'slab' option)`);
+    throw new VoxmcError(`chimney: cap '${cap}' needs a slab material (the 'slab' option)`);
   }
   const band = options.band ?? null;
   if (band) {
     for (const r of band.rows) {
       if (!isInt(r) || r < 0 || r >= rows) {
-        throw new McbuilderError(
+        throw new VoxmcError(
           `chimney: band row ${show(r)} is outside the shaft (rows 0..${rows - 1})`,
         );
       }
@@ -1650,7 +1648,7 @@ export function door(
   const key = direction("door", facing);
   const hinge = options.hinge ?? "left";
   if (hinge !== "left" && hinge !== "right") {
-    throw new McbuilderError(`door: hinge must be 'left' or 'right', got ${String(hinge)}`);
+    throw new VoxmcError(`door: hinge must be 'left' or 'right', got ${String(hinge)}`);
   }
   const leaf = refusingMaterial("door", block, options.seed, ["facing", "half", "hinge", "open"]);
   const [rx, rz] = DIRECTIONS[CLOCKWISE[key] as string] as readonly [number, number];
@@ -1850,11 +1848,11 @@ export function cladding(
   const [[x1, y1, z1], [x2, y2, z2]] = corners("cladding", c1, c2);
   const faces = options.faces ?? ["north", "south", "east", "west"];
   if (!Array.isArray(faces) || faces.length === 0) {
-    throw new McbuilderError("cladding: faces must be a non-empty list");
+    throw new VoxmcError("cladding: faces must be a non-empty list");
   }
   for (const f of faces) {
     if (!(CLAD_FACES as readonly string[]).includes(f)) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `cladding: invalid face ${show(f)}; expected one of [${CLAD_FACES.join(", ")}]`,
       );
     }
@@ -1921,7 +1919,7 @@ export function corbels(
 ): Geometry {
   const { key, lo, width, height, cell } = wallPlane("corbels", c1, c2, facing);
   if (height !== 1) {
-    throw new McbuilderError(`corbels: c1 and c2 must be one row (same y), got ${height} rows`);
+    throw new VoxmcError(`corbels: c1 and c2 must be one row (same y), got ${height} rows`);
   }
   const depth = positive("corbels: depth", options.depth ?? 1);
   const every = positive("corbels: every", options.every ?? 1);
@@ -1973,7 +1971,7 @@ export function paperLantern(top: Point, options: PaperLanternOptions = {}): Geo
   const [x, y, z] = point("paper_lantern: top", top);
   const core = options.core ?? "lantern";
   if (core !== "lantern" && core !== "glow" && core !== "none") {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `paper_lantern: invalid core ${show(core)}; expected one of [lantern, glow, none]`,
     );
   }
@@ -2069,7 +2067,7 @@ export function windowBox(
 ): Geometry {
   const { key, lo, width, height, cell, alongX } = wallPlane("window_box", c1, c2, facing);
   if (height !== 1) {
-    throw new McbuilderError(`window_box: c1 and c2 must be one row (same y), got ${height} rows`);
+    throw new VoxmcError(`window_box: c1 and c2 must be one row (same y), got ${height} rows`);
   }
   const seed = options.seed;
   const plant = new Painter(options.plant ?? "minecraft:azalea_leaves[persistent=true]", seed);
@@ -2102,7 +2100,7 @@ function slabMaterial(what: string, block: Material, seed: Seed): MaterialFn {
   const at: MaterialFn = (x, y, z) => {
     const b = resolveMaterial(block, x, y, z, seed);
     if (parseBlockString(b).props.has("type")) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `${what} computes slab 'type' from the geometry; pass the slab block without a type property`,
       );
     }
@@ -2238,10 +2236,10 @@ export function arch(start: Point, width: number, block: Material, options: Arch
   const w = positive("arch: width", width, 2);
   const { axis, profile, seed } = options;
   if (axis !== "x" && axis !== "z") {
-    throw new McbuilderError(`arch: axis must be 'x' or 'z', got ${String(axis)}`);
+    throw new VoxmcError(`arch: axis must be 'x' or 'z', got ${String(axis)}`);
   }
   if (!ARCH_PROFILES.includes(profile)) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `arch: profile must be one of [${ARCH_PROFILES.join(", ")}], got ${String(profile)}`,
     );
   }
@@ -2252,30 +2250,30 @@ export function arch(start: Point, width: number, block: Material, options: Arch
   if (profile === "segmental") {
     rise = positive("arch: rise", options.rise ?? 2, 2);
     if (w < 2 * rise - 1) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `arch: segmental with rise ${rise} needs width >= ${2 * rise - 1}, got ${w}; use 'stepped' or 'pointed' for a narrower span`,
       );
     }
   } else if (profile === "pointed") {
     rise = half;
     if (options.rise !== undefined && options.rise !== rise) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `arch: pointed closes at rise ${rise} for width ${w} (floor(width / 2)); got rise ${show(options.rise)}, use 'stepped' for a flat-topped staircase`,
       );
     }
   } else {
     rise = positive("arch: rise", options.rise ?? Math.min(2, half));
     if (rise > half) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `arch: stepped with width ${w} allows rise <= ${half}, got ${rise}; the two sides would cross`,
       );
     }
   }
   if (profile === "stepped" && options.slab !== undefined) {
-    throw new McbuilderError("arch: slab is not used by the 'stepped' profile");
+    throw new VoxmcError("arch: slab is not used by the 'stepped' profile");
   }
   if (profile === "pointed" && options.slab === undefined) {
-    throw new McbuilderError("arch: the 'pointed' profile requires a slab block");
+    throw new VoxmcError("arch: the 'pointed' profile requires a slab block");
   }
 
   const stair = stairMaterial("arch", block, seed);
@@ -2396,7 +2394,7 @@ export function parapet(
   const corbel =
     options.corbel === undefined ? null : stairMaterial("parapet", options.corbel, seed);
   if (corbel && (x1 === x2 || z1 === z2)) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       "parapet: corbel needs a footprint at least 2 x 2; a straight run has no inside to step out from",
     );
   }
@@ -2509,13 +2507,11 @@ export function skirtRoof(
   let hole: [number, number, number, number] | null = null;
   if (options.hole !== undefined) {
     if (!Array.isArray(options.hole) || options.hole.length !== 2) {
-      throw new McbuilderError(
-        `skirt_roof: hole must be two corner points, got ${show(options.hole)}`,
-      );
+      throw new VoxmcError(`skirt_roof: hole must be two corner points, got ${show(options.hole)}`);
     }
     const [[hx1, , hz1], [hx2, , hz2]] = corners("skirt_roof", options.hole[0], options.hole[1]);
     if (hx1 < x1 || hx2 > x2 || hz1 < z1 || hz2 > z2) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `skirt_roof: hole [${[hx1, hz1].join(", ")}]..[${[hx2, hz2].join(", ")}] (x, z) must lie inside the footprint [${[x1, z1].join(", ")}]..[${[x2, z2].join(", ")}]`,
       );
     }
@@ -2690,13 +2686,13 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
   const [[x1, y1, z1], [x2, y2, z2]] = corners("bay_wall", c1, c2);
   const { seed, inset = false, pilaster = false } = options;
   if (options.period === undefined) {
-    throw new McbuilderError("bay_wall: period is required (a number or an array of distances)");
+    throw new VoxmcError("bay_wall: period is required (a number or an array of distances)");
   }
   if (inset && pilaster) {
-    throw new McbuilderError("bay_wall: inset and pilaster cannot be combined; pick one");
+    throw new VoxmcError("bay_wall: inset and pilaster cannot be combined; pick one");
   }
   if (inset && options.infill === null) {
-    throw new McbuilderError("bay_wall: inset needs an infill to sit behind the frame");
+    throw new VoxmcError("bay_wall: inset needs an infill to sit behind the frame");
   }
   const sx = x2 - x1 + 1;
   const sz = z2 - z1 + 1;
@@ -2708,7 +2704,7 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
   let frontIsHigh = false;
   if (deep) {
     if (options.face === undefined) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: ${inset ? "inset" : "pilaster"} needs face (north, south, east or west)`,
       );
     }
@@ -2718,32 +2714,30 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
     frontIsHigh = face === "south" || face === "east";
     const depth = runAxis === "x" ? sz : sx;
     if (depth !== 2) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: with ${inset ? "inset" : "pilaster"} the footprint must be 2 thick across the run (face ${face}), got ${depth}`,
       );
     }
   } else {
     if (options.face !== undefined) direction("bay_wall: face", options.face);
     if (sx !== 1 && sz !== 1) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: footprint must be 1 thick in x or z (2 with inset or pilaster), got ${sx} x ${sz}`,
       );
     }
     if (sx === 1 && sz === 1) {
-      throw new McbuilderError(
-        "bay_wall: a 1 x 1 footprint has no run; it must be at least 2 long",
-      );
+      throw new VoxmcError("bay_wall: a 1 x 1 footprint has no run; it must be at least 2 long");
     }
     runAxis = sx === 1 ? "z" : "x";
   }
   const run0 = runAxis === "x" ? x1 : z1;
   const n = runAxis === "x" ? sx : sz;
-  if (n < 2) throw new McbuilderError(`bay_wall: the run must be at least 2 cells long, got ${n}`);
+  if (n < 2) throw new VoxmcError(`bay_wall: the run must be at least 2 cells long, got ${n}`);
 
   // Post positions (each post's first cell) from `period`.
   const w = positive("bay_wall: postWidth", options.postWidth ?? 1);
   if (w >= n) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `bay_wall: postWidth ${w} leaves no room for two posts in a run of ${n} cells`,
     );
   }
@@ -2751,19 +2745,19 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
   if (typeof options.period === "number") {
     const period = positive("bay_wall: period", options.period);
     if (period < w) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: period ${period} is shorter than postWidth ${w}; posts would overlap`,
       );
     }
     if ((n - w) % period !== 0) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: period ${period} does not fit a run of ${n} cells (posts at both ends need (length - ${w}) divisible by period); use length ${n - ((n - w) % period)} or ${n - ((n - w) % period) + period}, or give period as an array`,
       );
     }
     for (let i = period; i <= n - w; i += period) posts.add(i);
   } else {
     if (!Array.isArray(options.period) || options.period.length === 0) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: period must be an int or a non-empty array of ints, got ${show(options.period)}`,
       );
     }
@@ -2773,7 +2767,7 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
       posts.add(at);
     }
     if (at !== n - w) {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `bay_wall: period distances sum to ${at} but the run of ${n} cells needs ${n - w}`,
       );
     }
@@ -2781,7 +2775,7 @@ export function bayWall(c1: Point, c2: Point, block: Material, options: BayWallO
 
   const rowsUsed = (options.beam === undefined ? 0 : 1) + (options.sill === undefined ? 0 : 1);
   if (height <= rowsUsed) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `bay_wall: height ${height} leaves no row for posts and bays between the ${rowsUsed} beam / sill row${rowsUsed === 1 ? "" : "s"}`,
     );
   }
@@ -2910,27 +2904,27 @@ export function polygon(
 ): Geometry {
   const { seed, mode = "walls" } = options;
   if (!isInt(y1) || !isInt(y2)) {
-    throw new McbuilderError(`polygon: y1 and y2 must be ints, got ${show(y1)}, ${show(y2)}`);
+    throw new VoxmcError(`polygon: y1 and y2 must be ints, got ${show(y1)}, ${show(y2)}`);
   }
   if (!POLYGON_MODES.includes(mode)) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `polygon: invalid mode ${show(mode)}; expected one of [${POLYGON_MODES.join(", ")}]`,
     );
   }
   if (!Array.isArray(vertices) || vertices.length < 4) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `polygon: vertices must be an array of at least 4 [x, z] points, got ${Array.isArray(vertices) ? vertices.length : show(vertices)}`,
     );
   }
   for (const [i, v] of vertices.entries()) {
     if (!Array.isArray(v) || v.length !== 2 || !v.every(isInt)) {
-      throw new McbuilderError(`polygon: vertex ${i} must be [x, z] ints, got ${show(v)}`);
+      throw new VoxmcError(`polygon: vertex ${i} must be [x, z] ints, got ${show(v)}`);
     }
   }
   const yLow = Math.min(y1, y2);
   const yHigh = Math.max(y1, y2);
   if (mode === "floor" && y1 !== y2) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `polygon: mode floor is one layer; y1 and y2 must be equal, got ${y1}, ${y2}`,
     );
   }
@@ -2944,10 +2938,10 @@ export function polygon(
     const [bx, bz] = vertices[(i + 1) % n] as readonly [number, number];
     const label = `edge ${i} (${ax},${az}) to (${bx},${bz})`;
     if (ax !== bx && az !== bz) {
-      throw new McbuilderError(`polygon: ${label} is diagonal; edges must share x or z`);
+      throw new VoxmcError(`polygon: ${label} is diagonal; edges must share x or z`);
     }
     if (ax === bx && az === bz) {
-      throw new McbuilderError(`polygon: ${label} has zero length (repeated vertex)`);
+      throw new VoxmcError(`polygon: ${label} has zero length (repeated vertex)`);
     }
     const dx = Math.sign(bx - ax);
     const dz = Math.sign(bz - az);
@@ -2958,7 +2952,7 @@ export function polygon(
       const cz = az + dz * s;
       const key = `${cx},${cz}`;
       if (outline.has(key)) {
-        throw new McbuilderError(
+        throw new VoxmcError(
           `polygon: ${label} revisits cell (${cx},${cz}); the outline must not cross, touch or overlap itself`,
         );
       }
@@ -3106,7 +3100,7 @@ export function jetty(c1: Point, c2: Point, block: Material, options: JettyOptio
   const { seed } = options;
   const sideArg = options.sides ?? JETTY_SIDES;
   if (!Array.isArray(sideArg) || sideArg.length === 0) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `jetty: sides must be a non-empty array of [${JETTY_SIDES.join(", ")}], got ${show(sideArg)}`,
     );
   }

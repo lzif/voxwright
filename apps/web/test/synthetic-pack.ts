@@ -84,7 +84,7 @@ export function syntheticPackFiles(prefix = ""): Record<string, Uint8Array> {
   const [dr, dg, db] = PACK_COLORS.dirt;
   return {
     [`${prefix}pack.mcmeta`]: text({
-      pack: { pack_format: 1, description: "voxwright test pack" },
+      pack: { pack_format: 1, description: "voxmc test pack" },
     }),
     [`${root}blockstates/stone.json`]: text({ variants: { "": { model: "block/stone" } } }),
     [`${root}blockstates/dirt.json`]: text({ variants: { "": { model: "block/dirt" } } }),

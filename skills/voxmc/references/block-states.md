@@ -41,12 +41,12 @@ Block names change between versions. In 26.2 the chain is `minecraft:iron_chain`
 
 ### Looking up a block
 
-The registry is a JSON file in `~/.cache/mcbuilder/<version>/minecraft-data.json` (the first
+The registry is a JSON file in `~/.cache/voxmc/<version>/minecraft-data.json` (the first
 `build` downloads it). Look up the legal properties of a block, or search names:
 
 ```sh
-node -e 'const b=require(require("os").homedir()+"/.cache/mcbuilder/26.2/minecraft-data.json").blocks;console.log(b["minecraft:"+process.argv[1]]?.properties??"unknown block")' oak_stairs
-node -e 'const b=require(require("os").homedir()+"/.cache/mcbuilder/26.2/minecraft-data.json").blocks;console.log(Object.keys(b).filter(n=>n.includes(process.argv[1])).join("\n"))' copper_lantern
+node -e 'const b=require(require("os").homedir()+"/.cache/voxmc/26.2/minecraft-data.json").blocks;console.log(b["minecraft:"+process.argv[1]]?.properties??"unknown block")' oak_stairs
+node -e 'const b=require(require("os").homedir()+"/.cache/voxmc/26.2/minecraft-data.json").blocks;console.log(Object.keys(b).filter(n=>n.includes(process.argv[1])).join("\n"))' copper_lantern
 ```
 
 Do this before using a block or a property you are not sure about.

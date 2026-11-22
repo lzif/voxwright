@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+
+import { describe, expect, it } from "vitest";
 import {
   type CompoundTag,
   compound,
@@ -10,8 +12,7 @@ import {
   TagId,
   UNSET,
   Volume,
-} from "@voxwright/core";
-import { describe, expect, it } from "vitest";
+} from "voxmc-core";
 import {
   isSnapshot,
   restoreSnapshot,

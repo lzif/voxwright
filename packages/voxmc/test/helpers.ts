@@ -1,15 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { RotationError } from "@voxwright/core";
 import { expect } from "vitest";
-import {
-  BuildError,
-  GridBoundsError,
-  type Material,
-  McbuilderError,
-  patches,
-} from "../src/index.ts";
+import { RotationError } from "voxmc-core";
+import { BuildError, GridBoundsError, type Material, patches, VoxmcError } from "../src/index.ts";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -52,7 +46,7 @@ export function expectError(fn: () => unknown, pythonClass: string): void {
       break;
     case "McbuilderError":
       // Rotation names are checked in core, which has its own error class.
-      expect(caught instanceof McbuilderError || caught instanceof RotationError).toBe(true);
+      expect(caught instanceof VoxmcError || caught instanceof RotationError).toBe(true);
       break;
     case "TypeError":
       expect(caught).toBeInstanceOf(TypeError);

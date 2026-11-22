@@ -8,8 +8,8 @@
 // suggestions; the registry never silently rewrites a name. Block-entity
 // NBT is opaque: only brace balance is checked, never the schema.
 
-import { compareCodePoints, getCloseMatches, pyStrip, suggest } from "@voxwright/core";
-import { McbuilderError } from "./errors.ts";
+import { compareCodePoints, getCloseMatches, pyStrip, suggest } from "voxmc-core";
+import { VoxmcError } from "./errors.ts";
 import { pyRepr, pyReprList } from "./pyrepr.ts";
 
 const AIR = "minecraft:air";
@@ -19,7 +19,7 @@ export type NormalizedBlocks = Record<string, { properties: Record<string, strin
 /** A registry's own view: `{ block: { property: [legal values] } }`. */
 export type RegistryBlocks = Record<string, Record<string, string[]>>;
 
-export class RegistryError extends McbuilderError {}
+export class RegistryError extends VoxmcError {}
 
 interface RawState {
   name: string;
@@ -61,7 +61,7 @@ export function normalizeBlockData(raw: unknown): NormalizedBlocks {
     }
     return blocks;
   }
-  throw new McbuilderError(
+  throw new VoxmcError(
     'unrecognized registry data: expected a minecraft-data blocks.json list or a {"blocks": {...}} mapping',
   );
 }

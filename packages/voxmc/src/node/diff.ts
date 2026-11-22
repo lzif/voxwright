@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Diff two `mcbuild run` directories by reading each run's `.nbt` artifact.
+// Diff two `voxmc run` directories by reading each run's `.nbt` artifact.
 
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
@@ -10,7 +10,7 @@ import {
   parseBlockString,
   pyStrip,
   readNbtFile,
-} from "@voxwright/core";
+} from "voxmc-core";
 import {
   type Canvas,
   createCanvas,
@@ -18,8 +18,8 @@ import {
   drawRect,
   drawText,
   pasteRgb,
-} from "@voxwright/render";
-import { decodePng, encodePng } from "@voxwright/render/node";
+} from "voxmc-render";
+import { decodePng, encodePng } from "voxmc-render/node";
 import {
   DiffError,
   diffVoxelMaps,
@@ -123,7 +123,7 @@ export async function loadRunVoxels(runDir: string): Promise<VoxelMap> {
   if (!(await isDir(runDir))) throw new DiffError(`not a run directory: ${runDir}`);
   const reportPath = join(runDir, "report.json");
   if (!(await isFile(reportPath)))
-    throw new DiffError(`${runDir} has no report.json — not an mcbuild run dir`);
+    throw new DiffError(`${runDir} has no report.json — not a voxmc run dir`);
   let report: { artifacts?: { format?: string; file?: string }[]; origin?: unknown[] | null };
   try {
     report = JSON.parse(await readFile(reportPath, "utf8"));

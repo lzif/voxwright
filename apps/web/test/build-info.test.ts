@@ -12,7 +12,7 @@ describe("resolveBuildInfo", () => {
   it("defaults to the upstream repository and the git commit", () => {
     const i = resolveBuildInfo({ env: {}, ...git("abc1234def") });
     expect(i.sourceUrl).toBe(DEFAULT_SOURCE_URL);
-    expect(DEFAULT_SOURCE_URL).toBe("https://github.com/lzif/voxwright");
+    expect(DEFAULT_SOURCE_URL).toBe("https://github.com/lzif/voxmc");
     expect(i.commit).toBe("abc1234def");
     expect(i.sourceLink).toBe(`${DEFAULT_SOURCE_URL}/tree/abc1234def`);
     expect(i.modified).toBe(false);
@@ -28,23 +28,23 @@ describe("resolveBuildInfo", () => {
   it("lets a self-hoster point at their own source", () => {
     const i = resolveBuildInfo({
       env: {
-        VOXWRIGHT_SOURCE_URL: "https://git.example.org/me/voxwright/",
-        VOXWRIGHT_COMMIT: "1234abcd",
+        VOXMC_SOURCE_URL: "https://git.example.org/me/voxmc/",
+        VOXMC_COMMIT: "1234abcd",
       },
       ...git("ffffffff", true),
     });
-    expect(i.sourceUrl).toBe("https://git.example.org/me/voxwright");
-    expect(i.sourceLink).toBe("https://git.example.org/me/voxwright/tree/1234abcd");
+    expect(i.sourceUrl).toBe("https://git.example.org/me/voxmc");
+    expect(i.sourceLink).toBe("https://git.example.org/me/voxmc/tree/1234abcd");
     expect(i.commit).toBe("1234abcd");
     expect(i.modified).toBe(false); // the builder named the commit
   });
 
   it("takes a full link for forges with other commit URLs", () => {
     const i = resolveBuildInfo({
-      env: { VOXWRIGHT_SOURCE_LINK: "https://git.example.org/me/voxwright/-/commit/1234abcd" },
+      env: { VOXMC_SOURCE_LINK: "https://git.example.org/me/voxmc/-/commit/1234abcd" },
       ...git("1234abcd"),
     });
-    expect(i.sourceLink).toBe("https://git.example.org/me/voxwright/-/commit/1234abcd");
+    expect(i.sourceLink).toBe("https://git.example.org/me/voxmc/-/commit/1234abcd");
   });
 
   it("notes a commit read from git whose tree has uncommitted changes", () => {
@@ -53,12 +53,12 @@ describe("resolveBuildInfo", () => {
 
   it("refuses links that are not http(s) and commits that are not ids", () => {
     expect(() =>
-      resolveBuildInfo({ env: { VOXWRIGHT_SOURCE_URL: "javascript:alert(1)" }, ...git(null) }),
+      resolveBuildInfo({ env: { VOXMC_SOURCE_URL: "javascript:alert(1)" }, ...git(null) }),
     ).toThrow(/http/);
     expect(() =>
-      resolveBuildInfo({ env: { VOXWRIGHT_SOURCE_URL: "not a url" }, ...git(null) }),
+      resolveBuildInfo({ env: { VOXMC_SOURCE_URL: "not a url" }, ...git(null) }),
     ).toThrow(/URL/);
-    expect(() => resolveBuildInfo({ env: { VOXWRIGHT_COMMIT: "a b; rm" }, ...git(null) })).toThrow(
+    expect(() => resolveBuildInfo({ env: { VOXMC_COMMIT: "a b; rm" }, ...git(null) })).toThrow(
       /commit/,
     );
   });

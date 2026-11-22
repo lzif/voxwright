@@ -1,11 +1,11 @@
 ---
-name: voxwright
+name: voxmc
 description: Design and generate Minecraft builds programmatically and export them as schematics. Use when asked to build, generate, design or change a Minecraft structure, house, castle, tower, terrain or any other 3D voxel build, or to create, inspect or preview .schem (WorldEdit, Sponge), .litematic (Litematica), .nbt (structure block) or .mcstructure (Bedrock) files.
 ---
 
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 
-# Voxwright
+# Voxmc
 
 Build Minecraft structures by writing a short TypeScript recipe and running it with the bundled
 command line. The CLI runs the recipe headlessly, checks every block against the block registry
@@ -30,7 +30,7 @@ components.
    never directly inside the big composition. A recipe is an ES module that exports a `Build`:
 
    ```ts
-   import { Build } from "voxwright";
+   import { Build } from "voxmc";
 
    export const BUILD = new Build({ seed: 7 });
 
@@ -83,7 +83,7 @@ Change the recipe and run `build` again to iterate; it overwrites its outputs.
 
 - `+X` is east, `+Y` is up, `+Z` is south. Coordinates are integers, corners are inclusive.
 - Every placement goes inside `BUILD.scope(() => { ... })`.
-- Import only from `"voxwright"` and from your own files by relative path.
+- Import only from `"voxmc"` and from your own files by relative path.
 - Blocks are full ids with the `minecraft:` namespace, with properties where the look depends on
   them: `minecraft:oak_stairs[facing=east,half=top]`. The engine places exactly what you write: it
   does not connect fences, panes or walls and does not pick stair corners. Rules, value sets and a
@@ -104,10 +104,10 @@ node <skill-dir>/scripts/voxwright-cli.mjs build <recipe> --out <path> [options]
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `--out <path>`         | File to write. Repeat it to write several formats in one run.                                                           |
 | `--format <f>`         | `schem`, `litematic`, `nbt` or `mcstructure`. Default: the extension of `--out`.                                        |
-| `--mc-version <v>`     | Minecraft version (default `26.2`, or `mc_version` from an `mcbuild.toml` next to the recipe; also `26.1`, `1.21.11`, `1.21.4`, `1.21.1`). |
+| `--mc-version <v>`     | Minecraft version (default `26.2`, or `mc_version` from a `voxmc.toml` next to the recipe; also `26.1`, `1.21.11`, `1.21.4`, `1.21.1`). |
 | `--json`               | Print the summary as one JSON document.                                                                                 |
 | `--offline`            | Do not download the block registry.                                                                                     |
-| `--allow <block>`      | Accept a modded block name (or set `allowlist` in an `mcbuild.toml` next to the recipe). Repeatable.                    |
+| `--allow <block>`      | Accept a modded block name (or set `allowlist` in a `voxmc.toml` next to the recipe). Repeatable.                    |
 | `--name`, `--author`   | `.litematic` metadata.                                                                                                  |
 | `--schem-version 2\|3` | Sponge schematic version (default 3).                                                                                   |
 | `--air <mode>`         | `.nbt` only: `none` (default), `explicit` or `all`.                                                                     |
@@ -153,7 +153,7 @@ wrote:
 - A recipe that throws is reported as one line with its position, for example
   `error in house.ts: placements must be inside build.scope(...) (at house.ts:12:9)`.
 - The first `build` for a Minecraft version downloads its block registry (about 120 kB) into
-  `~/.cache/mcbuilder/`. Without network access the build is still exported, unvalidated.
+  `~/.cache/voxmc/`. Without network access the build is still exported, unvalidated.
 
 ### inspect
 
@@ -172,7 +172,7 @@ node <skill-dir>/scripts/voxwright-cli.mjs import <schematic> [-o <recipe>.ts|.m
 ```
 
 Turns a `.schem`, `.litematic`, `.nbt` or `.mcstructure` into a recipe that imports `Build` from
-`"voxwright"` and rebuilds the structure block for block: one constant per block state, runs of
+`"voxmc"` and rebuilds the structure block for block: one constant per block state, runs of
 the same block merged into `BUILD.box(...)`, the rest `BUILD.set(...)`, layer by layer. Use it
 when the user wants to change a build they already have: import it, edit the recipe (or move parts
 of it into your own recipe), then `build` it again.
@@ -232,7 +232,7 @@ low elevation looking through an opening (for example `az173_el005@10,7,8:13,8,1
 PNG rasterizer is orthographic with no in-room eye position or near-plane clipping, any roof, wall
 or railing in front of the target along the view ray still blocks the line of sight — use
 [`preview`](#preview-or-view) when you need to fly inside an enclosed room. The first preview
-downloads the game's block models and textures (about 25 MB, into `~/.cache/mcbuilder/`); without
+downloads the game's block models and textures (about 25 MB, into `~/.cache/voxmc/`); without
 network access blocks are drawn as plain cubes.
 
 ### palette
@@ -247,7 +247,7 @@ Compares blocks by the mean colour of their vanilla textures. `near` lists the b
 colour to one block, `ramp` lists blocks that step evenly from one block to another, `show` prints
 the colour of each face of a block. Use `palette ramp` to pick the stops of `gradient(...)` (for
 example a roof that darkens toward the eave); `--family stairs` gives stair blocks for a roof. The
-first use downloads the game's textures (about 25 MB, into `~/.cache/mcbuilder/`) and writes
+first use downloads the game's textures (about 25 MB, into `~/.cache/voxmc/`) and writes
 `texture-stats.json` next to them; with `--offline` it fails if they are not cached yet.
 
 ## References
@@ -258,5 +258,5 @@ first use downloads the game's textures (about 25 MB, into `~/.cache/mcbuilder/`
   properties that matter for builds, rotation and mirroring, versions, per-format caveats.
 - [references/recipe-examples.md](references/recipe-examples.md): three complete recipes (a
   tower, terrain with a pond, a symmetric pavilion) and a pre-run checklist.
-- [examples](https://github.com/lzif/voxwright/tree/main/packages/mcbuilder/examples): larger
+- [examples](https://github.com/lzif/voxmc/tree/main/packages/voxmc/examples): larger
   recipes. Online; inside a clone of the repository they run with the same `build` command.

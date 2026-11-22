@@ -4,8 +4,8 @@
 // for, the renderer options, the touch-only limits, and the timing of the ratio dropping while a
 // gesture moves the view and coming back after it stops (with injected timers, no real waiting).
 
-import { DEFAULT_HISTORY_BYTES } from "@voxwright/core";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_HISTORY_BYTES } from "voxmc-core";
 import {
   antialiasChangesOnReload,
   DEFAULT_QUALITY,

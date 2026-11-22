@@ -16,7 +16,7 @@ import {
 const enc = (s: string): Uint8Array => new TextEncoder().encode(s);
 const dirs: string[] = [];
 const tmp = async (): Promise<string> => {
-  const d = await mkdtemp(join(tmpdir(), "voxwright-assets-"));
+  const d = await mkdtemp(join(tmpdir(), "voxmc-assets-"));
   dirs.push(d);
   return d;
 };

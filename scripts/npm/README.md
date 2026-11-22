@@ -2,22 +2,22 @@
 
 # voxmc
 
-Build Minecraft structures from a short TypeScript recipe. `mcbuild` runs the recipe, checks every
+Build Minecraft structures from a short TypeScript recipe. `voxmc` runs the recipe, checks every
 block against the block registry of the Minecraft version, and writes `.schem` (WorldEdit),
 `.litematic` (Litematica), `.nbt` (structure blocks) or `.mcstructure` (Bedrock Edition).
 
-It is the command line of [Voxwright](https://github.com/lzif/voxwright), in one file with no
+It is the command line of [Voxmc](https://github.com/lzif/voxmc), in one file with no
 dependencies. It needs Node 22.18 or later.
 
 ```sh
 npm install -g voxmc
 
-mcbuild init house.ts                                         # a starter recipe
-mcbuild build house.ts --out house.schem --out house.litematic
-mcbuild inspect house.schem
-mcbuild preview house.litematic                               # 3D viewer in the browser
-mcbuild run house.ts --preview                                # PNG views
-mcbuild palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4   # blocks that step evenly in colour
+voxmc init house.ts                                         # a starter recipe
+voxmc build house.ts --out house.schem --out house.litematic
+voxmc inspect house.schem
+voxmc preview house.litematic                               # 3D viewer in the browser
+voxmc run house.ts --preview                                # PNG views
+voxmc palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4   # blocks that step evenly in colour
 ```
 
 Or without installing: `npx voxmc build house.ts --out house.schem`.
@@ -25,7 +25,7 @@ Or without installing: `npx voxmc build house.ts --out house.schem`.
 A recipe is an ES module that exports a `Build`:
 
 ```ts
-import { Build } from "voxwright";
+import { Build } from "voxmc";
 
 export const BUILD = new Build({ seed: 7 });
 
@@ -36,7 +36,7 @@ BUILD.scope(() => {
 });
 ```
 
-`"voxwright"` resolves to `mcbuild` itself, so a recipe runs from any directory and needs no
+`"voxmc"` resolves to `voxmc` itself, so a recipe runs from any directory and needs no
 `package.json`.
 
 | Command   | Result                                                                                                         |
@@ -49,18 +49,18 @@ Further commands work with numbered run directories: `init` (a starter recipe), 
 (`report.json`, the `.nbt`, and with `--preview` PNG views drawn with the game's textures),
 `import` (a schematic back into a recipe), `diff` (cell changes and a side-by-side comparison PNG),
 `assets fetch` and `palette` (`near`, `ramp` and `show` compare blocks by the mean colour of their
-textures; `ramp` suggests the stops of a `gradient()`). `mcbuild --help` lists them.
+textures; `ramp` suggests the stops of a `gradient()`). `voxmc --help` lists them.
 
-`mcbuild <command> --help` lists the options of `build`, `inspect` and `preview` (or `view`). The first `build` for a Minecraft version downloads
-its block registry (about 120 kB) into `~/.cache/mcbuilder/`, and the first `run --preview`
+`voxmc <command> --help` lists the options of `build`, `inspect` and `preview` (or `view`). The first `build` for a Minecraft version downloads
+its block registry (about 120 kB) into `~/.cache/voxmc/`, and the first `run --preview`
 the game's block models and textures (about 25 MB). Pass `--offline` to stay off the network.
 
 Documentation:
 
-- [Recipe API](https://github.com/lzif/voxwright/blob/main/skills/voxwright/references/builder-api.md)
-- [Block ids and block states](https://github.com/lzif/voxwright/blob/main/skills/voxwright/references/block-states.md)
-- [Recipe examples](https://github.com/lzif/voxwright/blob/main/skills/voxwright/references/recipe-examples.md)
+- [Recipe API](https://github.com/lzif/voxmc/blob/main/skills/voxmc/references/builder-api.md)
+- [Block ids and block states](https://github.com/lzif/voxmc/blob/main/skills/voxmc/references/block-states.md)
+- [Recipe examples](https://github.com/lzif/voxmc/blob/main/skills/voxmc/references/recipe-examples.md)
 
-AI agents can use the same command line as an Agent Skill: `npx skills install lzif/voxwright`.
+AI agents can use the same command line as an Agent Skill: `npx skills install lzif/voxmc`.
 
 Not affiliated with Mojang or Microsoft. Licence: AGPL-3.0-only.

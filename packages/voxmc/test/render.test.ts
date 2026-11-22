@@ -3,10 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { DenseVolume } from "@voxwright/core";
-import { parseViews, renderView } from "@voxwright/render";
-import { directoryAssets } from "@voxwright/render/node";
 import { describe, expect, it } from "vitest";
+import type { DenseVolume } from "voxmc-core";
+import { parseViews, renderView } from "voxmc-render";
+import { directoryAssets } from "voxmc-render/node";
 
 interface Want {
   size: [number, number];
@@ -21,7 +21,7 @@ const ref = JSON.parse(
 };
 
 const root =
-  process.env.VOXWRIGHT_ASSETS ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ?? join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 const have = existsSync(join(root, "blockstates"));
 
 /** Area-average an RGB canvas to n by n, as rows of r, g, b, r, g, b... */

@@ -5,7 +5,7 @@
 // `-maxDim <= c < maxDim`. An explicit `minecraft:air` is a real value
 // (carved air), distinct from a cell that was never set.
 
-import { AIR, type DenseVolume, Volume } from "@voxwright/core";
+import { AIR, type DenseVolume, Volume } from "voxmc-core";
 import { GridBoundsError } from "./errors.ts";
 
 export type Dims = readonly [number, number, number];

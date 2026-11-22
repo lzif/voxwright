@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { readLitematic, readSchem, Volume, writeLitematic, writeSchem } from "@voxwright/core";
+
 import { describe, expect, it } from "vitest";
+import { readLitematic, readSchem, Volume, writeLitematic, writeSchem } from "voxmc-core";
 import { LEGACY_SCHEMATIC_MESSAGE, openFile, saveAs } from "../src/lib/formats.ts";
 
 function build(): Volume {

@@ -8,7 +8,6 @@
 // clip planes, and swaps in a re-meshed copy of those layers so the cut faces
 // are drawn. Nothing here runs in Node: use the DOM-free `mesh` exports for that.
 
-import type { Volume } from "@voxwright/core";
 import {
   AmbientLight,
   BoxGeometry,
@@ -35,6 +34,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
+import type { Volume } from "voxmc-core";
 import { type Atlas, atlasLayout, buildAtlas } from "../mesh/atlas.ts";
 import { type DecodedPack, sourceFromDecoded } from "../mesh/pack.ts";
 import { MeshScheduler, type MeshUpdate, type WorkerLike } from "../mesh/scheduler.ts";

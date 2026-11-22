@@ -13,8 +13,8 @@
 //   clusters instead of speckle.
 // - any function (x, y, z) => string.
 
-import { canonicalize } from "@voxwright/core";
-import { McbuilderError } from "./errors.ts";
+import { canonicalize } from "voxmc-core";
+import { VoxmcError } from "./errors.ts";
 import { sha256 } from "./sha256.ts";
 
 export type MaterialFn = (x: number, y: number, z: number) => string;
@@ -33,7 +33,7 @@ function pyStr(v: unknown): string {
 
 function entries(spec: unknown): Entries {
   if (!Array.isArray(spec)) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `invalid material spec ${JSON.stringify(spec)}: expected a block string, a sequence of block strings / (block, weight) pairs, or a callable (x, y, z) -> str`,
     );
   }
@@ -44,18 +44,18 @@ function entries(spec: unknown): Entries {
     } else if (Array.isArray(e) && e.length === 2 && typeof e[0] === "string") {
       const w = e[1];
       if (typeof w !== "number" || Number.isNaN(w)) {
-        throw new McbuilderError(`invalid palette weight ${String(w)} for '${e[0]}'`);
+        throw new VoxmcError(`invalid palette weight ${String(w)} for '${e[0]}'`);
       }
-      if (w < 0) throw new McbuilderError(`negative palette weight ${w} for '${e[0]}'`);
+      if (w < 0) throw new VoxmcError(`negative palette weight ${w} for '${e[0]}'`);
       out.push([canonicalize(e[0]), w]);
     } else {
-      throw new McbuilderError(
+      throw new VoxmcError(
         `invalid palette entry ${JSON.stringify(e)}: expected a block string or a (block, weight) pair`,
       );
     }
   }
-  if (out.length === 0) throw new McbuilderError("material palette is empty");
-  if (sum(out) <= 0) throw new McbuilderError("material palette weights sum to zero");
+  if (out.length === 0) throw new VoxmcError("material palette is empty");
+  if (sum(out) <= 0) throw new VoxmcError("material palette weights sum to zero");
   return out;
 }
 
@@ -115,7 +115,7 @@ export function patches(
   const hasSeed = options.seed !== undefined && options.seed !== null;
   const seed = options.seed;
   const es = entries(palette);
-  if (!(scale > 0)) throw new McbuilderError(`patches: scale must be > 0, got ${scale}`);
+  if (!(scale > 0)) throw new VoxmcError(`patches: scale must be > 0, got ${scale}`);
 
   const lattice = (ix: number, iy: number, iz: number): number =>
     hasSeed ? unitHash("patches", salt, ix, iy, iz, seed) : unitHash("patches", salt, ix, iy, iz);
@@ -184,16 +184,16 @@ export interface GradientOptions {
  * stable hash so the change is gradual. Positions past either end take the end
  * stop. A stop may be any material spec (a block, a palette, `patches()` ...);
  * a palette stop resolves without a seed. Use it for a roof that darkens toward
- * the eave or a wall that lightens upward; `mcbuild palette ramp` suggests
+ * the eave or a wall that lightens upward; `voxmc palette ramp` suggests
  * stops that step evenly in colour.
  */
 export function gradient(stops: readonly Material[], options: GradientOptions): MaterialFn {
   const { axis = "y", from, to, blend = 1, salt = "" } = options;
   if (!Array.isArray(stops) || stops.length === 0) {
-    throw new McbuilderError("gradient: give at least one stop");
+    throw new VoxmcError("gradient: give at least one stop");
   }
   if (axis !== "x" && axis !== "y" && axis !== "z") {
-    throw new McbuilderError(`gradient: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
+    throw new VoxmcError(`gradient: axis must be 'x', 'y' or 'z', got ${String(axis)}`);
   }
   if (
     typeof from !== "number" ||
@@ -201,12 +201,12 @@ export function gradient(stops: readonly Material[], options: GradientOptions): 
     !Number.isFinite(from) ||
     !Number.isFinite(to)
   ) {
-    throw new McbuilderError(
+    throw new VoxmcError(
       `gradient: from and to must be numbers, got ${String(from)}, ${String(to)}`,
     );
   }
   if (!(blend >= 0 && blend <= 1)) {
-    throw new McbuilderError(`gradient: blend must be between 0 and 1, got ${String(blend)}`);
+    throw new VoxmcError(`gradient: blend must be between 0 and 1, got ${String(blend)}`);
   }
   const n = stops.length;
   return (x, y, z) => {

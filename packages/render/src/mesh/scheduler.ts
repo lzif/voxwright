@@ -10,7 +10,7 @@
 // user is waiting to see), then sections that straddle the slice planes (their
 // cut faces), then the initial build, nearest to the camera first.
 
-import type { Volume } from "@voxwright/core";
+import type { Volume } from "voxmc-core";
 import type { AtlasLayout } from "./atlas.ts";
 import type { DecodedPack } from "./pack.ts";
 import { PADDED_VOLUME, parseSectionKey, type SectionMesh } from "./section.ts";

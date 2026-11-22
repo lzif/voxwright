@@ -5,7 +5,7 @@
 // Deterministic for a seed, so every run measures the same thing. Nothing is
 // committed: scripts and tests generate it on the fly.
 
-import { Volume } from "@voxwright/core";
+import { Volume } from "voxmc-core";
 
 export interface SyntheticOptions {
   /** Width and depth in cells (default 256). */

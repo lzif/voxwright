@@ -3,7 +3,7 @@
 // The summary the page shows about an open file: its size, block counts and
 // what its format could not carry.
 
-import { AIR, type Volume } from "@voxwright/core";
+import { AIR, type Volume } from "voxmc-core";
 import type { Info } from "./protocol.ts";
 
 /** Size, non-air block counts (most used first) and the loss report of an opened volume. */

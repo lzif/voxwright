@@ -187,10 +187,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@voxwright/core':
+      'voxmc-core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@voxwright/render':
+      'voxmc-render':
         specifier: workspace:*
         version: link:../../packages/render
       fflate:
@@ -226,7 +226,7 @@ importers:
 
   packages/render:
     dependencies:
-      '@voxwright/core':
+      'voxmc-core':
         specifier: workspace:*
         version: link:../core
       pngjs:
@@ -245,10 +245,10 @@ importers:
 
   packages/voxmc:
     dependencies:
-      '@voxwright/core':
+      'voxmc-core':
         specifier: workspace:*
         version: link:../core
-      '@voxwright/render':
+      'voxmc-render':
         specifier: workspace:*
         version: link:../render
       fflate:

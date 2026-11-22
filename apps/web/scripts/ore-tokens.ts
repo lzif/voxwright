@@ -54,7 +54,7 @@ export interface OreTokens {
 /**
  * Where the fonts are served from, relative to the stylesheet. `fonts/` lives in `static/`, which
  * SvelteKit publishes at the root of the site. Vite sees the root-relative form, finds the file in
- * `static/` and rewrites it for the build, so it follows `VOXWRIGHT_BASE_PATH`; see
+ * `static/` and rewrites it for the build, so it follows `VOXMC_BASE_PATH`; see
  * docs/design-system.md.
  */
 export const FONT_URL_PREFIX = "/";

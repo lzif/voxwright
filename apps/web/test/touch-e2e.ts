@@ -18,7 +18,7 @@
 // The seventh suite (MB8) checks the undo toast, haptics, the optional multi-finger shortcuts, the
 // left-handed mirror, the first-run walkthrough, the buttons that stand in for gestures, the touch help,
 // and axe-core on the whole page in every mobile state, with the focus order of the sheets.
-// Run after `pnpm --filter @voxwright/web build`:
+// Run after `pnpm --filter voxmc-web build`:
 //
 //   node test/touch-e2e.ts [--shots <dir>] [--chromium <path>]
 //     [--only viewer|placement|two-point|selection-state|camera|quality|polish]
@@ -30,7 +30,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { readLitematic, type Volume } from "@voxwright/core";
 import puppeteer, {
   type Browser,
   type CDPSession,
@@ -39,6 +38,7 @@ import puppeteer, {
   type Page,
   type TouchHandle,
 } from "puppeteer-core";
+import { readLitematic, type Volume } from "voxmc-core";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
 import type { PickedBlock, Pose, SessionView, Vox } from "./vox.ts";
 
@@ -311,13 +311,11 @@ export async function touchViewerSuite(): Promise<void> {
     ok(overlayAbsent, t("perf overlay is inactive and unmounted without ?perf=1"));
 
     const settle = async (): Promise<void> => {
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
 
     const picture = (): Promise<{ w: number; h: number; distinct: number; hash: string }> =>
@@ -326,7 +324,7 @@ export async function touchViewerSuite(): Promise<void> {
         let w: number;
         let h: number;
         let d: Uint8ClampedArray;
-        const shot = window.__voxwright?.renderer.capture();
+        const shot = window.__voxmc?.renderer.capture();
         if (shot) {
           [w, h, d] = [shot.width, shot.height, shot.rgba];
         } else {
@@ -361,7 +359,7 @@ export async function touchViewerSuite(): Promise<void> {
     const layout = await page.evaluate(() => {
       const el = document.scrollingElement || document.documentElement;
       const main = document.querySelector("main");
-      const session = (window as unknown as { __voxwright?: Vox }).__voxwright?.session();
+      const session = (window as unknown as { __voxmc?: Vox }).__voxmc?.session();
       const mq = window.matchMedia("(min-width: 1000px) and (pointer: fine)");
       const mqCoarse = window.matchMedia("(any-pointer: coarse)");
       const mqFine = window.matchMedia("(any-pointer: fine)");
@@ -729,7 +727,7 @@ export async function touchViewerSuite(): Promise<void> {
       if (bBox) {
         await page.touchscreen.tap(bBox.x + bBox.width / 2, bBox.y + bBox.height / 2);
         const chosen = await page.evaluate(
-          () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.block,
+          () => (window as unknown as { __voxmc?: Vox }).__voxmc?.session()?.block,
         );
         ok(
           chosen?.includes("stone"),
@@ -782,7 +780,7 @@ export async function touchViewerSuite(): Promise<void> {
         { timeout: 60000 },
       );
       await desktopPage.evaluate(() =>
-        (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+        (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
       );
 
       const stageColumns = await desktopPage.$eval(
@@ -877,13 +875,11 @@ export async function touchViewerSuite(): Promise<void> {
       { timeout: 60000 },
     );
     const perfSettle = async (): Promise<void> => {
-      await perfPage.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await perfPage.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const perfPose = (): Promise<TouchPose> =>
       perfPage.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     await perfSettle();
 
@@ -1001,12 +997,12 @@ export async function touchPlacementSuite(): Promise<void> {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // -- helpers that talk to the page ---------------------------------------------------------
     const state = (): Promise<SessionView> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         return JSON.parse(
           JSON.stringify({
@@ -1027,7 +1023,7 @@ export async function touchPlacementSuite(): Promise<void> {
     const cells = async (): Promise<Map<string, string>> =>
       new Map(
         await page.evaluate(() => {
-          const v = (window.__voxwright as Vox).volume();
+          const v = (window.__voxmc as Vox).volume();
           const [lo, hi] = v.placedBounds() as [number[], number[]];
           const out: [string, string][] = [];
           for (let x = lo[0] as number; x <= (hi[0] as number); x++)
@@ -1047,7 +1043,7 @@ export async function touchPlacementSuite(): Promise<void> {
     /** Cells whose top face a touch reaches, with the page point of that face's centre. */
     const tops = (): Promise<Top[]> =>
       page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -1074,22 +1070,20 @@ export async function touchPlacementSuite(): Promise<void> {
         return out;
       });
     const pickAt = (x: number, y: number): Promise<PickedBlock | null> =>
-      page.evaluate((px, py) => (window.__voxwright as Vox).session()?.pick(px, py) ?? null, x, y);
+      page.evaluate((px, py) => (window.__voxmc as Vox).session()?.pick(px, py) ?? null, x, y);
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     const setBlock = (block: string): Promise<void> =>
       page.evaluate((b) => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         s.block = b;
       }, block);
     const settleFrames = async (): Promise<void> => {
       await sleep(120);
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
 
     /** Put the camera back where it was when the file opened, so page points keep meaning the same cells. */
@@ -1097,7 +1091,7 @@ export async function touchPlacementSuite(): Promise<void> {
     const restoreCamera = async (): Promise<void> => {
       await page.evaluate(
         (p, target) => {
-          (window.__voxwright as Vox).renderer.setOrbit({
+          (window.__voxmc as Vox).renderer.setOrbit({
             azimuth: p.azimuth,
             elevation: p.elevation,
             distance: p.distance,
@@ -1256,13 +1250,13 @@ export async function touchPlacementSuite(): Promise<void> {
     const held = await page.touchscreen.touchStart(finger.x, finger.y);
     await page.waitForFunction(
       () =>
-        (window.__voxwright as Vox).session()?.reticle?.hit != null &&
+        (window.__voxmc as Vox).session()?.reticle?.hit != null &&
         document.querySelector(".reticle-target") !== null,
       { timeout: 5000 },
     );
     // One evaluation for all of it, well inside the long-press time.
     const during = await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
       const r = document.querySelector(".reticle-target")?.getBoundingClientRect();
       const overlay = document.querySelector('[data-testid="reticle-overlay"]');
       return {
@@ -1738,7 +1732,7 @@ export async function touchPlacementSuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
 
     // The page is where the earlier checks left it: put the camera back, Place armed.
@@ -1812,7 +1806,7 @@ export async function touchPlacementSuite(): Promise<void> {
       timeout: 5000,
     });
     const at0 = await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
       const r = document.querySelector(".reticle-target")?.getBoundingClientRect();
       return {
         touchY: s.reticle?.touchY,
@@ -1909,16 +1903,16 @@ export async function touchPlacementSuite(): Promise<void> {
       t("with distance 40 a tap places 40px above the finger"),
     );
     await page.evaluate(() =>
-      (window.__voxwright as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
+      (window.__voxmc as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
     );
     await page.reload();
     await startUp(true);
     await page.waitForSelector('[data-testid="restore-dialog"][open]', { timeout: 15000 });
     await tapButton('[data-testid="restore"]');
-    await page.waitForFunction(() => (window.__voxwright as Vox | undefined)?.session() != null, {
+    await page.waitForFunction(() => (window.__voxmc as Vox | undefined)?.session() != null, {
       timeout: 30000,
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     ok(
       (await state()).cursorOffsetPx === 40 && (await cells()).has(key(targetAdjacent)),
       t(
@@ -1935,11 +1929,11 @@ export async function touchPlacementSuite(): Promise<void> {
     );
     await closeMenu();
     await page.evaluate(() => {
-      (window as unknown as { __before: unknown }).__before = (window.__voxwright as Vox).session();
+      (window as unknown as { __before: unknown }).__before = (window.__voxmc as Vox).session();
     });
     await openFixture(); // another file: the unsaved restored edit is given up (the dialog is accepted)
     const another = await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session();
+      const s = (window.__voxmc as Vox).session();
       return {
         fresh: s !== (window as unknown as { __before: unknown }).__before,
         offset: s?.cursorOffsetPx ?? null,
@@ -2046,12 +2040,12 @@ export async function touchTwoPointSuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const cells = async (): Promise<Map<string, string>> =>
       new Map(
         await page.evaluate(() => {
-          const v = (window.__voxwright as Vox).volume();
+          const v = (window.__voxmc as Vox).volume();
           const [lo, hi] = v.placedBounds() as [number[], number[]];
           const out: [string, string][] = [];
           for (let x = lo[0] as number; x <= (hi[0] as number); x++)
@@ -2070,7 +2064,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     };
     const tops = (): Promise<Top[]> =>
       page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -2098,14 +2092,12 @@ export async function touchTwoPointSuite(): Promise<void> {
       });
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     const worldToPage = (x: number, y: number, z: number): Promise<{ x: number; y: number }> =>
       page.evaluate(
         (a, b, c) => {
-          const pt = (window.__voxwright as Vox).renderer.clientFromWorld(a, b, c);
+          const pt = (window.__voxmc as Vox).renderer.clientFromWorld(a, b, c);
           if (pt === null) throw new Error("point is behind the camera");
           return pt;
         },
@@ -2115,13 +2107,13 @@ export async function touchTwoPointSuite(): Promise<void> {
       );
     const setBlock = (block: string): Promise<void> =>
       page.evaluate((b) => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         s.block = b;
       }, block);
     const settleFrames = async (): Promise<void> => {
       await sleep(120);
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const tapAt = async (x: number, y: number): Promise<void> => {
       const finger = await page.touchscreen.touchStart(x, y);
@@ -2165,7 +2157,7 @@ export async function touchTwoPointSuite(): Promise<void> {
       reticle: SessionView["reticle"];
     }> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         return JSON.parse(
           JSON.stringify({
@@ -2275,7 +2267,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     const restoreCamera = async (): Promise<void> => {
       await page.evaluate(
         (p, target) => {
-          (window.__voxwright as Vox).renderer.setOrbit({
+          (window.__voxmc as Vox).renderer.setOrbit({
             azimuth: p.azimuth,
             elevation: p.elevation,
             distance: p.distance,
@@ -2417,7 +2409,7 @@ export async function touchTwoPointSuite(): Promise<void> {
       t(`at azimuth 45 the arrows are away +z, right -x, up +y (${JSON.stringify(mapped)})`),
     );
     // Turn the camera: the mapping follows it live, with the pad still open.
-    await page.evaluate(() => (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 90 }));
+    await page.evaluate(() => (window.__voxmc as Vox).renderer.setOrbit({ azimuth: 90 }));
     await settleFrames();
     const turned90 = await pad();
     ok(
@@ -2427,7 +2419,7 @@ export async function touchTwoPointSuite(): Promise<void> {
         turned90.right.step === -1,
       t("with the camera turned to azimuth 90, away is -x and right is -z"),
     );
-    await page.evaluate(() => (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 200 }));
+    await page.evaluate(() => (window.__voxmc as Vox).renderer.setOrbit({ azimuth: 200 }));
     await settleFrames();
     const turned200 = await pad();
     ok(
@@ -2874,7 +2866,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     );
     ok(true, t("and closes the selection sheet, so the picture is free for the tap"));
     const clipCells = await page.evaluate(
-      () => (window.__voxwright as Vox).session()?.clipboardCells ?? 0,
+      () => (window.__voxmc as Vox).session()?.clipboardCells ?? 0,
     );
     ok(clipCells > 0, t(`the clipboard holds ${clipCells} blocks`));
     const source = new Map<string, string>();
@@ -2927,7 +2919,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     await undo();
     ok((await changed(original)).length === 0, t("and one Undo removes it"));
     // Cancel pastes nothing
-    await page.evaluate(() => (window.__voxwright as Vox).session()?.setTool("paste"));
+    await page.evaluate(() => (window.__voxmc as Vox).session()?.setTool("paste"));
     await tapTop(topAt(11, 7, 6));
     ok((await mb()).pending?.kind === "paste", t("a tap arms the paste origin again"));
     await cancel();
@@ -2941,7 +2933,7 @@ export async function touchTwoPointSuite(): Promise<void> {
     // =========================================================================
     await armTool("line");
     await tapTop(lineA);
-    await page.evaluate(() => (window.__voxwright as Vox).session()?.setSlice({ y0: 0, y1: 8 }));
+    await page.evaluate(() => (window.__voxmc as Vox).session()?.setSlice({ y0: 0, y1: 8 }));
     await nudge(1, 1);
     const refused = await mb();
     ok(
@@ -2949,7 +2941,7 @@ export async function touchTwoPointSuite(): Promise<void> {
       t(`a step above the top visible layer is refused, nothing moves (${refused.error})`),
     );
     ok((await uiMessage()) === refused.error, t("and the message line shows why"));
-    await page.evaluate(() => (window.__voxwright as Vox).session()?.setSlice(null));
+    await page.evaluate(() => (window.__voxmc as Vox).session()?.setSlice(null));
     await cancel();
 
     // =========================================================================
@@ -3235,7 +3227,7 @@ function diff(a: Map<string, string>, b: Map<string, string>): string[] {
  */
 export async function touchSelectionStateSuite(): Promise<void> {
   const t = (what: string): string => `[touch-mb6] ${what}`;
-  const downloads = await mkdtemp(join(tmpdir(), "voxwright-mb6-"));
+  const downloads = await mkdtemp(join(tmpdir(), "voxmc-mb6-"));
   const browser = await puppeteer.launch({
     executablePath: chromium,
     headless: true,
@@ -3302,12 +3294,12 @@ export async function touchSelectionStateSuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const cells = async (): Promise<Map<string, string>> =>
       new Map(
         await page.evaluate(() => {
-          const v = (window.__voxwright as Vox).volume();
+          const v = (window.__voxmc as Vox).volume();
           const [lo, hi] = v.placedBounds() as [number[], number[]];
           const out: [string, string][] = [];
           for (let x = lo[0] as number; x <= (hi[0] as number); x++)
@@ -3326,14 +3318,14 @@ export async function touchSelectionStateSuite(): Promise<void> {
     };
     const cellAt = (p: readonly number[]): Promise<string | undefined> =>
       page.evaluate(
-        (x, y, z) => (window.__voxwright as Vox).volume().get(x, y, z),
+        (x, y, z) => (window.__voxmc as Vox).volume().get(x, y, z),
         p[0] as number,
         p[1] as number,
         p[2] as number,
       );
     const tops = (): Promise<Top[]> =>
       page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -3361,13 +3353,11 @@ export async function touchSelectionStateSuite(): Promise<void> {
       });
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     const settleFrames = async (): Promise<void> => {
       await sleep(120);
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const tapAt = async (x: number, y: number): Promise<void> => {
       const finger = await page.touchscreen.touchStart(x, y);
@@ -3395,7 +3385,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
       clipboardCells: number;
     }> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         return JSON.parse(
           JSON.stringify({
@@ -3464,7 +3454,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     const exists = async (selector: string): Promise<boolean> => (await page.$(selector)) !== null;
     const setAzimuth = async (azimuth: number): Promise<void> => {
       await page.evaluate((az) => {
-        (window.__voxwright as Vox).renderer.setOrbit({ azimuth: az });
+        (window.__voxmc as Vox).renderer.setOrbit({ azimuth: az });
       }, azimuth);
       await settleFrames();
       await sleep(150);
@@ -3558,7 +3548,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     };
     const undoAll = async (): Promise<void> => {
       await page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
         while (s.canUndo) s.undo();
       });
       await settleFrames();
@@ -3584,7 +3574,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     const restoreCamera = async (): Promise<void> => {
       await page.evaluate(
         (p, target) => {
-          (window.__voxwright as Vox).renderer.setOrbit({
+          (window.__voxmc as Vox).renderer.setOrbit({
             azimuth: p.azimuth,
             elevation: p.elevation,
             distance: p.distance,
@@ -3658,7 +3648,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     const sky = { x: 350, y: 130 };
     ok(
       (await page.evaluate(
-        (p) => (window.__voxwright as Vox).session()?.pick(p.x, p.y) ?? null,
+        (p) => (window.__voxmc as Vox).session()?.pick(p.x, p.y) ?? null,
         sky,
       )) === null,
       t("(the point chosen for the empty tap is over no block)"),
@@ -3862,7 +3852,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     // Numeric properties and a door, placed with the session (the sheet is what is under test)
     await page.evaluate(
       (sign, door) => {
-        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
         s.placeAt([4, 8, 6], sign);
         s.placeAt([2, 8, 7], door);
         s.inspected = [4, 8, 6];
@@ -3889,11 +3879,11 @@ export async function touchSelectionStateSuite(): Promise<void> {
     await tapButton('[data-testid="prop-rotation-dec"]');
     ok((await signNow()).includes("rotation=2"), t("and two - make it 2"));
     await page.evaluate(() => {
-      (window.__voxwright as Vox).session()?.setProperty("rotation", "0");
+      (window.__voxmc as Vox).session()?.setProperty("rotation", "0");
     });
     ok(await disabled('[data-testid="prop-rotation-dec"]'), t("at 0 the - is disabled"));
     await page.evaluate(() => {
-      (window.__voxwright as Vox).session()?.setProperty("rotation", "15");
+      (window.__voxmc as Vox).session()?.setProperty("rotation", "15");
     });
     ok(await disabled('[data-testid="prop-rotation-inc"]'), t("at 15 the + is disabled"));
     ok(
@@ -3905,7 +3895,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     await closeSheet();
     // The door
     await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
       s.inspected = [2, 8, 7];
     });
     await openSheet("mobile-state-toggle");
@@ -4020,14 +4010,14 @@ export async function touchSelectionStateSuite(): Promise<void> {
 
     // Use inspected block
     await page.evaluate(() => {
-      (window.__voxwright as Vox).session()!.inspected = null;
+      (window.__voxmc as Vox).session()!.inspected = null;
     });
     ok(
       await disabled('[data-testid="replace-use"]'),
       t("Use inspected block is disabled while nothing is inspected"),
     );
     await page.evaluate((p) => {
-      (window.__voxwright as Vox).session()!.inspected = p;
+      (window.__voxmc as Vox).session()!.inspected = p;
     }, STAIRS_AT);
     ok(
       !(await disabled('[data-testid="replace-use"]')),
@@ -4149,7 +4139,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
         );
         // put it back for the next arrow
         await page.evaluate((box0) => {
-          const s = (window.__voxwright as Vox).session()!;
+          const s = (window.__voxmc as Vox).session()!;
           s.undo();
           s.setSelection(box0);
         }, sel0);
@@ -4183,7 +4173,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     ok(await sameBlocksMoved(before8, sel8, d8), t("and the blocks arrive 8 blocks over"));
     await page.evaluate((box0) => {
-      const s = (window.__voxwright as Vox).session()!;
+      const s = (window.__voxmc as Vox).session()!;
       s.undo();
       s.setSelection(box0);
     }, sel8);
@@ -4552,7 +4542,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     await armTool("navigate");
     const doorPt = await page.evaluate(
-      (x, y, z) => (window.__voxwright as Vox).renderer.clientFromWorld(x + 0.5, y + 0.5, z + 0.5),
+      (x, y, z) => (window.__voxmc as Vox).renderer.clientFromWorld(x + 0.5, y + 0.5, z + 0.5),
       DOOR_AT[0],
       DOOR_AT[1],
       DOOR_AT[2],
@@ -4647,7 +4637,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 60000 },
     );
-    await desk.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await desk.evaluate(() => window.__voxmc?.renderer.whenIdle());
     ok(
       (await desk.$('[data-testid="toolbar"]')) !== null &&
         (await desk.$('[data-testid="bottom-toolbar"]')) === null,
@@ -4656,7 +4646,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     // The edits, through the session API the desktop panels call, and the mouse for the paste
     await desk.evaluate(
       (gold, a, b) => {
-        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
         s.block = gold;
         s.setSelection({ min: a as [number, number, number], max: b as [number, number, number] });
         s.fill();
@@ -4669,7 +4659,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     const pastePt = await desk.evaluate(
       (x, y, z) => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const pt = v.renderer.clientFromWorld(x + 0.5, y + 1, z + 0.5);
         const hit = pt === null ? null : v.session()?.pick(pt.x, pt.y);
         return pt === null || hit === null || hit === undefined || hit.position[1] !== y
@@ -4684,7 +4674,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     await desk.mouse.click(pastePt.x, pastePt.y);
     await sleep(200);
     const deskPasted = await desk.evaluate(() => {
-      const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+      const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
       return JSON.parse(JSON.stringify({ selection: s.selection, tool: s.tool }));
     });
     ok(
@@ -4693,7 +4683,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
     );
     await desk.evaluate(
       (door, doorAt, stairsAt, facing) => {
-        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
         s.rotate("CLOCKWISE_90");
         s.inspected = stairsAt as [number, number, number];
         s.setProperty("facing", facing);
@@ -4706,7 +4696,7 @@ export async function touchSelectionStateSuite(): Promise<void> {
       STAIRS_AT,
       flipTo,
     );
-    await desk.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await desk.evaluate(() => window.__voxmc?.renderer.whenIdle());
     await desk.select('[data-testid="format"]', "litematic");
     await desk.click('[data-testid="convert"]');
     const deadline2 = Date.now() + 30000;
@@ -4806,11 +4796,11 @@ export async function touchCameraSuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const tops = (): Promise<Top[]> =>
       page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -4838,14 +4828,12 @@ export async function touchCameraSuite(): Promise<void> {
       });
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     const worldToPage = (x: number, y: number, z: number): Promise<{ x: number; y: number }> =>
       page.evaluate(
         (a, b, c) => {
-          const pt = (window.__voxwright as Vox).renderer.clientFromWorld(a, b, c);
+          const pt = (window.__voxmc as Vox).renderer.clientFromWorld(a, b, c);
           if (pt === null) throw new Error("point is behind the camera");
           return pt;
         },
@@ -4855,7 +4843,7 @@ export async function touchCameraSuite(): Promise<void> {
       );
     const settleFrames = async (): Promise<void> => {
       await sleep(150);
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const state = (): Promise<{
       tool: string;
@@ -4865,7 +4853,7 @@ export async function touchCameraSuite(): Promise<void> {
       undoCount: number;
     }> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         return JSON.parse(
           JSON.stringify({
@@ -4937,7 +4925,7 @@ export async function touchCameraSuite(): Promise<void> {
     };
     const emptySpot = (): Promise<{ x: number; y: number }> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
+        const s = (window.__voxmc as Vox).session() as NonNullable<ReturnType<Vox["session"]>>;
         for (const [x, y] of [
           [30, 130],
           [360, 130],
@@ -4980,7 +4968,7 @@ export async function touchCameraSuite(): Promise<void> {
     const restoreCamera = async (): Promise<void> => {
       await page.evaluate(
         (p, target) => {
-          (window.__voxwright as Vox).renderer.setOrbit({
+          (window.__voxmc as Vox).renderer.setOrbit({
             azimuth: p.azimuth,
             elevation: p.elevation,
             distance: p.distance,
@@ -5298,10 +5286,7 @@ export async function touchCameraSuite(): Promise<void> {
     const centre = await canvasCenter();
     const RADIUS = 50;
     const setElevation = async (deg: number): Promise<void> => {
-      await page.evaluate(
-        (e) => (window.__voxwright as Vox).renderer.setOrbit({ elevation: e }),
-        deg,
-      );
+      await page.evaluate((e) => (window.__voxmc as Vox).renderer.setOrbit({ elevation: e }), deg);
       await settleFrames();
     };
     /** The angle of the on-screen line between two world points on the same level, y down (clockwise is positive). */
@@ -5591,14 +5576,14 @@ export async function touchQualitySuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await p.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await p.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     /** The renderer's pixel ratio and the canvas's drawing buffer against its CSS width. */
     const buffer = (p: typeof page): Promise<{ ratio: number; width: number; css: number }> =>
       p.evaluate(() => {
         const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
         return {
-          ratio: (window.__voxwright as Vox).renderer.getPixelRatio(),
+          ratio: (window.__voxmc as Vox).renderer.getPixelRatio(),
           width: c.width,
           css: c.clientWidth,
         };
@@ -5622,7 +5607,7 @@ export async function touchQualitySuite(): Promise<void> {
     /** Record every call of renderer.setPixelRatio from now on. */
     const watchRatio = (p: typeof page): Promise<void> =>
       p.evaluate(() => {
-        const r = (window.__voxwright as Vox).renderer;
+        const r = (window.__voxmc as Vox).renderer;
         const w = window as unknown as { __ratios: number[]; __orig?: (v: number) => void };
         w.__ratios = [];
         if (w.__orig === undefined) w.__orig = r.setPixelRatio.bind(r);
@@ -5711,7 +5696,7 @@ export async function touchQualitySuite(): Promise<void> {
       t("the perf overlay shows DPR 3.00, ratio 2.00 and quality auto"),
     );
     const facts = await page.evaluate(() => {
-      const v = window.__voxwright as Vox;
+      const v = window.__voxmc as Vox;
       return {
         workers: v.renderer.getWorkerCount(),
         cores: navigator.hardwareConcurrency,
@@ -5949,7 +5934,7 @@ export async function touchQualitySuite(): Promise<void> {
       await startUp(desk);
       await openFixture(desk);
       const d = await desk.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
         return {
           ratio: v.renderer.getPixelRatio(),
@@ -6007,7 +5992,7 @@ export async function touchQualitySuite(): Promise<void> {
       await startUp(small);
       await openFixture(small);
       const s = await small.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         return {
           workers: v.renderer.getWorkerCount(),
           cores: navigator.hardwareConcurrency,
@@ -6048,7 +6033,7 @@ export async function touchQualitySuite(): Promise<void> {
  */
 export async function touchPolishSuite(): Promise<void> {
   const t = (what: string): string => `[touch-polish] ${what}`;
-  const downloads = await mkdtemp(join(tmpdir(), "voxwright-mb8-"));
+  const downloads = await mkdtemp(join(tmpdir(), "voxmc-mb8-"));
   const browser = await puppeteer.launch({
     executablePath: chromium,
     headless: true,
@@ -6125,7 +6110,7 @@ export async function touchPolishSuite(): Promise<void> {
         () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
         { timeout: 60000 },
       );
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
       await sleep(200);
     };
     const reload = async (): Promise<void> => {
@@ -6135,11 +6120,11 @@ export async function touchPolishSuite(): Promise<void> {
     };
     const settleFrames = async (): Promise<void> => {
       await sleep(150);
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const tops = (): Promise<Top[]> =>
       page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -6167,9 +6152,7 @@ export async function touchPolishSuite(): Promise<void> {
       });
     const pose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
     interface Snap {
       tool: string;
@@ -6185,7 +6168,7 @@ export async function touchPolishSuite(): Promise<void> {
     }
     const state = (): Promise<Snap> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         return JSON.parse(
           JSON.stringify({
@@ -6205,7 +6188,7 @@ export async function touchPolishSuite(): Promise<void> {
     const cells = async (): Promise<Map<string, string>> =>
       new Map(
         await page.evaluate(() => {
-          const v = (window.__voxwright as Vox).volume();
+          const v = (window.__voxmc as Vox).volume();
           const [lo, hi] = v.placedBounds() as [number[], number[]];
           const out: [string, string][] = [];
           for (let x = lo[0] as number; x <= (hi[0] as number); x++)
@@ -6224,7 +6207,7 @@ export async function touchPolishSuite(): Promise<void> {
     };
     const setBlock = (block: string): Promise<void> =>
       page.evaluate((b) => {
-        (window.__voxwright as Vox).session()!.chooseBlock(b); // as the palette does: the quick row learns it
+        (window.__voxmc as Vox).session()!.chooseBlock(b); // as the palette does: the quick row learns it
       }, block);
     const quickTap = async (x: number, y: number): Promise<void> => {
       const finger = await page.touchscreen.touchStart(x, y);
@@ -6294,7 +6277,7 @@ export async function touchPolishSuite(): Promise<void> {
     const reset = async (): Promise<void> => {
       if (await exists('[data-testid="bottom-sheet"]')) await closeSheet();
       await page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session()!;
+        const s = (window.__voxmc as Vox).session()!;
         const raw = s as unknown as { cancelPending(): void };
         raw.cancelPending();
         s.setSelection(null);
@@ -6406,7 +6389,7 @@ export async function touchPolishSuite(): Promise<void> {
     const restoreCamera = async (): Promise<void> => {
       await page.evaluate(
         (p, target) => {
-          (window.__voxwright as Vox).renderer.setOrbit({
+          (window.__voxmc as Vox).renderer.setOrbit({
             azimuth: p.azimuth,
             elevation: p.elevation,
             distance: p.distance,
@@ -6678,7 +6661,7 @@ export async function touchPolishSuite(): Promise<void> {
     await tapAt(below(cellC.pt).x, below(cellC.pt).y);
     const idC = (await state()).lastChange?.id ?? -1;
     const staleUndone = await page.evaluate((id) => {
-      const s = (window.__voxwright as Vox).session() as unknown as {
+      const s = (window.__voxmc as Vox).session() as unknown as {
         undoChange(i: number): boolean;
         undo(): void;
       };
@@ -6866,7 +6849,7 @@ export async function touchPolishSuite(): Promise<void> {
     await tapAt(below((spread[3] as Top).pt).x, below((spread[3] as Top).pt).y);
     await page.evaluate(
       (y) => {
-        (window.__voxwright as Vox).session()!.setSlice({ y0: y, y1: y });
+        (window.__voxmc as Vox).session()!.setSlice({ y0: y, y1: y });
       },
       (spread[3] as Top).pos[1] + 1,
     );
@@ -6880,7 +6863,7 @@ export async function touchPolishSuite(): Promise<void> {
       ),
     );
     await page.evaluate(() => {
-      (window.__voxwright as Vox).session()!.setSlice(null);
+      (window.__voxmc as Vox).session()!.setSlice(null);
     });
     await reset();
 
@@ -6984,13 +6967,13 @@ export async function touchPolishSuite(): Promise<void> {
     ok((await state()).undoCount === 1, t("one block placed to undo"));
     await multiTap(two);
     ok((await state()).undoCount === 1, t("off: a two-finger tap does nothing"));
-    await page.evaluate(() => (window.__voxwright as Vox).session()!.undo());
+    await page.evaluate(() => (window.__voxmc as Vox).session()!.undo());
     await multiTap(three);
     ok(
       (await state()).canRedo === true && (await state()).undoCount === 0,
       t("off: a three-finger tap does nothing"),
     );
-    await page.evaluate(() => (window.__voxwright as Vox).session()!.redo());
+    await page.evaluate(() => (window.__voxmc as Vox).session()!.redo());
 
     await setMenuCheckbox("two-finger-undo-toggle", true);
     ok(
@@ -7020,7 +7003,7 @@ export async function touchPolishSuite(): Promise<void> {
     const finger1 = await page.touchscreen.touchStart(f0.x, f0.y);
     await sleep(80); // the tool's gesture has begun: the cursor shows
     const reticleSeen = await page.evaluate(
-      () => (window.__voxwright as Vox).session()?.reticle !== null,
+      () => (window.__voxmc as Vox).session()?.reticle !== null,
     );
     const finger2 = await page.touchscreen.touchStart(second.x, second.y);
     await sleep(40);
@@ -7043,7 +7026,7 @@ export async function touchPolishSuite(): Promise<void> {
     );
     // In View too
     await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session()!;
+      const s = (window.__voxmc as Vox).session()!;
       s.setTool("place");
       s.placeAt([0, 0, 0], "minecraft:gold_block");
       s.setTool("navigate");
@@ -7214,7 +7197,7 @@ export async function touchPolishSuite(): Promise<void> {
 
     // Centre on the build = what a pan is for
     await page.evaluate((h) => {
-      (window.__voxwright as Vox).renderer.setOrbit({
+      (window.__voxmc as Vox).renderer.setOrbit({
         target: [h[0] + 6, h[1] + 3, h[2] - 5],
         distance: 6,
       });
@@ -7486,7 +7469,7 @@ export async function touchPolishSuite(): Promise<void> {
     );
     // selection sheet
     await page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session()!;
+      const s = (window.__voxmc as Vox).session()!;
       s.setSelection({ min: [2, 5, 2], max: [4, 6, 3] });
     });
     await tapButton('[data-testid="mobile-selection-toggle"]');
@@ -7603,7 +7586,7 @@ export async function touchPolishSuite(): Promise<void> {
           (await bad.$('[data-testid="error"]')) === null,
           t("opening a good file takes the notice away"),
         );
-        await bad.evaluate(() => window.__voxwright?.renderer.whenIdle());
+        await bad.evaluate(() => window.__voxmc?.renderer.whenIdle());
         await input.uploadFile(junk);
         await bad.waitForSelector('[data-testid="error"]', { timeout: 10000 });
         const b = await shown();
@@ -7650,11 +7633,11 @@ export async function touchPolishSuite(): Promise<void> {
         t("the desktop layout has no toast, no walkthrough and no touch settings"),
       );
       await desk.evaluate(() => {
-        const s = (window.__voxwright as Vox).session()!;
+        const s = (window.__voxmc as Vox).session()!;
         s.placeAt([0, 0, 0], "minecraft:gold_block");
       });
       ok(
-        (await desk.evaluate(() => (window.__voxwright as Vox).session()?.lastChange?.text)) ===
+        (await desk.evaluate(() => (window.__voxmc as Vox).session()?.lastChange?.text)) ===
           "Placed 1 block" && (await desk.$('[data-testid="undo-toast"]')) === null,
         t("an edit on desktop records the change but shows no toast"),
       );

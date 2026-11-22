@@ -13,8 +13,8 @@
 // the foundation is y = 0..1, the ground-floor floor is y = 1, walls y = 2..5, the upper floor is
 // y = 6, upper walls y = 7..10, the main ridge is y = 17.
 //
-//   mcbuild check examples/tavern/tavern.ts
-//   mcbuild run   examples/tavern/tavern.ts --preview --guide
+//   voxmc check examples/tavern/tavern.ts
+//   voxmc run   examples/tavern/tavern.ts --preview --guide
 
 import { Build, type Material, patches } from "../../src/index.ts";
 import {

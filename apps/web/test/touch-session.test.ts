@@ -5,6 +5,7 @@
 // under the point is (floor(x / 10), ., floor(y / 10)). The floor is stone, 16 x 16 at y = 0, with a
 // few other blocks to tell cells apart.
 
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   applyCommand,
   type Box,
@@ -16,9 +17,8 @@ import {
   pasteClipboard,
   type Vec3,
   Volume,
-} from "@voxwright/core";
-import type { WebglRenderer } from "@voxwright/render/webgl";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+} from "voxmc-core";
+import type { WebglRenderer } from "voxmc-render/webgl";
 import { boxBetween, type ToolId } from "../src/lib/editing.ts";
 import { EditSession } from "../src/lib/editor-session.svelte.ts";
 import type { GestureIntent } from "../src/lib/gestures.ts";

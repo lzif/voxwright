@@ -14,7 +14,7 @@ import {
   writeMcstructure,
   writeSchem,
   writeStructureNbt,
-} from "@voxwright/core";
+} from "voxmc-core";
 
 export const FORMATS = [
   { id: "nbt", label: "Structure block (.nbt)", ext: ".nbt" },

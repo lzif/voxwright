@@ -1,8 +1,8 @@
 {
-  "name": "@voxwright/mcbuilder",
+  "name": "voxmc-engine",
   "version": "0.0.0",
   "private": true,
-  "description": "Programmatic Minecraft build engine, a TypeScript port of mcbuilder: builder DSL, shapes, materials, block validation and structure export, for AI agents and scripts.",
+  "description": "Programmatic Minecraft build engine, a TypeScript port of the Python reference implementation: builder DSL, shapes, materials, block validation and structure export, for AI agents and scripts.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "sideEffects": false,
@@ -15,12 +15,12 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@voxwright/core": "workspace:*",
+    "voxmc-core": "workspace:*",
     "fflate": "^0.8.3",
     "smol-toml": "^1.9.1",
-    "@voxwright/render": "workspace:*"
+    "voxmc-render": "workspace:*"
   },
   "bin": {
-    "mcbuild": "./bin/voxmc.ts"
+    "voxmc": "./bin/voxmc.ts"
   }
 }

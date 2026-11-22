@@ -2,15 +2,15 @@
 
 # Recipe API
 
-Everything a recipe can import from `"voxwright"`. Signatures are the ones in
-`packages/mcbuilder/src/` and `packages/core/src/` of the Voxwright repository; if a call is not on this page, it does not
+Everything a recipe can import from `"voxmc"`. Signatures are the ones in
+`packages/voxmc/src/` and `packages/core/src/` of the Voxmc repository; if a call is not on this page, it does not
 exist. Block ids and block states are in [block-states.md](block-states.md); complete recipes are
 in [recipe-examples.md](recipe-examples.md).
 
 ## Recipe contract
 
 ```ts
-import { Build, Geometry, patches, shapes } from "voxwright";
+import { Build, Geometry, patches, shapes } from "voxmc";
 
 export const BUILD = new Build({ seed: 7 });
 
@@ -24,15 +24,15 @@ BUILD.scope(() => {
   as the default export. TypeScript types are stripped, not checked.
 - Every placement must run inside `BUILD.scope(() => { ... })`. Outside it, a placement throws
   `BuildError`. Scopes nest, and one recipe may open several.
-- Import only from `"voxwright"` and from your own files by relative path
+- Import only from `"voxmc"` and from your own files by relative path
   (`import { tower } from "./tower.ts"`). No other package is available.
 - `new Build(options)`:
 
-  | Option          | Type                         | Default           | Meaning                                                  |
-  | --------------- | ---------------------------- | ----------------- | -------------------------------------------------------- |
-  | `seed`          | `number \| string \| null`   | `null`            | Drives palettes and `rng()`. Same seed, same build.      |
-  | `maxDimensions` | `[number, number, number]`   | `[256, 256, 256]` | Each axis accepts coordinates from `-max` to `max - 1`.  |
-  | `views`         | `string \| string[] \| null` | `null`            | Preview views for `mcbuild`; the skill CLI ignores them. |
+  | Option          | Type                         | Default           | Meaning                                                 |
+  | --------------- | ---------------------------- | ----------------- | ------------------------------------------------------- |
+  | `seed`          | `number \| string \| null`   | `null`            | Drives palettes and `rng()`. Same seed, same build.     |
+  | `maxDimensions` | `[number, number, number]`   | `[256, 256, 256]` | Each axis accepts coordinates from `-max` to `max - 1`. |
+  | `views`         | `string \| string[] \| null` | `null`            | Preview views for `voxmc`; the skill CLI ignores them.  |
 
 ## Coordinates
 
@@ -83,7 +83,7 @@ gradient(stops: readonly Material[],
 - `blend` (0 to 1, default 1) is how far neighbouring stops mix: 1 mixes each stop into the next
   cell by cell over the whole step, 0 gives hard bands. `salt` gives another mix from the same stops.
 - A stop is any `Material`: a block, a palette or `patches(...)`. Use it for a roof that darkens
-  toward the eave. `mcbuild palette ramp` suggests stops that step evenly in colour (see SKILL.md).
+  toward the eave. `voxmc palette ramp` suggests stops that step evenly in colour (see SKILL.md).
 - Stairs and slabs that a shape orients for you (`stairs`, roofs, `arch`, a `parapet` corbel) take
   the block **without** `facing` (stairs) or `type` (slabs); the shape refuses a block that
   carries one.
@@ -497,7 +497,7 @@ type Rotation = "NONE" | "CLOCKWISE_90" | "CLOCKWISE_180" | "COUNTERCLOCKWISE_90
   cells. So build a reusable part around the origin, facing one way, and place rotated copies:
 
 ```ts
-import { Build, Geometry, shapes } from "voxwright";
+import { Build, Geometry, shapes } from "voxmc";
 
 export const BUILD = new Build({ seed: 1 });
 
@@ -537,7 +537,7 @@ multi-volume API. Split a large build in code instead:
 | -------------------------------- | ----------------------------------------------------------------------------- |
 | `BuildError`                     | A placement outside `BUILD.scope`, or a point that is not 3 integers          |
 | `GridBoundsError`                | A coordinate outside `maxDimensions`                                          |
-| `McbuilderError`                 | Bad shape arguments, such as a stair block that already has `facing`          |
+| `VoxmcError`                     | Bad shape arguments, such as a stair block that already has `facing`          |
 | `TypeError`                      | A non-integer voxel coordinate                                                |
 | `BlockStringError`               | A malformed block string, such as an unclosed `[`                             |
 | Validation errors (from `build`) | An unknown block, an unknown property or an illegal value; nothing is written |
@@ -546,7 +546,7 @@ The CLI reports a thrown error as one line with the recipe's `file:line:column`.
 
 ## Not available
 
-- Anything from the Python mcbuilder that is not listed above. In a recipe run by the CLI,
+- Anything from the Python reference implementation that is not listed above. In a recipe run by the CLI,
   validation and export are done by the CLI, not by the recipe (`Build.validate` and
   `Build.render` exist on `Build` for library callers).
 - Automatic connections: the engine places exactly the block state you give it (see

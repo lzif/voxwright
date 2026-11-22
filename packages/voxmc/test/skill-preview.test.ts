@@ -16,7 +16,7 @@ import {
 
 const dirs: string[] = [];
 const tmp = async (): Promise<string> => {
-  const d = await mkdtemp(join(tmpdir(), "voxwright-preview-"));
+  const d = await mkdtemp(join(tmpdir(), "voxmc-preview-"));
   dirs.push(d);
   return d;
 };
@@ -221,7 +221,7 @@ describe("preview: finding the web app", () => {
     const build = join(root, "apps", "web", "build");
     await mkdir(build, { recursive: true });
     await mkdir(join(root, "scripts"), { recursive: true });
-    const src = join(root, "packages", "mcbuilder", "src", "node", "skill");
+    const src = join(root, "packages", "voxmc", "src", "node", "skill");
     await mkdir(src, { recursive: true });
     expect(findLocalWebBuild(join(root, "scripts"))).toBeNull(); // no index.html yet
     await writeFile(join(build, "index.html"), "x");
@@ -231,7 +231,7 @@ describe("preview: finding the web app", () => {
     expect(findLocalWebBuild(elsewhere)).toBeNull();
   });
 
-  it("checks a --web directory and $VOXWRIGHT_WEB-style values", async () => {
+  it("checks a --web directory and $VOXMC_WEB-style values", async () => {
     const { root, schem } = await site();
     const empty = join(root, "empty");
     await mkdir(empty);
@@ -249,7 +249,7 @@ describe("preview: finding the web app", () => {
   });
 });
 
-/** The published site, faked: `/voxwright/` with assets, one gzip-encoded, and a 5xx page. */
+/** The published site, faked: `/voxmc/` with assets, one gzip-encoded, and a 5xx page. */
 async function fakeUpstream(): Promise<{
   server: Server;
   origin: string;
@@ -259,20 +259,20 @@ async function fakeUpstream(): Promise<{
   const server = createServer((req, res) => {
     const path = req.url ?? "/";
     hits.push(path);
-    if (path === "/voxwright") {
-      res.writeHead(301, { location: "/voxwright/" });
+    if (path === "/voxmc") {
+      res.writeHead(301, { location: "/voxmc/" });
       res.end();
-    } else if (path === "/voxwright/") {
+    } else if (path === "/voxmc/") {
       res.writeHead(200, {
         "content-type": "text/html; charset=utf-8",
         connection: "keep-alive",
         "set-cookie": "a=b",
       });
       res.end("<!doctype html><title>published</title>");
-    } else if (path === "/voxwright/_app/immutable/entry.js") {
+    } else if (path === "/voxmc/_app/immutable/entry.js") {
       res.writeHead(200, { "content-type": "text/javascript" });
       res.end("export const v = 1;");
-    } else if (path === "/voxwright/_app/app.css") {
+    } else if (path === "/voxmc/_app/app.css") {
       const body = gzipSync(Buffer.from("body{color:red}"));
       res.writeHead(200, {
         "content-type": "text/css",
@@ -280,7 +280,7 @@ async function fakeUpstream(): Promise<{
         "content-length": String(body.length),
       });
       res.end(body);
-    } else if (path === "/voxwright/broken") {
+    } else if (path === "/voxmc/broken") {
       res.writeHead(503);
       res.end("down");
     } else {
@@ -324,54 +324,54 @@ describe("preview: proxy of the published site", () => {
           home,
           port: 0,
           schematic: schem,
-          web: `${old.origin}/voxwright/`,
+          web: `${old.origin}/voxmc/`,
           upstreamTimeoutMs: 2000,
         }),
       );
       expect(p.source).toMatchObject({
         kind: "proxy",
-        upstream: `${up.origin}/voxwright/`,
-        cacheDir: join(home, ".cache", "voxwright", "web"),
+        upstream: `${up.origin}/voxmc/`,
+        cacheDir: join(home, ".cache", "voxmc", "web"),
       });
-      expect(p.url).toBe(`http://127.0.0.1:${p.port}/voxwright/?open=__preview/my%2520house.schem`);
+      expect(p.url).toBe(`http://127.0.0.1:${p.port}/voxmc/?open=__preview/my%2520house.schem`);
 
       // The root and the base without its slash go to the app.
       const top = await raw(p.port, "/");
-      expect([top.status, top.headers.location]).toEqual([302, "/voxwright/"]);
-      expect((await raw(p.port, "/voxwright")).headers.location).toBe("/voxwright/");
+      expect([top.status, top.headers.location]).toEqual([302, "/voxmc/"]);
+      expect((await raw(p.port, "/voxmc")).headers.location).toBe("/voxmc/");
       expect((await raw(p.port, "/elsewhere.js")).status).toBe(404);
 
-      const page = await raw(p.port, "/voxwright/");
+      const page = await raw(p.port, "/voxmc/");
       expect(page.status).toBe(200);
       expect(page.body.toString()).toContain("published");
       expect(page.headers["set-cookie"]).toBeUndefined();
       expect(page.headers["content-type"]).toBe("text/html; charset=utf-8");
 
       // A gzip-encoded upstream body is sent decoded, without content-encoding.
-      const css = await raw(p.port, "/voxwright/_app/app.css");
+      const css = await raw(p.port, "/voxmc/_app/app.css");
       expect(css.body.toString()).toBe("body{color:red}");
       expect(css.headers["content-encoding"]).toBeUndefined();
       expect(css.headers["content-length"]).toBe(String(css.body.length));
 
       // Upstream errors pass through when nothing is cached.
-      expect((await raw(p.port, "/voxwright/missing.js")).status).toBe(404);
-      expect((await raw(p.port, "/voxwright/broken")).status).toBe(503);
-      expect((await raw(p.port, "/voxwright/%2e%2e/secret")).status).toBe(404);
+      expect((await raw(p.port, "/voxmc/missing.js")).status).toBe(404);
+      expect((await raw(p.port, "/voxmc/broken")).status).toBe(503);
+      expect((await raw(p.port, "/voxmc/%2e%2e/secret")).status).toBe(404);
 
       // The schematic lives under the app's base.
-      const s = await raw(p.port, "/voxwright/__preview/my%20house.schem");
+      const s = await raw(p.port, "/voxmc/__preview/my%20house.schem");
       expect([s.status, s.body.toString()]).toEqual([200, "first"]);
-      expect(up.hits).not.toContain("/voxwright/__preview/my%20house.schem");
+      expect(up.hits).not.toContain("/voxmc/__preview/my%20house.schem");
 
       // Immutable assets: cache first.
-      await raw(p.port, "/voxwright/_app/immutable/entry.js");
+      await raw(p.port, "/voxmc/_app/immutable/entry.js");
       const before = up.hits.filter((h) => h.endsWith("entry.js")).length;
-      const again = await raw(p.port, "/voxwright/_app/immutable/entry.js");
-      expect(again.headers["x-voxwright-cache"]).toBe("hit");
+      const again = await raw(p.port, "/voxmc/_app/immutable/entry.js");
+      expect(again.headers["x-voxmc-cache"]).toBe("hit");
       expect(up.hits.filter((h) => h.endsWith("entry.js")).length).toBe(before);
 
       // Written to disk under the home cache, keyed by upstream origin + path.
-      const cacheDir = join(home, ".cache", "voxwright", "web");
+      const cacheDir = join(home, ".cache", "voxmc", "web");
       const hostDir = (await readdir(cacheDir)).find((d) => d !== "aliases.json") as string;
       expect(hostDir).toBe(new URL(up.origin).host.replace(/[^a-z0-9.-]/gi, "_"));
       const metas = (await readdir(join(cacheDir, hostDir))).filter((f) => f.endsWith(".json"));
@@ -383,21 +383,21 @@ describe("preview: proxy of the published site", () => {
       );
       expect(urls.sort()).toEqual(
         [
-          `${up.origin}/voxwright/`,
-          `${up.origin}/voxwright/_app/app.css`,
-          `${up.origin}/voxwright/_app/immutable/entry.js`,
+          `${up.origin}/voxmc/`,
+          `${up.origin}/voxmc/_app/app.css`,
+          `${up.origin}/voxmc/_app/immutable/entry.js`,
         ].sort(),
       );
       const aliases = JSON.parse(await readFile(join(cacheDir, "aliases.json"), "utf8"));
-      expect(aliases).toEqual({ [`${old.origin}/voxwright/`]: `${up.origin}/voxwright/` });
+      expect(aliases).toEqual({ [`${old.origin}/voxmc/`]: `${up.origin}/voxmc/` });
 
       // Upstream goes away: the running proxy falls back to the cache.
       await closeServer(up.server);
       upOpen = false;
-      const offline = await raw(p.port, "/voxwright/");
-      expect([offline.status, offline.headers["x-voxwright-cache"]]).toEqual([200, "hit"]);
+      const offline = await raw(p.port, "/voxmc/");
+      expect([offline.status, offline.headers["x-voxmc-cache"]]).toEqual([200, "hit"]);
       expect(offline.body.toString()).toContain("published");
-      expect((await raw(p.port, "/voxwright/never-fetched.js")).status).toBe(502);
+      expect((await raw(p.port, "/voxmc/never-fetched.js")).status).toBe(502);
       await p.close();
 
       // A fresh start while offline (both addresses down) still finds the cached copy.
@@ -408,13 +408,13 @@ describe("preview: proxy of the published site", () => {
           home,
           port: 0,
           schematic: schem,
-          web: `${old.origin}/voxwright/`,
+          web: `${old.origin}/voxmc/`,
           upstreamTimeoutMs: 2000,
         }),
       );
-      expect(q.source).toMatchObject({ kind: "proxy", upstream: `${up.origin}/voxwright/` });
+      expect(q.source).toMatchObject({ kind: "proxy", upstream: `${up.origin}/voxmc/` });
       expect(q.notes.join("\n")).toContain("could not be reached");
-      const css2 = await raw(q.port, "/voxwright/_app/app.css");
+      const css2 = await raw(q.port, "/voxmc/_app/app.css");
       expect([css2.status, css2.body.toString()]).toEqual([200, "body{color:red}"]);
     } finally {
       if (upOpen) await closeServer(up.server);
@@ -434,12 +434,12 @@ describe("preview: proxy of the published site", () => {
           port: 0,
           schematic: schem,
           searchFrom: await tmp(),
-          published: `${up.origin}/voxwright/`,
+          published: `${up.origin}/voxmc/`,
         }),
       );
       expect(p.source).toMatchObject({ kind: "proxy", why: "published" });
-      expect((await raw(p.port, "/voxwright/")).status).toBe(200);
-      expect(existsSync(join(home, ".cache", "voxwright", "web"))).toBe(true);
+      expect((await raw(p.port, "/voxmc/")).status).toBe(200);
+      expect(existsSync(join(home, ".cache", "voxmc", "web"))).toBe(true);
     } finally {
       await closeServer(up.server);
     }
@@ -465,7 +465,7 @@ describe("preview: command line", () => {
     const { root } = await site();
     const h = io(root);
     expect(await cmdPreview(["--help"], h)).toBe(0);
-    expect(h.lines.join("\n")).toContain("Usage: voxwright-cli preview <schematic|run>");
+    expect(h.lines.join("\n")).toContain("Usage: voxmc preview <schematic|run>");
     for (const args of [
       [],
       ["a.schem", "b.schem"],

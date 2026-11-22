@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { DenseVolume } from "@voxwright/core";
+import type { DenseVolume } from "voxmc-core";
 
 /**
  * A copy of `dense` with every cell outside the inclusive layer range

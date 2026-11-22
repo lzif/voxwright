@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // Where the skill CLI gets its block registry: a file given on the command
-// line, the cache `mcbuild assets fetch` fills, or a registry-only download
+// line, the cache `voxmc assets fetch` fills, or a registry-only download
 // into that cache. Without one the build is still exported, unvalidated.
 
 import { readFile } from "node:fs/promises";

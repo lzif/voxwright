@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-import { Volume } from "@voxwright/core";
+
 import { describe, expect, it } from "vitest";
+import { Volume } from "voxmc-core";
 import {
   buildAtlas,
   type MeshReply,

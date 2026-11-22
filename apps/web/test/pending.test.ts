@@ -2,8 +2,8 @@
 
 // The pending values touch builds up before a confirm: what moves on a nudge, and the readout text.
 
-import type { Vec3 } from "@voxwright/core";
 import { describe, expect, it } from "vitest";
+import type { Vec3 } from "voxmc-core";
 import {
   activeCorner,
   cornerB,

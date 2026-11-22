@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { readStructureNbt, UNSET, Volume } from "@voxwright/core";
 import { describe, expect, it } from "vitest";
+import { readStructureNbt, UNSET, Volume } from "voxmc-core";
 import {
   blockQuads,
   buildAtlas,

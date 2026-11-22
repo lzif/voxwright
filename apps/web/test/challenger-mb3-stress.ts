@@ -214,7 +214,7 @@ try {
       { timeout: 60000 },
     );
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     // Active editor state: check page overflow after loading schematic
@@ -384,7 +384,7 @@ try {
       { timeout: 60000 },
     );
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     for (const target of touchTargetsToCheck) {
@@ -453,7 +453,7 @@ try {
       { timeout: 60000 },
     );
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     // Setup canvas tracking and webglcontextlost listener
@@ -508,7 +508,7 @@ try {
           isSameCanvas: initial === current,
           contextLostFired: lost,
           isContextLost: gl ? gl.isContextLost() : false,
-          hasSession: (window as unknown as { __voxwright?: Vox }).__voxwright?.session() !== null,
+          hasSession: (window as unknown as { __voxmc?: Vox }).__voxmc?.session() !== null,
         };
       });
 
@@ -531,7 +531,7 @@ try {
     });
     await new Promise((r) => setTimeout(r, 100));
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     const cdp = await page.createCDPSession();
@@ -541,18 +541,18 @@ try {
     const cy = Math.round(cBox.y + cBox.height / 2);
 
     const poseBefore = await page.evaluate(() => {
-      const r = (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer;
+      const r = (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer;
       return (r as unknown as { getPose?: () => TouchPose })?.getPose?.() ?? null;
     });
 
     // Dispatch 1-finger orbit gesture
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx + 100, y: cy + 40 }, 6, 1);
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     const poseAfter = await page.evaluate(() => {
-      const r = (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer;
+      const r = (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer;
       return (r as unknown as { getPose?: () => TouchPose })?.getPose?.() ?? null;
     });
 
@@ -607,7 +607,7 @@ try {
       { timeout: 60000 },
     );
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     const cdp = await page.createCDPSession();
@@ -840,7 +840,7 @@ try {
       { timeout: 60000 },
     );
     await page.evaluate(() =>
-      (window as unknown as { __voxwright?: Vox }).__voxwright?.renderer.whenIdle(),
+      (window as unknown as { __voxmc?: Vox }).__voxmc?.renderer.whenIdle(),
     );
 
     // 5A: Thumb cluster default right-handed positioning

@@ -4,7 +4,7 @@
 // arrow means, whether a move is allowed, what a face stepper does to a box, and the hold-to-repeat
 // timing of a pad button. No DOM and no session, so all of it runs under Vitest.
 
-import { type Box, MAX_EXTENT, type Vec3 } from "@voxwright/core";
+import { type Box, MAX_EXTENT, type Vec3 } from "voxmc-core";
 
 // -- Screen arrows to world axes -----------------------------------------------------------------
 

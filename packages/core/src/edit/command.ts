@@ -18,7 +18,7 @@
 // A block string can also carry SNBT after the properties
 // (`name[props]{nbt}`), which core parses structurally and keeps verbatim.
 // No codec produces such strings; they are for callers that build a Volume
-// by hand, such as mcbuilder, and edits treat them as a separate state.
+// by hand, such as the Python reference implementation, and edits treat them as a separate state.
 
 import { type BlockEntity, blockIdOf, MAX_EXTENT, UNSET, type Volume } from "../volume/index.ts";
 

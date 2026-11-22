@@ -41,7 +41,7 @@ const { scenes } = JSON.parse(
 ) as { scenes: Record<string, SceneWant> };
 
 const root =
-  process.env.VOXWRIGHT_ASSETS ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ?? join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 const have = existsSync(join(root, "blockstates"));
 
 describe.skipIf(!have)("scene logic against the Python renderer (vanilla assets)", () => {

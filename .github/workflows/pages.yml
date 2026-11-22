@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 name: pages
 
-# Publishes the web app at https://lzif.github.io/voxwright/.
+# Publishes the web app at https://luki.is-a.dev/voxmc/.
 #
 # The site's built-in pack is vanilla Minecraft: block states, block models and textures of 26.3,
 # taken at build time from InventivetalentDev/minecraft-assets (the files behind
@@ -47,9 +47,9 @@ jobs:
           test "$(git rev-parse HEAD)" = "$ASSETS_COMMIT"
       - name: Build the pack
         run: node apps/web/scripts/build-pack.ts --from "$RUNNER_TEMP/assets/assets/minecraft"
-      - run: pnpm --filter @voxwright/web build
+      - run: pnpm --filter voxmc-web build
         env:
-          VOXWRIGHT_BASE_PATH: /voxwright
+          VOXMC_BASE_PATH: /voxmc
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

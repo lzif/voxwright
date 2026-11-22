@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import { makeBox, type Vec3 } from "@voxwright/core";
+import { makeBox, type Vec3 } from "voxmc-core";
 import { FILL_KEY, ROTATE_KEYS, withoutNbt } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
 import { FACES } from "../nudge.ts";

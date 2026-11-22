@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// `?open=<url>`: open a schematic from this site when the page starts. `voxwright-cli preview` links
+// `?open=<url>`: open a schematic from this site when the page starts. `voxmc preview` links
 // here with `?open=__preview/<file name>`. Only files from the page's own origin are fetched, so a
 // link from elsewhere cannot make the page download anything from a third party.
 

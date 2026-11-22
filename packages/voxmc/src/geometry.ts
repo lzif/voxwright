@@ -5,7 +5,7 @@
 // as often as you like; the geometry itself never changes. Transforms and
 // `concat` return new geometries.
 
-import { mirrorBlockstate, type Rotation, rotateBlockstate, rotatePoint } from "@voxwright/core";
+import { mirrorBlockstate, type Rotation, rotateBlockstate, rotatePoint } from "voxmc-core";
 import { type Material, resolveMaterial } from "./materials.ts";
 
 export type Cell = readonly [x: number, y: number, z: number, block: string];

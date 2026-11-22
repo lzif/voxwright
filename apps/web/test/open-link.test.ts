@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { fetchOpenLink, resolveOpenLink } from "../src/lib/open-link.ts";
 
-const page = "http://127.0.0.1:4173/voxwright/";
+const page = "http://127.0.0.1:4173/voxmc/";
 
 describe("resolveOpenLink", () => {
   it("returns null without ?open=", () => {
@@ -14,7 +14,7 @@ describe("resolveOpenLink", () => {
   it("resolves a relative value against the page", () => {
     const link = resolveOpenLink(`${page}?open=__preview/house.schem&e2e`);
     expect(link).toEqual({
-      url: new URL("http://127.0.0.1:4173/voxwright/__preview/house.schem"),
+      url: new URL("http://127.0.0.1:4173/voxmc/__preview/house.schem"),
       name: "house.schem",
     });
   });
@@ -22,9 +22,7 @@ describe("resolveOpenLink", () => {
   it("decodes the file name as the CLI encodes it", () => {
     const link = resolveOpenLink(`${page}?open=__preview/my%2520house%2523.litematic`);
     expect(link).toMatchObject({ name: "my house#.litematic" });
-    expect((link as { url: URL }).url.pathname).toBe(
-      "/voxwright/__preview/my%20house%23.litematic",
-    );
+    expect((link as { url: URL }).url.pathname).toBe("/voxmc/__preview/my%20house%23.litematic");
   });
 
   it("accepts an absolute same-origin URL", () => {

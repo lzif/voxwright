@@ -8,7 +8,7 @@
 // Coordinates are dense-array indices: cell `(x, y, z)` is
 // `data[(x * sy + y) * sz + z]`, and `-1` means never placed.
 
-import type { DenseVolume } from "@voxwright/core";
+import type { DenseVolume } from "voxmc-core";
 import type { AssetSource } from "./assets.ts";
 import { blockQuads, FLUID_RGBA, tryEntityQuads } from "./blocks.ts";
 import {

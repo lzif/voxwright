@@ -19,8 +19,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { Volume, writeLitematic, writeSchem } from "@voxwright/core";
 import puppeteer, { type ElementHandle, type Page } from "puppeteer-core";
+import { Volume, writeLitematic, writeSchem } from "voxmc-core";
 import { editorSuite } from "./editor-suite.ts";
 import { m4Suite } from "./m4-suite.ts";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
@@ -42,7 +42,7 @@ const ok = (cond: unknown, what: string): void => {
 
 async function suite(webgl: boolean): Promise<void> {
   const label = webgl ? "webgl" : "cpu";
-  const downloads = await mkdtemp(join(tmpdir(), "voxwright-dl-"));
+  const downloads = await mkdtemp(join(tmpdir(), "voxmc-dl-"));
   const browser = await puppeteer.launch({
     executablePath: chromium,
     headless: true,
@@ -88,7 +88,7 @@ async function suite(webgl: boolean): Promise<void> {
         let w: number;
         let h: number;
         let d: Uint8ClampedArray;
-        const shot = window.__voxwright?.renderer.capture();
+        const shot = window.__voxmc?.renderer.capture();
         if (shot) {
           [w, h, d] = [shot.width, shot.height, shot.rgba];
         } else {
@@ -105,11 +105,11 @@ async function suite(webgl: boolean): Promise<void> {
       });
     /** Wait until the picture has settled: the GPU renderer says so, the CPU one by time. */
     const settle = async (): Promise<void> => {
-      if (webgl) await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      if (webgl) await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
       else await new Promise((r) => setTimeout(r, 4000));
     };
     const pose = (): Promise<Pose> =>
-      page.evaluate(() => (window.__voxwright as Vox).renderer.getPose());
+      page.evaluate(() => (window.__voxmc as Vox).renderer.getPose());
 
     // 1. Open the real .nbt and get a picture.
     const input = (await page.$('[data-testid="file"]')) as ElementHandle<HTMLInputElement> | null;
@@ -134,7 +134,7 @@ async function suite(webgl: boolean): Promise<void> {
       t("the block list is shown"),
     );
     if (webgl) {
-      const s = await page.evaluate(() => (window.__voxwright as Vox).renderer.stats());
+      const s = await page.evaluate(() => (window.__voxmc as Vox).renderer.stats());
       ok(
         s.sections >= 1 && s.meshes >= 1,
         t(`the build is in ${s.sections} section(s), ${s.meshes} meshes`),
@@ -371,16 +371,16 @@ async function suite(webgl: boolean): Promise<void> {
 
       // Outlines for a selection show on top of the build.
       // (The editor outlines the block under the pointer; start from a frame with no outlines.)
-      await page.evaluate(() => (window.__voxwright as Vox).renderer.highlight([]));
+      await page.evaluate(() => (window.__voxmc as Vox).renderer.highlight([]));
       await settle();
       const plain = (await picture()).hash;
       await page.evaluate(() => {
-        const r = (window.__voxwright as Vox).renderer;
+        const r = (window.__voxmc as Vox).renderer;
         r.highlight([{ min: [0, 0, 0], max: [13, 7, 13], style: "selection" }]);
       });
       await settle();
       ok((await picture()).hash !== plain, t("a highlighted box is drawn over the build"));
-      await page.evaluate(() => (window.__voxwright as Vox).renderer.highlight([]));
+      await page.evaluate(() => (window.__voxmc as Vox).renderer.highlight([]));
       await settle();
       ok((await picture()).hash === plain, t("clearing the highlight removes it again"));
 
@@ -388,7 +388,7 @@ async function suite(webgl: boolean): Promise<void> {
       const hashBefore = (await picture()).hash;
       // Put a glowstone block on top of the roof's highest block in the middle column.
       const { appliedMs } = await page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const [lo, hi] = v.volume().bounds() as [number[], number[]];
         const x = Math.floor(((lo[0] as number) + (hi[0] as number)) / 2);
         const z = Math.floor(((lo[2] as number) + (hi[2] as number)) / 2);
@@ -444,16 +444,13 @@ async function suite(webgl: boolean): Promise<void> {
           );
         } catch {
           throw new Error(
-            `FAILED: the layer sliders did not reach ${want} (they stand at ${await sliderMax("ymax")}; placed bounds ${JSON.stringify(await page.evaluate(() => (window.__voxwright as Vox).volume().placedBounds()))})`,
+            `FAILED: the layer sliders did not reach ${want} (they stand at ${await sliderMax("ymax")}; placed bounds ${JSON.stringify(await page.evaluate(() => (window.__voxmc as Vox).volume().placedBounds()))})`,
           );
         }
       };
       // (The sliders follow an edit a moment after it, so wait for them to catch up with step 5.)
       const top0 = await page.evaluate(() => {
-        const [lo, hi] = (window.__voxwright as Vox).volume().placedBounds() as [
-          number[],
-          number[],
-        ];
+        const [lo, hi] = (window.__voxmc as Vox).volume().placedBounds() as [number[], number[]];
         return (hi[1] as number) - (lo[1] as number);
       });
       await waitMax(top0);
@@ -464,7 +461,7 @@ async function suite(webgl: boolean): Promise<void> {
       // Full range: building above the top extends the range, and "every layer" stays every layer.
       const rise = async (up: number): Promise<void> => {
         await page.evaluate((n) => {
-          const v = window.__voxwright as Vox;
+          const v = window.__voxmc as Vox;
           const [lo, hi] = v.volume().placedBounds() as [number[], number[]];
           const x = Math.floor(((lo[0] as number) + (hi[0] as number)) / 2);
           const z = Math.floor(((lo[2] as number) + (hi[2] as number)) / 2);
@@ -549,7 +546,7 @@ async function suite(webgl: boolean): Promise<void> {
     await assertStillAlive(page, t);
 
     // 8. Read errors come out as a readable sentence, not a stack, and the page keeps working.
-    const dir = await mkdtemp(join(tmpdir(), "voxwright-bad-"));
+    const dir = await mkdtemp(join(tmpdir(), "voxmc-bad-"));
     const bad = async (name: string, bytes: Uint8Array): Promise<string> => {
       await writeFile(join(dir, name), bytes);
       await (input as NonNullable<typeof input>).uploadFile(join(dir, name));
@@ -603,8 +600,8 @@ async function suite(webgl: boolean): Promise<void> {
         { timeout: 30000 },
       );
       ok(
-        (await plain.evaluate(() => window.__voxwright)) === undefined,
-        t("a visit without ?e2e installs no window.__voxwright"),
+        (await plain.evaluate(() => window.__voxmc)) === undefined,
+        t("a visit without ?e2e installs no window.__voxmc"),
       );
     } finally {
       await plain.close();

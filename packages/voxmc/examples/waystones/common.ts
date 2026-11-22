@@ -5,10 +5,10 @@
 // LOSTQOL:WAYSTONE CONTRACT
 // The center block `lostqol:waystone` is a custom namespaced block. It is not
 // part of vanilla Minecraft: it exists only so the LostQoL plugin can replace
-// it at .nbt import time. mcbuilder treats it as pass-through: the block is on
-// this directory's `mcbuild.toml` allowlist, so validation emits one allowlist
+// it at .nbt import time. voxmc treats it as pass-through: the block is on
+// this directory's `voxmc.toml` allowlist, so validation emits one allowlist
 // warning instead of an error, and the block string is written into the
-// exported .nbt verbatim. mcbuilder never resolves, models or previews it.
+// exported .nbt verbatim. voxmc never resolves, models or previews it.
 //
 // All factories return pure `Geometry` datablocks (relative coords, place
 // nothing); stamp them with `BUILD.place(geo, { at: [0, 0, 0] })`.

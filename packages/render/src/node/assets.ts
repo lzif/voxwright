@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // Read vanilla client assets from a directory on disk (the `assets/minecraft`
-// folder that `mcbuild assets fetch` extracts).
+// folder that `voxmc assets fetch` extracts).
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";

@@ -2,7 +2,7 @@
 
 // Vanilla structure-block `.nbt`: a gzipped root compound with
 // `DataVersion`, `size`, `palette` and `blocks`. This matches what a
-// structure block saves and what mcbuilder's exporter writes and its
+// structure block saves and what the Python reference implementation's exporter writes and its
 // importer reads.
 //
 // A block's block entity is its `nbt` (with `id`, without a position).
@@ -70,7 +70,7 @@ function stateOf(name: string, props: ReadonlyMap<string, string>): string {
 function paletteState(entry: NbtTag): string {
   const e = asCompound(entry, "palette entry");
   // Newer game versions (seen at DataVersion 5023) spell these `id` and
-  // `properties`; older ones and mcbuilder use `Name` and `Properties`.
+  // `properties`; older ones and the Python reference implementation use `Name` and `Properties`.
   const nameTag = child(e, "Name") ?? child(e, "id");
   if (nameTag?.type !== "string") throw new CodecError("palette entry has no Name or id");
   const props = new Map<string, string>();
@@ -208,7 +208,7 @@ export async function readStructureNbt(
 }
 
 /**
- * How air is written, as in mcbuilder:
+ * How air is written, as in the Python reference implementation:
  * - `none`: neither unset cells nor air cells appear in `blocks`.
  * - `explicit`: only cells set to `minecraft:air` are written.
  * - `all`: every cell in the box is written; unset cells become air.

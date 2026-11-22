@@ -26,7 +26,7 @@
 // normalize to the same labels. Malformed tokens throw {@link ViewError}
 // naming the offending token.
 
-import { pyStrip } from "@voxwright/core";
+import { pyStrip } from "voxmc-core";
 
 /** Hard cap on the number of views in one render set. */
 export const MAX_VIEWS = 36;

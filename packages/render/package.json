@@ -1,8 +1,8 @@
 {
-  "name": "@voxwright/render",
+  "name": "voxmc-render",
   "version": "0.0.0",
   "private": true,
-  "description": "Meshing and rendering for voxwright: a DOM-free section mesher and CPU rasterizer, and a three.js renderer at ./webgl. Depends on core only.",
+  "description": "Meshing and rendering for voxmc: a DOM-free section mesher and CPU rasterizer, and a three.js renderer at ./webgl. Depends on core only.",
   "license": "AGPL-3.0-only",
   "type": "module",
   "sideEffects": false,
@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@voxwright/core": "workspace:*",
+    "voxmc-core": "workspace:*",
     "pngjs": "^7.0.0",
     "three": "^0.187.0"
   },

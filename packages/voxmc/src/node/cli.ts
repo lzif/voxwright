@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The `mcbuild` command line.
+// The `voxmc` command line.
 //
-//   mcbuild init [path] [--force]
-//   mcbuild check <script> [--config file] [--offline]
-//   mcbuild run <script> [--out dir] [--air none|explicit|all] [--config file]
+//   voxmc init [path] [--force]
+//   voxmc check <script> [--config file] [--offline]
+//   voxmc run <script> [--out dir] [--air none|explicit|all] [--config file]
 //                [--preview] [--guide] [--views 'iso;top'] [--count N] [--focus x0,y0,z0:x1,y1,z1]
-//   mcbuild import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw] [--config file]
-//   mcbuild diff [<run-a> <run-b>] [--out dir] [--max N]
-//   mcbuild assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
+//   voxmc import <file> [-o out.ts|out.mjs] [--force] [--keep-air] [--raw] [--config file]
+//   voxmc diff [<run-a> <run-b>] [--out dir] [--max N]
+//   voxmc assets fetch --version V [--from mcasset|mojang] [--cache-dir dir] [--force]
 //
 // A builder script is a TypeScript (or JavaScript) module that exports a
 // `Build` as `BUILD`.
@@ -25,7 +25,7 @@ import {
   readSchem,
   readStructureNbt,
   writeStructureNbt,
-} from "@voxwright/core";
+} from "voxmc-core";
 import {
   focusBounds,
   renderView,
@@ -34,12 +34,12 @@ import {
   type View,
   ViewError,
   withCount,
-} from "@voxwright/render";
-import { directoryAssets, encodePng } from "@voxwright/render/node";
-import { type McbuildConfig, parseConfig } from "../config.ts";
+} from "voxmc-render";
+import { directoryAssets, encodePng } from "voxmc-render/node";
+import { parseConfig, type VoxmcConfig } from "../config.ts";
 import { ExportError, resolveDataVersion } from "../dataversion.ts";
 import { DiffError, formatDiff } from "../diff.ts";
-import { McbuilderError } from "../errors.ts";
+import { VoxmcError } from "../errors.ts";
 import { buildGuide, titleCase } from "../guide.ts";
 import { cleanProperties, structureFromVolume, summary, toScript } from "../importer.ts";
 import { Registry, RegistryError } from "../registry.ts";
@@ -77,8 +77,8 @@ import {
 } from "./script.ts";
 
 /** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
-declare const __VOXWRIGHT_BUNDLED__: boolean | undefined;
-const BUNDLED = typeof __VOXWRIGHT_BUNDLED__ !== "undefined" && __VOXWRIGHT_BUNDLED__ === true;
+declare const __VOXMC_BUNDLED__: boolean | undefined;
+const BUNDLED = typeof __VOXMC_BUNDLED__ !== "undefined" && __VOXMC_BUNDLED__ === true;
 
 export class CliError extends Error {}
 
@@ -89,11 +89,11 @@ export interface Io {
   home?: string;
 }
 
-export const HOUSE_TEMPLATE = `// house.ts: starter build written by \`mcbuild init\`.
+export const HOUSE_TEMPLATE = `// house.ts: starter build written by \`voxmc init\`.
 //
-// Loop:  mcbuild check house.ts   ->   mcbuild run house.ts
+// Loop:  voxmc check house.ts   ->   voxmc run house.ts
 // Change numbers, run again.
-import { Build, patches } from "@voxwright/mcbuilder";
+import { Build, patches } from "voxmc-engine";
 
 export const BUILD = new Build({ seed: 1, views: "iso;az225_el025;top" });
 
@@ -123,16 +123,16 @@ BUILD.scope(() => {
 });
 `;
 
-/** The nearest `mcbuild.toml` at or above `startDir`, parsed; `null` when there is none. */
-export async function findConfig(startDir: string, home: string): Promise<McbuildConfig | null> {
+/** The nearest `voxmc.toml` at or above `startDir`, parsed; `null` when there is none. */
+export async function findConfig(startDir: string, home: string): Promise<VoxmcConfig | null> {
   let dir = resolve(startDir);
   for (;;) {
-    const candidate = join(dir, "mcbuild.toml");
+    const candidate = join(dir, "voxmc.toml");
     if (await exists(candidate)) {
       try {
         return parseConfig(await readFile(candidate, "utf8"), { home, source: candidate });
       } catch (e) {
-        throw new CliError(`invalid mcbuild.toml: ${(e as Error).message}`);
+        throw new CliError(`invalid voxmc.toml: ${(e as Error).message}`);
       }
     }
     const parent = dirname(dir);
@@ -145,7 +145,7 @@ async function resolveConfig(
   scriptPath: string,
   explicit: string | undefined,
   home: string,
-): Promise<McbuildConfig> {
+): Promise<VoxmcConfig> {
   if (explicit) {
     if (!(await exists(explicit))) throw new CliError(`config not found: ${explicit}`);
     try {
@@ -164,7 +164,7 @@ interface Net {
   out: (line: string) => void;
 }
 
-async function loadRegistry(cfg: McbuildConfig, home: string, net: Net): Promise<Registry> {
+async function loadRegistry(cfg: VoxmcConfig, home: string, net: Net): Promise<Registry> {
   const candidates = assetVersionCandidates(cfg.assetsDir, cfg.mcVersion, home);
   let versionDir = await findAssetVersionDir(
     cfg.assetsDir,
@@ -196,7 +196,7 @@ async function loadRegistry(cfg: McbuildConfig, home: string, net: Net): Promise
     const tried = candidates.map((d) => join(d, "minecraft-data.json")).join(" or ");
     throw new CliError(
       new RegistryError(
-        `block registry for version '${cfg.mcVersion}' not found at ${tried} — run \`mcbuild assets fetch --version ${cfg.mcVersion}\` first.`,
+        `block registry for version '${cfg.mcVersion}' not found at ${tried} — run \`voxmc assets fetch --version ${cfg.mcVersion}\` first.`,
       ).message,
     );
   }
@@ -615,7 +615,7 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
   const bytes = new Uint8Array(await readFile(file));
   const keepAir = values["keep-air"] ?? false;
   let read: {
-    volume: import("@voxwright/core").Volume;
+    volume: import("voxmc-core").Volume;
     dataVersion: number | null;
     be: number;
     e: number;
@@ -693,9 +693,9 @@ async function cmdImport(args: string[], io: Required<Io>): Promise<number> {
     }
   }
   await mkdir(dirname(resolve(out)), { recursive: true });
-  // As in `init`: the published command line answers to "voxwright"; inside the workspace only
+  // As in `init`: the published command line answers to "voxmc"; inside the workspace only
   // the package name resolves.
-  const specifier = BUNDLED ? "voxwright" : "@voxwright/mcbuilder";
+  const specifier = BUNDLED ? "voxmc" : "voxmc-engine";
   await writeFile(out, toScript(structure, { specifier }), "utf8");
   io.out(`wrote ${out}`);
   for (const line of summary(structure, 10)) io.out(line ? `  ${line}` : "");
@@ -776,15 +776,13 @@ async function cmdInit(args: string[], io: Required<Io>): Promise<number> {
     );
   }
   await mkdir(dirname(abs), { recursive: true });
-  // The published command line answers to "voxwright" (the name the documentation uses); inside
+  // The published command line answers to "voxmc" (the name the documentation uses); inside
   // the workspace only the package name resolves.
-  const template = BUNDLED
-    ? HOUSE_TEMPLATE.replace('"@voxwright/mcbuilder"', '"voxwright"')
-    : HOUSE_TEMPLATE;
+  const template = BUNDLED ? HOUSE_TEMPLATE.replace('"voxmc-engine"', '"voxmc"') : HOUSE_TEMPLATE;
   await writeFile(abs, template, "utf8");
   io.out(`wrote ${target}`);
-  io.out(`next: mcbuild check ${target}`);
-  io.out(`then: mcbuild run ${target}`);
+  io.out(`next: voxmc check ${target}`);
+  io.out(`then: voxmc run ${target}`);
   return 0;
 }
 
@@ -866,7 +864,7 @@ async function cmdPalette(args: string[], io: Required<Io>, get?: HttpGet): Prom
     if (cfg.assetsDir !== null || values.offline) {
       const tried = assetVersionCandidates(cfg.assetsDir, version, io.home).join(" or ");
       throw new CliError(
-        `palette: no client assets for ${version} in ${tried}; run \`mcbuild assets fetch --version ${version}\``,
+        `palette: no client assets for ${version} in ${tried}; run \`voxmc assets fetch --version ${version}\``,
       );
     }
     io.out(`downloading the vanilla assets for ${version} (once)`);
@@ -874,7 +872,7 @@ async function cmdPalette(args: string[], io: Required<Io>, get?: HttpGet): Prom
     versionDir = await findAssetVersionDir(cfg.assetsDir, version, io.home, texturesMarker);
     if (versionDir === null) {
       throw new CliError(
-        `palette: no client assets for ${version} in ${join(defaultCacheRoot(io.home), version)}; run \`mcbuild assets fetch --version ${version}\``,
+        `palette: no client assets for ${version} in ${join(defaultCacheRoot(io.home), version)}; run \`voxmc assets fetch --version ${version}\``,
       );
     }
   }
@@ -983,7 +981,7 @@ function syntaxOf(command: string): string[] {
   let inside = false;
   for (const l of RUN_SYNTAX.split("\n")) {
     if (l.startsWith(`${command} `)) {
-      out.push(`${out.length === 0 ? "Usage:" : "      "} mcbuild ${l}`);
+      out.push(`${out.length === 0 ? "Usage:" : "      "} voxmc ${l}`);
       inside = true;
     } else if (inside && l.startsWith(" ")) {
       out.push(`         ${l.trimStart()}`);
@@ -994,10 +992,10 @@ function syntaxOf(command: string): string[] {
   return out;
 }
 
-const USAGE = `mcbuild: validate and export agent-built Minecraft structures.
+const USAGE = `voxmc: validate and export agent-built Minecraft structures.
 
 ${RUN_SYNTAX.split("\n")
-  .map((l) => (l.startsWith(" ") ? `          ${l}` : `  mcbuild ${l}`))
+  .map((l) => (l.startsWith(" ") ? `          ${l}` : `  voxmc ${l}`))
   .join("\n")}`;
 
 /** Run the CLI. Returns the exit code; never calls `process.exit`. */
@@ -1039,16 +1037,16 @@ export async function runCli(
       case "palette":
         return await cmdPalette(rest, full, deps.get);
       default:
-        full.err(`mcbuild: unknown command '${command}'\n${USAGE}`);
+        full.err(`voxmc: unknown command '${command}'\n${USAGE}`);
         return 2;
     }
   } catch (e) {
-    if (e instanceof CliError || e instanceof DiffError || e instanceof McbuilderError) {
-      full.err(`mcbuild: ${e.message}`);
+    if (e instanceof CliError || e instanceof DiffError || e instanceof VoxmcError) {
+      full.err(`voxmc: ${e.message}`);
       return 1;
     }
     if (e instanceof TypeError && /Unknown option|argument/.test(e.message)) {
-      full.err(`mcbuild: ${e.message}`);
+      full.err(`voxmc: ${e.message}`);
       return 2;
     }
     throw e;

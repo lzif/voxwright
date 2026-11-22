@@ -6,7 +6,7 @@
 // "faithful" tier's presentation mode (light background, no debug chrome); the
 // title, view label and compass, which need fonts, are not drawn.
 
-import type { DenseVolume } from "@voxwright/core";
+import type { DenseVolume } from "voxmc-core";
 import type { AssetSource } from "./assets.ts";
 import type { Rgb3 } from "./draw.ts";
 import { drawLineAlpha, drawRingAlpha, fillRectAlpha } from "./draw.ts";

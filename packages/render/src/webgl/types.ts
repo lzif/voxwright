@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { Volume } from "@voxwright/core";
+import type { Volume } from "voxmc-core";
 
 /** Inclusive cell corners of a box in world coordinates. Core's `Box` fits. */
 export interface Box {

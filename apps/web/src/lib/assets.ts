@@ -4,13 +4,7 @@
 // blockstates, block models and textures (base64 PNG) the renderer needs; it is
 // built from vanilla client assets by `pnpm assets` and is never committed.
 
-import {
-  type AssetSource,
-  crop,
-  type DecodedPack,
-  fromRgba,
-  type RasterImage,
-} from "@voxwright/render";
+import { type AssetSource, crop, type DecodedPack, fromRgba, type RasterImage } from "voxmc-render";
 
 import type { Pack } from "./pack-extract.ts";
 

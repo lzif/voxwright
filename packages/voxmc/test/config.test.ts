@@ -40,7 +40,7 @@ describe("config against the Python oracle", () => {
     expect(expandUser("/abs", "/h")).toBe("/abs");
     expect(expandUser("~other", "/h")).toBe("~other");
     const cfg = parseConfig("");
-    expect(resolveAssetsDir(cfg, "/h")).toBe("/h/.cache/mcbuilder/26.2");
+    expect(resolveAssetsDir(cfg, "/h")).toBe("/h/.cache/voxmc/26.2");
     expect(resolveAssetsDir(parseConfig('assets_dir = "/elsewhere"'), "/h")).toBe("/elsewhere");
   });
 });

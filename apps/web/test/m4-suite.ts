@@ -14,8 +14,8 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Volume, writeStructureNbt } from "@voxwright/core";
 import puppeteer, { type Browser, type ElementHandle, type Page } from "puppeteer-core";
+import { Volume, writeStructureNbt } from "voxmc-core";
 import { chromiumArgs } from "./site.ts";
 import { PACK_COLORS, syntheticPackZip } from "./synthetic-pack.ts";
 import type { Vox } from "./vox.ts";
@@ -93,7 +93,7 @@ type Colours = { red: number; blue: number; total: number };
 export async function m4Suite(ctx: M4Context): Promise<void> {
   const { ok } = ctx;
   const t = (what: string): string => `[m4] ${what}`;
-  const work = await mkdtemp(join(tmpdir(), "voxwright-m4-"));
+  const work = await mkdtemp(join(tmpdir(), "voxmc-m4-"));
   const files = {
     colours: join(work, "colours.nbt"),
     zip: join(work, "my-pack.zip"),
@@ -107,7 +107,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
   await writeFile(files.notZip, "this is not a zip file");
   const { zipSync } = await import("fflate");
   await writeFile(files.noAssets, zipSync({ "readme.txt": new TextEncoder().encode("hi") }));
-  const downloads = await mkdtemp(join(tmpdir(), "voxwright-m4dl-"));
+  const downloads = await mkdtemp(join(tmpdir(), "voxmc-m4dl-"));
 
   const axeReport: string[] = [];
   const axeCheck = async (page: Page, state: string): Promise<void> => {
@@ -178,12 +178,12 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       text,
     );
   const settle = (page: Page): Promise<void> =>
-    page.evaluate(() => (window.__voxwright as Vox).renderer.whenIdle());
+    page.evaluate(() => (window.__voxmc as Vox).renderer.whenIdle());
   const text = (page: Page, testid: string): Promise<string> =>
     page.$eval(`[data-testid="${testid}"]`, (e) => e.textContent ?? "");
   const session = (page: Page): Promise<Record<string, unknown>> =>
     page.evaluate(() => {
-      const s = (window.__voxwright as Vox).session() as unknown as Record<string, unknown> | null;
+      const s = (window.__voxmc as Vox).session() as unknown as Record<string, unknown> | null;
       if (s === null) throw new Error("no editor session");
       return JSON.parse(
         JSON.stringify({
@@ -201,7 +201,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
   /** All set cells as one sorted string, to compare volumes cell by cell. */
   const cells = (page: Page): Promise<string> =>
     page.evaluate(() => {
-      const v = (window.__voxwright as Vox).volume() as unknown as {
+      const v = (window.__voxmc as Vox).volume() as unknown as {
         eachCell(f: (x: number, y: number, z: number, i: number) => void): void;
         palette: string[];
       };
@@ -248,9 +248,9 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
     );
   const colours = (page: Page): Promise<Colours> =>
     page.evaluate(() => {
-      const w = window as unknown as { __voxwright?: Vox };
+      const w = window as unknown as { __voxmc?: Vox };
       let d: Uint8ClampedArray;
-      const shot = w.__voxwright?.renderer.capture();
+      const shot = w.__voxmc?.renderer.capture();
       if (shot) d = shot.rgba;
       else {
         const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
@@ -273,9 +273,9 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
   const waitColours = (page: Page, want: "pack" | "none"): Promise<unknown> =>
     page.waitForFunction(
       (mode) => {
-        const w = window as unknown as { __voxwright?: Vox };
+        const w = window as unknown as { __voxmc?: Vox };
         let d: Uint8ClampedArray;
-        const shot = w.__voxwright?.renderer.capture();
+        const shot = w.__voxmc?.renderer.capture();
         if (shot) d = shot.rgba;
         else {
           const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
@@ -344,8 +344,8 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         (e) => (e as HTMLAnchorElement).href,
       );
       ok(
-        /^https:\/\/github\.com\/lzif\/voxwright(\/tree\/[0-9a-f]{7,40})?$/.test(href) ||
-          process.env.VOXWRIGHT_SOURCE_URL !== undefined,
+        /^https:\/\/github\.com\/lzif\/voxmc(\/tree\/[0-9a-f]{7,40})?$/.test(href) ||
+          process.env.VOXMC_SOURCE_URL !== undefined,
         t(`the footer links to the source of this version (${href})`),
       );
       ok(
@@ -444,7 +444,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
             after !== before,
             t(`arrow keys turn the view from the keyboard (${before} to ${after})`),
           );
-          const d0 = await page.evaluate(() => (window.__voxwright as Vox).renderer.getPose() && 0);
+          const d0 = await page.evaluate(() => (window.__voxmc as Vox).renderer.getPose() && 0);
           void d0;
         }
         if (sel === '[data-testid="tool-place"]') {
@@ -460,7 +460,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       await page.keyboard.up("Control");
       await page.keyboard.type("minecraft:glowstone");
       const bounds = await page.evaluate(() => {
-        const bb = (window.__voxwright as Vox).volume().placedBounds() as [number[], number[]];
+        const bb = (window.__voxmc as Vox).volume().placedBounds() as [number[], number[]];
         return bb;
       });
       const spot = [bounds[0][0] as number, (bounds[1][1] as number) + 1, bounds[0][2] as number];
@@ -475,8 +475,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       await page.keyboard.press("Enter");
       await sleep(200);
       const placed = await page.evaluate(
-        (p) =>
-          (window.__voxwright as Vox).volume().get(p[0] as number, p[1] as number, p[2] as number),
+        (p) => (window.__voxmc as Vox).volume().get(p[0] as number, p[1] as number, p[2] as number),
         spot,
       );
       ok(
@@ -490,7 +489,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         t("the block state panel follows the cell that was set"),
       );
       await page.evaluate(() =>
-        (window.__voxwright as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
+        (window.__voxmc as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
       );
       ok((await stored(page))?.edits === 1, t("the keyboard edit is autosaved like any other"));
       await settle(page);
@@ -540,7 +539,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       );
       // A chest gets a block entity and an armor stand an entity, so the snapshot has something to keep.
       const extras = await page.evaluate(() => {
-        const vox = window.__voxwright as Vox;
+        const vox = window.__voxmc as Vox;
         const vol = vox.volume() as unknown as {
           eachCell(f: (x: number, y: number, z: number, i: number) => void): void;
           palette: string[];
@@ -602,7 +601,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       ok(extras !== null, t("the fixture has a chest to give a block entity"));
       const chestAt = extras as unknown as number[];
       const first = await page.evaluate(async () => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const b = v.volume().placedBounds() as [number[], number[]];
         await v.edit(
           b[0][0] as number,
@@ -650,7 +649,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
 
       // Another edit, flushed at once; remember what the volume looks like.
       await page.evaluate(async () => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const b = v.volume().placedBounds() as [number[], number[]];
         await v.edit(
           (b[0][0] as number) + 2,
@@ -664,7 +663,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       ok(rec?.edits === 3, t("a flush writes the third edit at once"));
       editedCells = await cells(page);
       const beforeBE = await page.evaluate((c) => {
-        const v = (window.__voxwright as Vox).volume();
+        const v = (window.__voxmc as Vox).volume();
         const e = v.blockEntityAt(c[0] as number, c[1] as number, c[2] as number);
         return e
           ? JSON.stringify([e.edition, [...(e.nbt.value as Map<string, unknown>).keys()]])
@@ -722,7 +721,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         t("the restored volume equals the edited one cell for cell"),
       );
       const afterBE = await page.evaluate((c) => {
-        const v = (window.__voxwright as Vox).volume();
+        const v = (window.__voxmc as Vox).volume();
         const e = v.blockEntityAt(c[0] as number, c[1] as number, c[2] as number);
         return {
           be: e
@@ -761,7 +760,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       );
       // Editing goes on; the next snapshot counts both.
       await page.evaluate(async () => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const b = v.volume().placedBounds() as [number[], number[]];
         await v.edit(
           (b[0][0] as number) + 3,
@@ -783,7 +782,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         };
       });
       await page.evaluate(async () => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const b = v.volume().placedBounds() as [number[], number[]];
         await v.edit(
           (b[0][0] as number) + 4,
@@ -805,7 +804,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         proto.put = proto.__put;
       });
       await page.evaluate(() =>
-        (window.__voxwright as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
+        (window.__voxmc as unknown as { flushAutosave(): Promise<void> }).flushAutosave(),
       );
       ok(
         (await text(page, "autosave")).includes("Saved in this browser") &&
@@ -835,7 +834,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       await upload(page, "file", ctx.fixture);
       await statusHas(page, "blocks");
       await page.evaluate(async () => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const b = v.volume().placedBounds() as [number[], number[]];
         await v.edit(
           b[0][0] as number,
@@ -925,7 +924,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
       );
       await page.evaluate(async () => {
         // Cutting the layers still works after the pack swap (slice kept through setPack).
-        const r = (window.__voxwright as Vox).renderer;
+        const r = (window.__voxmc as Vox).renderer;
         r.setSlice({ y0: 0, y1: 0 });
         await r.whenIdle();
         r.setSlice(null);
@@ -1029,7 +1028,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
         await waitColours(page, "none");
         ok(true, t("with the site's pack, stone and dirt are its textures (no pure red or blue)"));
         const before = await page.evaluate(
-          () => (window.__voxwright as Vox).renderer.stats().fallbackBlocks.length,
+          () => (window.__voxmc as Vox).renderer.stats().fallbackBlocks.length,
         );
         await upload(page, "pack-file", files.zip);
         await waitColours(page, "pack");
@@ -1040,7 +1039,7 @@ export async function m4Suite(ctx: M4Context): Promise<void> {
           t("the panel says it is laid over the site's pack"),
         );
         const after = await page.evaluate(
-          () => (window.__voxwright as Vox).renderer.stats().fallbackBlocks.length,
+          () => (window.__voxmc as Vox).renderer.stats().fallbackBlocks.length,
         );
         ok(
           after <= before,

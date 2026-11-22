@@ -303,7 +303,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // Rapidly toggle viewports 50 times across mobile resolutions, orientations, keyboard resize
     const mobileViewports = [
@@ -323,12 +323,10 @@ try {
 
     // Settle at standard mobile portrait
     await page.setViewport(MOBILE_VIEWPORT);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     await new Promise((r) => setTimeout(r, 300));
 
-    const triangles = await page.evaluate(
-      () => window.__voxwright?.renderer?.stats().triangles ?? 0,
-    );
+    const triangles = await page.evaluate(() => window.__voxmc?.renderer?.stats().triangles ?? 0);
     check(
       "Rapid 50x mobile viewport resize maintains scene geometry without WebGL error",
       triangles > 0 && errors.length === 0,
@@ -381,7 +379,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const canvasEl = await page.$('[data-testid="canvas"]');
     if (!canvasEl) throw new Error("canvas element not found");
@@ -392,9 +390,7 @@ try {
 
     const getPose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
 
     // 4A: 50 Rapid sequential touch drags
@@ -403,7 +399,7 @@ try {
       const dy = (i % 3 === 0 ? 1 : -1) * (5 + (i % 10));
       await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx + dx, y: cy + dy }, 2, 1);
     }
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     let pose = await getPose();
     const poseSanity1 =
@@ -419,7 +415,7 @@ try {
     // 4B: Out-of-bounds drag (drags far beyond viewport: -500 to 5000)
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: -500, y: -200 }, 4, 1);
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: 3000, y: 5000 }, 4, 1);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     pose = await getPose();
     const poseSanity2 =
@@ -434,7 +430,7 @@ try {
 
     // 4C: Zero-delta touch drag (tap-like touch move with 0 distance)
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx, y: cy }, 3, 1);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     pose = await getPose();
     check(
       "Zero-delta touch drag succeeds without error or NaN",
@@ -456,12 +452,12 @@ try {
       type: "touchCancel",
       touchPoints: [],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // Followed by normal touch drag — does the renderer recover smoothly?
     const poseBeforeRecovery = await getPose();
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx + 80, y: cy + 30 }, 4, 1);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     const poseAfterRecovery = await getPose();
 
     const orbitWorkedAfterCancel =
@@ -480,7 +476,7 @@ try {
       const spread2 = i % 2 === 0 ? 60 : 120;
       await cdpPinch(cdp, { x: cx, y: cy }, spread1, spread2, 3);
     }
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     pose = await getPose();
     check(
@@ -594,7 +590,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await mobilePage.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await mobilePage.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // Since MB3 a touch-only device gets the mobile editor: a session, the bottom toolbar with the
     // tools, Undo and Redo, and Export in the menu. What it must still NOT get is the desktop layout:
@@ -609,7 +605,7 @@ try {
       const redoBtn = document.querySelector('[data-testid="redo"]');
       const toolBtns = document.querySelectorAll('[data-testid^="tool-"]');
       const note = document.querySelector('[data-testid="edit-note"]');
-      const sessionObj = window.__voxwright?.session();
+      const sessionObj = window.__voxmc?.session();
       (document.querySelector('[data-testid="mobile-menu-btn"]') as HTMLElement | null)?.click();
       for (let i = 0; i < 50 && !document.querySelector('[data-testid="mobile-convert"]'); i++) {
         await new Promise((r) => setTimeout(r, 40));
@@ -658,7 +654,7 @@ try {
       `isExportMode=${mobileEditorGate.isExportMode}`,
     );
     check(
-      "Coarse pointer has an editing session in the __voxwright hook",
+      "Coarse pointer has an editing session in the __voxmc hook",
       mobileEditorGate.sessionIsActive,
       `sessionIsActive=${mobileEditorGate.sessionIsActive}`,
     );
@@ -694,14 +690,14 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await desktopPage.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await desktopPage.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const desktopEditorState = await desktopPage.evaluate(() => {
       const tb = document.querySelector('[data-testid="toolbar"]');
       const side = document.querySelector('[data-testid="editor-side"]');
       const convertBtn =
         document.querySelector('[data-testid="convert"]')?.textContent?.trim() ?? "";
-      const sessionObj = window.__voxwright?.session();
+      const sessionObj = window.__voxmc?.session();
 
       return {
         toolbarPresent: tb !== null,
@@ -748,7 +744,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const viewportMatrix = [
       {
@@ -788,7 +784,7 @@ try {
     for (const v of viewportMatrix) {
       await page.setViewport(v.vp);
       await new Promise((r) => setTimeout(r, 50));
-      await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
       const metrics = await page.evaluate(() => {
         const c = document.querySelector('[data-testid="canvas"]') as HTMLCanvasElement;
@@ -851,7 +847,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const canvasEl = await page.$('[data-testid="canvas"]');
     if (!canvasEl) throw new Error("canvas element not found");
@@ -862,9 +858,7 @@ try {
 
     const getPose = (): Promise<TouchPose> =>
       page.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
 
     // 8A: 0-spread pinch (coincident fingers at exact same point)
@@ -891,7 +885,7 @@ try {
         { x: cx + 20, y: cy + 20, id: 2 },
       ],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     let pose = await getPose();
     check(
@@ -927,7 +921,7 @@ try {
         { x: cx - 60, y: cy, id: 2 },
       ],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     pose = await getPose();
     check(
@@ -963,7 +957,7 @@ try {
         { x: cx + 40, y: cy - 20, id: 3 },
       ],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     pose = await getPose();
     check(
@@ -1004,7 +998,7 @@ try {
       type: "touchEnd",
       touchPoints: [{ x: cx - 100, y: cy + 40, id: 1 }],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     pose = await getPose();
     check(
@@ -1032,12 +1026,12 @@ try {
       type: "touchCancel",
       touchPoints: [],
     });
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const poseBeforeRecovery = await getPose();
     // Subsequent normal 1-finger orbit drag
     await cdpTouchDrag(cdp, { x: cx, y: cy }, { x: cx + 80, y: cy + 40 }, 4, 1);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
     const poseAfterRecovery = await getPose();
 
     const recoveredOrbit =

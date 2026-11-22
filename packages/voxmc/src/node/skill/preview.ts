@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// `voxwright-cli preview <schematic>`: a local server for the web viewer and editor.
+// `voxmc preview <schematic>`: a local server for the web viewer and editor.
 //
 // It serves the web app (a local build, or the published site through a caching reverse proxy, so
 // the page and the schematic share one origin) and the one schematic at `<app base>/__preview/<name>`,
@@ -22,8 +22,8 @@ import { SkillCliError, type SkillIo } from "./io.ts";
 
 export const DEFAULT_PORT = 4173;
 export const DEFAULT_HOST = "127.0.0.1";
-/** The published web app. `https://lzif.github.io/voxwright/` redirects here. */
-export const PUBLISHED_WEB = "https://luki.is-a.dev/voxwright/";
+/** The published web app. */
+export const PUBLISHED_WEB = "https://luki.is-a.dev/voxmc/";
 /** How many ports after the default are tried when it is busy. */
 const PORT_TRIES = 50;
 const SCHEMATIC_EXTENSIONS = [".schem", ".litematic", ".nbt", ".mcstructure"];
@@ -44,7 +44,7 @@ Options:
   --no-open           do not open the page in the default browser
   --runs <dir>        where run ids are looked up (default dist/)
   --web <dir|url>     web app to serve: a built apps/web directory or an http(s) URL
-                      (default: $VOXWRIGHT_WEB, else apps/web/build of this checkout,
+                      (default: $VOXMC_WEB, else apps/web/build of this checkout,
                       else ${PUBLISHED_WEB} through a local caching proxy)
   -h, --help          show this help`;
 
@@ -73,9 +73,9 @@ export interface PreviewOptions {
   /** The schematic to serve; relative to `cwd`. */
   schematic: string;
   cwd: string;
-  /** Home directory: the proxy cache lives in `<home>/.cache/voxwright/web/`. */
+  /** Home directory: the proxy cache lives in `<home>/.cache/voxmc/web/`. */
   home: string;
-  /** `--web` (or `$VOXWRIGHT_WEB`): a directory or an http(s) URL. Relative directories resolve against `cwd`. */
+  /** `--web` (or `$VOXMC_WEB`): a directory or an http(s) URL. Relative directories resolve against `cwd`. */
   web?: string;
   /** Explicit port (busy is an error; 0 picks any free port). Without it the default is used, or the next free one. */
   port?: number;
@@ -119,7 +119,7 @@ export async function cmdPreview(args: string[], io: SkillIo): Promise<number> {
     schematic: await schematicOf(parsed.schematic, parsed.runs, io.cwd),
     cwd: io.cwd,
     home: io.home,
-    web: parsed.web ?? (io.env.VOXWRIGHT_WEB?.trim() || undefined),
+    web: parsed.web ?? (io.env.VOXMC_WEB?.trim() || undefined),
     port: parsed.port,
     host: parsed.host,
   });
@@ -355,7 +355,7 @@ async function chooseSource(
   notes: string[],
   timeoutMs: number,
 ): Promise<WebSource> {
-  const cacheRoot = join(options.home, ".cache", "voxwright", "web");
+  const cacheRoot = join(options.home, ".cache", "voxmc", "web");
   if (options.web !== undefined) {
     if (/^https?:\/\//i.test(options.web)) {
       const upstream = await resolveUpstream(options.web, cacheRoot, notes, timeoutMs);
@@ -369,7 +369,7 @@ async function chooseSource(
     const dir = resolve(options.cwd, options.web);
     if (!existsSync(join(dir, "index.html")))
       throw new SkillCliError(
-        `--web ${dir} has no index.html; build the web app first (pnpm --filter @voxwright/web build)`,
+        `--web ${dir} has no index.html; build the web app first (pnpm --filter voxmc-web build)`,
         2,
       );
     return { kind: "dir", dir, why: "explicit" };
@@ -388,7 +388,7 @@ async function chooseSource(
 /**
  * The built web app of the repository checkout this file runs from: walk up from `from` to the
  * first directory that holds `apps/web`, and use its `build/` when it has an `index.html`. Works for
- * the bundle (`skills/voxwright/scripts/voxwright-cli.mjs`) and for the source (`packages/mcbuilder/src/node/skill/`).
+ * the bundle (`skills/voxwright/scripts/voxwright-cli.mjs`) and for the source (`packages/voxmc/src/node/skill/`).
  */
 export function findLocalWebBuild(from: string): string | null {
   let dir = resolve(from);
@@ -413,9 +413,8 @@ function asDirectoryUrl(u: URL): string {
 }
 
 /**
- * The upstream base after redirects (`https://lzif.github.io/voxwright/` becomes
- * `https://luki.is-a.dev/voxwright/`). The answer is remembered in the cache so an offline start
- * still finds the cached copy.
+ * The upstream base after redirects (a site that moved to another host, say). The answer is
+ * remembered in the cache so an offline start still finds the cached copy.
  */
 async function resolveUpstream(
   given: string,
@@ -441,7 +440,7 @@ async function resolveUpstream(
     const res = await fetch(start, {
       redirect: "follow",
       signal: AbortSignal.timeout(timeoutMs),
-      headers: { "user-agent": "voxwright-cli preview" },
+      headers: { "user-agent": "voxmc preview" },
     });
     await res.body?.cancel();
     const final = asDirectoryUrl(new URL(res.url || start.href));
@@ -639,7 +638,7 @@ async function serveProxy(
     if (hit === null) return false;
     send(req, res, 200, hit.meta.contentType, hit.body, {
       "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache",
-      "x-voxwright-cache": "hit",
+      "x-voxmc-cache": "hit",
     });
     return true;
   };
@@ -650,7 +649,7 @@ async function serveProxy(
     upstreamRes = await fetch(target, {
       redirect: "follow",
       signal: AbortSignal.timeout(timeoutMs),
-      headers: { "user-agent": "voxwright-cli preview", accept: req.headers.accept ?? "*/*" },
+      headers: { "user-agent": "voxmc preview", accept: req.headers.accept ?? "*/*" },
     });
   } catch (err) {
     if (await fromCache()) return;
@@ -664,7 +663,7 @@ async function serveProxy(
     );
   }
 
-  // Redirected inside the app (`/voxwright` to `/voxwright/`, say): send the browser there, so
+  // Redirected inside the app (`/voxmc` to `/voxmc/`, say): send the browser there, so
   // relative links in the page resolve against the right directory.
   const finalUrl = upstreamRes.url ? new URL(upstreamRes.url) : new URL(target);
   if (finalUrl.href !== target) {

@@ -33,4 +33,4 @@ Schematic files shared by all tests.
   `Materials: "Alpha"` format), used to verify legacy `.schematic` rejection.
 
 `packages/core/test/real-fixtures.test.ts`, `convert.test.ts` and
-`packages/mcbuilder/test/importer.test.ts` read and convert these fixtures.
+`packages/voxmc/test/importer.test.ts` read and convert these fixtures.

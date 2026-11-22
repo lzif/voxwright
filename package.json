@@ -1,5 +1,5 @@
 {
-  "name": "voxwright",
+  "name": "voxmc",
   "version": "0.0.3",
   "private": true,
   "description": "Programmatic Minecraft build engine and Agent Skill: AI agents script builds and export .schem, .litematic, .nbt and .mcstructure, with a browser 3D preview and editor.",
@@ -19,7 +19,7 @@
     "check": "biome check .",
     "typecheck": "pnpm -r --if-present run typecheck && tsc -p scripts/tsconfig.json",
     "test": "vitest run",
-    "test:touch": "pnpm --filter @voxwright/web test:touch",
+    "test:touch": "pnpm --filter voxmc-web test:touch",
     "depcheck": "depcruise --config .dependency-cruiser.cjs .",
     "build:skill": "node scripts/build-skill.ts",
     "pack:npm": "node scripts/pack-npm.ts",

@@ -13,7 +13,7 @@ import {
 } from "../src/index.ts";
 import { CHEST, chestEntity, loadVector } from "./helpers.ts";
 
-// The editor's rotate and mirror must reproduce mcbuilder's golden vectors.
+// The editor's rotate and mirror must reproduce the Python reference implementation's golden vectors.
 // These are the same vectors rotation.test.ts uses for the bare functions.
 interface Vectors {
   positions: { x: number; z: number; size: number; rotation: Rotation; result: [number, number] }[];

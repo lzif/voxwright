@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import { blockProperties } from "@voxwright/core";
+import { blockProperties } from "voxmc-core";
 import { classifyProperty, rotationStep, stepNumeric } from "../block-state.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
 

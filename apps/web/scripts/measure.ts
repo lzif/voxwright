@@ -7,21 +7,21 @@
 //
 //   node scripts/measure.ts [--size 256] [--height 64] [--assets <assets/minecraft>] [--out file.schem]
 //
-// Without --assets it looks where `mcbuild assets fetch` puts them, as the render tests do.
+// Without --assets it looks where `voxmc assets fetch` puts them, as the render tests do.
 
 import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { readSchem, writeSchem } from "@voxwright/core";
+import { readSchem, writeSchem } from "voxmc-core";
 import {
   buildAtlas,
   parseSectionKey,
   SectionMesher,
   SectionStore,
   sectionKeysAround,
-} from "@voxwright/render";
-import { directoryAssets } from "@voxwright/render/node";
+} from "voxmc-render";
+import { directoryAssets } from "voxmc-render/node";
 import { generateTerrain } from "./synthetic.ts";
 
 const { values } = parseArgs({
@@ -36,8 +36,8 @@ const size = Number(values.size ?? 256);
 const height = Number(values.height ?? 64);
 const root =
   values.assets ??
-  process.env.VOXWRIGHT_ASSETS ??
-  join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ??
+  join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 
 const ms = (t: number): string => `${(performance.now() - t).toFixed(1)} ms`;
 const quantile = (sorted: number[], p: number): number =>

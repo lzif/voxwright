@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import { canonicalize } from "@voxwright/core";
+import { canonicalize } from "voxmc-core";
 import { normalizeBlockInput, searchPalette } from "../editing.ts";
 import type { EditSession } from "../editor-session.svelte.ts";
 import { FAVORITE_LIMIT, favoritesFull, isFavorite, shortName } from "../hotbar.ts";

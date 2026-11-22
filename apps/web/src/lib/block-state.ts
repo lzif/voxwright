@@ -7,7 +7,7 @@
 // numbers makes chips (few values) or a stepper (many, or no known range), and everything else is
 // free text. No DOM, so it runs under Vitest.
 
-import type { BlockProperty } from "@voxwright/core";
+import type { BlockProperty } from "voxmc-core";
 
 /** A numeric property with this many values or fewer is drawn as chips; more get a stepper. */
 export const NUMERIC_CHIPS_MAX = 8;

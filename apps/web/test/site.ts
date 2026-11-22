@@ -33,12 +33,12 @@ export function findChromium(explicit?: string): string {
 
 /**
  * Serve `apps/web/build` (falling back to index.html, as a static host would). `url` is the
- * address the tests open: it carries `?e2e`, which makes the page install its `window.__voxwright`
+ * address the tests open: it carries `?e2e`, which makes the page install its `window.__voxmc`
  * test hook (a normal visit does not). `plainUrl` is the address without it.
  */
 export async function serveSite(): Promise<{ url: string; plainUrl: string; server: Server }> {
   if (!existsSync(join(site, "index.html")))
-    throw new Error("build the site first: pnpm --filter @voxwright/web build");
+    throw new Error("build the site first: pnpm --filter voxmc-web build");
   const server = createServer((req, res) => {
     const path = normalize(decodeURIComponent((req.url ?? "/").split("?")[0] as string)).replace(
       /^(\.\.[/\\])+/,

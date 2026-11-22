@@ -137,7 +137,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // 1A. Tap active-block-swatch to open Palette bottom sheet
     const swatch = await page.$('[data-testid="active-block-swatch"]');
@@ -265,7 +265,7 @@ try {
       stoneBtnBox.y + stoneBtnBox.height / 2,
     );
     const chosenBlock = await page.evaluate(
-      () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.block,
+      () => (window as unknown as { __voxmc?: Vox }).__voxmc?.session()?.block,
     );
     check(
       "Viewport-300px",
@@ -418,7 +418,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     // 2A: Rapid Palette open/close cycling (20 iterations via touch tap)
     let openCloseSuccessCount = 0;
@@ -570,14 +570,14 @@ try {
 
     // 2D: Verify canvas and camera orbit remain fully responsive after 70+ sheet transitions
     const initialPose = await page.evaluate(() =>
-      (window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
+      (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
     );
 
     await cdpTouchDrag(cdp, { x: 200, y: 300 }, { x: 280, y: 240 }, 8);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const postStressPose = await page.evaluate(() =>
-      (window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
+      (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
     );
 
     const orbitWorked =
@@ -644,7 +644,7 @@ try {
       () => document.querySelector('[data-testid="status"]')?.textContent?.includes("762 blocks"),
       { timeout: 30000 },
     );
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const TOOLS_TO_TEST = [
       { id: "navigate", testId: "tool-navigate" },
@@ -675,7 +675,7 @@ try {
 
         // Verify active state in session
         const activeTool = await page.evaluate(
-          () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.tool,
+          () => (window as unknown as { __voxmc?: Vox }).__voxmc?.session()?.tool,
         );
         if (activeTool === t.id) {
           toolSwitchSuccess++;
@@ -707,7 +707,7 @@ try {
       await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
 
       const currentTool = await page.evaluate(
-        () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.tool,
+        () => (window as unknown as { __voxmc?: Vox }).__voxmc?.session()?.tool,
       );
       if (currentTool === targetTool.id) {
         randomSwitchCount++;
@@ -751,7 +751,7 @@ try {
     await page.touchscreen.tap(pbBox.x + pbBox.width / 2, pbBox.y + pbBox.height / 2);
 
     const toolAfterSheet = await page.evaluate(
-      () => (window as unknown as { __voxwright?: Vox }).__voxwright?.session()?.tool,
+      () => (window as unknown as { __voxmc?: Vox }).__voxmc?.session()?.tool,
     );
     check(
       "Tool-Switching",
@@ -771,14 +771,14 @@ try {
     await page.touchscreen.tap(nbBox.x + nbBox.width / 2, nbBox.y + nbBox.height / 2);
 
     const finalPoseInitial = await page.evaluate(() =>
-      (window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
+      (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
     );
 
     await cdpTouchDrag(cdp, { x: 200, y: 300 }, { x: 270, y: 350 }, 8);
-    await page.evaluate(() => window.__voxwright?.renderer.whenIdle());
+    await page.evaluate(() => window.__voxmc?.renderer.whenIdle());
 
     const finalPoseMoved = await page.evaluate(() =>
-      (window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
+      (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
     );
 
     const cameraMoved =

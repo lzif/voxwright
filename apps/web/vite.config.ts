@@ -20,20 +20,20 @@ const git = (...args: string[]): string | null => {
   }
 };
 
-/** `VOXWRIGHT_BASE_PATH`: empty or unset means the site is served from the root of its host. */
+/** `VOXMC_BASE_PATH`: empty or unset means the site is served from the root of its host. */
 function resolveBasePath(value: string | undefined): "" | `/${string}` {
   const base = value?.trim() ?? "";
   if (base === "") return "";
   if (!base.startsWith("/") || base.endsWith("/") || /[\s?#]/.test(base)) {
     throw new Error(
-      `VOXWRIGHT_BASE_PATH must start with '/', must not end with '/' and must be a plain path (for example '/voxwright'), got '${base}'`,
+      `VOXMC_BASE_PATH must start with '/', must not end with '/' and must be a plain path (for example '/voxmc'), got '${base}'`,
     );
   }
   return base as `/${string}`;
 }
 
-// The footer links to the source of the version that is running. Set VOXWRIGHT_SOURCE_URL (and, if
-// the commit cannot be read from git, VOXWRIGHT_COMMIT) when you build a modified copy.
+// The footer links to the source of the version that is running. Set VOXMC_SOURCE_URL (and, if
+// the commit cannot be read from git, VOXMC_COMMIT) when you build a modified copy.
 const info = resolveBuildInfo({
   env: process.env,
   gitCommit: () => git("rev-parse", "HEAD") || null,
@@ -52,16 +52,16 @@ export default defineConfig({
       adapter: adapter({ fallback: "200.html" }),
       // The site may live under a sub-path when self-hosted; relative asset paths make that work
       // for index.html. The fallback page (200.html) can be served at any URL, so it cannot use
-      // relative paths: build with VOXWRIGHT_BASE_PATH set for it to point at the sub-path.
-      paths: { relative: true, base: resolveBasePath(process.env.VOXWRIGHT_BASE_PATH) },
+      // relative paths: build with VOXMC_BASE_PATH set for it to point at the sub-path.
+      paths: { relative: true, base: resolveBasePath(process.env.VOXMC_BASE_PATH) },
     }),
   ],
   define: {
-    __VOXWRIGHT_SOURCE_URL__: JSON.stringify(info.sourceUrl),
-    __VOXWRIGHT_SOURCE_LINK__: JSON.stringify(info.sourceLink),
-    __VOXWRIGHT_COMMIT__: JSON.stringify(info.commit),
-    __VOXWRIGHT_MODIFIED__: JSON.stringify(info.modified),
-    __VOXWRIGHT_VERSION__: JSON.stringify(info.version),
+    __VOXMC_SOURCE_URL__: JSON.stringify(info.sourceUrl),
+    __VOXMC_SOURCE_LINK__: JSON.stringify(info.sourceLink),
+    __VOXMC_COMMIT__: JSON.stringify(info.commit),
+    __VOXMC_MODIFIED__: JSON.stringify(info.modified),
+    __VOXMC_VERSION__: JSON.stringify(info.version),
   },
   // Dev server only: the workspace packages (packages/render holds the mesh worker) live outside
   // the app root, so Vite must be allowed to serve them. The build ignores `server`.

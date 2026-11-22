@@ -3,9 +3,9 @@ export { Build, type BuildOptions, type BuildRenderOptions } from "./build.ts";
 export {
   ConfigError,
   expandUser,
-  type McbuildConfig,
   parseConfig,
   resolveAssetsDir,
+  type VoxmcConfig,
 } from "./config.ts";
 export { DATA_VERSIONS, ExportError, resolveDataVersion } from "./dataversion.ts";
 export {
@@ -19,7 +19,7 @@ export {
   type VoxelMap,
   voxelKey,
 } from "./diff.ts";
-export { BuildError, GridBoundsError, McbuilderError } from "./errors.ts";
+export { BuildError, GridBoundsError, VoxmcError } from "./errors.ts";
 export { type Cell, Geometry, type Point } from "./geometry.ts";
 export {
   buildGuide,

@@ -4,20 +4,15 @@
 // how each of them is printed.
 
 import { join } from "node:path";
-import { AIR, compareCodePoints, type Volume } from "@voxwright/core";
+import { AIR, compareCodePoints, type Volume } from "voxmc-core";
 import { DATA_VERSIONS } from "../../dataversion.ts";
 import { SkillCliError } from "./io.ts";
 
-/**
- * The name in usage and error text. The npm package installs the same bundle as `mcbuild`
- * (scripts/pack-npm.ts), so the text follows the name the program was started under.
- */
-export const PROG = /(^|[\\/])(?:mcbuild|voxmc)(\.mjs|\.ts)?$/.test(process.argv[1] ?? "")
-  ? "mcbuild"
-  : "voxwright-cli";
+/** The name in usage and error text: the one command, whatever file it was started from. */
+export const PROG = "voxmc";
 /** Replaced by the repository version when the bundle is built (scripts/build-skill.ts). */
-declare const __VOXWRIGHT_VERSION__: string | undefined;
-export const VERSION = typeof __VOXWRIGHT_VERSION__ === "string" ? __VOXWRIGHT_VERSION__ : "dev";
+declare const __VOXMC_VERSION__: string | undefined;
+export const VERSION = typeof __VOXMC_VERSION__ === "string" ? __VOXMC_VERSION__ : "dev";
 export const DEFAULT_MC_VERSION = "26.2";
 
 export type Vec3 = [number, number, number];
@@ -68,7 +63,7 @@ export function releaseOf(dataVersion: number): string | null {
   return null;
 }
 
-/** `~/.cache/mcbuilder`: the cache `mcbuild assets fetch` fills. */
-export const cacheRoot = (home: string): string => join(home, ".cache", "mcbuilder");
+/** `~/.cache/voxmc`: the cache `voxmc assets fetch` fills. */
+export const cacheRoot = (home: string): string => join(home, ".cache", "voxmc");
 
 export const usageError = (message: string): SkillCliError => new SkillCliError(message, 2);

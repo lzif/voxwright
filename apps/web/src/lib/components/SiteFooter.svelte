@@ -11,7 +11,7 @@ const short = buildInfo.commit.length > 12 ? buildInfo.commit.slice(0, 9) : buil
 
 {#snippet body()}
   <p>
-    <strong>voxwright</strong>{buildInfo.version === "0.0.0" ? "" : ` ${buildInfo.version}`}
+    <strong>voxmc</strong>{buildInfo.version === "0.0.0" ? "" : ` ${buildInfo.version}`}
     is free software under the
     <a href="https://www.gnu.org/licenses/agpl-3.0.html" rel="noopener" data-testid="license-link">GNU Affero General Public License, version 3 only</a>.
     <a href={buildInfo.sourceLink} rel="noopener" data-testid="source-link">Source code of this version{short ? ` (${short}${buildInfo.modified ? ", with local changes" : ""})` : ""}</a>.

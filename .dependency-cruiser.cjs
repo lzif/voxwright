@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // One-way dependency direction between workspace members:
-//   apps/web, mcbuilder -> render, core
+//   apps/web, voxmc -> render, core
 //   render              -> core
 //   core                -> nothing else in the workspace, and no DOM
-// packages/render/src/webgl is the browser entry point (@voxwright/render/webgl): the only
+// packages/render/src/webgl is the browser entry point (voxmc-render/webgl): the only
 // place that may import three.js or touch the DOM, and nothing outside it may import it
 // except apps/web. The rest of render stays DOM-free, so Node programs can use it.
 // Directory names are packages/<name> and apps/<name>.
@@ -44,8 +44,8 @@ module.exports = {
       to: { path: "^(packages/(?!render/|core/)|apps/)" },
     },
     {
-      name: "mcbuilder-only-uses-render-and-core",
-      comment: "packages/mcbuilder may depend on packages/render and packages/core only.",
+      name: "voxmc-engine-only-uses-render-and-core",
+      comment: "packages/voxmc may depend on packages/render and packages/core only.",
       severity: "error",
       from: { path: "^packages/voxmc/" },
       to: { path: "^(packages/(?!voxmc/|render/|core/)|apps/)" },
@@ -67,7 +67,7 @@ module.exports = {
       to: { path: "^packages/render/src/webgl/" },
     },
     {
-      name: "mcbuilder-no-webgl",
+      name: "voxmc-engine-no-webgl",
       comment: "The Node CLI never imports the browser renderer.",
       severity: "error",
       from: { path: "^packages/voxmc/" },

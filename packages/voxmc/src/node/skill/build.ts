@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// `voxwright-cli build <recipe> --out <path>`: run a recipe headlessly,
+// `voxmc build <recipe> --out <path>`: run a recipe headlessly,
 // validate its blocks, export the schematic and print a summary.
 
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import type { AirMode, SchemVersion, WriteResult } from "@voxwright/core";
+import type { AirMode, SchemVersion, WriteResult } from "voxmc-core";
 import { DATA_VERSIONS } from "../../dataversion.ts";
 import { GridBoundsError } from "../../errors.ts";
 import type { ValidationError, ValidationWarning } from "../../registry.ts";
@@ -56,11 +56,11 @@ Options:
                         (default ${DEFAULT_MC_VERSION}; known: ${Object.keys(DATA_VERSIONS).join(", ")})
   --data-version <n>    DataVersion to write, for a version the CLI does not know
   --registry <file>     block registry JSON to validate against, instead of the
-                        cache in ~/.cache/mcbuilder/<v>/minecraft-data.json
+                        cache in ~/.cache/voxmc/<v>/minecraft-data.json
   --offline             never download the registry; a build without a registry
                         is exported unvalidated, with a warning
   --allow <block>       accept this block name even if the registry lacks it
-                        (modded blocks); repeatable. A mcbuild.toml next to the
+                        (modded blocks); repeatable. A voxmc.toml next to the
                         recipe can set mc_version and allowlist instead
   --schem-version <n>   Sponge schematic version to write: 2 or 3 (default 3)
   --air <mode>          .nbt only: none | explicit | all (default none)
@@ -212,7 +212,7 @@ async function resolveDataVersionFor(
   assetsDir: string | null,
 ): Promise<number> {
   if (override !== undefined) return override;
-  // The client jar's version.json, when `mcbuild assets fetch` left one, is authoritative.
+  // The client jar's version.json, when `voxmc assets fetch` left one, is authoritative.
   for (const dir of assetVersionCandidates(assetsDir, mcVersion, home)) {
     const versionJson = join(dir, "version.json");
     if (await exists(versionJson)) {
@@ -277,7 +277,7 @@ export async function cmdBuild(
   const dataVersionOverride = parseDataVersion(values["data-version"]);
   const json = values.json === true;
   const recipe = resolve(io.cwd, positionals[0] as string);
-  // A `mcbuild.toml` next to the recipe (or above it) gives the version and the allowlist, as it
+  // A `voxmc.toml` next to the recipe (or above it) gives the version and the allowlist, as it
   // does for `check` and `run`; the command line wins over it.
   let config: Awaited<ReturnType<typeof findConfig>>;
   try {
@@ -387,7 +387,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
       palette.map((p) => p.state),
       req.allow,
     );
-    // The registry's advice names mcbuild's config file; this CLI takes the allowlist as a flag.
+    // The registry's advice names voxmc's config file; this CLI takes the allowlist as a flag.
     errors = result.errors.map((e) => ({
       ...e,
       ...at(e.block),

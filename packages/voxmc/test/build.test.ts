@@ -2,16 +2,16 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { type View, ViewError } from "@voxwright/render";
 import { describe, expect, it } from "vitest";
+import { type View, ViewError } from "voxmc-render";
 import {
   Build,
   BuildError,
   type Geometry,
-  McbuilderError,
   type Point,
   Registry,
   shapes,
+  VoxmcError,
 } from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
 import { call } from "./shapes.test.ts";
@@ -250,10 +250,8 @@ describe("Build floor, stairsRun and railing", () => {
       const b = new Build();
       expect(() => b.floor([0, 0, 0], [1, 0, 1], "minecraft:stone")).toThrow(/inside/);
       b.scope(() => {
-        expect(() => b.floor([0, 0] as never, [1, 0, 1], "minecraft:stone")).toThrow(
-          McbuilderError,
-        );
-        expect(() => b.floor([0, 0, 0], [1, 0, 0.5], "minecraft:stone")).toThrow(McbuilderError);
+        expect(() => b.floor([0, 0] as never, [1, 0, 1], "minecraft:stone")).toThrow(VoxmcError);
+        expect(() => b.floor([0, 0, 0], [1, 0, 0.5], "minecraft:stone")).toThrow(VoxmcError);
       });
       expect(b.bounds()).toBeNull();
     });
@@ -299,7 +297,7 @@ describe("Build floor, stairsRun and railing", () => {
       b.scope(() => {
         expect(() =>
           b.stairsRun([0, 0, 0], "north", "minecraft:oak_stairs[facing=east]", { length: 2 }),
-        ).toThrow(McbuilderError);
+        ).toThrow(VoxmcError);
       });
       expect(b.bounds()).toBeNull();
     });
@@ -363,7 +361,7 @@ describe("Build floor, stairsRun and railing", () => {
       b.scope(() => {
         expect(() => b.railing([0, 64, 0], [4, 65, 0], FENCE)).toThrow(/same y level/);
         expect(() => b.railing([0, 64, 0], [4, 64, 3], FENCE)).toThrow(/axis-aligned/);
-        expect(() => b.railing([0, 64, 0], [4, 64, 3], FENCE)).toThrow(McbuilderError);
+        expect(() => b.railing([0, 64, 0], [4, 64, 3], FENCE)).toThrow(VoxmcError);
       });
       expect(b.bounds()).toBeNull();
     });
@@ -411,7 +409,7 @@ describe("Build.validate and Build.render", () => {
 
   // Renders several software previews: about 45 s on a fast machine, over 60 s on CI runners.
   it("renders views to PNGs with precedence, region cropping and determinism", () => {
-    const dir = mkdtempSync(join(tmpdir(), "voxwright-build-render-"));
+    const dir = mkdtempSync(join(tmpdir(), "voxmc-build-render-"));
     try {
       const b = new Build({ seed: 7, views: ["top"] });
       b.scope(() => {

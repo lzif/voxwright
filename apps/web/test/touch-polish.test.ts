@@ -6,9 +6,9 @@
 // (x, y) is the ray from world (x / 10, 10, y / 10) pointing along -y, so the cell under the point
 // is (floor(x / 10), ., floor(y / 10)). The floor is stone, 16 x 16 at y = 0.
 
-import { cloneVolume, type Vec3, Volume } from "@voxwright/core";
-import type { WebglRenderer } from "@voxwright/render/webgl";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { cloneVolume, type Vec3, Volume } from "voxmc-core";
+import type { WebglRenderer } from "voxmc-render/webgl";
 import type { SessionEvent } from "../src/lib/changes.ts";
 import type { ToolId } from "../src/lib/editing.ts";
 import { EditSession } from "../src/lib/editor-session.svelte.ts";

@@ -1,8 +1,8 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
 <script lang="ts">
-import type { Volume } from "@voxwright/core";
-import type { RendererStats, WebglRenderer } from "@voxwright/render/webgl";
 import { onMount, untrack } from "svelte";
+import type { Volume } from "voxmc-core";
+import type { RendererStats, WebglRenderer } from "voxmc-render/webgl";
 import { asset } from "$app/paths";
 import type { AssetPath } from "$app/types";
 import { decodePack, fetchPack } from "../lib/assets.ts";
@@ -769,7 +769,7 @@ function onBeforeUnload(e: BeforeUnloadEvent): void {
 const isPackFile = (f: File): boolean => /\.(zip|jar)$/i.test(f.name);
 
 /**
- * `?open=<url>` (what `voxwright-cli preview` links to): fetch a file from this site and open it as if
+ * `?open=<url>` (what `voxmc preview` links to): fetch a file from this site and open it as if
  * it were dropped. Runs once at startup, before the autosave offer, so the link is never held up by a
  * prompt; the parameter stays in the address, so a refresh opens the file again.
  */
@@ -999,7 +999,7 @@ function wireTouchGestures(c: HTMLCanvasElement, r: WebglRenderer): void {
 async function startGpu(): Promise<boolean> {
   try {
     const [{ createWebglRenderer, defaultWorkerCount }, site, user] = await Promise.all([
-      import("@voxwright/render/webgl"),
+      import("voxmc-render/webgl"),
       fetchPack(packUrl()),
       loadUserPack(),
     ]);
@@ -1060,7 +1060,7 @@ async function startGpu(): Promise<boolean> {
  */
 function installTestHook(): void {
   if (!new URLSearchParams(location.search).has("e2e")) return;
-  (window as unknown as { __voxwright: unknown }).__voxwright = {
+  (window as unknown as { __voxmc: unknown }).__voxmc = {
     renderer,
     timings: () => $state.snapshot(timings),
     volume: () => volume,
@@ -1224,7 +1224,7 @@ onMount(() => {
       <span class="menu-label">Menu</span>
     </button>
     <div class="mobile-bar-center">
-      <h1 class="mobile-logo ore-type-heading">voxwright</h1>
+      <h1 class="mobile-logo ore-type-heading">voxmc</h1>
       <p id="status" class="mobile-status ore-type-caption" data-testid="status" role="status">{status}</p>
     </div>
     <button
@@ -1243,7 +1243,7 @@ onMount(() => {
 <main class:mobile-layout={isMobileLayout} ondragover={(e) => e.preventDefault()} ondrop={onDrop}>
   {#if !isMobileLayout}
     <header class="page-header">
-      <h1 class="ore-type-display">voxwright</h1>
+      <h1 class="ore-type-display">voxmc</h1>
       <p id="status" class="ore-type-label ore-muted" data-testid="status" role="status">{status}</p>
       <p class="engine ore-type-caption ore-muted" data-testid="renderer" data-kind={kind}>{kind === "webgl" ? "GPU renderer" : kind === "cpu" ? "software renderer (no WebGL2)" : ""}</p>
     </header>
@@ -1284,7 +1284,7 @@ onMount(() => {
 
     {#if !info}
       <div class="mobile-welcome-card ore-panel">
-        <h2 class="ore-panel__header ore-type-heading">Welcome to voxwright</h2>
+        <h2 class="ore-panel__header ore-type-heading">Welcome to voxmc</h2>
         <p class="ore-type-prose ore-muted">3D preview and editor for Minecraft builds</p>
         <label class="button mobile-card-btn ore-btn ore-btn--hero ore-btn--touch ore-type-heading">
           Open a schematic

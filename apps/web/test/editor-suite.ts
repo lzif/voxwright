@@ -16,6 +16,7 @@ import { readdirSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import puppeteer, { type ElementHandle, type KeyInput } from "puppeteer-core";
 import {
   applyCommand,
   type Box,
@@ -41,8 +42,7 @@ import {
   TagId,
   Volume,
   writeLitematic,
-} from "@voxwright/core";
-import puppeteer, { type ElementHandle, type KeyInput } from "puppeteer-core";
+} from "voxmc-core";
 import { chromiumArgs } from "./site.ts";
 import type { SessionView, Vox } from "./vox.ts";
 
@@ -93,7 +93,7 @@ function toVolume(cells: Cells): Volume {
 export async function editorSuite(ctx: SuiteContext): Promise<void> {
   const { ok } = ctx;
   const t = (what: string): string => `[editor] ${what}`;
-  const downloads = await mkdtemp(join(tmpdir(), "voxwright-edit-"));
+  const downloads = await mkdtemp(join(tmpdir(), "voxmc-edit-"));
   const sourceHash = await sha(ctx.fixture);
   const original = await readLitematic(new Uint8Array(await readFile(ctx.fixture)), {
     keepAir: true,
@@ -127,7 +127,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     // -- helpers that talk to the page --------------------------------------------------------
     const session = (): Promise<SessionView> =>
       page.evaluate(() => {
-        const s = (window.__voxwright as Vox).session();
+        const s = (window.__voxmc as Vox).session();
         if (s === null) throw new Error("no editor session");
         const { tool, block, hover, inspected, selection, undoCount, canUndo, canRedo, unsaved } =
           s;
@@ -152,7 +152,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     const snapshot = (): Promise<Cells> =>
       page
         .evaluate(() => {
-          const v = (window.__voxwright as Vox).volume();
+          const v = (window.__voxmc as Vox).volume();
           const [lo, hi] = v.placedBounds() as [number[], number[]];
           const out: [string, string][] = [];
           for (let x = lo[0] as number; x <= (hi[0] as number); x++)
@@ -166,7 +166,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
         .then((e) => new Map(e));
     const picture = (): Promise<string> =>
       page.evaluate(() => {
-        const r = (window.__voxwright as Vox).renderer;
+        const r = (window.__voxmc as Vox).renderer;
         r.highlight([]); // outlines are not part of the question
         const shot = r.capture();
         if (shot === null) throw new Error("no frame");
@@ -176,7 +176,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
         return String(h);
       });
     const settle = (): Promise<void> =>
-      page.evaluate(() => (window.__voxwright as Vox).renderer.whenIdle());
+      page.evaluate(() => (window.__voxmc as Vox).renderer.whenIdle());
     /**
      * Blocks whose top face the pointer reaches: where to click so that exactly that block is hit. The
      * picture is scrolled fully into the window first: the page has panels above and beside it, and a click
@@ -188,7 +188,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
         document.querySelector('[data-testid="canvas"]')?.scrollIntoView({ block: "nearest" }),
       );
       return page.evaluate(() => {
-        const v = window.__voxwright as Vox;
+        const v = window.__voxmc as Vox;
         const vol = v.volume();
         const s = v.session() as NonNullable<ReturnType<Vox["session"]>>;
         const [lo, hi] = vol.bounds() as [number[], number[]];
@@ -327,15 +327,15 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
       key(hovered.hover?.position ?? []) === key(first.pos),
       t("hovering names the block under the pointer (the core raycast along the camera ray)"),
     );
-    const pose0 = await page.evaluate(() => (window.__voxwright as Vox).renderer.getPose());
+    const pose0 = await page.evaluate(() => (window.__voxmc as Vox).renderer.getPose());
     await page.mouse.down();
     await page.mouse.move(first.pt.x + 80, first.pt.y, { steps: 5 });
     await page.mouse.up();
-    const pose1 = await page.evaluate(() => (window.__voxwright as Vox).renderer.getPose());
+    const pose1 = await page.evaluate(() => (window.__voxmc as Vox).renderer.getPose());
     ok(pose1.azimuth !== pose0.azimuth, t("dragging with the View tool turns the camera"));
     ok((await session()).undoCount === 0, t("...and still changes nothing"));
     await page.evaluate(() =>
-      (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 45, elevation: 35 }),
+      (window.__voxmc as Vox).renderer.setOrbit({ azimuth: 45, elevation: 35 }),
     );
     await settle();
 
@@ -723,14 +723,14 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
 
     // -- Alt-drag turns and right-drag pans while a tool is active ---------------------------------
     const undoNow = (await session()).undoCount;
-    const poseA = await page.evaluate(() => (window.__voxwright as Vox).renderer.getPose());
+    const poseA = await page.evaluate(() => (window.__voxmc as Vox).renderer.getPose());
     await page.keyboard.down("Alt");
     await page.mouse.move(first.pt.x, first.pt.y);
     await page.mouse.down();
     await page.mouse.move(first.pt.x + 70, first.pt.y + 10, { steps: 5 });
     await page.mouse.up();
     await page.keyboard.up("Alt");
-    const poseB = await page.evaluate(() => (window.__voxwright as Vox).renderer.getPose());
+    const poseB = await page.evaluate(() => (window.__voxmc as Vox).renderer.getPose());
     ok(poseB.azimuth !== poseA.azimuth, t("Alt+drag turns the camera while Place is active"));
     await page.mouse.move(first.pt.x, first.pt.y);
     await page.mouse.down({ button: "right" });
@@ -741,7 +741,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
       t("camera drags with a tool active change nothing"),
     );
     await page.evaluate(() =>
-      (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 45, elevation: 35 }),
+      (window.__voxmc as Vox).renderer.setOrbit({ azimuth: 45, elevation: 35 }),
     );
     await settle();
 
@@ -762,7 +762,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
       page.evaluate(
         (points) =>
           points.map((p) => {
-            const h = (window.__voxwright as Vox).session()?.pick(p.x, p.y) ?? null;
+            const h = (window.__voxmc as Vox).session()?.pick(p.x, p.y) ?? null;
             return h && { position: h.position, normal: h.normal, adjacent: h.adjacent };
           }),
         pts,
@@ -1048,7 +1048,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     );
     answer = "accept";
     await input.uploadFile(ctx.fixture);
-    await page.waitForFunction(() => (window.__voxwright as Vox).session()?.undoCount === 0, {
+    await page.waitForFunction(() => (window.__voxmc as Vox).session()?.undoCount === 0, {
       timeout: 30000,
     });
     await settle();
@@ -1100,7 +1100,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     await writeFile(chestFile, (await writeLitematic(filled, { dataVersion: 5023 })).bytes);
 
     const blockEntityCount = (): Promise<number> =>
-      page.evaluate(() => (window.__voxwright as Vox).volume().blockEntityCount);
+      page.evaluate(() => (window.__voxmc as Vox).volume().blockEntityCount);
     const exportAs = async (format: string, ext: string): Promise<Uint8Array> => {
       const name = `chests-edited${ext}`;
       await rm(join(downloads, name), { force: true });
@@ -1123,13 +1123,13 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
 
     answer = "accept";
     await input.uploadFile(chestFile);
-    await page.waitForFunction(() => (window.__voxwright as Vox).volume().blockEntityCount > 0, {
+    await page.waitForFunction(() => (window.__voxmc as Vox).volume().blockEntityCount > 0, {
       timeout: 60000,
     });
     await settle();
     ok((await blockEntityCount()) === 18, t("the page holds the 18 chests' contents"));
     ok(
-      (await page.evaluate(() => (window.__voxwright as Vox).volume().entities.length)) === 1,
+      (await page.evaluate(() => (window.__voxmc as Vox).volume().entities.length)) === 1,
       t("...and the entity"),
     );
     ok(
@@ -1188,7 +1188,7 @@ export async function editorSuite(ctx: SuiteContext): Promise<void> {
     // replacement goes through the page's edit hook, which is the editor's place command.)
     const [cx, cy, cz] = chestCells[0] as Vec;
     await page.evaluate(
-      (x, y, z) => (window.__voxwright as Vox).edit(x, y, z, "minecraft:barrel[facing=up]"),
+      (x, y, z) => (window.__voxmc as Vox).edit(x, y, z, "minecraft:barrel[facing=up]"),
       cx,
       cy,
       cz,

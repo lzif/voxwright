@@ -4,8 +4,8 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readSchem, readStructureNbt } from "@voxwright/core";
 import { afterAll, describe, expect, it } from "vitest";
+import { readSchem, readStructureNbt } from "voxmc-core";
 import {
   Build,
   cleanProperties,
@@ -62,7 +62,7 @@ describe("importer against the Python oracle", () => {
 
     it(`${name}: the generated script rebuilds the structure exactly`, () => {
       const code = toScript(structureOf(s))
-        .replace('import { Build } from "@voxwright/mcbuilder";', "")
+        .replace('import { Build } from "voxmc-engine";', "")
         .replace("export const BUILD", "const BUILD");
       const build = new Function("Build", `${code}\nreturn BUILD;`)(Build) as Build;
       const got: string[] = [];
@@ -182,8 +182,8 @@ describe("import: specifier and renamed blocks", () => {
 
   it("imports Build from the workspace package unless told otherwise", () => {
     const s = st([[0, 0, 0, "minecraft:stone"]]);
-    expect(toScript(s)).toContain('import { Build } from "@voxwright/mcbuilder";');
-    expect(toScript(s, { specifier: "voxwright" })).toContain('import { Build } from "voxwright";');
+    expect(toScript(s)).toContain('import { Build } from "voxmc-engine";');
+    expect(toScript(s, { specifier: "voxmc" })).toContain('import { Build } from "voxmc";');
   });
 
   it("renames old block ids the registry no longer knows, and says so", () => {
@@ -224,10 +224,10 @@ describe("import: specifier and renamed blocks", () => {
   });
 });
 
-describe("convert.ts -> mcbuilder importer on real .schem fixtures", () => {
+describe("convert.ts -> voxmc importer on real .schem fixtures", () => {
   const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
   const convertScript = join(repoRoot, "scripts/convert.ts");
-  const workDir = mkdtempSync(join(tmpdir(), "voxwright-convert-import-"));
+  const workDir = mkdtempSync(join(tmpdir(), "voxmc-convert-import-"));
   afterAll(() => rmSync(workDir, { recursive: true, force: true }));
 
   it.each([
@@ -247,7 +247,7 @@ describe("convert.ts -> mcbuilder importer on real .schem fixtures", () => {
       droppedEntities: converted.meta.droppedEntities + converted.volume.entities.length,
     });
     const code = toScript(structure)
-      .replace('import { Build } from "@voxwright/mcbuilder";', "")
+      .replace('import { Build } from "voxmc-engine";', "")
       .replace("export const BUILD", "const BUILD");
     const rebuilt = (new Function("Build", `${code}\nreturn BUILD;`)(Build) as Build).grid.volume;
 

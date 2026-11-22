@@ -1,5 +1,5 @@
 {
-  "name": "@voxwright/web",
+  "name": "voxmc-web",
   "version": "0.0.0",
   "private": true,
   "description": "Browser 3D viewer and editor for Minecraft schematics: the human-in-the-loop companion for previewing, inspecting, fixing and exporting generated builds.",
@@ -15,8 +15,8 @@
     "test:touch": "node test/touch-e2e.ts"
   },
   "dependencies": {
-    "@voxwright/core": "workspace:*",
-    "@voxwright/render": "workspace:*",
+    "voxmc-core": "workspace:*",
+    "voxmc-render": "workspace:*",
     "fflate": "^0.8.3"
   },
   "devDependencies": {

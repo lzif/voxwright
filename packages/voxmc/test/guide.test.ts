@@ -3,9 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { DenseVolume } from "@voxwright/core";
-import { directoryAssets } from "@voxwright/render/node";
 import { describe, expect, it } from "vitest";
+import type { DenseVolume } from "voxmc-core";
+import { directoryAssets } from "voxmc-render/node";
 import { buildGuide, itemCounts, mostCommon, shortName, stacks, titleCase } from "../src/index.ts";
 
 interface Case {
@@ -21,7 +21,7 @@ const ref = JSON.parse(
 };
 
 const root =
-  process.env.VOXWRIGHT_ASSETS ?? join(homedir(), ".cache/mcbuilder/26.2/client/assets/minecraft");
+  process.env.VOXMC_ASSETS ?? join(homedir(), ".cache/voxmc/26.2/client/assets/minecraft");
 const have = existsSync(join(root, "blockstates"));
 
 const BUILDS: Record<string, () => Promise<{ BUILD: { grid: { toDense(): DenseVolume } } }>> = {

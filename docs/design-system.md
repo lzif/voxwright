@@ -62,7 +62,7 @@ The design system's React bundle sets text with bare class names (`label`, `capt
 URL that names a file in `static/` and rewrites it when it builds the stylesheet. Because
 `vite.config.ts` sets `paths.relative`, the built stylesheet (`_app/immutable/assets/<hash>.css`)
 points at `../../../fonts/<file>`, which is the `fonts/` folder at the root of the site, whether the
-site is served from the root of its host or from the sub-path in `VOXWRIGHT_BASE_PATH`. The dev
+site is served from the root of its host or from the sub-path in `VOXMC_BASE_PATH`. The dev
 server serves `/fonts/<file>` in both cases.
 
 So do not write a base path into the URL, and do not use `asset()` (a script helper that does not

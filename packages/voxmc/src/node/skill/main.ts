@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The command line: `mcbuild` on npm, `skills/voxwright/scripts/voxwright-cli.mjs` in the skill.
+// The command line: `voxmc` on npm, `skills/voxwright/scripts/voxwright-cli.mjs` in the skill.
 // `build`, `inspect` and `preview` live here; `init`, `check`, `run`, `import`, `diff` and
 // `assets` are the commands of `../cli.ts`, reached through the same program.
 //
 // This module is two things at once. Run as a program it is the command line.
-// Imported, it is the library a recipe uses: the CLI maps the bare specifiers
-// `voxwright`, `@voxwright/mcbuilder` and `@voxwright/core` to this very
-// module, so a recipe gets the same `Build` class the CLI checks with
-// `instanceof`, from any directory and without `node_modules`.
+// Imported, it is the library a recipe uses: the CLI maps the bare specifier
+// `voxmc` to this very module, so a recipe gets the same `Build` class the CLI
+// checks with `instanceof`, from any directory and without `node_modules`.
 //
 // For that to work the module must finish evaluating before a recipe is
 // imported: no top-level await here, and the CLI starts only when this file is
@@ -19,7 +18,7 @@ import * as nodeModule from "node:module";
 import { homedir } from "node:os";
 import { extname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { McbuilderError } from "../../errors.ts";
+import { VoxmcError } from "../../errors.ts";
 import type { HttpGet } from "../assets.ts";
 import { RUN_COMMANDS, RUN_SYNTAX, runCli } from "../cli.ts";
 import { BUILD_USAGE, cmdBuild } from "./build.ts";
@@ -28,13 +27,13 @@ import { cmdInspect, INSPECT_USAGE } from "./inspect.ts";
 import { SkillCliError, type SkillIo } from "./io.ts";
 import { cmdPreview, PREVIEW_USAGE } from "./preview.ts";
 
-// The library facade: everything a recipe may import from "voxwright".
-export * from "@voxwright/core";
+// The library facade: everything a recipe may import from "voxmc".
+export * from "voxmc-core";
 export * from "../../index.ts";
 
 /** Replaced by `true` when the bundle is built (scripts/build-skill.ts). */
-declare const __VOXWRIGHT_BUNDLED__: boolean | undefined;
-const BUNDLED = typeof __VOXWRIGHT_BUNDLED__ !== "undefined" && __VOXWRIGHT_BUNDLED__ === true;
+declare const __VOXMC_BUNDLED__: boolean | undefined;
+const BUNDLED = typeof __VOXMC_BUNDLED__ !== "undefined" && __VOXMC_BUNDLED__ === true;
 
 export const USAGE = `Usage: ${PROG} <command> [options]
 
@@ -62,7 +61,7 @@ ${RUN_SYNTAX.split("\n")
 
 A recipe is an ES module (.ts, .mts, .mjs, .js) that exports a Build:
 
-  import { Build } from "voxwright";
+  import { Build } from "voxmc";
   export const BUILD = new Build({ seed: 1 });
   BUILD.scope(() => {
     BUILD.box([0, 0, 0], [4, 0, 4], "minecraft:stone_bricks");
@@ -92,15 +91,13 @@ const ENGINE_SOURCE = /\/packages\/(?:voxmc|core)\/src\/index\.ts(?:\?.*)?$/;
 
 let aliased = false;
 
-/** Make `voxwright` (and the workspace package names) resolve to this module. */
+/** Make `voxmc` (and the workspace package names) resolve to this module. */
 function installAlias(): void {
   if (aliased) return;
   aliased = true;
-  // From source the engine's own files import `@voxwright/core` and must keep getting the package.
+  // From source the engine's own files import `voxmc-core` and must keep getting the package.
   const names = new Set(
-    BUNDLED
-      ? ["voxwright", "@voxwright/mcbuilder", "@voxwright/core"]
-      : ["voxwright", "@voxwright/mcbuilder"],
+    BUNDLED ? ["voxmc", "voxmc-engine", "voxmc-core"] : ["voxmc", "voxmc-engine"],
   );
   const self = import.meta.url;
   nodeModule.registerHooks({
@@ -183,7 +180,7 @@ export async function runSkillCli(
       }
       return 2;
     }
-    if (e instanceof McbuilderError) {
+    if (e instanceof VoxmcError) {
       full.err(`${PROG}: ${e.message}`);
       return 1;
     }

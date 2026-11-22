@@ -3,8 +3,8 @@
 // How the touch block-state sheet classifies the properties core suggests values for, the numeric
 // stepper, and the facing / axis cycle behind "Rotate block".
 
-import { type BlockProperty, blockProperties } from "@voxwright/core";
 import { describe, expect, it } from "vitest";
+import { type BlockProperty, blockProperties } from "voxmc-core";
 import {
   classifyProperty,
   NUMERIC_CHIPS_MAX,

@@ -6,7 +6,7 @@
 //
 //   node test/preview-e2e.ts [--chromium <path>]
 //
-// Build the site first (`pnpm --filter @voxwright/web build`): the CLI serves that build.
+// Build the site first (`pnpm --filter voxmc-web build`): the CLI serves that build.
 
 import { type ChildProcess, spawn } from "node:child_process";
 import { copyFile, mkdtemp, rm } from "node:fs/promises";
@@ -125,7 +125,7 @@ async function suite(url: string, name: string, webgl: boolean): Promise<void> {
   }
 }
 
-const dir = await mkdtemp(join(tmpdir(), "voxwright-preview-e2e-"));
+const dir = await mkdtemp(join(tmpdir(), "voxmc-preview-e2e-"));
 // A name with a space and a `#`: the link has to escape it and the page has to undo that.
 const name = "my house #1.litematic";
 const file = join(dir, name);

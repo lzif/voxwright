@@ -5,7 +5,7 @@
 // of it runs under Vitest; the storage is passed in, because a browser may have none, or may refuse
 // it (a private window, blocked site data), and the editor must work without it.
 
-import { AIR } from "@voxwright/core";
+import { AIR } from "voxmc-core";
 import { withoutNbt } from "./editing.ts";
 
 /** Where the recent blocks are kept in the browser. */

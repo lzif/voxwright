@@ -17,7 +17,7 @@ import {
   writeMcstructure,
   writeSchem,
   writeStructureNbt,
-} from "@voxwright/core";
+} from "voxmc-core";
 
 export const FORMATS = ["schem", "litematic", "nbt", "mcstructure"] as const;
 export type Format = (typeof FORMATS)[number];

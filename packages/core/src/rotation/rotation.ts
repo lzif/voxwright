@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Structure rotation semantics, ported from mcbuilder's `rotation.py`.
+// Structure rotation semantics, ported from the Python reference implementation's `rotation.py`.
 //
 // The position and blockstate transforms a structure paste applies for each
 // rotation (the same table Bukkit's `StructureRotation` uses).
@@ -192,7 +192,7 @@ const MIRROR_FACING: Readonly<Record<"x" | "z", FacingMap>> = {
  * Mirror one canonical block string across an axis plane. `x` maps x to
  * -x (east and west swap); `z` maps z to -z (north and south swap).
  * Up/down facings, `axis`, sign `rotation` and door `hinge` pass through
- * unchanged, as in mcbuilder.
+ * unchanged, as in the Python reference implementation.
  */
 export function mirrorBlockstate(canonical: string, axis: "x" | "z"): string {
   if (axis !== "x" && axis !== "z") {

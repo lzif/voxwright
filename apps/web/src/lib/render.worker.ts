@@ -3,8 +3,8 @@
 // Does the heavy work off the main thread: decoding files, drawing frames and
 // writing converted files. Holds the asset pack and the open schematic.
 
-import type { DenseVolume, Volume } from "@voxwright/core";
-import { type AssetSource, renderView, sliceDense, type View } from "@voxwright/render";
+import type { DenseVolume, Volume } from "voxmc-core";
+import { type AssetSource, renderView, sliceDense, type View } from "voxmc-render";
 import { assetsFromPack, fetchPack } from "./assets.ts";
 import { describeVolume } from "./describe.ts";
 import { type Carried, type FormatId, openFile, saveAs } from "./formats.ts";

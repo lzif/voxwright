@@ -3,9 +3,9 @@
 // Tests for keyboard coordinate inspection (`inspectAt`), `AIR` handling in `inspectedBlock`,
 // and keeping `hover` synced across `applyHover`, `replace`, brush strokes, cancels and undo/redo.
 
-import { AIR, type Vec3, Volume } from "@voxwright/core";
-import type { WebglRenderer } from "@voxwright/render/webgl";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AIR, type Vec3, Volume } from "voxmc-core";
+import type { WebglRenderer } from "voxmc-render/webgl";
 import { EditSession, type Hover } from "../src/lib/editor-session.svelte.ts";
 
 const STONE = "minecraft:stone";

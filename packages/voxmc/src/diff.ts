@@ -3,10 +3,10 @@
 // Cell-level diff between two builds (A = old, B = new): which cells were
 // added, removed or replaced, and the text report the CLI prints.
 
-import { McbuilderError } from "./errors.ts";
+import { VoxmcError } from "./errors.ts";
 
 /** A diff that cannot run: unknown run id, missing artifact, ... */
-export class DiffError extends McbuilderError {}
+export class DiffError extends VoxmcError {}
 
 export type Pos = readonly [x: number, y: number, z: number];
 /** Voxel map keyed by `"x,y,z"`. */

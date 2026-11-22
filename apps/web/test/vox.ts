@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The page's test hook (`window.__voxwright`, set by the GPU renderer path) as the
+// The page's test hook (`window.__voxmc`, set by the GPU renderer path) as the
 // browser tests see it.
 
 export interface Pose {
@@ -145,6 +145,6 @@ export interface Vox {
 
 declare global {
   interface Window {
-    __voxwright?: Vox;
+    __voxmc?: Vox;
   }
 }

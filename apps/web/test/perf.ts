@@ -3,7 +3,7 @@
 // Browser-side measurements on a generated 256-wide build, in headless Chromium:
 // parse time, time to the first full frame, frame rate while orbiting, how long a
 // slice takes to settle, and the time to show one edited block. Run after
-// `pnpm --filter @voxwright/web build`; needs the texture pack (`pnpm assets`).
+// `pnpm --filter voxmc-web build`; needs the texture pack (`pnpm assets`).
 //
 //   node test/perf.ts [--size 256] [--height 64] [--seconds 6] [--chromium <path>]
 //
@@ -13,8 +13,8 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
-import { writeSchem } from "@voxwright/core";
 import puppeteer, { type ElementHandle } from "puppeteer-core";
+import { writeSchem } from "voxmc-core";
 import { generateTerrain } from "../scripts/synthetic.ts";
 import { chromiumArgs, findChromium, serveSite } from "./site.ts";
 import type { Vox } from "./vox.ts";
@@ -36,7 +36,7 @@ const seconds = Number(values.seconds ?? 6);
 
 const volume = generateTerrain({ size, height });
 const { bytes } = await writeSchem(volume, { dataVersion: 4903, version: 3 });
-const dir = await mkdtemp(join(tmpdir(), "voxwright-perf-"));
+const dir = await mkdtemp(join(tmpdir(), "voxmc-perf-"));
 const file = join(dir, `synthetic-${size}.schem`);
 await writeFile(file, bytes);
 
@@ -73,42 +73,42 @@ try {
   await input.uploadFile(file);
   await page.waitForFunction(
     () => {
-      const v = window.__voxwright as Vox;
+      const v = window.__voxmc as Vox;
       return v.renderer.stats().firstFullFrameMs !== null && v.timings().parseMs > 0;
     },
     { timeout: 180000, polling: 50 },
   );
   const wallMs = Date.now() - t0;
   const open = await page.evaluate(() => ({
-    timings: (window.__voxwright as Vox).timings(),
-    stats: (window.__voxwright as Vox).renderer.stats(),
+    timings: (window.__voxmc as Vox).timings(),
+    stats: (window.__voxmc as Vox).renderer.stats(),
   }));
   const meshMs = open.stats.meshMs;
 
   // Orbit for a while, spinning the camera every frame.
-  await page.evaluate(() => (window.__voxwright as Vox).renderer.setOrbit({ azimuth: 0 }));
+  await page.evaluate(() => (window.__voxmc as Vox).renderer.setOrbit({ azimuth: 0 }));
   const orbit = await page.evaluate(
-    (s) => (window.__voxwright as Vox).renderer.runOrbitBenchmark(s),
+    (s) => (window.__voxmc as Vox).renderer.runOrbitBenchmark(s),
     seconds,
   );
-  const afterOrbit = await page.evaluate(() => (window.__voxwright as Vox).renderer.stats());
+  const afterOrbit = await page.evaluate(() => (window.__voxmc as Vox).renderer.stats());
 
   // The same, close to the ground, where most sections are outside the view.
   await page.evaluate(() =>
-    (window.__voxwright as Vox).renderer.setOrbit({ distance: 70, target: [128, 30, 128] }),
+    (window.__voxmc as Vox).renderer.setOrbit({ distance: 70, target: [128, 30, 128] }),
   );
   const near = await page.evaluate(
-    (s) => (window.__voxwright as Vox).renderer.runOrbitBenchmark(s),
+    (s) => (window.__voxmc as Vox).renderer.runOrbitBenchmark(s),
     Math.max(2, seconds / 2),
   );
-  const nearStats = await page.evaluate(() => (window.__voxwright as Vox).renderer.stats());
+  const nearStats = await page.evaluate(() => (window.__voxmc as Vox).renderer.stats());
 
   // A slice moving through the build: how long until the cut layers are in place.
   const slice: number[] = [];
   for (const y1 of [40, 33, 27, 21, 15]) {
     slice.push(
       await page.evaluate(async (top) => {
-        const r = (window.__voxwright as Vox).renderer;
+        const r = (window.__voxmc as Vox).renderer;
         const t = performance.now();
         r.setSlice({ y0: 0, y1: top });
         await r.whenIdle();
@@ -116,8 +116,8 @@ try {
       }, y1),
     );
   }
-  await page.evaluate(() => (window.__voxwright as Vox).renderer.setSlice(null));
-  await page.evaluate(() => (window.__voxwright as Vox).renderer.whenIdle());
+  await page.evaluate(() => (window.__voxmc as Vox).renderer.setSlice(null));
+  await page.evaluate(() => (window.__voxmc as Vox).renderer.whenIdle());
 
   // Edit one block at a time on the surface and wait until it is on screen.
   const edits: { appliedMs: number; visibleMs: number }[] = [];
@@ -134,7 +134,7 @@ try {
     edits.push(
       await page.evaluate(
         async (px, pz) => {
-          const v = window.__voxwright as Vox;
+          const v = window.__voxmc as Vox;
           // The column's top solid block, found from the volume (what an editor tool would do).
           const volume = (
             v as unknown as {
@@ -151,7 +151,7 @@ try {
     );
   }
   const editMeshMs = (
-    await page.evaluate(() => (window.__voxwright as Vox).renderer.stats())
+    await page.evaluate(() => (window.__voxmc as Vox).renderer.stats())
   ).meshMs.slice(-edits.length * 2);
   if (values.shots) await page.screenshot({ path: join(values.shots, "perf-256.png") });
 

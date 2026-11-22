@@ -37,8 +37,8 @@ import {
   UNSET,
   type Vec3,
   type Volume,
-} from "@voxwright/core";
-import type { Box as MarkBox, WebglRenderer } from "@voxwright/render/webgl";
+} from "voxmc-core";
+import type { Box as MarkBox, WebglRenderer } from "voxmc-render/webgl";
 import { type LastChange, makeChange, type SessionEvent } from "./changes.ts";
 import {
   boxBetween,

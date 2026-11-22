@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { McbuilderError, shapes } from "../src/index.ts";
+import { shapes, VoxmcError } from "../src/index.ts";
 import { expectError, loadVector, type MaterialSpec, material } from "./helpers.ts";
 
 interface Case {
@@ -67,9 +67,9 @@ describe("shapes against the Python oracle", () => {
 const STAIR = "minecraft:oak_stairs";
 const FENCE = "minecraft:oak_fence";
 
-/** `fn` throws a `McbuilderError` whose message matches `message`. */
+/** `fn` throws a `VoxmcError` whose message matches `message`. */
 function refuses(fn: () => unknown, message: RegExp): void {
-  expect(fn).toThrow(McbuilderError);
+  expect(fn).toThrow(VoxmcError);
   expect(fn).toThrow(message);
 }
 
@@ -1455,7 +1455,7 @@ describe("polygon", () => {
     );
   };
   const refuses = (fn: () => unknown, pattern: RegExp) => {
-    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(VoxmcError);
     expect(fn).toThrow(pattern);
   };
 
@@ -2142,7 +2142,7 @@ describe("roofGable profile", () => {
   const slab = (type: string) => `minecraft:spruce_slab[type=${type}]`;
   const P = "minecraft:spruce_planks";
   const throws = (fn: () => unknown, re: RegExp): void => {
-    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(VoxmcError);
     expect(fn).toThrow(re);
   };
 
@@ -2368,7 +2368,7 @@ describe("bayWall postWidth", () => {
       .map((c) => (c[3] === S ? "P" : "I"))
       .join("");
   const throws = (fn: () => unknown, re: RegExp): void => {
-    expect(fn).toThrow(McbuilderError);
+    expect(fn).toThrow(VoxmcError);
     expect(fn).toThrow(re);
   };
 

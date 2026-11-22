@@ -10,7 +10,7 @@
 // slower than copying typed arrays. A snapshot must give back the volume cell for cell, air and
 // unset cells included, with every block entity and entity untouched.
 
-import { type BlockEntity, UNSET, Volume, type VolumeEntity } from "@voxwright/core";
+import { type BlockEntity, UNSET, Volume, type VolumeEntity } from "voxmc-core";
 import type { Carried } from "./formats.ts";
 
 export const SNAPSHOT_FORMAT = 1;

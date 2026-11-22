@@ -20,7 +20,7 @@ node <skill-dir>/scripts/voxwright-cli.mjs build watchtower.ts --out out/watchto
 
 More recipes, larger and less commented (`storehouse/`, `homestead/`, `crystal_observatory/`,
 `waystones/`, ...), are online at
-https://github.com/lzif/voxwright/tree/main/packages/mcbuilder/examples. They are not part of the
+https://github.com/lzif/voxmc/tree/main/packages/voxmc/examples. They are not part of the
 installed skill; inside a clone of the repository they run the same way.
 
 ## Watchtower
@@ -30,7 +30,7 @@ and a crenellated parapet carried on upside-down stairs.
 
 ```ts
 // recipe: watchtower.ts
-import { Build, patches, shapes } from "voxwright";
+import { Build, patches, shapes } from "voxmc";
 
 export const BUILD = new Build({ seed: 11 });
 
@@ -109,7 +109,7 @@ depth, then scatter details with a named `rng` stream so they stay put between r
 
 ```ts
 // recipe: hill-pond.ts
-import { Build, patches } from "voxwright";
+import { Build, patches } from "voxmc";
 
 export const BUILD = new Build({ seed: 42 });
 
@@ -186,7 +186,7 @@ arms) turn together.
 
 ```ts
 // recipe: pavilion.ts
-import { Build, Geometry, shapes } from "voxwright";
+import { Build, Geometry, shapes } from "voxmc";
 
 export const BUILD = new Build({ seed: 5 });
 

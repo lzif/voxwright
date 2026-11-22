@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// The browser entry point: `@voxwright/render/webgl`. It pulls in three.js and
-// the DOM, so Node programs (the mcbuilder CLI) import `@voxwright/render`
+// The browser entry point: `voxmc-render/webgl`. It pulls in three.js and
+// the DOM, so Node programs (the voxmc CLI) import `voxmc-render`
 // instead, which never reaches this folder.
 
 export {

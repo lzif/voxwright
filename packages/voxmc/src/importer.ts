@@ -6,9 +6,9 @@
 // runs of the same block into boxes and names each block state; `toScript`
 // turns that plan into a runnable TypeScript script that rebuilds the
 // structure exactly. Reading the files themselves is the codecs' job in
-// `@voxwright/core`.
+// `voxmc-core`.
 
-import { canonicalize, compareCodePoints, type Volume } from "@voxwright/core";
+import { canonicalize, compareCodePoints, type Volume } from "voxmc-core";
 import type { Registry } from "./registry.ts";
 
 export type StructureCell = readonly [x: number, y: number, z: number, block: string];
@@ -36,7 +36,7 @@ export const RENAMED_BLOCKS: Readonly<Record<string, string>> = {
   "minecraft:chain": "minecraft:iron_chain", // 1.21.9
 };
 
-/** Wrap a {@link Volume} (cells sorted by x, y, z, as mcbuilder's exporter writes them). */
+/** Wrap a {@link Volume} (cells sorted by x, y, z, as the Python reference implementation's exporter writes them). */
 export function structureFromVolume(
   volume: Volume,
   source: string,
@@ -316,7 +316,7 @@ export function planImport(structure: Structure): ImportPlan {
  * A runnable builder script that rebuilds `structure` exactly. The code is plain JavaScript and
  * also valid TypeScript, so it may be saved as `.ts`, `.mts`, `.mjs` or `.js`. It imports `Build`
  * from `options.specifier`: the workspace package name by default; the published command line
- * passes `"voxwright"`, the name it answers to.
+ * passes `"voxmc"`, the name it answers to.
  */
 export function toScript(
   structure: Structure,
@@ -324,7 +324,7 @@ export function toScript(
 ): string {
   const { names, counts, calls } = planImport(structure);
   const comment = [
-    `Imported from ${structure.source} by \`mcbuild import\`.`,
+    `Imported from ${structure.source} by \`voxmc import\`.`,
     "",
     ...summary(structure),
   ]
@@ -334,7 +334,7 @@ export function toScript(
     "/**",
     ...comment,
     " */",
-    `import { Build } from ${JSON.stringify(options.specifier ?? "@voxwright/mcbuilder")};`,
+    `import { Build } from ${JSON.stringify(options.specifier ?? "voxmc-engine")};`,
     "",
     `export const BUILD = new Build({ seed: ${options.seed ?? 0}, views: "iso;az200_el025;top" });`,
     "",

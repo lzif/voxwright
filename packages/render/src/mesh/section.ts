@@ -11,7 +11,7 @@
 //
 // No DOM and no Node API: it runs on the main thread, in a worker, or in tests.
 
-import type { DenseVolume } from "@voxwright/core";
+import type { DenseVolume } from "voxmc-core";
 import type { AssetSource } from "../assets.ts";
 import { blockQuads } from "../blocks.ts";
 import { type Quad, type QuadTex, snapNormal, splitBlockstate, type Vec3 } from "../models.ts";

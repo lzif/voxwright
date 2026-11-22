@@ -12,7 +12,7 @@
 // same origin a structure block or Litematica placement uses: x grows east
 // (right), z grows south (down), layer 1 is the bottom.
 
-import type { DenseVolume } from "@voxwright/core";
+import type { DenseVolume } from "voxmc-core";
 import {
   type AssetSource,
   blendToward,
@@ -29,7 +29,7 @@ import {
   type Rgb3,
   resizeNearest,
   splitBlockstate,
-} from "@voxwright/render";
+} from "voxmc-render";
 
 const AIR = "minecraft:air";
 const BG: Rgb3 = [246, 243, 236];

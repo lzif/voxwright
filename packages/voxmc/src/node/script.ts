@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // Loading a builder script and the facts both command lines report about it.
-// Shared by `mcbuild` (cli.ts) and the skill CLI (skill/); kept free of the
+// Shared by `voxmc` (cli.ts) and the skill CLI (skill/); kept free of the
 // renderer so the skill bundle does not pull it in.
 
 import { stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Build, setDefaultMaxDimensions } from "../build.ts";
-import { McbuilderError } from "../errors.ts";
+import { VoxmcError } from "../errors.ts";
 import { type Dims, VoxelGrid } from "../voxels.ts";
 
 /** A builder script that is missing, throws while loading, or exports no `Build`. */
-export class ScriptError extends McbuilderError {
+export class ScriptError extends VoxmcError {
   /** What the script threw, when it threw. */
   readonly thrown: unknown;
 

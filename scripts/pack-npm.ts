@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Assemble the npm package `voxmc` in dist/npm/mcbuild/: the committed skill
-// CLI bundle under the command name `mcbuild`, with the licence files.
-// (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`.)
+// Assemble the npm package `voxmc` in dist/npm/voxmc/: the committed skill
+// CLI bundle under the command name `voxmc`, with the licence files.
 //
 //   node scripts/pack-npm.ts            fails while the version is still 0.0.0
 //   node scripts/pack-npm.ts --dry-run  assembles any version, for CI
@@ -17,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const BUNDLE = "skills/voxwright/scripts/voxwright-cli.mjs";
-const OUT = "dist/npm/mcbuild";
+const OUT = "dist/npm/voxmc";
 const dryRun = process.argv.includes("--dry-run");
 
 const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as {
@@ -38,23 +37,23 @@ if (!bundle.includes(`"${pkg.version}"`)) {
 const out = join(root, OUT);
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-await writeFile(join(out, "mcbuild.mjs"), bundle, { mode: 0o755 });
+await writeFile(join(out, "voxmc.mjs"), bundle, { mode: 0o755 });
 for (const file of ["LICENSE", "NOTICE"]) await cp(join(root, file), join(out, file));
 await cp(join(root, "scripts/npm/README.md"), join(out, "README.md"));
 const manifest = {
   name: "voxmc",
   version: pkg.version,
   description:
-    "Build Minecraft structures from a TypeScript recipe and export .schem, .litematic, .nbt or .mcstructure. The command line of Voxwright.",
+    "Build Minecraft structures from a TypeScript recipe and export .schem, .litematic, .nbt or .mcstructure. The command line of Voxmc.",
   keywords: ["minecraft", "schematic", "litematica", "worldedit", "structure", "voxel", "cli"],
   license: pkg.license,
-  homepage: "https://github.com/lzif/voxwright#readme",
-  repository: { type: "git", url: "git+https://github.com/lzif/voxwright.git" },
-  bugs: "https://github.com/lzif/voxwright/issues",
+  homepage: "https://github.com/lzif/voxmc#readme",
+  repository: { type: "git", url: "git+https://github.com/lzif/voxmc.git" },
+  bugs: "https://github.com/lzif/voxmc/issues",
   type: "module",
-  bin: { mcbuild: "mcbuild.mjs" },
-  exports: "./mcbuild.mjs",
-  files: ["mcbuild.mjs", "README.md", "LICENSE", "NOTICE"],
+  bin: { voxmc: "voxmc.mjs" },
+  exports: "./voxmc.mjs",
+  files: ["voxmc.mjs", "README.md", "LICENSE", "NOTICE"],
   engines: { node: ">=22.18" },
   publishConfig: { access: "public" },
 };

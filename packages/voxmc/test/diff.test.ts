@@ -2,9 +2,9 @@
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createCanvas } from "@voxwright/render";
-import { decodePng, encodePng } from "@voxwright/render/node";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createCanvas } from "voxmc-render";
+import { decodePng, encodePng } from "voxmc-render/node";
 import {
   DiffError,
   diffIsEmpty,
@@ -73,7 +73,7 @@ describe("diff against the Python oracle", () => {
 describe("run directories", () => {
   let root: string;
   beforeAll(async () => {
-    root = await mkdtemp(join(tmpdir(), "voxwright-diff-"));
+    root = await mkdtemp(join(tmpdir(), "voxmc-diff-"));
   });
   afterAll(() => rm(root, { recursive: true, force: true }));
 

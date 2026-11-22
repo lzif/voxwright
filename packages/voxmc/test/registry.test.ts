@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { describe, expect, it } from "vitest";
-import { McbuilderError, normalizeBlockData, Registry } from "../src/index.ts";
+import { normalizeBlockData, Registry, VoxmcError } from "../src/index.ts";
 import { loadVector } from "./helpers.ts";
 
 interface Vectors {
@@ -18,7 +18,7 @@ describe("registry against the Python oracle", () => {
   it("normalizes minecraft-data and already-normalized mappings", () => {
     expect(normalizeBlockData(v.raw)).toEqual(v.normalized);
     expect(normalizeBlockData(v.normalized_input)).toEqual(v.normalized_from_mapping);
-    expect(() => normalizeBlockData(5)).toThrow(McbuilderError);
+    expect(() => normalizeBlockData(5)).toThrow(VoxmcError);
   });
 
   it("lists names sorted", () => {

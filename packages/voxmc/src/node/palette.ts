@@ -15,8 +15,8 @@
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { buildFaceTextures, type RasterImage } from "@voxwright/render";
-import { directoryAssets } from "@voxwright/render/node";
+import { buildFaceTextures, type RasterImage } from "voxmc-render";
+import { directoryAssets } from "voxmc-render/node";
 
 export interface Lab {
   L: number;

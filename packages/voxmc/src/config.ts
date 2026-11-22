@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// `mcbuild.toml` project configuration.
+// `voxmc.toml` project configuration.
 //
 //   mc_version = "26.2"
 //   max_dimensions = [256, 256, 256]
 //   allowlist = ["lostqol:waystone"]  # pass validation, warn at use
-//   # assets_dir defaults to ~/.cache/mcbuilder/<mc_version>/
+//   # assets_dir defaults to ~/.cache/voxmc/<mc_version>/
 
 import { parse as parseToml } from "smol-toml";
-import { McbuilderError } from "./errors.ts";
+import { VoxmcError } from "./errors.ts";
 import type { Dims } from "./voxels.ts";
 
-export class ConfigError extends McbuilderError {}
+export class ConfigError extends VoxmcError {}
 
-export interface McbuildConfig {
+export interface VoxmcConfig {
   mcVersion: string;
   maxDimensions: Dims;
   allowlist: string[];
@@ -43,14 +43,14 @@ export function expandUser(path: string, home: string): string {
 }
 
 /**
- * Parse `mcbuild.toml` text. Missing keys fall back to defaults. Throws
+ * Parse `voxmc.toml` text. Missing keys fall back to defaults. Throws
  * {@link ConfigError} on invalid content. `home` expands `~` in `assets_dir`.
  */
 export function parseConfig(
   text: string,
   options: { home?: string; source?: string } = {},
-): McbuildConfig {
-  const source = options.source ?? "mcbuild.toml";
+): VoxmcConfig {
+  const source = options.source ?? "voxmc.toml";
   let data: Record<string, unknown>;
   try {
     data = parseToml(text) as Record<string, unknown>;
@@ -103,7 +103,7 @@ export function parseConfig(
   };
 }
 
-/** The effective assets directory: `assetsDir`, else `~/.cache/mcbuilder/<mc_version>/`. */
-export function resolveAssetsDir(config: McbuildConfig, home: string): string {
-  return config.assetsDir ?? `${home.replace(/\/$/, "")}/.cache/mcbuilder/${config.mcVersion}`;
+/** The effective assets directory: `assetsDir`, else `~/.cache/voxmc/<mc_version>/`. */
+export function resolveAssetsDir(config: VoxmcConfig, home: string): string {
+  return config.assetsDir ?? `${home.replace(/\/$/, "")}/.cache/voxmc/${config.mcVersion}`;
 }

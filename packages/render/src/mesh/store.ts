@@ -5,7 +5,7 @@
 // straight from a `Volume`; `SectionStore` keeps a copy of every section so a
 // whole build can be fed to the mesher without a map lookup per cell.
 
-import { AIR, UNSET, type Volume } from "@voxwright/core";
+import { AIR, UNSET, type Volume } from "voxmc-core";
 import { PADDED, PADDED_VOLUME, paddedIndex, parseSectionKey, sectionKey } from "./section.ts";
 
 const SECTION_SIZE = 16;

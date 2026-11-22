@@ -127,7 +127,7 @@ describe("families, nearest and ramp", () => {
   });
 });
 
-describe("mcbuild palette", () => {
+describe("voxmc palette", () => {
   const base = fileURLToPath(new URL("./.tmp/", import.meta.url));
   let root = "";
   let home = "";
@@ -135,7 +135,7 @@ describe("mcbuild palette", () => {
     await mkdir(base, { recursive: true });
     root = await mkdtemp(join(base, "palette-"));
     home = join(root, "home");
-    const v = join(home, ".cache/mcbuilder/26.2");
+    const v = join(home, ".cache/voxmc/26.2");
     await mkdir(join(v, "client/assets/minecraft/textures"), { recursive: true });
     await writeFile(join(v, "minecraft-data.json"), JSON.stringify({ blocks: {} }));
     await writeFile(join(v, "texture-stats.json"), JSON.stringify({ format: 1, blocks: STATS }));
@@ -154,7 +154,7 @@ describe("mcbuild palette", () => {
   };
 
   it("reads the cached statistics", async () => {
-    const stats = await loadTextureStats(join(home, ".cache/mcbuilder/26.2"));
+    const stats = await loadTextureStats(join(home, ".cache/voxmc/26.2"));
     expect(Object.keys(stats)).toHaveLength(Object.keys(STATS).length);
   });
 

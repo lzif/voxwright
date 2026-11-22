@@ -4,7 +4,7 @@
 // page, ray helpers, and the block palette's contents and search. Nothing here touches the DOM
 // beyond reading an event's target, so it runs under Vitest in Node.
 
-import { AIR, type Box, type Vec3 } from "@voxwright/core";
+import { AIR, type Box, type Vec3 } from "voxmc-core";
 
 export type ToolId =
   | "navigate"

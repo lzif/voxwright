@@ -11,8 +11,8 @@
 // - arch.ts: the monument in that zone, including the tomb slab at ground level.
 //
 // Usage:
-//   mcbuild check examples/arc_de_triomphe/arc-de-triomphe.ts
-//   mcbuild run examples/arc_de_triomphe/arc-de-triomphe.ts --preview --guide
+//   voxmc check examples/arc_de_triomphe/arc-de-triomphe.ts
+//   voxmc run examples/arc_de_triomphe/arc-de-triomphe.ts --preview --guide
 
 import { Build } from "../../src/index.ts";
 import { buildArch } from "./arch.ts";

@@ -6,9 +6,9 @@ import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import * as core from "@voxwright/core";
-import { readLitematic, readMcstructure, readSchem, readStructureNbt } from "@voxwright/core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import * as core from "voxmc-core";
+import { readLitematic, readMcstructure, readSchem, readStructureNbt } from "voxmc-core";
 import * as engine from "../src/index.ts";
 import type { HttpGet } from "../src/node/index.ts";
 import { locateInRecipe, resolveTargets } from "../src/node/skill/build.ts";
@@ -85,7 +85,7 @@ beforeAll(async () => {
   await mkdir(home);
   registryFile = join(root, "registry.json");
   await writeFile(registryFile, JSON.stringify(REGISTRY));
-  await recipe("hut.ts", hut("@voxwright/mcbuilder"));
+  await recipe("hut.ts", hut("voxmc-engine"));
 });
 afterAll(() => rm(root, { recursive: true, force: true }));
 
@@ -250,7 +250,7 @@ describe("build", () => {
   it("passes on what a format could not carry, per file and for the run", async () => {
     await recipe(
       "lamp.ts",
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => {
   BUILD.set(0, 0, 0, "minecraft:redstone_lamp[lit=true]");
@@ -278,7 +278,7 @@ BUILD.scope(() => {
   it("fails on unknown blocks and illegal states, and writes nothing", async () => {
     await recipe(
       "bad.ts",
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => {
   BUILD.set(0, 0, 0, "minecraft:oak_plank");
@@ -323,7 +323,7 @@ BUILD.scope(() => {
   it("accepts an allowlisted block with a warning", async () => {
     await recipe(
       "modded.ts",
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => {
   BUILD.set(0, 0, 0, "mymod:gizmo");
@@ -372,7 +372,7 @@ BUILD.scope(() => {
     expect(code).toBe(1);
     expect(c.out.join("\n")).toContain("unknown block 'minecraft:spruce_stairs'");
     expect(calls).toHaveLength(1);
-    const cached = join(home, ".cache/mcbuilder/26.2/minecraft-data.json");
+    const cached = join(home, ".cache/voxmc/26.2/minecraft-data.json");
     expect(existsSync(cached)).toBe(true);
 
     await runSkillCli(["build", "hut.ts", "--out", "dl/hut.nbt"], capture().io, { get });
@@ -386,13 +386,13 @@ BUILD.scope(() => {
     const code = await runSkillCli(["build", "hut.ts", "--out", "fail/hut.nbt"], c.io, { get });
     expect(code).toBe(0);
     expect(c.out.join("\n")).toContain("could not be downloaded");
-    expect(existsSync(join(home, ".cache/mcbuilder/26.2/minecraft-data.json"))).toBe(false);
+    expect(existsSync(join(home, ".cache/voxmc/26.2/minecraft-data.json"))).toBe(false);
   });
 
   it("reports recipe problems as one line with exit code 1", async () => {
     await recipe(
       "empty.ts",
-      `import { Build } from "@voxwright/mcbuilder";\nexport const BUILD = new Build();\n`,
+      `import { Build } from "voxmc-engine";\nexport const BUILD = new Build();\n`,
     );
     await recipe("nobuild.ts", "export const BUILD = 3;\n");
     for (const [file, text] of [
@@ -428,7 +428,7 @@ BUILD.scope(() => {
       [["inspect"], "exactly one file"],
       [["inspect", "a.txt"], "cannot inspect"],
       [["frobnicate"], "unknown command 'frobnicate'"],
-      [[], "Usage: voxwright-cli <command>"],
+      [[], "Usage: voxmc <command>"],
     ] as const) {
       const c = capture();
       expect(await runSkillCli([...args], c.io), args.join(" ")).toBe(2);
@@ -453,12 +453,12 @@ BUILD.scope(() => {
     }
   });
 
-  it("takes the version and the allowlist from a mcbuild.toml next to the recipe", async () => {
+  it("takes the version and the allowlist from a voxmc.toml next to the recipe", async () => {
     await mkdir(join(root, "modded"), { recursive: true });
-    await writeFile(join(root, "modded/mcbuild.toml"), 'allowlist = ["mymod:gizmo"]\n');
+    await writeFile(join(root, "modded/voxmc.toml"), 'allowlist = ["mymod:gizmo"]\n');
     await recipe(
       "modded/g.ts",
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(0, 0, 0, "mymod:gizmo"));
 `,
@@ -495,28 +495,28 @@ BUILD.scope(() => BUILD.set(0, 0, 0, "mymod:gizmo"));
     ]) {
       const c = capture();
       expect(await runSkillCli(args, c.io)).toBe(0);
-      expect(c.out.join("\n")).toContain("Usage: voxwright-cli");
+      expect(c.out.join("\n")).toContain("Usage: voxmc");
       expect(c.err).toEqual([]);
     }
     const v = capture();
     expect(await runSkillCli(["--version"], v.io)).toBe(0);
-    expect(v.out[0]).toMatch(/^voxwright-cli \S+$/);
+    expect(v.out[0]).toMatch(/^voxmc \S+$/);
   });
 
-  it("enforces tightened and relaxed max_dimensions from mcbuild.toml", async () => {
+  it("enforces tightened and relaxed max_dimensions from voxmc.toml", async () => {
     const tightDir = join(root, "bounds-tight");
     await mkdir(tightDir, { recursive: true });
-    await writeFile(join(tightDir, "mcbuild.toml"), "max_dimensions = [10, 10, 10]\n");
+    await writeFile(join(tightDir, "voxmc.toml"), "max_dimensions = [10, 10, 10]\n");
     await writeFile(
       join(tightDir, "default-build.ts"),
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(10, 0, 0, "minecraft:stone"));
 `,
     );
     await writeFile(
       join(tightDir, "explicit-large.ts"),
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build({ maxDimensions: [64, 64, 64] });
 BUILD.scope(() => BUILD.set(20, 0, 0, "minecraft:stone"));
 `,
@@ -563,10 +563,10 @@ BUILD.scope(() => BUILD.set(20, 0, 0, "minecraft:stone"));
 
     const relaxedDir = join(root, "bounds-relaxed");
     await mkdir(relaxedDir, { recursive: true });
-    await writeFile(join(relaxedDir, "mcbuild.toml"), "max_dimensions = [512, 512, 512]\n");
+    await writeFile(join(relaxedDir, "voxmc.toml"), "max_dimensions = [512, 512, 512]\n");
     await writeFile(
       join(relaxedDir, "wide.ts"),
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
 `,
@@ -589,7 +589,7 @@ BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
     await mkdir(defaultDir, { recursive: true });
     await writeFile(
       join(defaultDir, "too-wide.ts"),
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
 `,
@@ -625,10 +625,10 @@ BUILD.scope(() => BUILD.set(300, 0, 0, "minecraft:stone"));
 
       const proj = join(root, `skill-proj-${layout}`);
       await mkdir(proj, { recursive: true });
-      await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(assets)}\n`);
+      await writeFile(join(proj, "voxmc.toml"), `assets_dir = ${JSON.stringify(assets)}\n`);
       await writeFile(
         join(proj, "stone.ts"),
-        `import { Build } from "@voxwright/mcbuilder";
+        `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
 `,
@@ -661,10 +661,10 @@ BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
     await mkdir(emptyAssets, { recursive: true });
     const proj = join(root, "skill-proj-missing");
     await mkdir(proj, { recursive: true });
-    await writeFile(join(proj, "mcbuild.toml"), `assets_dir = ${JSON.stringify(emptyAssets)}\n`);
+    await writeFile(join(proj, "voxmc.toml"), `assets_dir = ${JSON.stringify(emptyAssets)}\n`);
     await writeFile(
       join(proj, "stone.ts"),
-      `import { Build } from "@voxwright/mcbuilder";
+      `import { Build } from "voxmc-engine";
 export const BUILD = new Build();
 BUILD.scope(() => BUILD.set(0, 0, 0, "minecraft:stone"));
 `,
@@ -748,12 +748,12 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
     );
 
   beforeAll(async () => {
-    outside = await mkdtemp(join(tmpdir(), "voxwright-skill-"));
+    outside = await mkdtemp(join(tmpdir(), "voxmc-skill-"));
     await writeFile(join(outside, "registry.json"), JSON.stringify(REGISTRY));
   });
   afterAll(() => rm(outside, { recursive: true, force: true }));
 
-  it("builds a recipe that imports from 'voxwright', and inspects the result", async () => {
+  it("builds a recipe that imports from 'voxmc', and inspects the result", async () => {
     await writeFile(join(outside, "hut.ts"), hut("voxwright"));
     const built = await cli([
       "build",
@@ -771,7 +771,7 @@ describe("skills/voxwright/scripts/voxwright-cli.mjs", () => {
     expect(JSON.parse(seen.stdout)).toMatchObject({ format: "schem", blocks: HUT_BLOCKS });
   });
 
-  it("imports a schematic back into a 'voxwright' recipe that rebuilds it", async () => {
+  it("imports a schematic back into a 'voxmc' recipe that rebuilds it", async () => {
     await writeFile(join(outside, "hut2.ts"), hut("voxwright"));
     const first = await cli([
       "build",
@@ -869,7 +869,7 @@ BUILD.scope(() => {
 
   it("builds every complete recipe printed in references/", async () => {
     // Validated against the real 26.2 registry where this machine has it (CI fetches it).
-    const real = join(homedir(), ".cache/mcbuilder/26.2/minecraft-data.json");
+    const real = join(homedir(), ".cache/voxmc/26.2/minecraft-data.json");
     const registry = existsSync(real) ? ["--registry", real] : ["--offline"];
     let n = 0;
     for (const doc of ["recipe-examples.md", "builder-api.md"]) {
@@ -878,7 +878,9 @@ BUILD.scope(() => {
         /```ts\n((?:\/\/ recipe: \S+\n)?import [\s\S]*?)```/g,
       )) {
         const file = `doc-${n++}.ts`;
-        await writeFile(join(outside, file), source as string);
+        // The stale bundle still answers to its old specifier (bundle-coupled, rename P2 item 6).
+        const forBundle = (source as string).replaceAll('from "voxmc"', 'from "voxwright"');
+        await writeFile(join(outside, file), forBundle);
         const built = await cli(["build", file, ...registry, "--out", `${file}.schem`, "--json"]);
         expect(built.stderr, `${doc}: ${file}`).toBe("");
         const summary = JSON.parse(built.stdout);

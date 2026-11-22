@@ -3,8 +3,8 @@
 // The pure parts of the nudge pad and the face steppers: the screen-to-world axis mapping, the
 // limits a move is held to, the box math of a face stepper and the hold-to-repeat timing.
 
-import type { Box, Vec3 } from "@voxwright/core";
 import { describe, expect, it } from "vitest";
+import type { Box, Vec3 } from "voxmc-core";
 import {
   type AxisStep,
   checkNudge,

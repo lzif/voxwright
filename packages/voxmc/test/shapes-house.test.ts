@@ -3,7 +3,7 @@
 // Shapes for houses: roofs over several rectangles, dormers, chimneys, doors, windows.
 
 import { describe, expect, it } from "vitest";
-import { McbuilderError, shapes } from "../src/index.ts";
+import { shapes, VoxmcError } from "../src/index.ts";
 
 type Cell = [number, number, number, string];
 type P = [number, number, number];
@@ -13,7 +13,7 @@ const sortCells = (cells: readonly (readonly [number, number, number, string])[]
 const byPos = (cells: readonly (readonly [number, number, number, string])[]) =>
   new Map(cells.map((c) => [`${c[0]},${c[1]},${c[2]}`, c[3]]));
 const throws = (fn: () => unknown, message: RegExp): void => {
-  expect(fn).toThrow(McbuilderError);
+  expect(fn).toThrow(VoxmcError);
   expect(fn).toThrow(message);
 };
 

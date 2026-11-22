@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// `voxwright-cli inspect <schematic>`: what a schematic file holds.
+// `voxmc inspect <schematic>`: what a schematic file holds.
 
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import { parseArgs } from "node:util";
-import { LEGACY_SCHEMATIC_MESSAGE } from "@voxwright/core";
+import { LEGACY_SCHEMATIC_MESSAGE } from "voxmc-core";
 import { exists } from "../script.ts";
 import {
   type Box,

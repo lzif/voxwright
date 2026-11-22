@@ -6,7 +6,7 @@
 // Entities (mobs, item frames...) are not part of a selection and stay put.
 //
 // Rotation and mirroring use the same position and block-state transforms as
-// mcbuilder's structure paste (`rotatePosition`, `rotateBlockstate`,
+// the Python reference implementation's structure paste (`rotatePosition`, `rotateBlockstate`,
 // `mirrorBlockstate`), so they match its golden vectors.
 
 import { AIR_BLOCKS } from "../codecs/common.ts";

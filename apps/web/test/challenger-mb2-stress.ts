@@ -186,13 +186,11 @@ async function runChallengerStress(): Promise<void> {
     );
 
     const settle = async (): Promise<void> => {
-      await mobilePage.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await mobilePage.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const pose = (): Promise<TouchPose> =>
       mobilePage.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
 
     const getTarget = async (): Promise<[number, number, number]> => {
@@ -257,7 +255,7 @@ async function runChallengerStress(): Promise<void> {
     // 1.2 Round-trip diagonal pan (forward and back)
     await mobilePage.evaluate(() => {
       (window as any).__panLog = [];
-      const r = (window as any).__voxwright.renderer;
+      const r = (window as any).__voxmc.renderer;
       const origPan = r.panBy.bind(r);
       const origOrbit = r.orbitBy.bind(r);
       r.panBy = (dx: number, dy: number) => {
@@ -274,7 +272,7 @@ async function runChallengerStress(): Promise<void> {
     const baselinePose = await pose();
     console.log(`    [diag pan] baselinePose:`, baselinePose);
     const baselineOrbitTarget = await mobilePage.evaluate(() => [
-      ...(window as any).__voxwright.renderer.orbit.target,
+      ...(window as any).__voxmc.renderer.orbit.target,
     ]);
     console.log(
       `    [diag pan] baselineOrbitTarget:`,
@@ -288,7 +286,7 @@ async function runChallengerStress(): Promise<void> {
     const midTarget = await getTarget();
     const midPose = await pose();
     const midOrbitTarget = await mobilePage.evaluate(() => [
-      ...(window as any).__voxwright.renderer.orbit.target,
+      ...(window as any).__voxmc.renderer.orbit.target,
     ]);
     console.log(`    [diag pan] midOrbitTarget:`, midOrbitTarget, `computeTarget:`, midTarget);
 
@@ -311,7 +309,7 @@ async function runChallengerStress(): Promise<void> {
     const returnedTarget = await getTarget();
     const returnedPose = await pose();
     const returnedOrbitTarget = await mobilePage.evaluate(() => [
-      ...(window as any).__voxwright.renderer.orbit.target,
+      ...(window as any).__voxmc.renderer.orbit.target,
     ]);
     console.log(
       `    [diag pan] returnedOrbitTarget:`,
@@ -608,7 +606,7 @@ async function runChallengerStress(): Promise<void> {
     const desktopEnv = await desktopPage.evaluate(() => {
       const coarse = window.matchMedia("(any-pointer: coarse)").matches;
       const fine = window.matchMedia("(any-pointer: fine)").matches;
-      const r = (window.__voxwright as any)?.renderer;
+      const r = (window.__voxmc as any)?.renderer;
       return {
         coarse,
         fine,
@@ -630,13 +628,11 @@ async function runChallengerStress(): Promise<void> {
     );
 
     const deskSettle = async (): Promise<void> => {
-      await desktopPage.evaluate(() => window.__voxwright?.renderer.whenIdle());
+      await desktopPage.evaluate(() => window.__voxmc?.renderer.whenIdle());
     };
     const deskPose = (): Promise<TouchPose> =>
       desktopPage.evaluate(() =>
-        (
-          window.__voxwright as unknown as { renderer: { getPose(): TouchPose } }
-        ).renderer.getPose(),
+        (window.__voxmc as unknown as { renderer: { getPose(): TouchPose } }).renderer.getPose(),
       );
 
     const deskCanvas = await desktopPage.$('[data-testid="canvas"]');

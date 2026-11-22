@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// Block string parsing and canonicalization, compatible with mcbuilder.
+// Block string parsing and canonicalization, compatible with the Python reference implementation.
 //
 // A block string is a namespaced name with optional blockstate properties
 // and optional NBT:
@@ -16,7 +16,7 @@
 import { getCloseMatches } from "./difflib.ts";
 import { compareCodePoints, isPySpace, pyStrip } from "./pystr.ts";
 
-/** Raised for a structurally malformed block string (mcbuilder's `ValueError`). */
+/** Raised for a structurally malformed block string (the Python reference implementation's `ValueError`). */
 export class BlockStringError extends Error {
   constructor(message: string) {
     super(message);

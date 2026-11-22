@@ -25,10 +25,10 @@ import { createHash } from "node:crypto";
 import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve, sep } from "node:path";
 import { unzipSync } from "fflate";
-import { McbuilderError } from "../errors.ts";
+import { VoxmcError } from "../errors.ts";
 import { normalizeBlockData } from "../registry.ts";
 
-export class AssetError extends McbuilderError {}
+export class AssetError extends VoxmcError {}
 
 export const MC_DATA_RAW = "https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master";
 export const PISTON_MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
@@ -51,7 +51,7 @@ export type HttpGet = (url: string) => Promise<{ status: number; body: Uint8Arra
 /** The one place that talks to the network. Tests replace it. */
 export const defaultHttpGet: HttpGet = async (url) => {
   try {
-    const res = await fetch(url, { headers: { "user-agent": "voxwright-mcbuilder" } });
+    const res = await fetch(url, { headers: { "user-agent": "voxmc" } });
     return { status: res.status, body: new Uint8Array(await res.arrayBuffer()) };
   } catch (e) {
     throw new AssetError(
@@ -76,7 +76,7 @@ const exists = (p: string): Promise<boolean> =>
     () => false,
   );
 
-export const defaultCacheRoot = (home: string): string => join(home, ".cache", "mcbuilder");
+export const defaultCacheRoot = (home: string): string => join(home, ".cache", "voxmc");
 
 /**
  * Candidate version directories holding `minecraft-data.json`, `version.json`, and `client/`.
