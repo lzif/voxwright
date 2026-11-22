@@ -21,6 +21,10 @@
     "test": "vitest run",
     "test:touch": "pnpm --filter voxmc-web test:touch",
     "depcheck": "depcruise --config .dependency-cruiser.cjs .",
+    "gate:names": "node scripts/gate-names.ts",
+    "gate:packages": "node scripts/gate-packages.ts",
+    "gate:depcruise": "node scripts/gate-depcruise.ts",
+    "gate:skills": "node scripts/gate-skills.ts",
     "pack:npm": "node scripts/pack-npm.ts",
     "convert": "node scripts/convert.ts",
     "licenses": "node scripts/licenses.ts"

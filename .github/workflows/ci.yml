@@ -28,6 +28,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run check
       - run: pnpm run depcheck
+      # Permanent gates (scripts/gate-*.ts). Names: no old project name in any tracked path or file,
+      # except the listed exceptions. Packages: distinct workspace names, none named `voxmc`.
+      # Dependency rules: every rule's from.path matches a module. Skills: markdown only.
+      - run: pnpm run gate:names
+      - run: pnpm run gate:packages
+      - run: pnpm run gate:depcruise
+      - run: pnpm run gate:skills
       # The command line is bundled from the package sources here and in npm.yml; nothing
       # generated is committed.
       - name: Assemble the npm package (dry run)
