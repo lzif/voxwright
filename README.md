@@ -1,13 +1,13 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-only -->
-# Voxwright
+# Voxmc
 
-Voxwright is a programmatic Minecraft build engine and an Agent Skill. An AI agent writes a
-short TypeScript recipe; Voxwright runs it headlessly, validates every block against the block
+Voxmc is a programmatic Minecraft build engine and an Agent Skill. An AI agent writes a
+short TypeScript recipe; Voxmc runs it headlessly, validates every block against the block
 registry of the Minecraft version, and exports `.schem`, `.litematic`, `.nbt` or `.mcstructure`.
 A browser 3D viewer and editor lets you inspect what the agent built and fix details by hand
 before the build goes into your world.
 
-The engine is a TypeScript port of [mcbuilder](https://github.com/lzif/mcbuilder).
+The engine is a TypeScript port of the Python reference implementation.
 
 Not affiliated with Mojang or Microsoft.
 
@@ -17,7 +17,7 @@ Install the skill into your agent (Claude Code, Cursor, Codex or any other agent
 Skills):
 
 ```sh
-npx skills install lzif/voxwright
+npx skills install lzif/voxmc
 ```
 
 Restart or reload the agent so it finds the skill. That is the whole setup: the skill runs on
@@ -26,7 +26,7 @@ Node 22.18 or later, with no dependencies to install and nothing to build.
 Then ask for a build:
 
 ```text
-Use voxwright to build a small medieval watchtower with a crenellated top, about 7 blocks wide.
+Use voxmc to build a small medieval watchtower with a crenellated top, about 7 blocks wide.
 Export it as a .litematic and open the preview.
 ```
 
@@ -48,19 +48,18 @@ an address: the page shows the build in 3D, and a refresh shows the next version
 
 ## What the skill does
 
-| Step    | Command                                            | Result                                                                                                                     |
-| ------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Build   | `voxwright-cli build <recipe> --out <file>`        | Runs the recipe, validates block names and block states, writes the schematic                                              |
-| Inspect | `voxwright-cli inspect <schematic>`                | Format, DataVersion, size, block count, palette, block entities, entities                                                  |
-| Preview | `voxwright-cli preview <schematic>`                | Serves the 3D viewer and editor on localhost with the file open (`view` is an alias; also takes a run directory or run id) |
-| Import  | `voxwright-cli import <schematic> -o <recipe>.mjs` | Turns a schematic back into a `"voxwright"` recipe (`.ts` or `.mjs`) that rebuilds it, with renamed block ids updated      |
+| Step    | Command                                    | Result                                                                                                                     |
+| ------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Build   | `voxmc build <recipe> --out <file>`        | Runs the recipe, validates block names and block states, writes the schematic                                              |
+| Inspect | `voxmc inspect <schematic>`                | Format, DataVersion, size, block count, palette, block entities, entities                                                  |
+| Preview | `voxmc preview <schematic>`                | Serves the 3D viewer and editor on localhost with the file open (`view` is an alias; also takes a run directory or run id) |
+| Import  | `voxmc import <schematic> -o <recipe>.mjs` | Turns a schematic back into a `"voxmc"` recipe (`.ts` or `.mjs`) that rebuilds it, with renamed block ids updated          |
 
-`voxwright-cli` stands for `node skills/voxwright/scripts/voxwright-cli.mjs` (in an installed
-skill, `scripts/voxwright-cli.mjs` of the skill directory): a single committed file, bundled from
-`packages/mcbuilder` and `packages/core`, so the installed skill needs no `node_modules`.
+`voxmc` is the npm package of that name (`npx voxmc` runs it without installing): a single file,
+bundled from `packages/voxmc` and `packages/core`, so it needs no `node_modules`.
 Validation uses a version-pinned block registry (default Minecraft 26.2, or `mc_version` and
-`allowlist` from an `mcbuild.toml` next to the recipe), downloaded on first use into
-`~/.cache/mcbuilder/`. An unknown block, an unknown property or an illegal value stops the build
+`allowlist` from a `voxmc.toml` next to the recipe), downloaded on first use into
+`~/.cache/voxmc/`. An unknown block, an unknown property or an illegal value stops the build
 with a did-you-mean message and the recipe position `(at file:line:col)`, and nothing is written.
 
 ### Export formats
@@ -79,7 +78,7 @@ instead of being dropped silently.
 ### A recipe
 
 ```ts
-import { Build, patches } from "voxwright";
+import { Build, patches } from "voxmc";
 
 export const BUILD = new Build({ seed: 7 });
 
@@ -96,36 +95,36 @@ BUILD.scope(() => {
 ```
 
 ```sh
-node skills/voxwright/scripts/voxwright-cli.mjs build house.ts --out out/house.schem --out out/house.litematic
-node skills/voxwright/scripts/voxwright-cli.mjs inspect out/house.schem
-node skills/voxwright/scripts/voxwright-cli.mjs preview out/house.litematic
+voxmc build house.ts --out out/house.schem --out out/house.litematic
+voxmc inspect out/house.schem
+voxmc preview out/house.litematic
 ```
 
 A recipe is plain code: loops, functions, seeded randomness, reusable parts placed with rotation.
 The same seed always gives the same build. What the agent reads to write one:
 
-- [SKILL.md](skills/voxwright/SKILL.md): the workflow and the command line.
-- [references/builder-api.md](skills/voxwright/references/builder-api.md): every method, option and default.
-- [references/block-states.md](skills/voxwright/references/block-states.md): block ids, properties, rotation and
+- [SKILL.md](skills/voxmc/SKILL.md): the workflow and the command line.
+- [references/builder-api.md](skills/voxmc/references/builder-api.md): every method, option and default.
+- [references/block-states.md](skills/voxmc/references/block-states.md): block ids, properties, rotation and
   per-format caveats.
-- [references/recipe-examples.md](skills/voxwright/references/recipe-examples.md): three complete recipes.
+- [references/recipe-examples.md](skills/voxmc/references/recipe-examples.md): three complete recipes.
 
 All of this works without an agent too. The same command line is on npm:
 
 ```sh
 npm install -g voxmc     # or: npx voxmc <command>
-mcbuild init house.ts
-mcbuild build house.ts --out house.schem
-mcbuild preview house.schem
+voxmc init house.ts
+voxmc build house.ts --out house.schem
+voxmc preview house.schem
 ```
 
 ## The browser 3D preview and editor
 
 `apps/web` is the human-in-the-loop half of the workflow: the place where a person looks at a
 generated build, checks block placement and block states, fixes what the agent got wrong, and
-exports the result. `mcbuild preview <file>` (or `mcbuild view <file>`, or `voxwright-cli preview <file>`) opens it with the build loaded (the page
+exports the result. `voxmc preview <file>` (or `voxmc view <file>`) opens it with the build loaded (the page
 accepts a same-origin `?open=` link). It also works on its own, for any schematic, at
-https://luki.is-a.dev/voxwright/.
+https://luki.is-a.dev/voxmc/.
 
 It is a static SvelteKit site: open a `.nbt`, `.schem`, `.litematic` or
 `.mcstructure`, turn it by dragging or fly through it with W A S D, limit it to a
@@ -154,14 +153,14 @@ without WebGL2 keeps the page a viewer. On a phone or a narrow window the page
 switches to a touch layout with the same editor (the offset cursor, the nudge pad,
 sheets for blocks, block state and selection, an Undo toast, a quick-start card;
 see the [user guide](docs/user-guide.md), section 5). Drawing uses WebGL2
-(`@voxwright/render/webgl`: our own section mesher in a pool of workers, drawn
+(`voxmc-render/webgl`: our own section mesher in a pool of workers, drawn
 with three.js); without WebGL2 the page falls back to a software rasterizer in a
 worker.
 
 ```sh
-node packages/mcbuilder/bin/mcbuild.ts assets fetch --version 26.2   # vanilla assets, once
-pnpm --filter @voxwright/web assets    # bundle blockstates, models and textures into a local pack
-pnpm --filter @voxwright/web dev       # or: build, then serve apps/web/build from any file host
+node packages/voxmc/bin/voxmc.ts assets fetch --version 26.2   # vanilla assets, once
+pnpm --filter voxmc-web assets    # bundle blockstates, models and textures into a local pack
+pnpm --filter voxmc-web dev       # or: build, then serve apps/web/build from any file host
 ```
 
 The texture pack is built on your machine from Mojang's assets and is
@@ -174,7 +173,7 @@ with axe-core, a phone-sized window). `node apps/web/test/touch-e2e.ts` drives t
 mobile touch editor in a 390 x 844 touch-emulated viewport (gestures, placement,
 selection, block state, the camera, quality, and polish with axe-core on the whole
 page); CI runs it after `e2e.ts`, on the same build.
-`node apps/web/test/preview-e2e.ts` starts `voxwright-cli preview` on a real schematic and checks
+`node apps/web/test/preview-e2e.ts` starts `voxmc preview` on a real schematic and checks
 that the page opens it from the link, with WebGL2 and without. Build the site first. `node apps/web/test/perf.ts` and
 `node apps/web/scripts/measure.ts` measure a generated 256-wide build.
 
@@ -188,27 +187,27 @@ This is a pnpm monorepo. Workspace members live under `packages/*` and `apps/*` 
 (see Tooling below). The GitHub repository itself is public, and the skill is installed straight
 from it.
 
-| Path                 | Role                                                                                                                                                                                                                                                                                                                                             | State              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
-| `skills/voxwright/`  | The Agent Skill, and all that `npx skills install` copies: `SKILL.md` (when to use the skill, the workflow, the command line), `references/` (the recipe API, block-state rules, complete examples) and `scripts/voxwright-cli.mjs`, the skill CLI as one committed bundle (`pnpm build:skill` regenerates it and CI checks that it is current). | in place           |
-| `scripts/`           | Development tools: `build-skill.ts` (the bundler of the skill CLI), `convert` and others.                                                                                                                                                                                                                                                        | in place           |
-| `packages/mcbuilder` | The build engine: the TypeScript port of mcbuilder (`Build`, shapes, materials, registry validation), and the source of the `mcbuild` command line (`src/node/`). May depend on `render` and `core`.                                                                                                                                             | in place           |
-| `packages/core`      | NBT, block-state strings, rotation, volume, the `.nbt`, `.schem`, `.litematic` and `.mcstructure` codecs, and the editor core (commands, undo, tools, picking). Imports nothing from other workspace members and has no DOM dependency.                                                                                                          | in place           |
-| `packages/render`    | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `@voxwright/render/webgl`. May depend on `core`.                                                                                                                                                                                                                        | in place           |
-| `apps/web`           | The browser 3D viewer, editor and converter (SvelteKit, static): the companion for previewing and refining builds. May depend on `render` and `core`.                                                                                                                                                                                            | M4 built           |
-| `vectors/`           | Golden JSON exported from the Python mcbuilder, plus the exporter.                                                                                                                                                                                                                                                                               | in place           |
-| `fixtures/`          | Schematic files shared by all tests.                                                                                                                                                                                                                                                                                                             | synthetic and real |
-| `reference/`         | Local, git-ignored clone of upstream mcbuilder, used read-only as an oracle. Never modified or imported.                                                                                                                                                                                                                                         |                    |
+| Path              | Role                                                                                                                                                                                                                                                    | State              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `skills/voxmc/`   | The Agent Skill, and all that `npx skills install` copies: `SKILL.md` (when to use the skill, the workflow, the command line) and `references/` (the recipe API, block-state rules, complete examples). Markdown only; the command line comes from npm. | in place           |
+| `scripts/`        | Development tools: `pack-npm.ts` (builds the npm file from the sources), `convert` and others.                                                                                                                                                          | in place           |
+| `packages/voxmc`  | The build engine: the TypeScript port of the Python reference implementation (`Build`, shapes, materials, registry validation), and the source of the `voxmc` command line (`src/node/`). May depend on `render` and `core`.                            | in place           |
+| `packages/core`   | NBT, block-state strings, rotation, volume, the `.nbt`, `.schem`, `.litematic` and `.mcstructure` codecs, and the editor core (commands, undo, tools, picking). Imports nothing from other workspace members and has no DOM dependency.                 | in place           |
+| `packages/render` | Section mesher and CPU rasterizer (DOM-free), and a three.js renderer at `voxmc-render/webgl`. May depend on `core`.                                                                                                                                    | in place           |
+| `apps/web`        | The browser 3D viewer, editor and converter (SvelteKit, static): the companion for previewing and refining builds. May depend on `render` and `core`.                                                                                                   | M4 built           |
+| `vectors/`        | Golden JSON exported from the Python reference implementation, plus the exporter.                                                                                                                                                                       | in place           |
+| `fixtures/`       | Schematic files shared by all tests.                                                                                                                                                                                                                    | synthetic and real |
+| `reference/`      | Local, git-ignored clone of the Python reference implementation, used read-only as an oracle. Never modified or imported.                                                                                                                               |                    |
 
 Dependencies point one way only; `.dependency-cruiser.cjs` enforces this.
 
-`npx skills install` copies only `skills/voxwright/` (about 570 kB). The engine source, the
+`npx skills install` copies only `skills/voxmc/` (about 570 kB). The engine source, the
 larger example recipes and the design notes stay in the repository; the skill links to them.
 
 ## Live site and credits
 
-The web app is published at https://lzif.github.io/voxwright/ by `.github/workflows/pages.yml`
-(GitHub redirects that address to https://luki.is-a.dev/voxwright/, the custom domain of the
+The web app is published at https://lzif.github.io/voxmc/ by `.github/workflows/pages.yml`
+(GitHub redirects that address to https://luki.is-a.dev/voxmc/, the custom domain of the
 account's Pages site).
 
 Its built-in pack is vanilla Minecraft 26.3: block states, block models and textures, which belong
@@ -226,40 +225,39 @@ committed here. Visitors can lay their own pack over it.
 - dependency-cruiser for the dependency rules (`.dependency-cruiser.cjs`)
 - GitHub Actions, per path (`.github/workflows/ci.yml`)
 
-- esbuild for the skill bundle (`scripts/build-skill.ts`)
+- esbuild for the npm file (`scripts/pack-npm.ts`)
 
 Scripts: `pnpm check`, `pnpm typecheck`, `pnpm test`, `pnpm test:touch`, `pnpm depcheck`,
-`pnpm build:skill` (regenerate `skills/voxwright/scripts/voxwright-cli.mjs` after changing `packages/mcbuilder` or
-`packages/core`; `node scripts/build-skill.ts --check` fails when it is stale), `pnpm run licenses`
+`pnpm pack:npm` (below), `pnpm run licenses`
 (licences of the production dependencies of `apps/web`; write `run`, because plain
 `pnpm licenses` is pnpm's own command and fails).
 
-The command line is also the npm package `voxmc`, which is the skill's bundle under the command
-name `mcbuild` (npm refuses the unscoped name `mcbuild` as too similar to `mc-build`). `pnpm pack:npm` assembles it in `dist/npm/mcbuild/`.
-To release: set the version in the root `package.json`, run `pnpm build:skill`, commit, and push
+The command line is the npm package `voxmc`, a single file built from the sources.
+`pnpm pack:npm` assembles it in `dist/npm/voxmc/`.
+To release: set the version in the root `package.json`, commit, and push
 a tag `v<version>`; `.github/workflows/npm.yml` publishes it with the `NPM_TOKEN` secret.
 
-## The `mcbuild` command
+## The `voxmc` command
 
-One command line serves every use. `mcbuild` on npm, `voxwright-cli.mjs` in the skill and
-`packages/mcbuilder/bin/mcbuild.ts` in the workspace are the same program with the same commands:
+One command line serves every use. `voxmc` on npm and `packages/voxmc/bin/voxmc.ts` in the
+workspace are the same program with the same commands:
 `build`, `inspect` and `preview` (or `view`, above), and the commands ported from the Python tool,
 which work with numbered run directories:
 
 ```sh
-mcbuild init house.ts
-mcbuild check house.ts
-mcbuild run house.ts                     # dist/run-001/: report.json + house.nbt
-mcbuild run house.ts --preview --guide   # also PNG views and a build guide
-mcbuild view 1                           # open run-001's schematic in the 3D viewer
-mcbuild import build.litematic -o build.ts
-mcbuild diff 1 2                         # cells added, removed, replaced + comparison PNG
-mcbuild assets fetch --version 26.2      # block registry + vanilla client assets
-mcbuild palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4 --family stairs   # blocks that step evenly in colour
+voxmc init house.ts
+voxmc check house.ts
+voxmc run house.ts                     # dist/run-001/: report.json + house.nbt
+voxmc run house.ts --preview --guide   # also PNG views and a build guide
+voxmc view 1                           # open run-001's schematic in the 3D viewer
+voxmc import build.litematic -o build.ts
+voxmc diff 1 2                         # cells added, removed, replaced + comparison PNG
+voxmc assets fetch --version 26.2      # block registry + vanilla client assets
+voxmc palette ramp deepslate_tile_stairs stone_brick_stairs --steps 4 --family stairs   # blocks that step evenly in colour
 ```
 
 A script exports a `Build` as `BUILD`. The block registry of the version is downloaded into
-`~/.cache/mcbuilder/` when first needed; `--offline` keeps a command off the network. `run --preview` writes faithful PNG
+`~/.cache/voxmc/` when first needed; `--offline` keeps a command off the network. `run --preview` writes faithful PNG
 previews and `run --guide` a build guide; the fast and trusted preview tiers are not ported, and
 `--tier` says so instead of ignoring the flag. `diff` also writes a side-by-side comparison PNG
 (`diff-<run-a>-<run-b>.png`) when both runs share a preview view, and `view` is an alias for
@@ -273,7 +271,7 @@ the cache and writes `<cache>/<version>/texture-stats.json`; `--family stairs|sl
 
 The PNG previews draw with Minecraft's own block states, models and textures. They are downloaded
 when first needed (`run --preview`, unless `--offline`) or with `assets fetch`, into
-`~/.cache/mcbuilder/<version>/client/`, from
+`~/.cache/voxmc/<version>/client/`, from
 [InventivetalentDev/minecraft-assets](https://github.com/InventivetalentDev/minecraft-assets) (the
 files behind [mcasset.cloud](https://mcasset.cloud/)). `assets fetch --from mojang` extracts the
 same files from the client jar on Mojang's servers instead. Nothing from either is stored in this
@@ -313,7 +311,7 @@ Built:
 - Repo foundations: license, editor config, workspace, TypeScript base config,
   Biome, Vitest, dependency-cruiser.
 - CI on GitHub (`.github/workflows/ci.yml`), passing on `main`.
-- Golden vectors from the Python mcbuilder for the core, the mcbuilder port and
+- Golden vectors from the Python reference implementation for the core, the port and
   the renderer (see [vectors/README.md](vectors/README.md)).
 - `core`: NBT reader and writer (big and little endian, gzip), block strings,
   rotation, sectioned volume, and codecs for `.nbt`, `.schem`, `.litematic` and
@@ -323,13 +321,13 @@ Built:
   Java default properties that Bedrock leaves out (such as `waterlogged=false`)
   are set aside.
 - `convert` script between all four formats.
-- The Agent Skill in `skills/voxwright/`: `SKILL.md`, the references, and the skill CLI (`build`, `inspect`,
-  `preview` / `view`) as a committed zero-dependency bundle, with the web app opening a build from a
+- The Agent Skill in `skills/voxmc/`: `SKILL.md` and the references, and the command line (`build`,
+  `inspect`, `preview` / `view`) as the zero-dependency npm file, with the web app opening a build from a
   `?open=` link.
 - The WebGL viewer (M1), the converter page (M2), the editor (M3), the release
   work (M4: autosave, your own resource pack, the site footer with a source link,
   an accessibility pass, a dependency licence check, and the user and
-  self-hosting guides), and the mcbuilder port (M5).
+  self-hosting guides), and the port of the Python reference implementation (M5).
 
 Not done yet:
 
@@ -344,12 +342,12 @@ Not done yet:
 - The 0.1.0 release: the 0.1.0 version bump and tag (`voxmc` is on npm at 0.0.3).
 - Deferred, not in 0.1.0: the parts catalog (the spec names it, nothing defines it, so it needs a
   definition first) and the fast and trusted preview tiers.
-- From the mcbuilder port: archiving the Python repository.
+- From the Python port: archiving the Python repository.
 
 ## License
 
 AGPL-3.0-only. See [LICENSE](LICENSE).
 
-Parts of this repository are derived from [mcbuilder](https://github.com/lzif/mcbuilder),
+Parts of this repository are derived from an earlier Python implementation by the same author,
 which is MIT-licensed. [NOTICE](NOTICE) names those parts and carries the MIT
 license text.
