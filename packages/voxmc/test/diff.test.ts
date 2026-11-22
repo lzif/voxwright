@@ -150,7 +150,7 @@ describe("run directories", () => {
     expect(await runCli(["diff", "1", "2", "--out", runs, "--max", "-1"], io)).toBe(1);
     expectError(() => {
       throw new DiffError("x");
-    }, "McbuilderError");
+    }, "VoxmcError");
   });
 
   it("prefers direction-trusted views and writes a side-by-side comparison PNG", async () => {

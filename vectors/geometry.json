@@ -938,7 +938,7 @@
  },
  "errors": {
   "rotate-bad": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "mirror-bad": {
    "error": "TypeError"

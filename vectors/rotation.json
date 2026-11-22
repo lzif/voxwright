@@ -4804,17 +4804,17 @@
     {
       "call": "rotate_position",
       "rotation": "SIDEWAYS",
-      "error": "McbuilderError"
+      "error": "VoxmcError"
     },
     {
       "call": "rotate_blockstate",
       "rotation": "SIDEWAYS",
-      "error": "McbuilderError"
+      "error": "VoxmcError"
     },
     {
       "call": "mirror_blockstate",
       "axis": "y",
-      "error": "McbuilderError"
+      "error": "VoxmcError"
     }
   ]
 }

@@ -221,7 +221,7 @@ export class Registry {
         } else if (name.includes(":") && !name.startsWith("minecraft:")) {
           errors.push({
             block,
-            message: `unknown block ${pyRepr(name)} (not in the ${this.version} registry); add it to \`allowlist\` in mcbuild.toml if it is a modded/custom block`,
+            message: `unknown block ${pyRepr(name)} (not in the ${this.version} registry); add it to \`allowlist\` in voxmc.toml if it is a modded/custom block`,
             suggestions: [],
           });
         } else {

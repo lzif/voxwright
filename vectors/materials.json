@@ -5135,7 +5135,7 @@
   {
    "name": "empty",
    "spec": [],
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "name": "negative",
@@ -5145,7 +5145,7 @@
      -1
     ]
    ],
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "name": "zero-sum",
@@ -5155,14 +5155,14 @@
      0
     ]
    ],
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "name": "bad-entry",
    "spec": [
     5
    ],
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "name": "bad-weight",
@@ -5172,7 +5172,7 @@
      "x"
     ]
    ],
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "name": "malformed-block",
@@ -5183,7 +5183,7 @@
   },
   {
    "name": "patches-scale-zero",
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   }
  ]
 }

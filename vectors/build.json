@@ -26195,7 +26195,7 @@
    "error": "GridBoundsError"
   },
   "place-bad-rotation": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "place-not-geometry": {
    "error": "BuildError"

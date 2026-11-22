@@ -16091,7 +16091,7 @@
     "minecraft:stone"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "box",
@@ -16109,7 +16109,7 @@
     "minecraft:stone"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "pillar",
@@ -16123,7 +16123,7 @@
     "minecraft:stone"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16139,7 +16139,7 @@
    "kwargs": {
     "length": 2
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16153,7 +16153,7 @@
     "minecraft:oak_stairs"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16174,7 +16174,7 @@
      -1
     ]
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16194,7 +16194,7 @@
      1
     ]
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16210,7 +16210,7 @@
    "kwargs": {
     "length": 2
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "stairs",
@@ -16227,7 +16227,7 @@
     "length": 2,
     "width": 0
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "cylinder",
@@ -16242,7 +16242,7 @@
     "minecraft:stone"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "cylinder",
@@ -16259,7 +16259,7 @@
    "kwargs": {
     "axis": "w"
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "sphere",
@@ -16275,7 +16275,7 @@
    "kwargs": {
     "thickness": 0
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "cone",
@@ -16290,7 +16290,7 @@
     "minecraft:stone"
    ],
    "kwargs": {},
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "roof_gable",
@@ -16310,7 +16310,7 @@
    "kwargs": {
     "ridge": "y"
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "roof_gable",
@@ -16330,7 +16330,7 @@
    "kwargs": {
     "ridge": "x"
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   {
    "fn": "roof_hip",
@@ -16350,7 +16350,7 @@
    "kwargs": {
     "hip": "minecraft:stone"
    },
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   }
  ]
 }

@@ -1441,34 +1441,34 @@
    "ok": "run-abc"
   },
   "99": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "afile": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "  ": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   ".": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "..": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   ".hidden": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   "a/b": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   },
   " 001 ": {
    "ok": "run-001"
   },
   "run-1": {
-   "error": "McbuilderError"
+   "error": "VoxmcError"
   }
  },
  "runs": {
@@ -1630,7 +1630,7 @@
    },
    "extra_files": {},
    "result": {
-    "error": "McbuilderError"
+    "error": "VoxmcError"
    }
   },
   "no-report": {
@@ -1638,7 +1638,7 @@
    "report": null,
    "extra_files": {},
    "result": {
-    "error": "McbuilderError"
+    "error": "VoxmcError"
    }
   },
   "no-artifacts": {

@@ -392,7 +392,7 @@ async function runBuild(req: BuildRequest): Promise<BuildSummary> {
       ...e,
       ...at(e.block),
       message: e.message.replace(
-        "add it to `allowlist` in mcbuild.toml",
+        "add it to `allowlist` in voxmc.toml",
         `pass --allow ${e.block.replace(/[[{].*$/s, "")}`,
       ),
     }));

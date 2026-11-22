@@ -44,7 +44,7 @@ export function expectError(fn: () => unknown, pythonClass: string): void {
     case "BuildError":
       expect(caught).toBeInstanceOf(BuildError);
       break;
-    case "McbuilderError":
+    case "VoxmcError":
       // Rotation names are checked in core, which has its own error class.
       expect(caught instanceof VoxmcError || caught instanceof RotationError).toBe(true);
       break;
